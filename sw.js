@@ -2,7 +2,7 @@
 var CACHE = 'trace-v3';
 var SHELL = [
   './', './index.html', './explore-map.html', './travel-map.html',
-  './workshop.html', './settings.html', './md-manager.html', './review.html',
+  './workshop.html', './settings.html', './md-manager.html', './review.html', './story.html',
   './changzheng.html', './gx-yn.html', './qinghai-tibet.html', './shanxi.html',
   './test-data.html',
   './design.css', './map.css', './theme.js',
