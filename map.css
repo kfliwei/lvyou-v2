@@ -845,3 +845,4 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .theme-dark .arrive-card{background:rgba(29,28,25,.97);border-color:var(--color-line)}
 .theme-dark .routeBanner{background:var(--color-primary);color:#fff}
 .theme-dark .legOpen,.theme-dark #legOpen{background:rgba(29,28,25,.9);color:var(--color-primary-dark);border-color:var(--color-line)}
+.theme-dark .leaflet-control-layers-toggle{background-color:var(--color-bg-soft)}
