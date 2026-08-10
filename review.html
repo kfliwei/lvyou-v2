@@ -63,6 +63,12 @@
   .empty .em{font-family:var(--font-serif);font-size:44px;color:var(--color-faint)}
   .empty b{display:block;margin-top:12px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
   .empty span{display:block;margin-top:6px;font-size:12.5px;color:var(--color-muted)}
+  .report-dlg{position:fixed;left:10px;right:10px;bottom:10px;z-index:9000;max-height:80dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-float);padding:18px 20px 22px}
+  .report-dlg h4{font-family:var(--font-serif);font-weight:400;color:var(--color-ink);margin:0 0 10px;font-size:18px}
+  .report-dlg .txt{font-family:var(--font-serif);font-size:14.5px;line-height:1.9;color:var(--color-ink-soft);white-space:pre-wrap}
+  .report-dlg .acts{display:flex;gap:10px;margin-top:16px}
+  .report-dlg .acts button{flex:1;min-height:44px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer}
+  .report-dlg .acts button.x{background:var(--color-bg-soft);color:var(--color-muted)}
 </style>
 </head>
 <body>
@@ -76,6 +82,7 @@
   <div class="content">
     <div class="stats" id="stats"></div>
     <div class="stats" id="stats2"></div>
+    <button class="btn-secondary" id="aiReport" style="width:100%;margin:0 0 14px">📖 生成年度报告</button>
     <div id="todayBox" style="display:none"></div>
     <div class="cal-card">
       <div class="cal-head">
@@ -242,6 +249,66 @@ document.getElementById('calNext').onclick=function(){
   var p=curYm.split('-'),y=+p[0],m=+p[1]+1;
   if(m>12){m=1;y++;}
   curYm=y+'-'+pad(m);renderCal();renderDay();
+};
+function toast(msg){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18)';
+  d.textContent=msg; document.body.appendChild(d);
+  setTimeout(function(){ d.remove(); },2200);
+}
+document.getElementById('aiReport').onclick=function(){
+  if(!notes.length){ toast('还没有游记'); return; }
+  var key=localStorage.getItem('tn_aiKey');
+  if(!key){ toast('请先在设置填 DeepSeek API key'); return; }
+  var model=localStorage.getItem('tn_model')||'deepseek-v4-flash';
+  var alias={'deepseek-chat':'deepseek-v4-flash','deepseek-reasoner':'deepseek-v4-pro'};
+  model=alias[model]||model;
+  var list=notes.slice().sort(function(a,b){return a.ts-b.ts;});
+  var provs={},sites={};
+  list.forEach(function(n){ if(n.province)provs[n.province]=1; if(n.lat!=null)sites[n.lat.toFixed(4)+','+n.lng.toFixed(4)]=1; });
+  var timeline=list.map(function(n){
+    return (n.date||'')+' 在'+(n.siteName||'某处')+(n.weather?'（'+n.weather+'）':'')+'：'+(n.text||n.raw||'').slice(0,100);
+  }).join('\n');
+  var prompt='我有 '+list.length+' 篇游记，'+Object.keys(sites).length+' 个地点，覆盖 '+Object.keys(provs).length+' 个省份。请写一篇 400-600 字的年度旅行回顾散文，温暖有画面感，按时间推进，可穿插感悟，不要编造未出现的史实。时间线如下：\n'+timeline;
+  var dlg=document.createElement('div');
+  dlg.className='report-dlg';
+  dlg.innerHTML='<h4>年度报告</h4><div class="txt">正在写作…</div><div class="acts"><button class="x" id="rptClose">关闭</button></div>';
+  document.body.appendChild(dlg);
+  var body={model:model,messages:[
+    {role:'system',content:'你是资深旅行作家。把用户一年的游记时间线写成一篇完整、有画面感与情感的年度旅行回顾散文。'},
+    {role:'user',content:prompt}
+  ],temperature:0.7};
+  if(model==='deepseek-v4-pro') body.reasoning_effort='high';
+  body.stream=true;
+  fetch('https://api.deepseek.com/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(!r.ok) throw new Error('http');
+    var reader=r.body.getReader(),dec=new TextDecoder(),buf='',text='';
+    function pump(){
+      return reader.read().then(function(res){
+        if(res.done){
+          dlg.querySelector('.txt').textContent=text;
+          return;
+        }
+        buf+=dec.decode(res.value,{stream:true});
+        var lines=buf.split('\n'); buf=lines.pop();
+        lines.forEach(function(line){
+          if(line.indexOf('data: ')!==0) return;
+          var json=line.slice(6).trim(); if(json==='[DONE]') return;
+          try{ var c=JSON.parse(json).choices[0].delta; if(c&&c.content) text+=c.content; }catch(e){}
+        });
+        dlg.querySelector('.txt').textContent=text;
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(function(err){
+    dlg.querySelector('.txt').textContent='生成失败：'+String(err&&err.message||err);
+  });
+  dlg.querySelector('#rptClose').onclick=function(){ dlg.remove(); };
 };
 window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;
