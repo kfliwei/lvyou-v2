@@ -35,6 +35,7 @@
       (n.siteName ? 'place: ' + escYaml(n.siteName) : null),
       (n.lat != null ? 'lat: ' + n.lat : null),
       (n.lng != null ? 'lng: ' + n.lng : null),
+      (n.lat != null ? 'coordinates: ' + escYaml('' + n.lat + ', ' + n.lng) : null),
       (n.province ? 'province: ' + escYaml(n.province) : null),
       (n.city ? 'city: ' + escYaml(n.city) : null),
       (n.county ? 'county: ' + escYaml(n.county) : null),
@@ -185,6 +186,20 @@
     });
     files['00-索引.md'] = lines.join('\n') + '\n';
     /* README */
+    /* 整库轨迹 GPX（供 Obsidian advanced-maps / 其他工具加载） */
+    var gpxPts = sorted.filter(function (n) { return n.lat != null && n.lng != null; });
+    if (gpxPts.length >= 2) {
+      function gx(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+      var gl = ['<?xml version="1.0" encoding="UTF-8"?>',
+        '<gpx version="1.1" creator="行迹 TRACE" xmlns="http://www.topografix.com/GPX/1/1">',
+        '  <trk><name>我的旅程轨迹</name><trkseg>'];
+      gpxPts.forEach(function (n) {
+        var t = n.ts ? new Date(n.ts).toISOString() : '';
+        gl.push('    <trkpt lat="' + n.lat + '" lon="' + n.lng + '">' + (t ? '<time>' + t + '</time>' : '') + '<name>' + gx(n.title || n.siteName || '') + '</name></trkpt>');
+      });
+      gl.push('  </trkseg></trk>', '</gpx>');
+      files['我的旅程轨迹.gpx'] = gl.join('\n');
+    }
     files['README.md'] = [
       '# 行迹 TRACE · Obsidian 库',
       '',
