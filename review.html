@@ -72,6 +72,7 @@
   </header>
   <div class="content">
     <div class="stats" id="stats"></div>
+    <div id="todayBox" style="display:none"></div>
     <div class="cal-card">
       <div class="cal-head">
         <b id="calTitle"></b>
@@ -107,7 +108,23 @@ function render(){
     else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
     selDay=Object.keys(dayMap).sort().pop()||'';
   }
-  renderStats(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+  renderStats(); renderToday(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+}
+function renderToday(){
+  var box = document.getElementById('todayBox');
+  var now = new Date();
+  var md = pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  var hits = notes.filter(function (n) {
+    var d = dayOf(n);
+    return d.slice(5) === md && d.slice(0, 4) !== String(now.getFullYear());
+  }).sort(function (a, b) { return b.ts - a.ts; });
+  if (!hits.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '<div class="eyebrow">今日重现 · ' + md + '</div>' + hits.slice(0, 6).map(function (n) {
+    return '<div class="md-item"><h3>' + esc(n.title || n.siteName || '未命名') + ' <span style="font-size:12px;color:var(--color-muted)">' + (n.date || dayOf(n) || '').slice(0, 4) + '</span></h3>' +
+      '<div class="meta">' + esc(n.date || '') + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
+      '<div class="txt">' + esc((n.text || n.raw || '').slice(0, 160)) + '</div></div>';
+  }).join('');
 }
 function renderStats(){
   var sites={},days=0,photos=0;
