@@ -48,6 +48,7 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 var GAP=3*24*3600*1000;
 var notes=[], trips=[], curTrip='all', cards=[];
 var map=L.map('storyMap',{zoomControl:false,attributionControl:true,scrollWheelZoom:false}).setView([35,104],4);
+L.control.zoom({position:'bottomleft'}).addTo(map);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
 var curMarker=null;
 
