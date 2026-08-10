@@ -417,13 +417,13 @@
     });
   }
   /* ============ 2. 定制路书 ============ */
-  function buildItinerary() {
-    var sites = window.SITES || [];
+  function buildItinerary(sitesIn, topicLabel) {
+    var sites = (sitesIn && sitesIn.length) ? sitesIn : (window.SITES || []);
     if (!sites.length) { flash('当前页面没有景点数据'); return; }
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
     d.innerHTML = '<div style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:14px">定制路书 <button id="ix" style="border:0;background:#E6E1D7;border-radius:8px;width:34px;height:34px;color:#7D7970;font-size:15px;cursor:pointer">✕</button></div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button id="ix" style="border:0;background:#E6E1D7;border-radius:8px;width:34px;height:34px;color:#7D7970;font-size:15px;cursor:pointer">✕</button></div>'
       + '<div style="font-size:13px;color:#7D7970;margin-bottom:8px">告诉我你想怎么走，基于真实景点生成每日行程：</div>'
       + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
       + '<input id="ipref" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'
@@ -439,7 +439,10 @@
       var days = parseInt(d.querySelector('#idays').value, 10) || 3;
       var pref = d.querySelector('#ipref').value.trim() || '经典路线';
       go.disabled = true; go.textContent = '⏳ 正在规划…'; out.style.display = 'block'; out.textContent = '';
-      var pool = sites.slice(0, 80).map(function (s) { return s.label + '（' + s.dy + '·' + s.ty + '·' + (s.county || s.city || '') + '）'; }).join('、');
+      var pool = sites.slice(0, 80).map(function (s) {
+        var tag = [s.ty || s.theme || '', s.dy || '', s.county || s.city || ''].filter(Boolean).join('·');
+        return s.label + (tag ? '（' + tag + '）' : '');
+      }).join('、');
       aiCall([
         { role: 'system', content: '你是旅行规划师。从提供的真实景点中为游客规划 ' + days + ' 日行程，考虑地理顺路与每日节奏。只输出 JSON，格式：[{"day":1,"title":"D1 标题","sites":["景点名"],"note":"衔接建议"}]. 景点名必须从列表里原样选取。' },
         { role: 'user', content: '偏好：' + pref + '。可选景点：' + pool }
@@ -467,7 +470,7 @@
     open: openResults,
     album: buildAlbum,
     atlas: buildAtlas,
-    itinerary: buildItinerary,
+    itinerary: function (sitesIn, topicLabel) { buildItinerary(sitesIn, topicLabel); },
     story: buildStory
   };
 })();
