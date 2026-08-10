@@ -2,7 +2,7 @@
    成果生成模块 · 把游记/景点/名言/AI 加工成可带走的结果
    ------------------------------------------------------------
    · 旅行纪念册（年鉴）：统计 + 每篇游记 + 名言
-   · 个人古建图鉴：探访景点成册
+   · 个人旅行图鉴：探访景点成册
    · 定制路书：偏好 → 每日行程
    · 旅程故事：时间范围 → AI 叙事
    公共：数据聚合 / HTML 文档 / 长图分享 / 保存 / AI 调用
@@ -314,13 +314,13 @@
         + '<div class="m">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div>'
         + pics + tags + '<div class="t">' + esc(n.text || n.raw) + '</div>' + quoteHtml + '</div>';
     }).join('');
-    var html = docShell('我的古建旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), stats + cards);
-    saveDoc('我的古建旅行纪念册', html);
+    var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), stats + cards);
+    saveDoc('我的旅行纪念册', html);
     });
   }
-  /* ============ 3. 个人古建图鉴 ============ */
+  /* ============ 3. 个人旅行图鉴 ============ */
   function buildAtlas() {
-    openFilterPanel('atlas', '个人古建图鉴', '', '还没有游记', function (notes, prov, city, range) {
+    openFilterPanel('atlas', '个人旅行图鉴', '', '还没有游记', function (notes, prov, city, range) {
       if (!notes.length) { flash('没有游记'); return; }
       var seen = {};
       var cards = notes.slice().sort(function (a, b) { return a.ts - b.ts; }).map(function (n) {
@@ -334,8 +334,8 @@
           + (n.photos && n.photos[0] ? '<div style="margin:10px 0"><img src="' + esc(n.photos[0]) + '" style="max-width:100%;border-radius:12px"></div>' : '')
           + '<div class="t">' + esc((n.text || n.raw || '').slice(0, 220)) + (n.text && n.text.length > 220 ? '…' : '') + '</div>' + quoteHtml + '</div>';
       }).join('');
-      var html = docShell('我的古建图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), cards);
-      saveDoc('我的古建图鉴', html);
+      var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), cards);
+      saveDoc('个人旅行图鉴', html);
       });
   }
   /* 名言选取：优先按地点名匹配，否则取通用 */
