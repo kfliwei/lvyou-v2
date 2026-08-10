@@ -923,3 +923,31 @@ body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var
 .rz-row__tx b{display:block;font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--color-ink);line-height:1.4}
 .rz-row__tx small{display:block;font-size:12px;color:var(--color-muted);line-height:1.5;margin-top:3px;font-family:var(--font-sans)}
 .rz-row__arr{color:var(--color-faint);display:grid;place-items:center;margin-left:10px}
+
+/* ============================================================
+   TRACE v2 深色模式（.theme-dark · 覆盖页面内联/浮动浅色面）
+   ============================================================ */
+.theme-dark .topbar{background:rgba(29,28,25,.9);border-bottom-color:var(--color-line)}
+.theme-dark .t-row .back{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
+.theme-dark .t-row .act.sec{background:rgba(255,255,255,.06);color:var(--color-muted);border-color:var(--color-line-strong)}
+.theme-dark .bottom-nav{background:rgba(29,28,25,.9);border-color:var(--color-line)}
+.theme-dark .bottom-nav__item{color:var(--color-muted)}
+.theme-dark .bottom-nav__item.active{color:var(--color-ink);background:rgba(255,255,255,.06)}
+.theme-dark .hero__search{background:rgba(255,255,255,.06);border-color:var(--color-line)}
+.theme-dark .hero__search input{color:var(--color-ink)}
+.theme-dark .hero__search input::placeholder{color:var(--color-faint)}
+.theme-dark .search-panel{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .sp-note:hover,.theme-dark .sp-topic:hover{background:var(--color-bg-soft)}
+.theme-dark .story-item__desc{color:var(--color-ink-soft)}
+.theme-dark .md-item,.theme-dark .group,.theme-dark .stats{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .md-item h3,.theme-dark .group-title,.theme-dark .stat b{color:var(--color-ink)}
+.theme-dark .md-item .loc,.theme-dark .md-item .meta,.theme-dark .group-sub,.theme-dark .stat span{color:var(--color-muted)}
+.theme-dark .search-bar input,.theme-dark input[type=text],.theme-dark input[type=password]{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .search-bar input::placeholder{color:var(--color-faint)}
+.theme-dark .chips button{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .detail-bar,.theme-dark .savebar{background:rgba(29,28,25,.9)}
+.theme-dark .month b,.theme-dark .sec-title,.theme-dark .cal-head b{color:var(--color-ink)}
+.theme-dark .rz-row{background:var(--color-surface);border-color:var(--color-line);border-left-color:var(--color-primary)}
+.theme-dark .rz-row__tx b{color:var(--color-ink)}
+.theme-dark .rz-row__tx small{color:var(--color-muted)}

@@ -789,3 +789,44 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .tripbar .th{padding:11px 14px}
 .tripbar .go{min-height:44px;margin:0 10px 10px}
 .tripbar .sortb{min-height:40px;margin:0 10px 8px}
+
+/* ============================================================
+   TRACE v2 深色模式（.theme-dark · 覆盖地图页写死的浅色面）
+   ============================================================ */
+.theme-dark #mapEl{background:#1a1a17}
+.theme-dark .leaflet-tile-pane .leaflet-tile{filter:sepia(.2) saturate(.45) brightness(.6) contrast(1.05)}
+.theme-dark .card{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .card .nm{color:var(--color-ink)}
+.theme-dark .card .meta,.theme-dark .card .ds{color:var(--color-ink-soft)}
+.theme-dark .leaflet-popup-content-wrapper{background:var(--color-surface);color:var(--color-ink);border-color:var(--color-line)}
+.theme-dark .leaflet-popup-tip{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .leaflet-popup-close-button{color:var(--color-muted)!important}
+.theme-dark .route{background:var(--color-surface)}
+.theme-dark .route .rh{background:var(--color-surface);color:var(--color-ink);border-bottom-color:var(--color-line)}
+.theme-dark .route .rh p{color:var(--color-muted)}
+.theme-dark .stop .sn{color:var(--color-ink)}
+.theme-dark .stop .sd{color:var(--color-muted)}
+.theme-dark .dayh{background:var(--color-bg-soft)}
+.theme-dark .dayh b{color:var(--color-ink)}
+.theme-dark .daytip,.theme-dark .routeNote{color:var(--color-muted);background:var(--color-bg-soft)}
+.theme-dark .tripbar{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .tripbar .th{background:var(--color-bg-soft)}
+.theme-dark .tripbar .th .tt{color:var(--color-ink)}
+.theme-dark .tripbar .chip{background:var(--color-bg-soft);border-color:var(--color-line)}
+.theme-dark .tripbar .chip .nm{color:var(--color-ink)}
+.theme-dark .fab,.theme-dark .tripfab{background:rgba(29,28,25,.9);border-color:var(--color-line-strong);color:var(--color-ink)}
+.theme-dark .ctl{background:rgba(29,28,25,.9);border-color:var(--color-line)}
+.theme-dark .ctl button{color:var(--color-ink-soft)}
+.theme-dark .laymenu{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .laymenu .li{color:var(--color-ink-soft)}
+.theme-dark .legend,.theme-dark .dayLegend{background:rgba(29,28,25,.92);border-color:var(--color-line)}
+.theme-dark .legend h4,.theme-dark .legend .lg,.theme-dark .dayLegend dt,.theme-dark .dayLegend dd{color:var(--color-ink-soft)}
+.theme-dark .foodbar{background:var(--color-bg)}
+.theme-dark .fcard{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .fcard .fn{color:var(--color-ink)}
+.theme-dark .fcard .fdesc{color:var(--color-ink-soft)}
+.theme-dark .cntbar{background:var(--color-bg)}
+.theme-dark .tl-row .n{color:var(--color-ink)}
+.theme-dark .tl-row .t,.theme-dark .tl-row .c{color:var(--color-muted)}
+.theme-dark .routeSelBar select,.theme-dark .foodbar select,.theme-dark .foodbar input{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .reset-chip{color:var(--color-muted);border-color:var(--color-line-strong)}
