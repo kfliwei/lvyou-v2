@@ -35,6 +35,11 @@
   .cal-cell.has{background:var(--color-primary-soft);color:var(--color-primary-dark);font-weight:600}
   .cal-cell.has .dot{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--color-primary)}
   .cal-cell .cnt{position:absolute;top:3px;right:5px;font-size:9px;color:var(--color-primary-dark)}
+  .cal-cell .mood{position:absolute;top:2px;left:6px;font-size:11px;line-height:1}
+  .moodrow{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .moodrow .mk{width:34px;height:34px;border:1px solid var(--color-line);border-radius:999px;display:grid;place-items:center;font-size:16px;cursor:pointer;background:var(--color-surface)}
+  .moodrow .mk.on{border-color:var(--color-primary);background:var(--color-primary-soft)}
+  .moodrow .mk.clear{font-size:12px;color:var(--color-muted)}
   .cal-cell.off{color:transparent;cursor:default}
   .cal-cell.off:hover{background:none}
   .cal-cell.today{border-color:var(--color-primary)}
@@ -108,6 +113,9 @@
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pad(n){return (n<10?'0':'')+n;}
 var notes=[], dayMap={}, curYm='', _init=false, selDay='';
+var dayMoods={};
+try{ dayMoods=JSON.parse(localStorage.getItem('tn_dayMoods')||'{}'); }catch(e){ dayMoods={}; }
+function saveMoods(){ try{ localStorage.setItem('tn_dayMoods',JSON.stringify(dayMoods)); }catch(e){} }
 function dayOf(n){return (n.day||(n.date||'').slice(0,10)||'').slice(0,10);}
 function render(){
   notes=(window.TravelNotes?TravelNotes.list():[]);
@@ -198,7 +206,7 @@ function renderCal(){
   for(var d=1;d<=dim;d++){
     var dd=curYm+'-'+pad(d),list=dayMap[dd]||[];
     var cls='cal-cell'+(list.length?' has':'')+(d===td?' today':'');
-    html+='<div class="cal-cell'+cls+'" data-d="'+dd+'">'+d+(list.length?'<span class="dot"></span><span class="cnt">'+list.length+'</span>':'')+'</div>';
+    html+='<div class="cal-cell'+cls+'" data-d="'+dd+'">'+d+(list.length?'<span class="dot"></span><span class="cnt">'+list.length+'</span>':'')+(dayMoods[dd]?'<span class="mood">'+dayMoods[dd]+'</span>':'')+'</div>';
   }
   var grid=document.getElementById('calGrid');
   grid.innerHTML=html;
@@ -217,7 +225,16 @@ function renderDay(){
       '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'+
       '<div class="txt">'+esc(n.text||n.raw)+'</div>'+tags+thumbs+'</div>';
   }).join('');
-  box.innerHTML='<div class="eyebrow">'+selDay+' · '+list.length+' 篇</div>'+items;
+  var moods=['😀','😐','😭','⛰️','🍜','🧭'];
+  var cur=dayMoods[selDay]||'';
+  var moodRow='<div class="moodrow">'+moods.map(function(m){return '<span class="mk'+(m===cur?' on':'')+'" data-m="'+m+'">'+m+'</span>';}).join('')+'<span class="mk clear" data-m="">✕</span></div>';
+  box.innerHTML='<div class="eyebrow">'+selDay+' · '+list.length+' 篇</div>'+moodRow+items;
+  box.querySelectorAll('.mk').forEach(function(k){
+    k.onclick=function(){
+      if(k.dataset.m){ dayMoods[selDay]=k.dataset.m; }else{ delete dayMoods[selDay]; }
+      saveMoods(); renderCal(); renderDay();
+    };
+  });
 }
 function renderMonthBar(){
   var yms={};
