@@ -105,6 +105,17 @@
       </div>
     </div>
 
+    <!-- 深色模式 -->
+    <div class="group">
+      <div class="group-title">深色模式</div>
+      <div class="group-sub">跟随系统偏好，或手动选择。</div>
+      <div class="chips" id="chDark">
+        <button data-d="auto">跟随系统</button>
+        <button data-d="light">浅色</button>
+        <button data-d="dark">深色</button>
+      </div>
+    </div>
+
     <!-- 存储 -->
     <div class="group">
       <div class="group-title">存储</div>
@@ -119,6 +130,7 @@
         <button class="btn-secondary" onclick="TravelNotes.exportNotes()">导出备份</button>
         <button class="btn-secondary" onclick="TravelNotes.importNotes()">导入备份</button>
         <button class="btn-secondary" onclick="location.href='md-manager.html'">管理 MD 库</button>
+        <button class="btn-secondary" onclick="location.href='review.html'">旅程回顾</button>
         <button class="btn-secondary" onclick="if(window.Vault)Vault.exportVault(TravelNotes.list())">导出 Obsidian 库</button>
         <button class="data-danger" onclick="clearAll()">清除全部数据</button>
       </div>
@@ -191,6 +203,8 @@
     document.getElementById('swTheme').className = 'sw' + (theme ? '' : ' off');
     refreshStorage();
     refreshVoiceDiag();
+    var dark = localStorage.getItem('tn_dark') || 'auto';
+    document.querySelectorAll('#chDark button').forEach(function(b){ b.classList.toggle('on', b.dataset.d === dark); });
   }
   function saveSettings(){
     var key = document.getElementById('inKey').value.trim();
@@ -230,6 +244,16 @@
       this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
       e.target.classList.add('on');
     }
+  });
+  document.querySelector('#chDark').addEventListener('click', function(e){
+    if (e.target.tagName !== 'BUTTON') return;
+    this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
+    e.target.classList.add('on');
+    localStorage.setItem('tn_dark', e.target.dataset.d);
+    var dark = e.target.dataset.d === 'dark' ||
+      (e.target.dataset.d === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.toggle('theme-dark', dark);
+    toast('已切换深色模式');
   });
   loadSettings();
   var notesCount = (window.TravelNotes && TravelNotes.list()) ? TravelNotes.list().length : 0;
