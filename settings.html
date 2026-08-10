@@ -264,8 +264,14 @@
     toast('已切换深色模式');
   });
   loadSettings();
-  var notesCount = (window.TravelNotes && TravelNotes.list()) ? TravelNotes.list().length : 0;
-  document.getElementById('statLabel').textContent = notesCount ? notesCount + ' 篇游记' : '';
+  /* 初始化游记库（此前未 init 导致 notes 为空，补全地点/篇数都不工作） */
+  if (window.TravelNotes) {
+    window.TravelNotes._onReady = function () {
+      var n = TravelNotes.list().length;
+      document.getElementById('statLabel').textContent = n ? n + ' 篇游记' : '';
+    };
+    TravelNotes.init({});
+  }
 </script>
 </body>
 </html>
