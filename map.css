@@ -832,3 +832,16 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .theme-dark .reset-chip{color:var(--color-muted);border-color:var(--color-line-strong)}
 .theme-dark .tripfab .badge{background:var(--color-primary);color:#fff}
 .theme-dark .tripbar .go{background:var(--color-primary);color:#fff}
+
+/* ---- 深色：专题页顶栏搜索/排序 + 到达卡/图例按钮等浅底浅字 ---- */
+.theme-dark .s-row .search{background:rgba(255,255,255,.08);border-color:var(--color-line);color:var(--color-muted)}
+.theme-dark .s-row .search input{color:var(--color-ink)}
+.theme-dark .s-row .search input::placeholder{color:var(--color-faint)}
+.theme-dark .s-row .search .clr{color:var(--color-muted)}
+.theme-dark .s-row .sort{background:rgba(255,255,255,.08);border-color:var(--color-line);color:var(--color-ink-soft)}
+.theme-dark .s-row .sort select{background:transparent;color:var(--color-ink-soft)}
+.theme-dark .s-row .sort option{color:var(--color-ink);background:var(--color-surface)}
+.theme-dark .dayLegendBtn{background:rgba(29,28,25,.9);color:var(--color-primary-dark);border-color:var(--color-line)}
+.theme-dark .arrive-card{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .routeBanner{background:var(--color-primary);color:#fff}
+.theme-dark .legOpen,.theme-dark #legOpen{background:rgba(29,28,25,.9);color:var(--color-primary-dark);border-color:var(--color-line)}
