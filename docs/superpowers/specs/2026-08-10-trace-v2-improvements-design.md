@@ -104,6 +104,20 @@
   （顺带修复专题页直接调用时 `dy/ty` 显示 `undefined` 的问题）。
 - 弹窗标题/说明带上专题名（如「定制路书 · 山西古建」）。
 
+## 实施后补记（2026-08-10 · commit 431f79b）
+
+深色模式实测发现系统性「浅底浅字隐形」bug，已在实现时一并修复：
+
+**根因**：`.theme-dark` 会把 CSS 变量翻成浅色（`--color-ink` 等），但若干浮层容器的背景是写死的浅色（或 `background:var(--color-ink)` 跟着变浅），导致深色下浅底+浅字文字隐形、白字白底按钮。
+
+**修复覆盖（纯 CSS 覆盖，未动逻辑）**：
+- `travel-map.html`：本地浮层 `.stat`/`.statOpen`/`.emptyTip`/`.tl-chip`（含 `.active`）/`#memSheet` + 瓦片深色滤镜（该页不加载 map.css，故就地补）。
+- `design.css`：专题页 `.location-sheet`；travel-notes 运行时面板 `.tn-listbar`/`.tn-settings`/`.tn-dlg`/`.tn-editpage`/`.tn-wall`/`.tn-quotes`/`.tn-ai`（design.css 曾把底写死浅色、文字走 var()）；潜伏组件 `.audio-chip`/`.btn-primary--dark`。
+- `map.css`：`.tripfab .badge`/`.tripbar .go`（`background:var(--color-ink)` 白字）。
+- `md-manager.html`：`.d-src` 源码按钮。
+
+**已知残留（有意不改）**：深色下瓦片为降亮度滤镜而非换源；`shanxi-ancient-architecture.html` 遗留页无深色能力。
+
 ## 范围外（明确不做）
 - 四大专题页公共代码抽取重构（另行排期，不动）。
 - 首页搜索纳入专题景点（另行排期）。
