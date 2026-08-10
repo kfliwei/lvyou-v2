@@ -1,0 +1,596 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>我的游记地图</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  /* 顶栏：薄黛青 + 鎏金底边 */
+
+  /* 顶栏按钮：与专题页同款（.t-row 体系） */
+  .t-row{display:flex;align-items:center;gap:8px;height:42px}
+  .t-row .back{width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);border:1px solid var(--color-line);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .t-row .back:active{transform:scale(.92)}
+  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+  .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:10.5px;color:var(--color-muted);margin-left:6px;letter-spacing:.08em}
+  .t-row .act{flex:0 0 auto;height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:var(--font-sans);letter-spacing:.02em}
+  .t-row .act:active{transform:scale(.94)}
+  .t-row .act.sec{background:rgba(255,255,255,.7);color:var(--color-muted);border:1px solid var(--color-line-strong)}
+  .topbar{
+    position:absolute;left:0;right:0;top:0;z-index:1000;
+    display:flex;align-items:center;gap:8px;
+    padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px;
+    background:rgba(250,248,243,.88);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(32,32,29,.07);
+    box-shadow:0 6px 24px rgba(30,30,28,.05);
+  }
+  /* 顶栏按钮已统一为 .t-row 体系（与专题页一致） */
+  .tbBtn:active{transform:scale(.94)}
+  /* 窄屏：按钮间距紧凑，标题优先 */
+  @media(max-width:480px){
+    .tbBtn{padding:0 8px;font-size:11px}
+    .brand{font-size:14px}
+  }
+  #map{position:absolute;inset:0;top:0;z-index:0}
+  .leaflet-tile-pane .leaflet-tile{filter:sepia(.32) saturate(.52) brightness(1.07) contrast(.93)}
+  /* 右上控制组：图层 + 缩放（毛玻璃） */
+  .ctl{
+    position:absolute;right:12px;top:56px;width:40px;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border-radius:12px;box-shadow:var(--sh-md);overflow:hidden;z-index:1001;
+  }
+  .ctl button{
+    width:40px;height:40px;border:0;background:none;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-700);transition:background .15s;
+  }
+  .ctl button:active{background:var(--paper-200)}
+  .ctl .sep{height:1px;background:var(--paper-300);margin:0 6px}
+  .layicon{position:relative;width:18px;height:18px;display:block}
+  .layicon .a{position:absolute;right:0;bottom:0;width:15px;height:15px;border:1.6px solid currentColor;border-radius:3px}
+  .layicon .b{position:absolute;left:0;top:0;width:11px;height:11px;background:currentColor;border-radius:3px;opacity:.9}
+  .zoomplus{font-size:19px;font-weight:700;line-height:1}
+  .zoomminus{width:14px;height:2px;background:currentColor;border-radius:1px;display:block}
+  .laymenu{
+    position:absolute;right:60px;top:56px;width:158px;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(8px);
+    border-radius:14px;box-shadow:var(--sh-lg);padding:7px;z-index:1002;
+    display:none;
+  }
+  .laymenu.show{display:block}
+  .laymenu .li{
+    display:flex;align-items:center;gap:9px;padding:8px 9px;
+    border-radius:9px;font-size:12.5px;color:var(--ink-700);cursor:pointer;
+  }
+  .laymenu .li.on{background:var(--cinnabar-50);color:var(--cinnabar-600);font-weight:600}
+  .laymenu .sw{width:22px;height:22px;border-radius:6px;flex:0 0 auto;border:1px solid rgba(0,0,0,.06)}
+  .laymenu .ck{margin-left:auto;color:var(--cinnabar-500);font-size:13px;font-weight:700}
+  /* Leaflet 控件中式化（紧凑圆角） */
+  .leaflet-bar{border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--sh-sm);overflow:hidden}
+  .leaflet-bar a{width:34px;height:34px;line-height:34px;background:var(--surface);color:var(--ink-900);border-bottom:1px solid var(--line);font-size:16px;transition:background .15s ease}
+  .leaflet-bar a:last-child{border-bottom:0}
+  .leaflet-bar a:hover{background:var(--surface-2)}
+  .leaflet-bar a.leaflet-disabled{background:var(--surface-2);color:var(--ink-300)}
+  .leaflet-control-zoom{border:1px solid var(--line);border-radius:3px;box-shadow:var(--sh-sm)}
+  .leaflet-control-zoom a{width:38px;height:38px;line-height:38px;background:var(--surface);color:var(--ink-900);border-bottom:1px solid var(--line);font-size:19px}
+  .leaflet-control-zoom a:last-child{border-bottom:0}
+  .leaflet-control-zoom a:hover{background:var(--surface-2)}
+  .leaflet-control-layers{border:1px solid var(--line);border-radius:3px;box-shadow:var(--sh-sm);background:var(--surface)}
+  .leaflet-control-layers-toggle{width:38px;height:38px;background-color:var(--surface);background-size:20px 20px}
+  .leaflet-control-layers-expanded{background:var(--surface);color:var(--ink-900);padding:8px 10px;font-size:12px}
+  .leaflet-control-attribution{background:rgba(246,241,229,.75);color:var(--ink-500)}
+  .leaflet-control-attribution a{color:var(--cinnabar-600)}
+  .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:var(--sh-md)}
+  .leaflet-popup-tip{background:var(--surface);border:1px solid var(--line)}
+  .leaflet-popup-close-button{color:var(--ink-500)!important}
+  /* 节点：墨色小印 */
+  .tnnode{
+    position:relative;font-size:19px;line-height:1;
+    font-family:var(--font-serif);
+  }
+  .tnnode::before{
+    content:'';position:absolute;left:50%;top:50%;width:32px;height:32px;
+    transform:translate(-50%,-50%);border-radius:2px;
+    background:rgba(168,50,42,.18);
+    animation:tnhalo 2s ease-in-out infinite;
+  }
+  @keyframes tnhalo{0%,100%{transform:translate(-50%,-50%) scale(.7);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+  /* 聚合节点数量徽标 */
+  .tncnt{
+    position:absolute;right:-10px;top:-8px;min-width:18px;height:18px;
+    background:var(--color-primary);color:#fff;
+    border-radius:999px;font-size:10.5px;line-height:18px;text-align:center;
+    padding:0 5px;font-weight:700;font-family:var(--font-sans);
+    box-shadow:0 1px 5px rgba(200,109,75,.4);z-index:2;
+  }
+  /* 统计条：紧凑卡片 */
+  .stat{
+    position:absolute;left:12px;right:12px;bottom:14px;z-index:1000;
+    background:rgba(250,248,243,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(32,32,29,.07);border-radius:20px;box-shadow:var(--shadow-float);
+    padding:12px 16px;display:flex;align-items:center;gap:10px;
+  }
+  .stat b{color:var(--color-primary-dark)}
+  .stat .s-main{font-weight:600;font-size:13.5px;font-family:var(--font-sans);letter-spacing:.02em;color:var(--color-ink)}
+  .stat .s-sub{font-size:11px;color:var(--color-muted);font-family:var(--font-sans)}
+  .statClose{flex:0 0 auto;width:28px;height:28px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6b665c;font-size:12px;cursor:pointer;margin-left:2px;transition:background .15s}
+  .statClose:active{background:rgba(38,36,31,.16)}
+  .statOpen{
+    position:absolute;right:12px;bottom:14px;z-index:1000;
+    width:44px;height:44px;border:1px solid rgba(32,32,29,.07);border-radius:50%;
+    background:rgba(250,248,243,.92);backdrop-filter:blur(20px);
+    box-shadow:var(--shadow-medium);font-size:17px;cursor:pointer;color:var(--color-ink-soft);
+    display:none;align-items:center;justify-content:center;
+  }
+  /* 空状态：顶部小提示卡（不挡地图中央），可关闭 */
+  .emptyTip{
+    position:absolute;left:50%;top:42%;transform:translateX(-50%) translateY(-50%);z-index:950;
+    background:rgba(250,248,243,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(32,32,29,.07);border-radius:16px;
+    box-shadow:var(--shadow-medium);padding:10px 14px;display:none;
+    align-items:center;gap:10px;max-width:80vw;white-space:nowrap;
+  }
+  .emptyTip .em{font-size:22px;font-family:var(--font-serif);color:var(--color-primary);animation:tnfloat 3.2s ease-in-out infinite;flex:0 0 auto}
+  @keyframes tnfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .emptyTip b{font-family:var(--font-serif);font-size:14px;color:var(--color-ink);letter-spacing:.02em;flex:0 0 auto;font-weight:400}
+  .emptyTip span{font-size:11.5px;color:var(--color-muted);line-height:1.5;font-family:var(--font-sans);white-space:nowrap}
+  .emptyTip .emClose{flex:0 0 auto;width:26px;height:26px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer}
+
+
+  /* 时间线（底部横向，与地图双向联动 — 方案 Phase 4） */
+  .mm-timeline{
+    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:900;
+    display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;
+  }
+  .mm-timeline::-webkit-scrollbar{display:none}
+  .tl-chip{
+    flex:none;padding:9px 14px;border-radius:999px;
+    background:rgba(250,248,243,.9);border:1px solid rgba(32,32,29,.08);
+    font-size:11px;color:var(--color-muted);letter-spacing:.03em;cursor:pointer;
+    box-shadow:0 4px 14px rgba(30,30,28,.06);
+    backdrop-filter:blur(12px);transition:all var(--duration-fast);
+  }
+  .tl-chip.active{background:var(--color-ink);color:#fff;border-color:var(--color-ink)}
+  .tl-chip i{font-style:normal;opacity:.65;margin-right:5px}
+
+  /* ============================================================
+     TRACE v2 记忆地图：节点系统 + Memory Sheet（规范 §6/§7）
+     ============================================================ */
+  .mem-node{position:relative;width:100%;height:100%;cursor:pointer}
+  .mem-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
+  .mem-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--color-primary);opacity:.5;pointer-events:none;animation:node-breathe 3s ease-in-out infinite}
+  .mem-node--endpoint .mem-dot{background:var(--color-primary);width:13px;height:13px}
+  .mem-node--endpoint .mem-ring{width:30px;height:30px;opacity:.6}
+  .mem-node--photo{width:36px;height:36px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2);background:var(--color-bg-soft)}
+  .mem-node--photo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .mem-node--photo.no-photo{background:var(--color-bg-soft)}
+  .mem-node--photo.no-photo img{display:none}
+  .mem-node--photo.no-photo::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink)}
+  /* 聚合角标（同地点多篇记忆）：照片/墨点 + 数量 */
+  .mem-badge{position:absolute;right:-7px;top:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--color-primary);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(200,109,75,.4);z-index:3;font-family:var(--font-sans)}
+  .mem-node--dot .mem-badge{top:-11px;right:-11px}
+  /* 地点记忆列表（聚合展开） */
+  .ms-item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .ms-item:last-child{border-bottom:0}
+  .ms-item:active{background:var(--color-bg-soft)}
+  .ms-item__th{width:46px;height:46px;border-radius:12px;overflow:hidden;flex:0 0 auto;background:var(--color-bg-soft);display:grid;place-items:center}
+  .ms-item__th img{width:100%;height:100%;object-fit:cover}
+  .ms-item__th span{font-family:var(--font-serif);font-size:16px;color:var(--color-muted)}
+  .ms-item__main{flex:1;min-width:0}
+  .ms-item__title{font-family:var(--font-serif);font-size:15px;color:var(--color-ink)}
+  .ms-item__meta{font-size:11px;color:var(--color-muted);margin-top:3px;font-family:var(--font-sans)}
+  .ms-item__arr{color:var(--color-faint);display:grid;place-items:center}
+  .mem-node:hover .mem-dot{transform:translate(-50%,-50%) scale(1.3)}
+  /* Memory Sheet */
+  #memSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
+  #memSheet.show{display:block;transform:translateY(0)}
+  #memSheet .sheet__handle{cursor:pointer}
+  .ms-place{font-family:var(--font-serif);font-size:26px;font-weight:400;margin-top:6px;letter-spacing:.01em}
+  .ms-time{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.06em}
+  .ms-story{margin-top:14px;font-family:var(--font-serif);font-size:15px;line-height:1.9;color:var(--color-ink-soft);white-space:pre-wrap}
+  .ms-photos{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:4px}
+  .ms-photos img{width:140px;height:140px;object-fit:cover;border-radius:12px;flex:0 0 auto}
+  .ms-audio{margin-top:14px;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--color-primary-soft);border-radius:14px}
+  .ms-audio audio{flex:1;height:36px}
+  .ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .ms-tags span{font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:3px 10px;font-weight:600}
+  .ms-loc{margin-top:3px;font-size:11px;color:var(--color-faint);letter-spacing:.04em}
+  .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer}
+  @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="t-row">
+      <button class="back" onclick="location.href='index.html'" title="返回卷首">←</button>
+      <div class="title">我的游记地图 <small id="statLabel"></small></div>
+      <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录">随手记</button>
+      <button class="act sec" onclick="TravelNotes.openList()">游记</button>
+    </div>
+  </header>
+  <div id="map"></div>
+  <!-- TRACE v2 Memory Sheet -->
+  <div id="memSheet">
+    <div class="sheet__handle" onclick="closeMemSheet()"></div>
+    <div id="msBody"></div>
+  </div>
+  <!-- 右上控制组：图层 + 缩放 -->
+  <div class="ctl">
+    <button id="layBtn" title="切换图层"><span class="layicon"><span class="a"></span><span class="b"></span></span></button>
+    <div class="sep"></div>
+    <button id="zoomIn" title="放大"><span class="zoomplus">+</span></button>
+    <div class="sep"></div>
+    <button id="zoomOut" title="缩小"><span class="zoomminus"></span></button>
+  </div>
+  <div class="laymenu" id="layMenu"></div>
+  <div class="mm-timeline" id="mmTimeline"></div>
+  <div class="stat" id="statBar">
+    <div style="flex:1">
+      <div class="s-main" id="statMain">载入中…</div>
+      <div class="s-sub" id="statSub"></div>
+    </div>
+    <button class="tbBtn" id="shareBtn" onclick="shareTrack()" style="display:none;flex:0 0 auto">制图分享</button>
+    <button class="statClose" id="statClose" title="收起统计">✕</button>
+  </div>
+  <button class="statOpen" id="statOpen" title="查看游记统计"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20 V14"/><path d="M12 20 V8"/><path d="M19 20 V11"/></svg></button>
+  <div class="emptyTip" id="emptyTip">
+    <div class="em">卷</div>
+    <b>尚无游记</b>
+    <span>去专题页或点「随手记」记录第一篇旅程</span>
+    <button class="emClose" id="emptyClose" title="不再提示">✕</button>
+  </div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="quotes.js"></script>
+<script src="travel-notes.js"></script>
+<script src="results.js"></script>
+<script src="vault.js"></script>
+<script>
+let useGCJ = true;
+function _tlat(lng,lat){let r=-100+2*lng+3*lat+0.2*lat*lat+0.1*lng*lat+0.2*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lat*Math.PI)+40*Math.sin(lat/3*Math.PI))*2/3;r+=(160*Math.sin(lat/12*Math.PI)+320*Math.sin(lat*Math.PI/30))*2/3;return r;}
+function _tlng(lng,lat){let r=300+lng+2*lat+0.1*lng*lng+0.1*lng*lat+0.1*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lng*Math.PI)+40*Math.sin(lng/3*Math.PI))*2/3;r+=(150*Math.sin(lng/12*Math.PI)+300*Math.sin(lng/30*Math.PI))*2/3;return r;}
+const _A=6378245.0,_EE=0.00669342162296594323;
+function gcj02Of(lat,lng){
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271)return [lat,lng];
+  let dlat=_tlat(lng-105,lat-35),dlng=_tlng(lng-105,lat-35);
+  const rl=lat/180*Math.PI,m=Math.sin(rl),mm=1-_EE*m*m,sm=Math.sqrt(mm);
+  dlat=(dlat*180)/((_A*(1-_EE))/(mm*sm)*Math.PI);
+  dlng=(dlng*180)/(_A/sm*Math.cos(rl)*Math.PI);
+  return [lat+dlat,lng+dlng];
+}
+function gxy(lat,lng){ return useGCJ? gcj02Of(lat,lng):[lat,lng]; }
+
+const map = L.map('map',{zoomControl:false,attributionControl:true}).setView([33.5,108.5],5);
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+const amapStreet = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
+const amapSat = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
+const amapLabel = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:''});
+const amapSatL = L.layerGroup([amapSat,amapLabel]);
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'&copy; Esri'});
+const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'&copy; OpenTopoMap'});
+amapStreet.addTo(map);
+// 自定义图层菜单 + 缩放（右上角 .ctl），替代默认控件
+const BASE_LAYERS=[
+  {id:'osm', name:'街道地图', sw:'linear-gradient(#f0f0ec,#d8d8d2)', layer:osmLayer},
+  {id:'sat', name:'卫星实景', sw:'linear-gradient(#3c5d52,#27423f)', layer:satLayer},
+  {id:'topo', name:'等高线地形', sw:'linear-gradient(#d9c9a8,#b8a878)', layer:topoLayer},
+  {id:'amapStreet', name:'高德街道', sw:'linear-gradient(#c9d3c0,#8fa893)', layer:amapStreet},
+  {id:'amapSat', name:'高德卫星', sw:'linear-gradient(#27423f,#101f1b)', layer:amapSat},
+  {id:'amapSatL', name:'高德卫星+注记', sw:'linear-gradient(#3c5d52,#0f2a24)', layer:amapSatL}
+];
+const layMenu=document.getElementById('layMenu');
+BASE_LAYERS.forEach(b=>{
+  const li=document.createElement('div'); li.className='li'+(b.layer===amapStreet?' on':''); li.dataset.id=b.id;
+  li.innerHTML='<span class="sw" style="background:'+b.sw+'"></span>'+b.name+'<span class="ck" style="display:'+(b.layer===amapStreet?'':'none')+'">✓</span>';
+  li.onclick=()=>{
+    BASE_LAYERS.forEach(x=>{ if(map.hasLayer(x.layer)) map.removeLayer(x.layer); });
+    b.layer.addTo(map);
+    layMenu.querySelectorAll('.li').forEach(x=>{
+      const on=x.dataset.id===b.id;
+      x.classList.toggle('on',on);
+      x.querySelector('.ck').style.display=on?'':'none';
+    });
+    useGCJ = (b.id==='amapStreet'||b.id==='amapSat'||b.id==='amapSatL');
+    refresh();
+  };
+  layMenu.appendChild(li);
+});
+document.getElementById('layBtn').onclick=e=>{e.stopPropagation();layMenu.classList.toggle('show');};
+document.getElementById('zoomIn').onclick=()=>map.zoomIn();
+document.getElementById('zoomOut').onclick=()=>map.zoomOut();
+map.on('click',()=>layMenu.classList.remove('show'));
+map.on('movestart',()=>layMenu.classList.remove('show'));
+
+let tnLayer = null;
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function flash(msg){
+  const d=document.createElement('div');
+  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:9500;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em';
+  d.textContent=msg; document.body.appendChild(d);
+  setTimeout(()=>d.remove(),2400);
+}
+function refresh(){
+  const notes=TravelNotes.list();
+  if (tnLayer) map.removeLayer(tnLayer);
+  tnLayer = L.layerGroup().addTo(map);
+  const pts=[];
+  const ordered = notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
+  const linePts = ordered.map(n=>gxy(n.lat,n.lng));
+  if (linePts.length >= 2) {
+    // TRACE v2：陶土单色轨迹 + 逐段生长动画（规范 §7 记忆地图轨迹生长）
+    var trackLine=L.polyline(linePts,{color:'#C86D4B',weight:3,opacity:0,lineCap:'round',dashArray:'7 7'}).addTo(tnLayer);
+    setTimeout(function(){ trackLine.setStyle({opacity:.75}); },50);
+  }
+  // 节点系统：单篇 = 照片/墨点节点；同地点多篇（≈11m 内）= 聚合节点（照片/墨点 + 数量角标），点击展开该地点记忆列表
+  const groups = {};
+  ordered.forEach(function(n){
+    const k = n.lat.toFixed(4)+','+n.lng.toFixed(4);
+    if(!groups[k]) groups[k]=[];
+    groups[k].push(n);
+  });
+  Object.keys(groups).forEach(function(k){
+    const items=groups[k];
+    const isGroup=items.length>1;
+    const p=gxy(items[0].lat,items[0].lng);
+    pts.push(p);
+    if(isGroup){
+      /* 聚合节点：第一张照片（或墨点）+ 数量角标 */
+      const first=items[0];
+      const photo=first.photos&&first.photos.length?first.photos[0]:null;
+      const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
+      const nodeInner=photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot"></span>';
+      const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'<span class="mem-badge">'+items.length+'</span></div>';
+      const nodeSize=photo?[36,36]:[26,26];
+      const nodeAnchor=photo?[18,18]:[13,13];
+      const m=L.marker(p,{icon:L.divIcon({html:iconHtml,className:'',iconSize:nodeSize,iconAnchor:nodeAnchor})});
+      m.on('click',function(){openGroupSheet(items);});
+      m.addTo(tnLayer);
+    } else {
+      /* 单篇节点 */
+      const n=items[0];
+      const isStart=n===ordered[0], isEnd=n===ordered[ordered.length-1];
+      const photo=n.photos&&n.photos.length?n.photos[0]:null;
+      const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
+      const nodeInner=photo
+        ?'<img src="'+photo+'" alt="" onerror="this.remove()">'
+        :(isStart?'<span class="mem-ring"></span><span class="mem-dot"></span>':isEnd?'<span class="mem-ring"></span><span class="mem-dot"></span>':'<span class="mem-dot"></span>');
+      const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'</div>';
+      const nodeSize=photo?[36,36]:[26,26];
+      const nodeAnchor=photo?[18,18]:[13,13];
+      const m=L.marker(p,{icon:L.divIcon({html:iconHtml,className:'',iconSize:nodeSize,iconAnchor:nodeAnchor})});
+      m.on('click',function(){openMemSheet(n);});
+      m.addTo(tnLayer);
+    }
+  });
+  if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));
+  const sites=new Set(notes.filter(n=>n.lat!=null).map(n=>n.lat.toFixed(4)+','+n.lng.toFixed(4)));
+  document.getElementById('statMain').textContent='游记 '+notes.length+' 篇 · 地点 '+sites.size+' 处'+(linePts.length>=2?' · 轨迹已连线':'');
+  document.getElementById('statSub').textContent=ordered.length>=2?('起点 '+(ordered[0].title||ordered[0].siteName)+' · 终点 '+(ordered[ordered.length-1].title||ordered[ordered.length-1].siteName)):'（节点将按记录时间连成旅程线）';
+  document.getElementById('emptyTip').style.display=(notes.length||localStorage.getItem('tn_emptyClosed')==='1')?'none':'flex';
+  document.getElementById('shareBtn').style.display=ordered.length>=2?'block':'none';
+  renderTimeline();
+}
+
+// TRACE v2：时间线条（方案 Phase 4 — 底部 chips，点击→flyTo+Sheet，与地图双向联动）
+function renderTimeline(){
+  var tl=document.getElementById('mmTimeline');
+  if(!tl) return;
+  var notes=TravelNotes.list();
+  var ordered=notes.filter(function(n){return n.lat!=null&&n.lng!=null;}).sort(function(a,b){return a.ts-b.ts;});
+  tl.innerHTML='';
+  if(!ordered.length){ tl.style.display='none'; return; }
+  tl.style.display='flex';
+  ordered.forEach(function(n,idx){
+    var d=new Date(n.ts);
+    var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    var chip=document.createElement('button');
+    chip.className='tl-chip';
+    chip.dataset.idx=idx;
+    chip.innerHTML='<i>●</i>'+time;
+    chip.onclick=function(){
+      document.querySelectorAll('.tl-chip').forEach(function(c){c.classList.remove('active');});
+      chip.classList.add('active');
+      if(map) map.flyTo(gxy(n.lat,n.lng),Math.max(map.getZoom(),13),{duration:.6});
+      openMemSheet(n);
+    };
+    tl.appendChild(chip);
+  });
+}
+// openMemSheet 时联动高亮对应 chip
+(function(){
+  var _orig=openMemSheet;
+  if(_orig){
+    openMemSheet=function(n){
+      _orig(n);
+      var tl=document.getElementById('mmTimeline');
+      if(!tl) return;
+      var chips=tl.querySelectorAll('.tl-chip');
+      var notes=TravelNotes.list().filter(function(x){return x.lat!=null&&x.lng!=null;}).sort(function(a,b){return a.ts-b.ts;});
+      var idx=notes.indexOf(n);
+      chips.forEach(function(c,i){c.classList.toggle('active', i===idx);});
+    };
+  }
+})();
+
+// TRACE v2：同地点多篇记忆 — 聚合列表 Sheet（点击条目进入单篇 Memory Sheet）
+function openGroupSheet(items){
+  const sorted=items.slice().sort(function(a,b){return a.ts-b.ts;});
+  const first=sorted[0];
+  const place=esc(first.title||first.siteName||'未命名地点');
+  const listHtml=sorted.map(function(n){
+    const d=new Date(n.ts);
+    const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const th=(n.photos&&n.photos.length)?'<img src="'+n.photos[0]+'" onerror="this.style.display=\'none\'">':'<span>记</span>';
+    const t=(n.title||n.siteName||'未命名');
+    return '<div class="ms-item" onclick="openMemSheetById(\''+n.id+'\')">'
+      +'<div class="ms-item__th">'+th+'</div>'
+      +'<div class="ms-item__main"><div class="ms-item__title">'+esc(t)+'</div>'
+      +'<div class="ms-item__meta">'+time+(n.weather?' · '+esc(n.weather):'')+'</div></div>'
+      +'<span class="ms-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>'
+      +'</div>';
+  }).join('');
+  document.getElementById('msBody').innerHTML='<button class="ms-close" onclick="closeMemSheet()">✕</button>'
+    +'<div class="ms-place">'+place+'</div>'
+    +'<div class="ms-time">'+sorted.length+' 段记忆 · 点击查看</div>'
+    +'<div style="margin-top:12px">'+listHtml+'</div>';
+  document.getElementById('memSheet').classList.add('show');
+  if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
+}
+/* 供聚合列表点击：按 id 打开单篇 Memory Sheet */
+function openMemSheetById(id){
+  var all=(window.TravelNotes?TravelNotes.list():[]);
+  for(var i=0;i<all.length;i++){ if(all[i].id===id){ openMemSheet(all[i]); return; } }
+  closeMemSheet();
+}
+
+// TRACE v2：Memory Sheet（规范 §6 Memory Card）
+function openMemSheet(n){
+  const d=new Date(n.ts);
+  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const place=esc(n.title||n.siteName||'未命名地点');
+  const story=esc((n.text||n.raw)||'');
+  const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img src="'+x+'" onerror="this.style.display=\'none\'">').join('')+'</div>':'';
+  const audioHtml=n.audio?'<div class="ms-audio"><span style="font-size:13px;color:var(--color-primary-dark);font-weight:600">▶ 原声</span><audio controls preload="none" src="'+n.audio+'"></audio></div>':'';
+  const tagsHtml=(n.tags&&n.tags.length)?'<div class="ms-tags">'+n.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'';
+  const locHtml=n.lat!=null?'<div class="ms-loc">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';
+  document.getElementById('msBody').innerHTML='<button class="ms-close" onclick="closeMemSheet()">✕</button>'
+    +'<div class="ms-place">'+place+'</div>'
+    +'<div class="ms-time">'+time+'</div>'
+    +locHtml
+    +(story?'<div class="ms-story">'+story+'</div>':'')
+    +photosHtml
+    +audioHtml
+    +tagsHtml;
+  document.getElementById('memSheet').classList.add('show');
+  if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
+}
+function closeMemSheet(){
+  document.getElementById('memSheet').classList.remove('show');
+  if(map) setTimeout(function(){map.panBy([0,180],{duration:420});},80);
+}
+
+// 统计条：可收起 / 展开
+// URL ?id= 直达某条游记（首页搜索栏点击进入）
+(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){openMemSheet(nts[i]);},500);break;}}}})();
+
+document.getElementById('statClose').onclick=function(){
+  document.getElementById('statBar').style.display='none';
+  document.getElementById('statOpen').style.display='flex';
+};
+document.getElementById('statOpen').onclick=function(){
+  document.getElementById('statBar').style.display='flex';
+  document.getElementById('statOpen').style.display='none';
+};
+// 空状态提示：✕ 关闭后永久不再显示（记录在 localStorage）
+document.getElementById('emptyClose').onclick=function(){
+  document.getElementById('emptyTip').style.display='none';
+  localStorage.setItem('tn_emptyClosed','1');
+};
+
+// 轨迹卡模板（三种底色）
+const TRACK_THEMES=[
+  { id:'ink',   name:'水墨', bg:['#27423f','#1f3634','#162725'], fg:'#f5ede0', accent:'rgba(184,134,11,.08)', line:'rgba(184,134,11,.85)' },
+  { id:'cinnabar', name:'朱砂', bg:['#8f2a23','#7a231d','#5f1b17'], fg:'#f7ece7', accent:'rgba(245,237,224,.10)', line:'rgba(245,237,224,.9)' },
+  { id:'paper', name:'宣纸', bg:['#f2ecdd','#e9e2cd','#dfd6bc'], fg:'#26241f', accent:'rgba(168,50,42,.07)', line:'rgba(168,50,42,.85)' }
+];
+function renderTrack(themeId){
+  const notes=TravelNotes.list();
+  const ordered=notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
+  if(ordered.length<2){alert('至少需要 2 个游记节点才能生成轨迹卡');return;}
+  const th=TRACK_THEMES.find(t=>t.id===themeId)||TRACK_THEMES[0];
+  const cv=document.createElement('canvas');
+  cv.width=1080;cv.height=1440;
+  const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,1440);
+  g.addColorStop(0,th.bg[0]);g.addColorStop(.5,th.bg[1]);g.addColorStop(1,th.bg[2]);
+  ctx.fillStyle=g;ctx.fillRect(0,0,1080,1440);
+  ctx.fillStyle=th.accent;
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(140+i*130,260+(i%2)*320,90,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle=th.fg;ctx.font='bold 66px "LXGW WenKai",serif';ctx.textAlign='center';
+  ctx.fillText('我的旅程轨迹',540,150);
+  ctx.font='30px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;
+  ctx.fillText(ordered.length+' 个节点 · '+new Set(notes.map(n=>n.date.slice(0,10))).size+' 日',540,200);
+  ctx.globalAlpha=1;
+  const lats=ordered.map(n=>n.lat),lngs=ordered.map(n=>n.lng);
+  const minLat=Math.min(...lats),maxLat=Math.max(...lats),minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
+  const X=lng=>110+(lng-minLng)/(maxLng-minLng||1)*860;
+  const Y=lat=>360+(maxLat-lat)/(maxLat-minLat||1)*700;
+  ctx.strokeStyle=th.line;ctx.lineWidth=6;ctx.setLineDash([16,14]);ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();
+  ordered.forEach((n,i)=>{const x=X(n.lng),y=Y(n.lat);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.stroke();ctx.setLineDash([]);
+  ordered.forEach((n,i)=>{
+    const x=X(n.lng),y=Y(n.lat);
+    ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.fillStyle=th.fg;ctx.fill();
+    ctx.lineWidth=4;ctx.strokeStyle=i===0?'#2ecc71':'#a8322a';ctx.stroke();
+    ctx.font='30px "Noto Serif SC",serif';ctx.textAlign='center';
+    ctx.fillText(i===0?'起点':(i===ordered.length-1?'终点':'记'),x,y-34);
+  });
+  const s=ordered[0],e=ordered[ordered.length-1];
+  ctx.font='34px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';
+  ctx.fillText('起点 · '+(s.title||s.siteName),110,1160);
+  ctx.fillText('终点 · '+(e.title||e.siteName),110,1215);
+  ctx.font='28px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;
+  ctx.fillText(new Date().toLocaleDateString()+' 制 · 古建地图集',110,1290);
+  ctx.globalAlpha=1;
+  const dataUrl=cv.toDataURL('image/png');
+  if(window.AndroidVoice&&window.AndroidVoice.saveImage){
+    window.__tnImgSaved=function(r){flash(r==='err'?'保存失败':'轨迹卡已保存：Download/'+r);};
+    try{AndroidVoice.saveImage('我的旅程轨迹-'+th.name+'.png',dataUrl);}catch(err){alert('保存不可用');}
+  }else{
+    const a=document.createElement('a');a.href=dataUrl;a.download='我的旅程轨迹-'+th.name+'.png';a.click();
+  }
+  hideTrackPicker();
+}
+// 模板选择浮层
+let trackPickerEl=null;
+function hideTrackPicker(){ if(trackPickerEl){trackPickerEl.style.display='none';} }
+function shareTrack(){
+  const notes=TravelNotes.list();
+  const ordered=notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
+  if(ordered.length<2){alert('至少需要 2 个游记节点才能生成轨迹卡');return;}
+  if(!trackPickerEl){
+    trackPickerEl=document.createElement('div');
+    trackPickerEl.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(38,36,31,.95);border-radius:16px;padding:14px 16px;z-index:1200;box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:center;width:200px';
+    trackPickerEl.innerHTML='<div style="color:#efe9dc;font-size:13px;font-weight:700;margin-bottom:10px;font-family:var(--font-display);letter-spacing:.06em">选择卡片底色</div>'
+      + TRACK_THEMES.map((t,i)=>'<button data-t="'+t.id+'" style="display:flex;align-items:center;gap:9px;width:100%;border:0;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 11px;margin-bottom:7px;cursor:pointer;text-align:left"><span style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,'+t.bg[0]+','+t.bg[2]+');flex:0 0 auto"></span><span style="color:#efe9dc;font-size:13px;font-family:var(--font-serif)">'+t.name+'</span></button>').join('')
+      + '<button id="tkClose" style="border:0;background:none;color:#8b8171;font-size:12px;cursor:pointer;padding:4px;font-family:var(--font-serif)">取消</button>';
+    trackPickerEl.onclick=e=>{
+      const b=e.target.closest('button[data-t]');
+      if(b) renderTrack(b.dataset.t);
+    };
+    trackPickerEl.querySelector('#tkClose').onclick=hideTrackPicker;
+    document.body.appendChild(trackPickerEl);
+  }
+  trackPickerEl.style.display='block';
+}
+window.TravelNotes._onReady = function(){ refresh(); };
+window.TravelNotes._afterSave = function(){ refresh(); };
+TravelNotes.init({});
+setTimeout(()=>{ if(TravelNotes.list().length) map.invalidateSize(); },300);
+
+window.__tnAnywhere=function(){
+  const open=p=>TravelNotes.openPanel({label:'当前位置（GPS）',lat:p.lat,lng:p.lng});
+  const tip=msg=>{
+    const d=document.createElement('div');
+    d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(168,50,42,.95);color:#fff;padding:11px 20px;border-radius:4px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.textContent=msg; document.body.appendChild(d);
+    setTimeout(()=>d.remove(),2400);
+  };
+  const fallback=()=>tip('无法获取位置：请在地图上点想记录的地点，或去专题页记录');
+  if(__tnAnywhere._busy)return; __tnAnywhere._busy=true;
+  const openOnce=p=>{__tnAnywhere._busy=false;open(p);};
+  const fbOnce=()=>{__tnAnywhere._busy=false;fallback();};
+  try{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(p=>openOnce({lat:p.coords.latitude,lng:p.coords.longitude}),fbOnce,{enableHighAccuracy:true,timeout:6000,maximumAge:15000});
+    } else fbOnce();
+  }catch(e){ fbOnce(); }
+};
+</script>
+</body>
+</html>

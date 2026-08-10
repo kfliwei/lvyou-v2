@@ -1,0 +1,19 @@
+# 构建产物 / 临时文件
+APK/
+*.apk
+*.log
+*.lock
+node_modules/
+.gradle/
+build/
+dist/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+data/.cache/

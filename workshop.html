@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>成果工坊 · 行迹 TRACE</title>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  /* 顶栏（与专题页同款 .t-row） */
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);box-shadow:0 6px 24px rgba(30,30,28,.05);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+  .t-row{display:flex;align-items:center;gap:8px;height:42px}
+  .t-row .back{width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);border:1px solid var(--color-line);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .t-row .back:active{transform:scale(.92)}
+  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+  /* 主内容 */
+  .page{width:min(100%,560px);margin:0 auto;padding:30px 20px 60px}
+  .eyebrow{font-size:11px;color:var(--color-muted);letter-spacing:.28em;text-transform:uppercase;margin:0 2px 8px}
+  .sect-title{font-family:var(--font-serif);font-size:24px;font-weight:400;color:var(--color-ink);margin:0 2px 6px;letter-spacing:.01em}
+  .sect-sub{font-size:13px;color:var(--color-muted);line-height:1.7;margin:0 2px 18px;font-family:var(--font-sans)}
+  /* 统计行：杂志式文字（非数据卡片墙） */
+  .stats{display:flex;gap:22px;padding:14px 2px 20px;border-bottom:1px solid var(--color-line)}
+  .stat b{display:block;font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--color-primary-dark)}
+  .stat span{font-size:11px;color:var(--color-muted);letter-spacing:.06em}
+  /* 入口列表：与首页「附近故事」/ explore-map 同语言（无卡片墙、无按钮感） */
+  .story-list{display:flex;flex-direction:column;margin-top:8px}
+  .story-item{display:flex;align-items:center;gap:14px;padding:18px 2px;text-decoration:none;border-bottom:1px solid var(--color-line);cursor:pointer;transition:padding var(--duration-fast) var(--ease-standard);background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%;font-family:var(--font-sans)}
+  .story-item:last-child{border-bottom:0}
+  .story-item:active{padding-left:8px}
+  .story-item__stamp{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-family:var(--font-serif);font-size:17px;flex:0 0 auto}
+  .story-item__main{flex:1;min-width:0}
+  .story-item__title{font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-ink);letter-spacing:.01em}
+  .story-item__desc{font-size:12.5px;color:var(--color-muted);margin-top:5px;line-height:1.7;font-family:var(--font-sans)}
+  .story-item__arr{color:var(--color-faint);display:grid;place-items:center;flex:0 0 auto;margin-left:8px}
+  /* 空状态 */
+  .empty{padding:60px 20px;text-align:center}
+  .empty .em{font-family:var(--font-serif);font-size:38px;color:var(--color-primary);margin-bottom:12px}
+  .empty b{font-family:var(--font-serif);font-weight:400;font-size:16px;color:var(--color-ink)}
+  .empty p{font-size:13px;color:var(--color-muted);line-height:1.9;margin:8px 0 18px;font-family:var(--font-sans)}
+  .empty a{color:var(--color-primary-dark);font-size:13px;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:2px}
+  /* 底部说明 */
+  .note{margin-top:34px;font-size:11.5px;color:var(--color-faint);text-align:center;line-height:1.8;font-family:var(--font-sans)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="history.length>1?history.back():location.href='index.html'" title="返回">←</button>
+    <div class="title">成果工坊</div>
+  </div>
+</header>
+
+<main class="page" id="page">
+  <p class="eyebrow">Workshop</p>
+  <h1 class="sect-title">把记录，变成可带走的结果</h1>
+  <p class="sect-sub">你的游记、照片与原声，都在本机保存。这里把它们整理成一份可以保存、分享的东西。</p>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="story-list" id="list"></div>
+
+  <div class="note">数据仅保存在本机 · 生成的文档可保存为 HTML 带走</div>
+</main>
+
+<script src="travel-notes.js"></script>
+<script src="quotes.js"></script>
+<script src="results.js"></script>
+<script src="vault.js"></script>
+<script>
+  /* 统计（与 results.summarize 同口径的轻量计算） */
+  function haversineKm(a, b) {
+    var R = 6371, rad = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
+  function render() {
+    var notes = window.TravelNotes ? TravelNotes.list() : [];
+    var statsEl = document.getElementById('stats');
+    var listEl = document.getElementById('list');
+    var sites = new Set(notes.filter(function (n) { return n.lat != null; }).map(function (n) { return n.lat.toFixed(4) + ',' + n.lng.toFixed(4); }));
+    var days = new Set(notes.map(function (n) { return n.day || (n.date ? n.date.slice(0, 10) : ''); }));
+    var km = 0;
+    var ordered = notes.filter(function (n) { return n.lat != null; }).sort(function (a, b) { return a.ts - b.ts; });
+    for (var i = 1; i < ordered.length; i++) km += haversineKm(ordered[i - 1], ordered[i]);
+    statsEl.innerHTML =
+      '<div class="stat"><b>' + notes.length + '</b><span>篇游记</span></div>' +
+      '<div class="stat"><b>' + sites.size + '</b><span>处地点</span></div>' +
+      '<div class="stat"><b>' + days.size + '</b><span>天</span></div>' +
+      '<div class="stat"><b>' + (km > 0 ? km.toFixed(0) : '—') + '</b><span>公里</span></div>';
+
+    var entries = [
+      { k: 'album', stamp: '册', title: '旅行纪念册', desc: '全部游记统计成册，含名言点缀', color: 'var(--color-primary-soft)', ink: 'var(--color-primary-dark)' },
+      { k: 'atlas', stamp: '鉴', title: '个人古建图鉴', desc: '探访过的古建，汇成收藏册', color: 'rgba(109,125,136,.14)', ink: 'var(--color-blue)' },
+      { k: 'iti', stamp: '路', title: '定制路书', desc: '输入偏好，生成每日行程', color: 'rgba(113,128,108,.14)', ink: 'var(--color-green)' },
+      { k: 'story', stamp: '文', title: '旅程故事', desc: '把旅程，写成散文', color: 'rgba(140,123,102,.14)', ink: 'var(--color-primary-dark)' },
+      { k: 'vault', stamp: '库', title: '导出 Obsidian 库', desc: '每篇一篇 Markdown，含照片与索引', color: 'rgba(200,109,75,.10)', ink: 'var(--color-primary)' }
+    ];
+    var html = '';
+    entries.forEach(function (e) {
+      html += '<button class="story-item" data-k="' + e.k + '">'
+        + '<span class="story-item__stamp" style="background:' + e.color + ';color:' + e.ink + '">' + e.stamp + '</span>'
+        + '<span class="story-item__main"><span class="story-item__title">' + e.title + '</span>'
+        + '<span class="story-item__desc">' + e.desc + '</span></span>'
+        + '<span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>'
+        + '</button>';
+    });
+    if (!notes.length) {
+      html = '<div class="empty"><div class="em">记</div><b>还没有游记</b>'
+        + '<p>去专题地图，在景点弹窗里点「语音记录」，<br>留下第一段记忆。</p>'
+        + '<a href="changzheng.html">去长征专题看看 →</a></div>';
+    }
+    listEl.innerHTML = html;
+    listEl.querySelectorAll('button[data-k]').forEach(function (b) {
+      b.onclick = function () {
+        var k = b.dataset.k;
+        if (k === 'vault') {
+          if (window.Vault) Vault.exportVault(window.TravelNotes ? TravelNotes.list() : []);
+          return;
+        }
+        if (!window.Results) return;
+        if (k === 'album') Results.album();
+        else if (k === 'atlas') Results.atlas();
+        else if (k === 'iti') Results.itinerary();
+        else if (k === 'story') Results.story();
+      };
+    });
+  }
+  window.TravelNotes._onReady = render;
+  window.TravelNotes._afterSave = render;
+  TravelNotes.init({});
+</script>
+</body>
+</html>

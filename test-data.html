@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>示例数据 · 行迹</title>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+  .t-row{display:flex;align-items:center;gap:8px;height:42px}
+  .t-row .back{width:34px;height:34px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;text-decoration:none}
+  .t-row .back:active{transform:scale(.92)}
+  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
+  .content{padding:22px 20px 50px}
+  .group{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:20px;margin-bottom:14px}
+  .group h2{font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-ink);margin:0 0 10px}
+  .group p{font-size:13px;color:var(--color-ink-soft);line-height:1.8;margin:0;font-family:var(--font-sans)}
+  .group ul{margin:10px 0 0;padding-left:18px;font-size:12.5px;color:var(--color-muted);line-height:2;font-family:var(--font-sans)}
+  .photos{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
+  .photos img{width:120px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto;border:1px solid var(--color-line)}
+  .btn-primary{width:100%;min-height:52px;border-radius:999px;font-size:15px;font-family:var(--font-sans);box-shadow:0 10px 28px rgba(200,109,75,.3);margin-top:6px}
+  .btn-secondary{width:100%;min-height:48px;border-radius:999px;font-size:14px;font-family:var(--font-sans);margin-top:10px}
+  .status{margin-top:14px;font-size:12.5px;color:var(--color-muted);text-align:center;font-family:var(--font-sans);min-height:18px}
+  .linkrow{display:flex;gap:16px;justify-content:center;margin-top:12px}
+  .linkrow a{font-size:13px;color:var(--color-primary-dark);text-decoration:none;font-family:var(--font-sans)}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="t-row">
+      <a class="back" href="index.html">←</a>
+      <div class="title">示例数据</div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="group">
+      <h2>为什么要示例数据？</h2>
+      <p>很多功能（最近的旅行、游记地图、搜索、成果工坊）需要先有游记才能看到效果。一键载入 8 条示例游记，包含照片、标签、天气与完整文案，覆盖四个专题。</p>
+      <ul>
+        <li>8 篇游记：瑞金 / 凤凰 / 桂林 / 阳朔 / 大理 / 拉萨 / 平遥 / 归途</li>
+        <li>6 张照片（img-test/ 下的 SVG 占位风景）</li>
+        <li>数据 id 以 <b>demo-</b> 开头，与你的真实数据按 id 去重合并</li>
+        <li>可随时「清除示例数据」恢复原状</li>
+      </ul>
+      <div class="photos" id="photos"></div>
+    </div>
+
+    <div class="group">
+      <h2>载入后去哪看效果</h2>
+      <div class="linkrow">
+        <a href="index.html">首页 · 最近的旅行</a>
+        <a href="travel-map.html">游记地图</a>
+        <a href="explore-map.html">探索地图</a>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="doLoad()">载入示例数据</button>
+    <button class="btn-secondary" onclick="doClear()">清除示例数据</button>
+    <div class="status" id="status"></div>
+  </div>
+
+<script src="test-data.js"></script>
+<script>
+  // 照片预览
+  var shots = ['photo-ruijin.svg','photo-guilin.svg','photo-yangshuo.svg','photo-dali.svg','photo-lhasa.svg','photo-pingyao.svg'];
+  document.getElementById('photos').innerHTML = shots.map(function(f){
+    return '<img src="img-test/' + f + '" alt="">';
+  }).join('');
+
+  function toast(msg){
+    var s = document.getElementById('status');
+    s.textContent = msg;
+    s.style.color = 'var(--color-primary-dark)';
+  }
+  function doLoad(){
+    var r = window.loadTestData ? loadTestData() : null;
+    if (!r) { toast('数据脚本未加载'); return; }
+    if (r.err) { toast('载入失败：' + r.err); return; }
+    toast('已写入 ' + r.added + ' 篇示例游记（现有共 ' + r.total + ' 篇）…');
+    /* 等待 IndexedDB 写入完成再跳转（travel-notes.js 优先读 IDB） */
+    var p = r.idb || Promise.resolve();
+    p.then(function(){
+      toast('完成。正在进入首页…');
+      setTimeout(function(){ location.href = 'index.html'; }, 400);
+    });
+  }
+  function doClear(){
+    var r = window.clearTestData ? clearTestData() : null;
+    if (!r) { toast('数据脚本未加载'); return; }
+    if (r.err) { toast('清除失败：' + r.err); return; }
+    toast('已移除 ' + r.removed + ' 篇示例数据（现有 ' + r.total + ' 篇）…');
+    var p = r.idb || Promise.resolve();
+    p.then(function(){ toast('已移除 ' + r.removed + ' 篇示例数据（现有 ' + r.total + ' 篇）'); });
+  }
+</script>
+</body>
+</html>

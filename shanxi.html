@@ -1,0 +1,922 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>山西古建探访指南 · 国保地图</title>
+<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="map.css">
+<style>
+:root {
+  /* 字体继承全局 design.css（TRACE v2） */
+}
+:focus-visible { outline: 3px solid var(--accent-400); outline-offset: 2px; border-radius: 6px; }
+/* ============================================================
+   TRACE v2：Location Sheet + 节点系统 + toast（shanxi 页内）
+   ============================================================ */
+:root{--tint:var(--color-muted)}
+#locSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);animation:none}
+#locSheet.show{display:block;transform:translateY(0)}
+#locSheet .sheet__handle{cursor:pointer}
+.ls-img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;display:block;margin-top:14px;background:var(--color-bg-soft)}
+.ls-img img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+.ls-place{font-family:var(--font-serif);font-size:30px;font-weight:400;margin-top:8px;letter-spacing:.01em}
+.ls-loc{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.05em}
+.ls-desc{margin-top:12px;font-size:14px;color:var(--color-ink-soft);line-height:1.8}
+.ls-hist{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-ink-soft);line-height:1.8}
+.ls-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+.ls-add{margin-left:auto;font-size:14px;font-weight:600;color:var(--color-primary-dark);padding:12px 6px;cursor:pointer;border-radius:12px;transition:transform var(--duration-fast)}
+.ls-add:active{transform:scale(.95)}
+.ls-add.done{color:var(--color-green)}
+.ls-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-muted);display:flex;gap:22px}
+.ls-more span{cursor:pointer}
+.tr-node{position:relative;width:26px;height:26px}
+.tr-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
+.tr-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--tint,#7D7970);opacity:.38;pointer-events:none;transition:opacity var(--duration-normal)}
+.tr-major .tr-ring{width:34px;height:34px;opacity:.55}
+.tr-active .tr-dot{background:var(--color-primary);animation:node-breathe 3s ease-in-out infinite}
+.tr-node:hover .tr-dot{transform:translate(-50%,-50%) scale(1.3)}
+.node-num{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(200,109,75,.4);z-index:3}
+.toast{position:fixed;z-index:9800;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);background:rgba(32,32,29,.92);color:#fff;font-size:13px;letter-spacing:.03em;padding:13px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .28s var(--ease-standard),transform .28s var(--ease-standard)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.tabbar.is-hidden{transform:translateX(-50%) translateY(115%)!important}
+
+/* TRACE v2 到达卡片（方案 Phase 5 — 你到了 X。想留下些什么？） */
+#arriveDlg{position:fixed;inset:0;z-index:9400;display:none;align-items:center;justify-content:center;background:rgba(32,32,29,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:24px}
+#arriveDlg.show{display:flex}
+.arrive-card{width:min(100%,340px);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:28px;box-shadow:var(--shadow-float);padding:34px 28px 28px;text-align:center;animation:sheet-up 480ms var(--ease-standard)}
+.arrive-eyebrow{font-size:11px;color:var(--color-muted);letter-spacing:.3em;text-transform:uppercase}
+.arrive-place{font-family:var(--font-serif);font-size:34px;font-weight:400;color:var(--color-ink);margin-top:14px;line-height:1.2}
+.arrive-sub{margin-top:8px;font-size:13px;color:var(--color-muted);letter-spacing:.04em}
+.arrive-ask{margin-top:26px;font-family:var(--font-serif);font-size:17px;color:var(--color-ink-soft);line-height:1.7}
+.arrive-acts{display:flex;gap:12px;margin-top:26px}
+.arrive-acts .btn-primary{flex:1;min-height:48px;border-radius:999px;font-size:14px}
+.arrive-acts .btn-secondary{flex:1;min-height:48px;border-radius:999px;font-size:14px}
+.arrive-nav{margin-top:16px;font-size:12px;color:var(--color-faint);cursor:pointer;text-decoration:underline}
+.arrive-nav:hover{color:var(--color-primary-dark)}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="location.href='index.html'" title="返回地图集">←</button>
+    <div class="title">山西古建探访指南 <small id="totalTag"></small></div>
+    <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录">随手记</button>
+    <button class="act sec" onclick="TravelNotes.openList()">游记</button>
+  </div>
+  <div class="s-row">
+    <div class="search">🔍<input id="search" placeholder="搜名称 / 市县 / 朝代 / 类型 / 看点"></div>
+    <div class="sort"><select id="sortSel">
+      <option value="">默认</option>
+      <option value="me">距我</option>
+      <option value="太原市">距太原</option>
+      <option value="大同市">距大同</option>
+      <option value="运城市">距运城</option>
+      <option value="临汾市">距临汾</option>
+      <option value="长治市">距长治</option>
+    </select></div>
+  </div>
+  <div class="chip-row" id="dynChips"></div>
+</header>
+
+<main>
+  <section id="map" class="view active">
+    <div id="mapEl"></div>
+    <button id="locBtn" class="fab" title="定位我的位置">📍</button>
+    <div class="routeBanner" id="routeBanner"></div>
+    <div class="legend" id="legend">
+      <button class="tg" id="legTg" title="关闭图例">✕</button>
+      <h4>朝代色谱</h4>
+      <div class="body" id="legBody"></div>
+    </div>
+    <button id="legOpen" class="legOpen" title="显示图例">🗂 图例</button>
+    <!-- 右上控制组：图层 + 缩放 -->
+    <div class="ctl">
+      <button id="layBtn" title="切换图层"><span class="layicon"><span class="a"></span><span class="b"></span></span></button>
+      <div class="sep"></div>
+      <button id="zoomIn" title="放大"><span class="zoomplus">+</span></button>
+      <div class="sep"></div>
+      <button id="zoomOut" title="缩小"><span class="zoomminus"></span></button>
+    </div>
+    <div class="laymenu" id="layMenu"></div>
+    <button class="dayLegendBtn" id="dayLegendBtn" title="展开 / 收起每日轨迹色" style="display:none">🎨 每日色</button>
+    <div class="dayLegend" id="dayLegend" style="display:none"></div>
+    <div class="pickHint" id="pickHint" style="display:none">📍 点击地图任意位置，设为「我的位置」</div>
+    <button class="tripfab" id="tripFab">🧭<span class="badge" id="tripBadge">0</span></button>
+    <div class="tripbar" id="tripBar">
+      <div class="th"><span class="tt">我的行程</span><span class="cnt" id="tripCnt">0</span><button class="clr" id="tripClear">清空</button><button class="cls" id="tripClose">✕</button></div>
+      <div class="row" id="tripRow"></div>
+      <button class="sortb" id="tripSort">帮我排一下顺序</button>
+      <button class="go" id="tripGo">开始今天的旅行</button>
+    </div>
+  </section>
+
+  <section id="list" class="view">
+    <div class="cntbar" id="listCnt"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="listEmpty" style="display:none">没有匹配的结果，试试放宽筛选条件。</div>
+  </section>
+
+  <section id="timeline" class="view">
+    <div class="tl" id="tl"></div>
+  </section>
+
+  <section id="route" class="view">
+    <div class="routes" id="routes"></div>
+  </section>
+
+  <section id="food" class="view">
+    <div class="foodbar">
+      <input id="foodSearch" placeholder="搜美食 / 县市 / 特色…">
+      <select id="foodCity"><option value="">全部城市</option></select>
+      <select id="foodType"><option value="">全部类型</option></select>
+    </div>
+    <div class="fcount" id="foodCnt"></div>
+    <div class="fgrid" id="foodGrid"></div>
+  </section>
+</main>
+<!-- TRACE v2 到达卡片 -->
+<div id="arriveDlg" onclick="if(event.target===this)closeArrive()">
+  <div class="arrive-card">
+    <div class="arrive-eyebrow">You Arrived</div>
+    <div class="arrive-place" id="arPlace">—</div>
+    <div class="arrive-sub" id="arSub"></div>
+    <div class="arrive-ask">想留下些什么？</div>
+    <div class="arrive-acts">
+      <button class="btn-primary" id="arVoice">说两句</button>
+      <button class="btn-secondary" id="arGo">去导航</button>
+    </div>
+    <div class="arrive-nav" onclick="closeArrive()">直接收起</div>
+  </div>
+</div>
+
+<!-- TRACE v2 Location Sheet -->
+<div class="location-sheet" id="locSheet">
+  <div class="sheet__handle" onclick="closeSheet()"></div>
+  <div id="lsBody"></div>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="map" class="on"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>地图</button>
+  <button data-tab="list"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6 H20"/><path d="M9 12 H20"/><path d="M9 18 H20"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></span>列表</button>
+  <button data-tab="timeline"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4 H18 M6 20 H18"/><path d="M7 4 V8 C7 10 9 11 9 12 C9 13 7 14 7 16 V20"/><path d="M17 4 V8 C17 10 15 11 15 12 C15 13 17 14 17 16 V20"/></svg></span>时间轴</button>
+  <button data-tab="route"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 L10 9 L14 13 L20 5"/><circle cx="4" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="2" fill="currentColor" stroke="none"/></svg></span>路线</button>
+  <button data-tab="food"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8 H19 V11 C19 15 16 18 12 18 C8 18 5 15 5 11 Z"/><path d="M12 18 V21"/></svg></span>美食</button>
+</nav>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="food.js"></script>
+<script src="quotes.js"></script>
+<script src="travel-notes.js"></script>
+<script src="results.js"></script>
+<script src="vault.js"></script>
+<script>
+const SITES = window.SITES || [];
+const FOOD = window.FOOD || [];
+const DYN = {"新石器":"#8A5A44","春秋":"#A9563B","汉":"#8C7B66","南北朝":"#6D7D88","北魏":"#5F6D76","北朝":"#7E7663","隋":"#9C9A92","唐":"#C86D4B","五代":"#A9563B","辽":"#71806C","宋":"#6D7D88","金":"#8C7B66","元":"#71806C","明":"#C86D4B","清":"#9C9A92","近现代":"#B4AFA4"};
+const DYN_ORDER = ["新石器","春秋","汉","南北朝","北魏","北朝","隋","唐","五代","辽","宋","金","元","明","清","近现代"];
+const TY_ICON = {"佛寺":"🛕","道观":"⛩️","神祠":"🏛️","石窟寺":"🪨","古戏台":"🎭","古塔":"🗼","楼阁牌坊":"🏯","衙署民居":"🏠","陵寝墓葬":"⚰️","寺观彩塑":"🗿","寺观壁画":"🖼️","长城关隘":"🏰","名城名镇":"🏘️","其他":"📍"};
+const CITY_CENTER = {"大同市":[40.09,113.30],"朔州市":[39.33,112.43],"忻州市":[38.42,112.73],"太原市":[37.87,112.55],"阳泉市":[37.85,113.57],"晋中市":[37.69,112.73],"吕梁市":[37.50,111.14],"长治市":[36.20,113.12],"晋城市":[35.49,112.85],"临汾市":[36.08,111.52],"运城市":[35.02,111.00]};
+
+const state = { q:"", city:"", type:"", dyn:new Set(), sort:"" };
+let userLatLng = null, userMarker = null, watchId = null, pickMode = false;
+let routeLayer = null, curSite = null, tripRouteLayer = null;
+
+/* ---------- 工具 ---------- */
+function haversine(a,b){const R=6371,dLat=(b[0]-a[0])*Math.PI/180,dLng=(b[1]-a[1])*Math.PI/180;
+  const s=Math.sin(dLat/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));}
+function refPoint(){if(state.sort==="me"&&userLatLng)return userLatLng;if(state.sort&&CITY_CENTER[state.sort])return CITY_CENTER[state.sort];return null;}
+
+function getFiltered(){
+  const q=state.q.trim().toLowerCase();
+  let arr=SITES.filter(s=>{
+    if(state.city&&s.city!==state.city)return false;
+    if(state.type&&s.ty!==state.type)return false;
+    if(state.dyn.size&&!state.dyn.has(s.dy))return false;
+    if(q){const hay=(s.name+s.label+s.city+s.county+s.dy+s.ty+s.desc).toLowerCase();if(!hay.includes(q))return false;}
+    return true;
+  });
+  const rp=refPoint();
+  if(rp){arr=arr.map(s=>({...s,_d:haversine(rp,[s.lat,s.lng])})).sort((a,b)=>a._d-b._d);}
+  return arr;
+}
+
+/* ---------- 地图 ---------- */
+const map = L.map('mapEl',{zoomControl:false,attributionControl:false}).setView([37.2,112.0],7);
+// 缩放用自定义 .ctl 按钮（右上角），不再加载 Leaflet 默认缩放
+L.control.attribution({position:'bottomleft',prefix:false}).addTo(map);
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'});
+const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'&copy; Esri'});
+const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'&copy; OpenTopoMap'});
+const markerLayer = L.layerGroup().addTo(map);
+
+/* ---------- 高德图层（GCJ-02 坐标纠偏） ---------- */
+const AMAP_KEY = '9e530e2ccc388a8390655b398d354149';
+let useGCJ = true, lastMarkerList = null, lastRouteRi = null;
+function _tlat(lng,lat){let r=-100+2*lng+3*lat+0.2*lat*lat+0.1*lng*lat+0.2*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lat*Math.PI)+40*Math.sin(lat/3*Math.PI))*2/3;r+=(160*Math.sin(lat/12*Math.PI)+320*Math.sin(lat*Math.PI/30))*2/3;return r;}
+function _tlng(lng,lat){let r=300+lng+2*lat+0.1*lng*lng+0.1*lng*lat+0.1*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lng*Math.PI)+40*Math.sin(lng/3*Math.PI))*2/3;r+=(150*Math.sin(lng/12*Math.PI)+300*Math.sin(lng/30*Math.PI))*2/3;return r;}
+const _A=6378245.0,_EE=0.00669342162296594323;
+function gcj02Of(lat,lng){
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271)return [lat,lng];
+  let dlat=_tlat(lng-105,lat-35),dlng=_tlng(lng-105,lat-35);
+  const rl=lat/180*Math.PI,m=Math.sin(rl),mm=1-_EE*m*m,sm=Math.sqrt(mm);
+  dlat=(dlat*180)/((_A*(1-_EE))/(mm*sm)*Math.PI);
+  dlng=(dlng*180)/(_A/sm*Math.cos(rl)*Math.PI);
+  return [lat+dlat,lng+dlng];
+}
+function pt(s){ return useGCJ? gcj02Of(s.lat,s.lng):[s.lat,s.lng]; }
+function gxy(lat,lng){ return useGCJ? gcj02Of(lat,lng):[lat,lng]; }
+const amapStreet = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
+amapStreet.addTo(map);   // 默认图层：高德街道（GCJ-02 纠偏）
+const amapSat = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
+const amapLabel = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:''});
+const amapSatL = L.layerGroup([amapSat,amapLabel]);
+// 自定义图层菜单（替代默认 layers 控件）
+const BASE_LAYERS=[
+  {id:'osm', name:'街道地图', sw:'linear-gradient(#f0f0ec,#d8d8d2)', layer:osmLayer},
+  {id:'sat', name:'卫星实景', sw:'linear-gradient(#3c5d52,#27423f)', layer:satLayer},
+  {id:'topo', name:'等高线地形', sw:'linear-gradient(#d9c9a8,#b8a878)', layer:topoLayer},
+  {id:'amapStreet', name:'高德街道', sw:'linear-gradient(#c9d3c0,#8fa893)', layer:amapStreet},
+  {id:'amapSat', name:'高德卫星', sw:'linear-gradient(#27423f,#101f1b)', layer:amapSat},
+  {id:'amapSatL', name:'高德卫星+注记', sw:'linear-gradient(#3c5d52,#0f2a24)', layer:amapSatL}
+];
+const layMenu=document.getElementById('layMenu');
+BASE_LAYERS.forEach(b=>{
+  const li=document.createElement('div'); li.className='li'+(b.layer===amapStreet?' on':''); li.dataset.id=b.id;
+  li.innerHTML='<span class="sw" style="background:'+b.sw+'"></span>'+b.name+'<span class="ck" style="display:'+(b.layer===amapStreet?'':'none')+'">✓</span>';
+  li.onclick=()=>{
+    BASE_LAYERS.forEach(x=>{ if(map.hasLayer(x.layer)) map.removeLayer(x.layer); });
+    b.layer.addTo(map);
+    layMenu.querySelectorAll('.li').forEach(x=>{
+      const on=x.dataset.id===b.id;
+      x.classList.toggle('on',on);
+      x.querySelector('.ck').style.display=on?'':'none';
+    });
+    // 触发与 baselayerchange 相同的高德纠偏逻辑
+    const isGCJ=(b.id==='amapStreet'||b.id==='amapSat'||b.id==='amapSatL');
+    if(isGCJ!==useGCJ){
+      useGCJ=isGCJ;
+      if(lastMarkerList)renderMarkers(lastMarkerList);
+      if(lastRouteRi!=null)showRouteOnMap(lastRouteRi);
+      if(userLatLng&&userMarker)userMarker.setLatLng(gxy(userLatLng[0],userLatLng[1]));
+    }
+  };
+  layMenu.appendChild(li);
+});
+document.getElementById('layBtn').onclick=e=>{e.stopPropagation();layMenu.classList.toggle('show');};
+document.getElementById('zoomIn').onclick=()=>map.zoomIn();
+document.getElementById('zoomOut').onclick=()=>map.zoomOut();
+map.on('click',()=>layMenu.classList.remove('show'));
+map.on('movestart',()=>layMenu.classList.remove('show'));
+map.on('baselayerchange',e=>{
+  const isGCJ=(e.layer===amapStreet||e.layer===amapSat||e.layer===amapSatL);
+  if(isGCJ!==useGCJ){
+    useGCJ=isGCJ;
+    if(lastMarkerList)renderMarkers(lastMarkerList);
+    if(lastRouteRi!=null)showRouteOnMap(lastRouteRi);
+    if(userLatLng&&userMarker)userMarker.setLatLng(gxy(userLatLng[0],userLatLng[1]));
+  }
+});
+map.on('click',e=>{
+  if(pickMode){ pickMode=false; hidePickHint(); locateSuccess({coords:{latitude:e.latlng.lat,longitude:e.latlng.lng}}); return; }
+  spotRec(e.latlng.lat, e.latlng.lng);
+});
+// 任意途经点随手记：点地图空白处 → 弹出「🎙 在此语音记录」（中式 trippop 样式，与节点弹窗一致）
+function spotRec(lat,lng){
+  const m=L.marker([lat,lng],{icon:L.divIcon({html:'<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))">🎙️</div>',className:'',iconSize:[24,24],iconAnchor:[12,22]})}).addTo(map);
+  m.bindPopup(`<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm">${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+      <div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div>
+      <div class="pfoot"><button class="addtrip tnvo" onclick="__tnSpot(${lat},${lng})">🎙 在此语音记录</button></div></div>`,
+    {maxWidth:260,className:'trippop',autoPan:true}).openPopup();
+  m.on('popupclose',()=>{ if(map.hasLayer(m))map.removeLayer(m); });
+}
+window.__tnSpot=function(lat,lng){ TravelNotes.openPanel({label:'途经点',lat:lat,lng:lng}); };
+// 顶部「随手记」：GPS 定位当前真实位置（WGS84），失败则退回已知位置/提示
+window.__tnAnywhere=function(){
+  const open=p=>TravelNotes.openPanel({label:'当前位置（GPS）',lat:p.lat,lng:p.lng});
+  const tip=msg=>{
+    const d=document.createElement('div');
+    d.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(31,122,90,.95);color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.textContent=msg; document.body.appendChild(d);
+    setTimeout(()=>d.remove(),2400);
+  };
+  const fallback=()=>{
+    if(userLatLng){ open({lat:userLatLng[0],lng:userLatLng[1]}); }
+    else {
+      if(!document.getElementById('map').classList.contains('active'))switchTab('map');
+      tip('⚠️ 无法获取位置：可点 📍 定位，或直接在地图上点想记录的地点');
+    }
+  };
+  try{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(p=>open({lat:p.coords.latitude,lng:p.coords.longitude}),fallback,{enableHighAccuracy:true,timeout:6000,maximumAge:15000});
+    } else fallback();
+  }catch(e){ fallback(); }
+};
+const markers = new Map(); // idx -> marker
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function buildSheet(i){
+  const s=SITES[i]; if(!s) return '';
+  const inT=inTrip(i);
+  const img=s.img?`<div class="ls-img"><img src="${s.img}" alt="${esc(s.label)}" onerror="this.style.display='none'"></div>`:'';
+  return `<div class="ls-place">${esc(s.label)}</div>
+      <div class="ls-loc">${esc(s.dy)} · ${esc(s.ty)}${s.county?(' · '+esc(s.county)):''}</div>
+      ${img}
+      <div class="ls-desc">${esc(s.desc)}</div>
+      <div class="ls-actions">
+        <button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="TravelNotes.explain(${i})">🎧 听讲解</button>
+        <button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 16px" onclick="TravelNotes.openPanel(${i})">🎙 语音记录</button>
+        <span class="ls-add${inT?' done':''}" onclick="toggleTrip(${i},null)">${inT?'✓ 已加入行程':'+ 加入行程'}</span>
+      </div>
+      <div class="ls-more">
+        <span onclick="flyToSite(${i},true)">在地图查看</span>
+        <span onclick="closeSheet()">收起</span>
+      </div>`;
+}
+function openSheet(i){
+  curSite=i;
+  document.getElementById('lsBody').innerHTML=buildSheet(i);
+  document.getElementById('locSheet').classList.add('show');
+  setActiveNode(i);
+  document.querySelector('.tabbar').classList.add('is-hidden');
+  highlightCard(i);
+  if(map) setTimeout(function(){map.panBy([0,-160],{duration:420});},80);
+}
+function closeSheet(){
+  document.getElementById('locSheet').classList.remove('show');
+  document.querySelector('.tabbar').classList.remove('is-hidden');
+  curSite=null; setActiveNode(-1);
+  if(map) setTimeout(function(){map.panBy([0,160],{duration:420});},80);
+}
+function refreshSheet(){
+  if(curSite!=null && document.getElementById('locSheet').classList.contains('show')){
+    document.getElementById('lsBody').innerHTML=buildSheet(curSite);
+  }
+}
+function isMajorSite(s){ return s.dy==='唐'||s.dy==='北魏'; }
+function nodeIcon(s,active){
+  const theme=DYN[s.dy]||'#7D7970';
+  const inT=inTrip(s.__i);
+  const num=inT?(trip.indexOf(s.__i)+1):null;
+  const cls='tr-node'+(active?' tr-active':'')+(isMajorSite(s)?' tr-major':'');
+  let html='<div class="'+cls+'"><span class="tr-ring" style="--tint:'+theme+'"></span><span class="tr-dot"></span>';
+  if(num) html+='<span class="node-num">'+num+'</span>';
+  html+='</div>';
+  return L.divIcon({className:'',html:html,iconSize:[26,26],iconAnchor:[13,13]});
+}
+function setActiveNode(i){
+  markers.forEach((m,idx)=>{ if(SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx===i)); });
+}
+function drawTripRoute(){
+  if(tripRouteLayer){ tripRouteLayer.remove(); tripRouteLayer=null; }
+  if(trip.length<2) return;
+  const pts=trip.map(i=>pt(SITES[i]));
+  tripRouteLayer=L.polyline(pts,{color:'#C86D4B',weight:3,opacity:.7,dashArray:'6 6'}).addTo(map);
+}
+function showTripToast(msg){
+  let t=document.getElementById('tripToast');
+  if(!t){ t=document.createElement('div'); t.id='tripToast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+function colorOf(d){return DYN[d.dy]||"#7D7970";}
+function renderMarkers(list){
+  lastMarkerList=list;
+  markerLayer.clearLayers(); markers.clear();
+  list.forEach(s=>{
+    const m=L.marker(pt(s),{icon:nodeIcon(s,false)});
+    m.on('click',()=>openSheet(s.__i));
+    markerLayer.addLayer(m); markers.set(s.__i,m);
+  });
+}
+
+/* ---------- 我的行程 ---------- */
+const TRIP_KEY='trip_shanxi';
+let trip=[];
+try{ trip=JSON.parse(localStorage.getItem(TRIP_KEY)||'[]'); }catch(e){ trip=[]; }
+function inTrip(i){ return trip.indexOf(i)>=0; }
+function saveTrip(){ try{ localStorage.setItem(TRIP_KEY, JSON.stringify(trip)); }catch(e){} }
+function toggleTrip(i, btn){
+  const k=trip.indexOf(i);
+  const isAdd = k<0;
+  if(k>=0) trip.splice(k,1); else trip.push(i);
+  saveTrip(); renderTripBar(); drawTripRoute();
+  if(isAdd) showTripToast('+1 已加入今天的行程');
+  refreshSheet();
+}
+
+function renderTripBar(){
+  const bar=document.getElementById('tripBar');
+  document.getElementById('tripCnt').textContent=trip.length;
+  const row=document.getElementById('tripRow'); row.innerHTML='';
+  trip.forEach((i,n)=>{
+    const s=SITES[i]; if(!s)return;
+    const c=document.createElement('div'); c.className='chip';
+    c.innerHTML=`<span class="no">${n+1}</span><span class="nm" style="cursor:pointer">${s.label}</span><span class="mv" data-d="up">▲</span><span class="mv" data-d="dn">▼</span><span class="x">✕</span>`;
+    c.querySelector('.nm').onclick=()=>flyToSite(i);
+    c.querySelector('[data-d="up"]').onclick=(e)=>{e.stopPropagation(); if(n>0){ trip.splice(n,1); trip.splice(n-1,0,i); saveTrip(); renderTripBar(); } };
+    c.querySelector('[data-d="dn"]').onclick=(e)=>{e.stopPropagation(); if(n<trip.length-1){ trip.splice(n,1); trip.splice(n+1,0,i); saveTrip(); renderTripBar(); } };
+    c.querySelector('.x').onclick=(e)=>{e.stopPropagation(); toggleTrip(i); };
+    row.appendChild(c);
+  });
+  const fab=document.getElementById('tripFab');
+  document.getElementById('tripBadge').textContent=trip.length;
+  fab.style.display = trip.length>0 ? 'flex':'none';
+  if(trip.length===0) bar.classList.remove('open');
+}
+function sortTripNN(){
+  if(trip.length<2){ showTripToast('至少需要 2 个地点才能排序'); return; }
+  if(!userLatLng){ showTripToast('先点 📍 定位，才能按距离排序'); return; }
+  const rest=trip.slice(); const out=[]; let cur=userLatLng;
+  while(rest.length){
+    let bi=0,bd=1e12;
+    rest.forEach((i,k)=>{ const s=SITES[i]; const d=(s.lat-cur[0])**2+(s.lng-cur[1])**2; if(d<bd){bd=d;bi=k;} });
+    const pick=rest.splice(bi,1)[0]; out.push(pick); cur=[SITES[pick].lat,SITES[pick].lng];
+  }
+  trip=out; saveTrip(); renderTripBar(); drawTripRoute();
+  showTripToast('我帮你重新排了一下顺序');
+}
+function navAmap(){
+  if(trip.length===0)return;
+  let pts=trip.map(i=>{ const s=SITES[i]; const g=gcj02Of(s.lat,s.lng); return {lng:g[1],lat:g[0],name:s.label}; });
+  let sLng,sLat,sName='我的位置';
+  if(userLatLng){ const g=gcj02Of(userLatLng[0],userLatLng[1]); sLng=g[1]; sLat=g[0]; }
+  else { const f=pts.shift(); sLng=f.lng; sLat=f.lat; sName=f.name; }
+  if(pts.length===0){
+    window.location.href=`https://uri.amap.com/marker?position=${sLng},${sLat}&name=${encodeURIComponent(sName)}&src=古建地图&coordinate=gaode&callnative=1`;
+    return;
+  }
+  const dest=pts[pts.length-1]; const ways=pts.slice(0,-1);
+  // 高德 route/plan 多途经点参数名是 vian / vialons / vialats / vianames（用 | 分隔）
+  const viaLons=ways.map(w=>w.lng).join('|');
+  const viaLats=ways.map(w=>w.lat).join('|');
+  const viaNames=ways.map(w=>encodeURIComponent(w.name)).join('|');
+  let deep=`amapuri://route/plan/?sourceApplication=${encodeURIComponent('古建地图')}&slat=${sLat}&slon=${sLng}&sname=${encodeURIComponent(sName)}&dlat=${dest.lat}&dlon=${dest.lng}&dname=${encodeURIComponent(dest.name)}&dev=0&t=0`;
+  if(ways.length) deep+=`&vian=${ways.length}&vialons=${viaLons}&vialats=${viaLats}&vianames=${viaNames}`;
+  // 网页/桌面兜底（含 waypoints）
+  let web=`https://uri.amap.com/navigation?from=${sLng},${sLat},${encodeURIComponent(sName)}&to=${dest.lng},${dest.lat},${encodeURIComponent(dest.name)}&mode=car&policy=1&src=古建地图&coordinate=gaode&callnative=1`;
+  if(ways.length) web+='&waypoints='+ways.map(w=>`${w.lng},${w.lat},${encodeURIComponent(w.name)}`).join(';');
+  document.getElementById('tripBar').classList.remove('open');
+  if(/GuJianApp/.test(navigator.userAgent)){ window.location.href=deep; return; }
+  // 非 App：先试深链，1.9s 内未离开页面（未装高德）则回退网页版
+  const t0=Date.now();
+  window.location.href=deep;
+  setTimeout(function(){ if(Date.now()-t0<2200) window.location.href=web; }, 1900);
+}
+document.getElementById('tripClear').onclick=()=>{ trip=[]; saveTrip(); renderTripBar(); refreshSheet(); };
+document.getElementById('tripSort').onclick=sortTripNN;
+document.getElementById('tripGo').onclick=openArrive;
+function openArrive(){
+  if(!trip.length){ showTripToast('先加入地点，再开始今天的旅行'); return; }
+  const s=SITES[trip[0]];
+  document.getElementById('arPlace').textContent=s?esc(s.label):'—';
+  document.getElementById('arSub').textContent=trip.length+' 站 · '+(s?(s.region||''):'');
+  document.getElementById('arriveDlg').classList.add('show');
+}
+function closeArrive(){ document.getElementById('arriveDlg').classList.remove('show'); }
+document.getElementById('arVoice').onclick=function(){
+  closeArrive();
+  if(trip.length) TravelNotes.openPanel(trip[0]);
+  else showTripToast('先加入地点');
+};
+document.getElementById('arGo').onclick=function(){ closeArrive(); navAmap(); };
+document.getElementById('tripFab').onclick=()=>document.getElementById('tripBar').classList.toggle('open');
+document.getElementById('tripClose').onclick=()=>document.getElementById('tripBar').classList.remove('open');
+renderTripBar();
+
+function flyToSite(i, fromSheet){
+  const s=SITES[i]; if(!s)return;
+  map.flyTo(pt(s),Math.max(map.getZoom(),13),{duration:.6});
+  switchTab('map');
+  if(fromSheet){
+    document.getElementById('locSheet').classList.remove('show');
+    document.querySelector('.tabbar').classList.remove('is-hidden');
+    curSite=i;
+    setActiveNode(i);
+  } else {
+    openSheet(i);
+  }
+}
+
+/* ---------- 列表 ---------- */
+const grid=document.getElementById('grid');
+function renderList(list){
+  grid.innerHTML='';
+  document.getElementById('listEmpty').style.display=list.length?'none':'block';
+  const rp=refPoint();
+  list.forEach(s=>{
+    const c=colorOf(s);
+    const card=document.createElement('div');
+    card.className='card'; card.dataset.i=s.__i;
+    const km = (rp&&s._d!=null)?`<span class="km">📍 ${s._d.toFixed(0)} km</span>`:'';
+    card.innerHTML=`<div class="ph"><div class="bar" style="background:${c}"></div>
+      <img loading="lazy" src="${s.img}" alt="${s.label}" onerror="this.style.display='none'">
+      <span class="tag">${TY_ICON[s.ty]||''} ${s.ty}</span></div>
+      <div class="body"><div class="nm">${s.label}</div>
+      <div class="meta">${s.dy} · ${s.city} ${s.county}</div>
+      <div class="ds">${s.desc}</div>${km}</div>
+      <div class="arr">›</div>`;
+    card.onclick=()=>flyToSite(s.__i);
+    grid.appendChild(card);
+  });
+  document.getElementById('listCnt').textContent=`共 ${list.length} 处`;
+}
+function highlightCard(i){
+  document.querySelectorAll('.card.hl').forEach(c=>c.classList.remove('hl'));
+  const el=grid.querySelector(`.card[data-i="${i}"]`);
+  if(el){el.classList.add('hl'); el.scrollIntoView({block:'center',behavior:'smooth'});}
+}
+
+/* ---------- 时间轴 ---------- */
+function renderTimeline(list){
+  const tl=document.getElementById('tl'); tl.innerHTML='';
+  DYN_ORDER.forEach(era=>{
+    const items=list.filter(s=>s.dy===era); if(!items.length)return;
+    const sec=document.createElement('div'); sec.className='tl-era';
+    const head=document.createElement('div'); head.className='tl-head';
+    head.innerHTML=`<span class="d" style="background:${DYN[era]}"></span><h3>${era}</h3><span class="cnt">${items.length} 处</span>`;
+    sec.appendChild(head);
+    items.forEach(s=>{
+      const row=document.createElement('div'); row.className='tl-row';
+      row.innerHTML=`<div class="t">${s.city.replace('市','')}</div><div><div class="n">${s.label}</div><div class="c">${s.ty} · ${s.county}</div></div>`;
+      row.onclick=()=>flyToSite(s.__i);
+      sec.appendChild(row);
+    });
+    tl.appendChild(sec);
+  });
+}
+
+/* ---------- 路线（按天编排，每日独立配色） ---------- */
+const DAY_COLORS=["#C86D4B","#8A5A44","#6D7D88","#71806C","#9C9A92","#A9563B","#8C7B66","#7E7663"];
+const ROUTES=[
+  {name:"晋北朝圣线",color:"#C86D4B",desc:"云冈、华严、应县木塔，直抵五台佛光寺、南禅寺——中国古建天花板之旅。",
+   days:[
+    {title:"第1天 · 大同石窟与古刹",tip:"上午云冈石窟（预留3h+），下午市区华严寺、善化寺，夜宿大同。",stops:["云冈石窟","华严寺","善化寺"]},
+    {title:"第2天 · 恒山悬空与应县木塔",tip:"上午恒山悬空寺，午后赴应县看木塔，宿应县或返大同。",stops:["悬空寺","应县木塔"]},
+    {title:"第3天 · 朔州净土",tip:"朔州崇福寺（辽金建筑+弥陀殿壁画），时间充裕加净土寺，傍晚北上五台。",stops:["崇福寺","净土寺"]},
+    {title:"第4天 · 五台台怀与台外",tip:"佛光寺、南禅寺在台外需包车，显通寺在台怀镇，宿五台。",stops:["佛光寺","南禅寺","显通寺"]}
+   ]},
+  {name:"晋中大院平遥线",color:"#C86D4B",desc:"平遥古城 + 镇国寺双林寺 + 晋商大院（乔家/王家/常家）+ 碛口黄河古村。",
+   days:[
+    {title:"第1天 · 太原晋祠",tip:"晋祠圣母殿（宋建精品）+ 永祚寺双塔，夜宿太原。",stops:["晋祠","永祚寺"]},
+    {title:"第2天 · 平遥古城",tip:"平遥古城 + 镇国寺（五代） + 双林寺（彩塑），宿平遥。",stops:["平遥古城","镇国寺","双林寺"]},
+    {title:"第3天 · 晋商大院",tip:"祁县乔家、灵石王家、榆次常家择一二，宿平遥/介休。",stops:["乔家大院","王家大院","常家庄园"]},
+    {title:"第4天 · 张壁碛口",tip:"介休张壁古堡，向西南至吕梁碛口 + 李家山黄河古村。",stops:["张壁古堡","碛口古建筑群","李家山民居"]}
+   ]},
+  {name:"晋南唐构壁画线",color:"#6D7D88",desc:"广仁王庙（唐构）、永乐宫壁画、解州关帝庙、广胜寺飞虹塔、小西天悬塑。",
+   days:[
+    {title:"第1天 · 芮城永乐",tip:"五龙庙（唐构广仁王庙）+ 永乐宫壁画，宿芮城/运城。",stops:["广仁王庙","永乐宫"]},
+    {title:"第2天 · 解州万荣",tip:"解州关帝庙、万荣飞云楼、后土祠秋风楼，宿运城。",stops:["解州关帝庙","万荣东岳庙","后土祠"]},
+    {title:"第3天 · 普救鹳雀",tip:"永济普救寺、鹳雀楼，傍晚看蒲津渡铁牛。",stops:["普救寺","鹳雀楼"]},
+    {title:"第4天 · 洪洞广胜",tip:"广胜寺飞虹塔、隰县小西天悬塑、丁村古民居、霍州署。",stops:["广胜寺","隰县小西天","丁村古建筑群","霍州署"]}
+   ]},
+  {name:"晋东南彩塑古堡线",color:"#8C7B66",desc:"长治宋塑（崇庆寺/法兴寺）、晋城玉皇庙二十八宿、开化寺壁画、沁河古堡群。",
+   days:[
+    {title:"第1天 · 长治宋塑",tip:"长子崇庆寺、法兴寺宋塑，长治观音堂明代悬塑，宿长治。",stops:["崇庆寺","法兴寺","观音堂（长治）"]},
+    {title:"第2天 · 平顺浊漳河谷",tip:"平顺浊漳河谷龙门寺、大云院（五代壁画），宿平顺/晋城。",stops:["龙门寺","大云院"]},
+    {title:"第3天 · 晋城彩塑",tip:"玉皇庙二十八宿、青莲寺、高平开化寺壁画、铁佛寺，宿晋城。",stops:["玉皇庙","青莲寺","开化寺","铁佛寺"]},
+    {title:"第4天 · 沁河古堡群",tip:"湘峪、皇城相府、郭峪、砥洎城，晋城返程。",stops:["湘峪古堡","皇城相府","郭峪古城","砥洎城"]}
+   ]}
+];
+function resolveStop(name){
+  let r=SITES.find(s=>s.name===name)||SITES.find(s=>s.label===name);
+  if(!r)r=SITES.find(s=>s.name.includes(name)||s.label.includes(name));
+  return r;
+}
+function routeStops(rt){return rt.days.flatMap(d=>d.stops).map(resolveStop).filter(Boolean);}
+function renderRoutes(){
+  const box=document.getElementById('routes'); box.innerHTML='';
+  ROUTES.forEach((rt,ri)=>{
+    const total=rt.days.reduce((n,d)=>n+d.stops.length,0);
+    const el=document.createElement('div'); el.className='route';
+    // 每日色键
+    const keyHtml=rt.days.map((d,di)=>`<span class="dayKey"><span class="dk" style="background:${DAY_COLORS[di%DAY_COLORS.length]}"></span>D${di+1} ${d.title.split(' · ')[1]||d.title}</span>`).join('');
+    // 每日区块
+    let daysHtml='';
+    rt.days.forEach((d,di)=>{
+      const c=DAY_COLORS[di%DAY_COLORS.length];
+      const names=dayNames(ri,di);
+      const stopsHtml=names.map((nm,i)=>{const s=resolveStop(nm);
+        return s?`<div class="stop"><div class="num" style="background:${c}">${i+1}</div>
+          <div class="si"><div class="sn">${s.label}</div><div class="sd">${s.dy} · ${s.city}${s.county} · ${s.ty}</div></div></div>`
+          :`<div class="stop"><div class="num" style="background:${c}">${i+1}</div><div class="si"><div class="sn">${nm}</div><div class="sd">（未收录）</div></div></div>`;
+      }).join('');
+      const connHtml=dayConnectHtml(ri,di,c);
+      daysHtml+=`<div class="day">${connHtml}<div class="dayh" style="border-left:5px solid ${c}">
+        <span class="dnt" style="background:${c}">D${di+1}</span><b>${d.title}</b></div>
+        <div class="daytip">💡 ${d.tip}</div>${stopsHtml}
+        <div class="dayacts"><button class="dbtn" data-sort="${ri}:${di}">↻ 按距离排序</button>
+        <button class="dbtn send" data-send="${ri}:${di}">🚗 发高德导航</button></div></div>`;
+    });
+    el.innerHTML=`<div class="rh" style="background:linear-gradient(135deg,${rt.color},${rt.color}99)">
+        <h3>${rt.name}</h3><p>⏱ ${rt.days.length} 天 ｜ ${total} 站 ｜ ${rt.desc}</p>
+        <div class="dkey">🎨 每日轨迹色：${keyHtml}</div></div>
+      <div class="stops">${daysHtml}</div>
+      <div class="acts"><button class="btn" data-show="${ri}">🗺️ 在地图查看（按天配色）</button>
+      <button class="btn alt" data-route="${ri}">📋 生成路线清单</button></div>`;
+    box.appendChild(el);
+  });
+  box.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>showRouteOnMap(+b.dataset.show));
+  box.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>buildRouteList(+b.dataset.route));
+  box.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{const p=b.dataset.sort.split(':').map(Number);sortRouteDay(p[0],p[1]);});
+  box.querySelectorAll('[data-send]').forEach(b=>b.onclick=()=>{const p=b.dataset.send.split(':').map(Number);sendRouteDayAmap(p[0],p[1]);});
+}
+/* 路线每日：排序 + 发高德 */
+let routeOrders={};
+function dayNames(ri,di){const k=ri+':'+di;return routeOrders[k]||ROUTES[ri].days[di].stops;}
+function havKm(aLat,aLng,bLat,bLng){const R=6371,r=Math.PI/180;const dLa=(bLat-aLat)*r,dLo=(bLng-aLng)*r;const s=Math.sin(dLa/2)**2+Math.cos(aLat*r)*Math.cos(bLat*r)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(s)));}
+function fmtDur(min){min=Math.max(1,Math.round(min));return min<60?min+'分钟':(Math.floor(min/60)+'小时'+(min%60?(min%60+'分'):''));}
+function legEst(aLat,aLng,bLat,bLng){const km=havKm(aLat,aLng,bLat,bLng)*1.35;return{km:km,min:km/48*60};}
+function firstStop(ri,di){const ns=dayNames(ri,di);for(const nm of ns){const s=resolveStop(nm);if(s)return s;}return null;}
+function lastStop(ri,di){const ns=dayNames(ri,di);for(let i=ns.length-1;i>=0;i--){const s=resolveStop(ns[i]);if(s)return s;}return null;}
+function dayConnectHtml(ri,di,c){
+  if(di<=0)return'';
+  const pl=lastStop(ri,di-1),tf=firstStop(ri,di);
+  if(!pl||!tf)return'';
+  const e=legEst(pl.lat,pl.lng,tf.lat,tf.lng);
+  return `<div class="dayconn" style="border-left:4px solid ${c}">🔗 承接 D${di} 终点：<b>${pl.label}</b> → <b>${tf.label}</b>　约 ${e.km.toFixed(0)} km · 建议预留 ${fmtDur(e.min)}（已含在下方导航起点）</div>`;
+}
+function sortRouteDay(ri,di){
+  const names=dayNames(ri,di);
+  const sites=names.map(resolveStop);
+  const idx=sites.map((s,i)=>s?i:-1).filter(i=>i>=0);
+  if(idx.length<2)return;
+  const _pl=di>0?lastStop(ri,di-1):null;
+  let cur=_pl?[_pl.lat,_pl.lng]:(userLatLng?userLatLng:[sites[idx[0]].lat,sites[idx[0]].lng]);
+  const rest=idx.slice(),out=[];
+  while(rest.length){
+    let bi=0,bd=1e12;
+    rest.forEach((i,k)=>{const s=sites[i];const d=(s.lat-cur[0])**2+(s.lng-cur[1])**2;if(d<bd){bd=d;bi=k;}});
+    const pick=rest.splice(bi,1)[0];out.push(pick);cur=[sites[pick].lat,sites[pick].lng];
+  }
+  routeOrders[ri+':'+di]=out.map(i=>names[i]);
+  renderRoutes();
+}
+function sendRouteDayAmap(ri,di){
+  const names=dayNames(ri,di);
+  const sites=names.map(resolveStop).filter(Boolean);
+  if(sites.length===0)return;
+  let pts=sites.map(s=>{const g=gcj02Of(s.lat,s.lng);return {lng:g[1],lat:g[0],name:s.name||s.label};});
+  let sLng,sLat,sName;
+  const _pl=di>0?lastStop(ri,di-1):null;
+  if(_pl){const g=gcj02Of(_pl.lat,_pl.lng);sLng=g[1];sLat=g[0];sName='昨日终点·'+_pl.label;}
+  else if(userLatLng){const g=gcj02Of(userLatLng[0],userLatLng[1]);sLng=g[1];sLat=g[0];sName='我的位置';}
+  else{const f=pts.shift();sLng=f.lng;sLat=f.lat;sName=f.name;}
+  if(pts.length===0){window.location.href=`https://uri.amap.com/marker?position=${sLng},${sLat}&name=${encodeURIComponent(sName)}&src=古建地图&coordinate=gaode&callnative=1`;return;}
+  const dest=pts[pts.length-1],ways=pts.slice(0,-1);
+  const viaLons=ways.map(w=>w.lng).join('|'),viaLats=ways.map(w=>w.lat).join('|'),viaNames=ways.map(w=>encodeURIComponent(w.name)).join('|');
+  let deep=`amapuri://route/plan/?sourceApplication=${encodeURIComponent('古建地图')}&slat=${sLat}&slon=${sLng}&sname=${encodeURIComponent(sName)}&dlat=${dest.lat}&dlon=${dest.lng}&dname=${encodeURIComponent(dest.name)}&dev=0&t=0`;
+  if(ways.length)deep+=`&vian=${ways.length}&vialons=${viaLons}&vialats=${viaLats}&vianames=${viaNames}`;
+  let web=`https://uri.amap.com/navigation?from=${sLng},${sLat},${encodeURIComponent(sName)}&to=${dest.lng},${dest.lat},${encodeURIComponent(dest.name)}&mode=car&policy=1&src=古建地图&coordinate=gaode&callnative=1`;
+  if(ways.length)web+='&waypoints='+ways.map(w=>`${w.lng},${w.lat},${encodeURIComponent(w.name)}`).join(';');
+  if(/GuJianApp/.test(navigator.userAgent)){window.location.href=deep;return;}
+  const t0=Date.now();window.location.href=deep;
+  setTimeout(function(){if(Date.now()-t0<2200)window.location.href=web;},1900);
+}
+function showRouteOnMap(ri){
+  lastRouteRi=ri;
+  const rt=ROUTES[ri];
+  if(routeLayer)map.removeLayer(routeLayer);
+  routeLayer=L.layerGroup().addTo(map);
+  const all=[];
+  rt.days.forEach((d,di)=>{
+    const pts=d.stops.map(resolveStop).filter(Boolean).map(s=>pt(s));
+    if(pts.length<1)return;
+    all.push(...pts);
+    const c=DAY_COLORS[di%DAY_COLORS.length];
+    const line=L.polyline(pts,{color:c,weight:4,opacity:.9,dashArray:"1,9",lineCap:"round"}).addTo(routeLayer);
+    line.bindPopup(`<b style="color:${c}">${d.title}</b>`);
+  });
+  if(all.length)map.fitBounds(all,{padding:[40,40]});
+  switchTab('map');
+  // 紧凑清除胶囊：只显示路线名 + ✕
+  const banner=document.getElementById('routeBanner');
+  banner.style.display='block'; banner.textContent=`🗺️ ${rt.name}  ✕`;
+  banner.title='点击清除路线';
+  banner.onclick=clearRoute;
+  // 每日轨迹色：默认收起为小按钮，点开才显示图例（不遮挡地图）
+  const dl=document.getElementById('dayLegend');
+  dl.innerHTML=`<b>${rt.name} · 每日轨迹</b><br>`+rt.days.map((d,di)=>`<span class="dl"><span class="dd" style="background:${DAY_COLORS[di%DAY_COLORS.length]}"></span>D${di+1} ${d.title.split(' · ')[1]||d.title}</span>`).join('');
+  dl.style.display='none';
+  const dlBtn=document.getElementById('dayLegendBtn');
+  dlBtn.textContent='🎨 每日色';
+  dlBtn.style.display='block';
+  dlBtn.onclick=()=>{
+    const open=dl.style.display==='block';
+    dl.style.display=open?'none':'block';
+    dlBtn.textContent=open?'🎨 每日色':'🎨 收起每日色';
+  };
+}
+function clearRoute(){
+  lastRouteRi=null;
+  if(routeLayer)map.removeLayer(routeLayer); routeLayer=null;
+  document.getElementById('routeBanner').style.display='none';
+  document.getElementById('dayLegend').style.display='none';
+  document.getElementById('dayLegendBtn').style.display='none';
+}
+function buildRouteList(ri){
+  const rt=ROUTES[ri];
+  const resolved=routeStops(rt);
+  state.q=""; document.getElementById('search').value="";
+  const set=new Set(resolved.map(s=>s.__i));
+  const list=SITES.filter(s=>set.has(s.__i));
+  renderList(list); switchTab('list');
+  document.getElementById('listCnt').textContent=`${rt.name} · ${list.length} 站（来自路线页）`;
+}
+
+/* ---------- 我的位置（自动获取 + 手动） ---------- */
+function userDotIcon(){return L.divIcon({className:'',html:'<div class="uwrap"><span class="upulse"></span><span class="udot"></span></div>',iconSize:[46,46],iconAnchor:[23,23]});}
+let locateTried=false;
+function locateSuccess(pos){
+  userLatLng=[pos.coords.latitude,pos.coords.longitude];
+  if(userMarker)map.removeLayer(userMarker);
+  userMarker=L.marker(gxy(userLatLng[0],userLatLng[1]),{icon:userDotIcon(),zIndexOffset:1000}).addTo(map);
+  userMarker.bindPopup('<b>📍 我的位置</b>').openPopup();
+  if(!watchId && navigator.geolocation)watchId=navigator.geolocation.watchPosition(p=>{
+    userLatLng=[p.coords.latitude,p.coords.longitude];
+    if(userMarker)userMarker.setLatLng(gxy(userLatLng[0],userLatLng[1]));
+  },()=>{},{enableHighAccuracy:true,maximumAge:10000});
+}
+function showPickHint(){document.getElementById('pickHint').style.display='block';}
+function hidePickHint(){document.getElementById('pickHint').style.display='none';}
+function enterPickMode(){
+  document.getElementById('locBtn').className='fab err';setTimeout(function(){document.getElementById('locBtn').className='fab'},2000);
+  pickMode=true;
+  if(!document.getElementById('map').classList.contains('active'))switchTab('map');
+  showPickHint();
+}
+document.getElementById('pickHint').onclick=()=>{pickMode=false;hidePickHint();};
+function locate(manual){
+  if(!navigator.geolocation){ if(manual)enterPickMode(); return; }
+  if(manual)document.getElementById('locBtn').textContent='⏳';document.getElementById('locBtn').className='fab loading';
+  navigator.geolocation.getCurrentPosition(p=>{
+    locateSuccess(p);
+    document.getElementById('locBtn').className='fab ok';setTimeout(function(){document.getElementById('locBtn').className='fab'},1500);document.getElementById('locBtn').textContent='📍';
+    if(manual){ if(document.getElementById('map').classList.contains('active'))map.setView(gxy(userLatLng[0],userLatLng[1]),Math.max(map.getZoom(),11));
+      else switchTab('map'); }
+  },e=>{
+    document.getElementById('locBtn').textContent='📍';
+    if(manual)enterPickMode();
+  },{enableHighAccuracy:true,timeout:10000});
+}
+function autoLocate(){
+  if(locateTried)return; locateTried=true;
+  if(!navigator.geolocation)return;
+  // 页面加载即尝试自动获取（静默，失败不弹窗），需用户授权定位权限
+  navigator.geolocation.getCurrentPosition(locateSuccess,()=>{},{enableHighAccuracy:true,timeout:8000});
+}
+
+/* ---------- 渲染调度 ---------- */
+function renderAll(){
+  const list=getFiltered();
+  renderMarkers(list);
+  renderList(list);
+  renderTimeline(list);
+  document.getElementById('totalTag').textContent=`· 共 ${SITES.length} 处国保`;
+}
+// 注意：getFiltered 中 map 产生了浅拷贝并加了 _d；__i 需在原始 SITES 上对应
+function attachIndex(){
+  SITES.forEach((s,i)=>s.__i=i);
+}
+
+/* ---------- 交互绑定 ---------- */
+function switchTab(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  if(tab==='map'){setTimeout(()=>map.invalidateSize(),60); autoLocate();}
+}
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+document.getElementById('locBtn').onclick=()=>{
+  if(userLatLng){ map.setView(gxy(userLatLng[0],userLatLng[1]),Math.max(map.getZoom(),12)); if(userMarker)userMarker.openPopup(); }
+  else locate(true);
+};
+
+const searchEl=document.getElementById('search');
+searchEl.oninput=e=>{state.q=e.target.value;renderAll();};
+// URL ?q= 直达搜索（首页搜索栏跳转进入）
+(function(){var m=location.search.match(/[?&]q=([^&]+)/);if(m){var q=decodeURIComponent(m[1]);var s=document.getElementById('search');if(s){s.value=q;state.q=q;renderAll();}}})();
+document.getElementById('sortSel').onchange=e=>{state.sort=e.target.value;renderAll();};
+
+// 筛选 chips：朝代（多选）+ 类型（单选）+ 城市（单选）+ 全部重置
+const dynChips=document.getElementById('dynChips');
+function mkChip(label, on, dot){
+  const c=document.createElement('button'); c.className='chip'; c.dataset.f=label;
+  if(dot) c.style.borderColor=dot;
+  c.innerHTML=(dot?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+dot+';margin-right:5px"></span>':'')+label;
+  if(on) c.classList.add('on');
+  return c;
+}
+function syncChips(){
+  dynChips.querySelectorAll('.chip').forEach(c=>{
+    const f=c.dataset.f;
+    if(f==='全部'){ c.classList.toggle('on', !state.city && !state.type && !state.dyn.size); return; }
+    if(f===state.city || f===state.type) c.classList.add('on');
+    else if(state.dyn.has(f)) c.classList.add('on');
+    else c.classList.remove('on');
+  });
+}
+// 全部重置
+(function(){
+  const c=mkChip('全部',true); c.className='chip all on';
+  c.onclick=()=>{state.city='';state.type='';state.dyn.clear();syncChips();renderAll();};
+  dynChips.appendChild(c);
+})();
+// 朝代（多选）
+[...new Set(SITES.map(s=>s.dy))].sort((a,b)=>DYN_ORDER.indexOf(a)-DYN_ORDER.indexOf(b)).forEach(d=>{
+  const c=mkChip(d,false,DYN[d]);
+  c.onclick=()=>{if(state.dyn.has(d))state.dyn.delete(d);else state.dyn.add(d);syncChips();renderAll();};
+  dynChips.appendChild(c);
+});
+// 类型（单选）
+[...new Set(SITES.map(s=>s.ty))].sort().forEach(t=>{
+  const c=mkChip(t,false);
+  c.onclick=()=>{state.type=(state.type===t?'':t);syncChips();renderAll();};
+  dynChips.appendChild(c);
+});
+// 城市（单选）
+[...new Set(SITES.map(s=>s.city))].sort().forEach(city=>{
+  const c=mkChip(city,false);
+  c.onclick=()=>{state.city=(state.city===city?'':city);syncChips();renderAll();};
+  dynChips.appendChild(c);
+});
+// 图例
+const legBody=document.getElementById('legBody');
+DYN_ORDER.forEach(d=>{if(!SITES.some(s=>s.dy===d))return;const r=document.createElement('div');r.className='lg';
+  r.innerHTML=`<span class="dot" style="background:${DYN[d]}"></span>${d}`;legBody.appendChild(r);});
+const legEl=document.getElementById('legend'),legOpen=document.getElementById('legOpen');
+function legSet(h){legEl.classList.toggle('hidden',h);legOpen.classList.toggle('show',h);}
+document.getElementById('legTg').onclick=()=>legSet(true);
+legOpen.onclick=()=>legSet(false);
+
+/* ---------- 美食推荐 ---------- */
+const FTYPE_ICON={"面食":"🍜","小吃":"🥟","硬菜":"🍲","宴席":"🍱","特产":"🎁","饮品":"🍶"};
+const FTYPE_COLOR={"面食":"#C86D4B","小吃":"#71806C","硬菜":"#C86D4B","宴席":"#8C7B66","特产":"#6D7D88","饮品":"#71806C"};
+const FOOD_STATE={q:"",city:"",type:""};
+function foodCountInCity(city){return SITES.filter(s=>s.city===city).length;}
+function getFoodFiltered(){
+  const q=(FOOD_STATE.q||"").trim().toLowerCase();
+  return FOOD.filter(d=>{
+    if(FOOD_STATE.city && d.city!==FOOD_STATE.city) return false;
+    if(FOOD_STATE.type && d.type!==FOOD_STATE.type) return false;
+    if(q){
+      const hay=(d.name+d.city+(d.county||"")+d.desc+(d.feature||"")+(d.with||"")).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function renderFood(){
+  const list=getFoodFiltered();
+  const grid=document.getElementById('foodGrid');
+  document.getElementById('foodCnt').textContent=`共 ${list.length} 道 · 山西味道`;
+  if(!list.length){grid.innerHTML='<div class="empty">没有匹配的美食，换个关键词试试。</div>';return;}
+  grid.innerHTML='';
+  list.forEach(d=>{
+    const ic=FTYPE_ICON[d.type]||"🍽️", col=FTYPE_COLOR[d.type]||"#7D7970";
+    const nSites=foodCountInCity(d.city);
+    const card=document.createElement('div'); card.className='fcard';
+    card.innerHTML=`<div class="fh"><span class="fic">${ic}</span><span class="ft" style="background:${col}">${d.type}</span></div>
+      <div class="fn">${d.name}</div>
+      <div class="floc">📍 ${d.city}${d.county?(' · '+d.county):''}</div>
+      <div class="fdesc">${d.desc}</div>
+      <div class="fmore">▾ 特色 / 配着吃</div>
+      <div class="fdetail">${d.feature?('<b>特色：</b>'+d.feature+'<br>'):''}${d.with?('<b>配着吃：</b>'+d.with):''}</div>
+      <button class="fgo">🏯 同市古建 ${nSites} 处 · 去逛逛</button>`;
+    card.querySelector('.fmore').onclick=()=>{
+      const det=card.querySelector('.fdetail'); const open=det.style.display==='block';
+      det.style.display=open?'none':'block';
+      card.querySelector('.fmore').textContent=(open?'▾':'▴')+' 特色 / 配着吃';
+    };
+    card.querySelector('.fgo').onclick=()=>{
+      state.q=""; state.dyn.clear(); state.city=d.city; state.type="";
+      document.getElementById('search').value="";
+      syncChips();
+      renderAll(); switchTab('list');
+      document.getElementById('listCnt').textContent=`${d.city} · 古建 ${nSites} 处（来自美食「${d.name}」）`;
+    };
+    grid.appendChild(card);
+  });
+}
+[...new Set(FOOD.map(d=>d.city))].sort().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;document.getElementById('foodCity').appendChild(o);});
+[...new Set(FOOD.map(d=>d.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;document.getElementById('foodType').appendChild(o);});
+document.getElementById('foodSearch').oninput=e=>{FOOD_STATE.q=e.target.value;renderFood();};
+document.getElementById('foodCity').onchange=e=>{FOOD_STATE.city=e.target.value;renderFood();};
+document.getElementById('foodType').onchange=e=>{FOOD_STATE.type=e.target.value;renderFood();};
+
+/* ---------- 启动 ---------- */
+attachIndex();
+TravelNotes.init({ map: map, getSite: (i)=>SITES[i] });
+renderRoutes();
+renderFood();
+renderAll();
+autoLocate();
+	setTimeout(()=>map.invalidateSize(),200);
+</script>
+</body>
+</html>
