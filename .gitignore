@@ -17,3 +17,6 @@ Thumbs.db
 .vscode/
 *.swp
 data/.cache/
+
+# WorkBuddy 工作区数据（记忆/配置，不提交）
+.workbuddy/

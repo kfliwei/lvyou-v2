@@ -29,6 +29,10 @@
   var MODEL_ALIAS = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' };
   var MODEL_LIST = [['deepseek-v4-flash', '⚡ V4-Flash'], ['deepseek-v4-pro', '🚀 V4-Pro']];
   var tagFilter = '';
+  var viewMode = 'trip';        // trip=旅程聚合 | timeline=年月折叠
+  var tripOpen = {};            // 展开的旅程 id
+  var timeOpen = {};            // 展开的年（'2026'）/ 月（'2026-08'）
+  var TRIP_GAP = 3 * 24 * 3600 * 1000;   // 游记间隔超过 3 天视为新旅程
   var startGuideRef = null;   // buildUI 内赋值，供导出 explain 调用
 
   /* ---------- 基础 · IndexedDB 持久层 ---------- */
@@ -294,6 +298,35 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-guide .loading{display:none;padding:40px 20px;text-align:center;color:var(--d3);font-size:13.5px;font-family:var(--fb)}\
 .tn-guide .loading::before{content:"";display:inline-block;width:24px;height:24px;border:3px solid rgba(184,134,11,.25);border-top-color:#b8860b;border-radius:50%;animation:tnspin .8s linear infinite;margin-right:10px;vertical-align:-6px}\
 .tn-guide .hint{font-size:11.5px;color:var(--d3);margin-top:14px;line-height:1.8;font-family:var(--fb)}\
+.tn-viewrow{display:flex;gap:6px;padding:10px 16px 0;background:var(--bg)}\
+.tn-viewtab{flex:1;background:rgba(255,255,255,.06);color:var(--i5);border:1px solid var(--ln);border-radius:2px;font-size:12.5px;font-weight:700;padding:9px 0;cursor:pointer;font-family:var(--fb);transition:var(--tf)}\
+.tn-viewtab.on{background:var(--b6);color:#f5ede0;border-color:var(--b6)}\
+.tn-trip{background:var(--sf);border:1px solid var(--ln);border-radius:12px;box-shadow:var(--sm);margin:14px 0;overflow:hidden;transition:var(--tn)}\
+.tn-trip-head{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}\
+.tn-trip-cover{width:46px;height:46px;border-radius:6px;object-fit:cover;flex:0 0 auto;background:var(--sf2)}\
+.tn-trip-cover.none{display:flex;align-items:center;justify-content:center;background:var(--color-primary-soft);color:var(--b6);font-size:17px;font-weight:700}\
+.tn-trip-info{flex:1;min-width:0}\
+.tn-trip-info b{display:block;font-family:var(--fd);font-size:15px;color:var(--i9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
+.tn-trip-info .tt-meta{font-size:11px;color:var(--i5);margin-top:2px}\
+.tn-trip-info .tt-meta em{font-style:normal;color:var(--b6);font-weight:700}\
+.tn-trip-arrow{flex:0 0 auto;color:var(--i5);font-size:12px;transition:transform .2s}\
+.tn-trip.open .tn-trip-arrow{transform:rotate(180deg)}\
+.tn-trip-body{display:none;border-top:1px dashed var(--ln);padding:10px 14px 14px}\
+.tn-trip.open .tn-trip-body{display:block}\
+.tn-tl-year,.tn-tl-month{display:flex;align-items:center;gap:8px;cursor:pointer;margin:14px 0 4px}\
+.tn-tl-year{font-family:var(--fd);font-size:16px;font-weight:700;color:var(--b7);letter-spacing:.06em}\
+.tn-tl-month{font-family:var(--fd);font-size:13.5px;font-weight:700;color:var(--b6);margin-left:4px}\
+.tn-tl-year .ar,.tn-tl-month .ar{transition:transform .2s;font-size:11px;color:var(--i5)}\
+.tn-tl-year.collapsed .ar,.tn-tl-month.collapsed .ar{transform:rotate(-90deg)}\
+.tn-tl-year small,.tn-tl-month small{font-family:var(--fb);font-weight:400;color:var(--i5);font-size:11px}\
+.tn-timeline .tn-tl-date{margin-top:6px}\
+.tn-cfm{position:fixed;inset:0;z-index:9700;display:flex;align-items:center;justify-content:center;background:rgba(32,32,29,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}\
+.tn-cfm .tc-box{background:#faf8f3;border-radius:16px;padding:22px 20px 18px;width:82vw;max-width:320px;box-shadow:0 12px 32px rgba(0,0,0,.3);text-align:center}\
+.tn-cfm .tc-txt{font-size:14px;color:#2c2c29;line-height:1.7;margin-bottom:16px;font-family:var(--fb)}\
+.tn-cfm .tc-btns{display:flex;gap:10px}\
+.tn-cfm .tc-btns button{flex:1;min-height:42px;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fb)}\
+.tn-cfm .tc-no{background:#efe9dc;color:#6b665c}\
+.tn-cfm .tc-ok{background:#c0392b;color:#fff}\
 ';
 
   /* ---------- UI 构建 ---------- */
@@ -618,6 +651,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   <button class="tn-pill" id="tnImpBtn">导入</button></div>\
 </div>\
 <div class="tn-listbar tn-searchrow"><input id="tnSearch" placeholder="搜景点 / 内容 / 标签…"></div>\
+<div class="tn-viewrow"><button class="tn-viewtab on" id="tnViewTrip">旅程</button><button class="tn-viewtab" id="tnViewTime">时间线</button></div>\
 <div class="tn-tagbar" id="tnTagBar" style="display:none"></div>\
 <div class="tn-stats" id="tnStats"></div>\
 <div class="tn-listbody"><div class="tn-timeline" id="tnListBody"></div></div>';
@@ -629,6 +663,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(list, '#tnImpBtn').onclick = importNotes;
     $X(list, '#tnSetBtn').onclick = function () { location.href = 'settings.html'; };
     $X(list, '#tnSearch').oninput = renderList;
+    $X(list, '#tnViewTrip').onclick = function () { viewMode = 'trip'; setViewTabs(); renderList(); };
+    $X(list, '#tnViewTime').onclick = function () { viewMode = 'timeline'; setViewTabs(); renderList(); };
     // 设置（毛玻璃分组：AI 润色 / 语音记录 / 数据备份）
     var set = el('div', 'tn-settings');
     set.innerHTML = '\
@@ -733,6 +769,17 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     ui.flashEl.style.display = 'block';
     clearTimeout(flash._t);
     flash._t = setTimeout(function () { ui.flashEl.style.display = 'none'; }, 2200);
+  }
+  /* 自定义确认弹层（替代原生 confirm，WebView/预览环境原生对话框不可靠） */
+  function confirmDialog(msg, onOk, okLabel) {
+    var m = el('div', 'tn-cfm');
+    m.innerHTML = '<div class="tc-box"><div class="tc-txt">' + msg + '</div>' +
+      '<div class="tc-btns"><button class="tc-no">取消</button><button class="tc-ok">' + (okLabel || '确认') + '</button></div></div>';
+    document.body.appendChild(m);
+    m.querySelector('.tc-ok').onclick = function () { m.remove(); onOk && onOk(); };
+    m.querySelector('.tc-no').onclick = function () { m.remove(); };
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    return m;
   }
   function setMic(mode) {  // idle / live / ok
     var m = $X(ui.panel, '#tnRec'), r = $X(ui.panel, '#tnRing');
@@ -1140,6 +1187,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   /* ---------- 列表 ---------- */
   function openList() {
     buildUI();
+    setViewTabs();
     renderTagBar();
     renderStats();
     renderList();
@@ -1186,40 +1234,119 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     body.innerHTML = '';
     if (!list.length) {
       body.innerHTML = '<div class="tn-empty"><div class="em">记</div><b>还没有游记</b><span>去景点弹窗点「语音游记」，<br>或在地图上随手记录第一篇吧</span></div>';
+      var wb0 = $X(ui.list, '#tnWallBtn');
+      if (wb0) wb0.style.display = 'none';
       return;
     }
-    // 按日期分组（藤蔓时间线）
-    var groups = {};
-    list.forEach(function (n) { var d = n.date.slice(0, 10); (groups[d] = groups[d] || []).push(n); });
-    Object.keys(groups).sort().reverse().forEach(function (d) {
-      var dateEl = el('div', 'tn-tl-date', d + ' <small>' + groups[d].length + ' 篇</small>');
-      body.appendChild(dateEl);
-      groups[d].forEach(function (n) {
-        var it = el('div', 'tn-item');
-        var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p) { return '<img src="' + esc(p) + '" onclick="TravelNotes.zoomPhoto(this.src)">'; }).join('') + '</div>' : '';
-        var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
-        var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
-        it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:11.5px;color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
-          '<button data-a="edit">编辑</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="del" class="danger">删除</button></div>';
-        it.querySelector('[data-a=edit]').onclick = function () { openEdit(n.id); };
-        it.querySelector('[data-a=card]').onclick = function () { genCard(n); };
-        it.querySelector('[data-a=md]').onclick = function () { if (window.Vault) Vault.exportOne(n); };
-        it.querySelector('.tx').onclick = function () { it.querySelector('.tx').classList.toggle('open'); };
-        it.querySelector('[data-a=del]').onclick = function () {
-          if (confirm('删除这篇游记？')) {
-            notes = notes.filter(function (x) { return x.id !== n.id; });
-            persist(); renderTNLayer(); renderList(); renderTagBar(); renderStats();
-            if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
-          }
-        };
-        body.appendChild(it);
-      });
-    });
+    if (viewMode === 'trip') renderTripView(body, list);
+    else renderTimeView(body, list);
     // 照片墙入口：有照片才显示
     var hasPhoto = false;
     notes.forEach(function (n) { if ((n.photos || []).length) hasPhoto = true; });
     var wb = $X(ui.list, '#tnWallBtn');
     if (wb) wb.style.display = hasPhoto ? 'block' : 'none';
+  }
+  function setViewTabs() {
+    var t1 = $X(ui.list, '#tnViewTrip'), t2 = $X(ui.list, '#tnViewTime');
+    if (!t1 || !t2) return;
+    t1.classList.toggle('on', viewMode === 'trip');
+    t2.classList.toggle('on', viewMode === 'timeline');
+  }
+  /* 单篇卡片（两个视图共用） */
+  function renderItem(body, n) {
+    var it = el('div', 'tn-item');
+    var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p) { return '<img src="' + esc(p) + '" onclick="TravelNotes.zoomPhoto(this.src)">'; }).join('') + '</div>' : '';
+    var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
+    var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
+    it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:11.5px;color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
+      '<button data-a="edit">编辑</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="doc">文档</button><button data-a="del" class="danger">删除</button></div>';
+    it.querySelector('[data-a=edit]').onclick = function () { openEdit(n.id); };
+    it.querySelector('[data-a=card]').onclick = function () { genCard(n); };
+    it.querySelector('[data-a=md]').onclick = function () { if (window.Vault) Vault.exportOne(n); };
+    it.querySelector('[data-a=doc]').onclick = function () { if (window.Vault && Vault.exportOneHtml) Vault.exportOneHtml(n); };
+    it.querySelector('.tx').onclick = function () { it.querySelector('.tx').classList.toggle('open'); };
+    it.querySelector('[data-a=del]').onclick = function () {
+      confirmDialog('删除这篇游记？此操作不可恢复。', function () {
+        notes = notes.filter(function (x) { return x.id !== n.id; });
+        persist(); renderTNLayer(); renderList(); renderTagBar(); renderStats();
+        if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
+        flash('已删除');
+      }, '删除');
+    };
+    body.appendChild(it);
+  }
+  /* 按日期分组渲染单篇（旅程展开 / 时间线月内共用） */
+  function renderItems(body, list) {
+    var groups = {};
+    list.forEach(function (n) { var d = n.date.slice(0, 10); (groups[d] = groups[d] || []).push(n); });
+    Object.keys(groups).sort().reverse().forEach(function (d) {
+      var dateEl = el('div', 'tn-tl-date', d + ' <small>' + groups[d].length + ' 篇</small>');
+      body.appendChild(dateEl);
+      groups[d].forEach(function (n) { renderItem(body, n); });
+    });
+  }
+  /* ---------- 视图一：旅程自动聚合 ---------- */
+  function groupTrips(list) {
+    var sorted = list.slice().sort(function (a, b) { return a.ts - b.ts; });
+    var trips = [];
+    sorted.forEach(function (n) {
+      var last = trips[trips.length - 1];
+      if (last && n.ts - last.end <= TRIP_GAP) { last.notes.push(n); last.end = n.ts; }
+      else trips.push({ id: 'trip_' + n.id, start: n.ts, end: n.ts, notes: [n] });
+    });
+    return trips.reverse();   // 最新旅程在前
+  }
+  function tripName(t) {
+    var cnt = {}, best = '', bn = 0;
+    t.notes.forEach(function (n) { var k = n.siteName || ''; if (!k) return; cnt[k] = (cnt[k] || 0) + 1; if (cnt[k] > bn) { bn = cnt[k]; best = k; } });
+    return best || '旅行';
+  }
+  function renderTripView(body, list) {
+    var trips = groupTrips(list);
+    trips.forEach(function (t) {
+      var card = el('div', 'tn-trip' + (tripOpen[t.id] ? ' open' : ''));
+      var cover = null;
+      for (var i = 0; i < t.notes.length && !cover; i++) { var ph = (t.notes[i].photos || []); if (ph.length) cover = ph[0]; }
+      var startD = fmtDay(t.start), endD = fmtDay(t.end);
+      var head = el('div', 'tn-trip-head');
+      head.innerHTML = (cover ? '<img class="tn-trip-cover" src="' + esc(cover) + '">' : '<div class="tn-trip-cover none">游</div>') +
+        '<div class="tn-trip-info"><b>' + esc(tripName(t)) + '</b><div class="tt-meta">' + startD + (endD !== startD ? ' ~ ' + endD : '') + ' · <em>' + t.notes.length + '</em> 篇</div></div>' +
+        '<div class="tn-trip-arrow">▾</div>';
+      card.appendChild(head);
+      var inner = el('div', 'tn-trip-body');
+      if (tripOpen[t.id]) renderItems(inner, t.notes);
+      card.appendChild(inner);
+      head.onclick = function () {
+        tripOpen[t.id] = !tripOpen[t.id];
+        card.classList.toggle('open', tripOpen[t.id]);
+        if (tripOpen[t.id]) { inner.innerHTML = ''; renderItems(inner, t.notes); }
+      };
+      body.appendChild(card);
+    });
+  }
+  /* ---------- 视图二：年 → 月 折叠时间线 ---------- */
+  function renderTimeView(body, list) {
+    var byYear = {};
+    list.forEach(function (n) { var y = n.date.slice(0, 4); (byYear[y] = byYear[y] || []).push(n); });
+    var years = Object.keys(byYear).sort().reverse();
+    var newestY = years[0];
+    years.forEach(function (y) {
+      var open = (timeOpen[y] === true) || (timeOpen[y] === undefined && y === newestY);
+      var yEl = el('div', 'tn-tl-year' + (open ? '' : ' collapsed'), y + ' 年 <small>' + byYear[y].length + ' 篇</small><span class="ar">▾</span>');
+      yEl.onclick = function () { timeOpen[y] = !open; renderList(); };
+      body.appendChild(yEl);
+      if (!open) return;
+      var byMonth = {};
+      byYear[y].forEach(function (n) { var m = n.date.slice(0, 7); (byMonth[m] = byMonth[m] || []).push(n); });
+      Object.keys(byMonth).sort().reverse().forEach(function (m) {
+        var mOpen = timeOpen[m] !== false;
+        var mEl = el('div', 'tn-tl-month' + (mOpen ? '' : ' collapsed'), m + ' <small>' + byMonth[m].length + ' 篇</small><span class="ar">▾</span>');
+        mEl.onclick = function () { timeOpen[m] = !mOpen; renderList(); };
+        body.appendChild(mEl);
+        if (!mOpen) return;
+        renderItems(body, byMonth[m]);
+      });
+    });
   }
 
   /* ---------- 编辑（含照片 / 标签管理） ---------- */
@@ -1347,7 +1474,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       window.__tnSaveDone = function (r) {
         if (r === 'err') flash('保存失败');
         else if (r === 'need_perm') flash('需要存储权限（请在设置中允许）');
-        else flash('已保存：Download/' + r);
+        else flash('已保存到手机，请在下载目录或 App 文件列表查找');
       };
       try { AndroidVoice.saveTextFile('我的游记.html', html); } catch (e) { flash('保存不可用，请用复制'); }
     };
@@ -1442,7 +1569,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     try { return JSON.stringify(notes).length / 1024 / 1024; } catch (e) { return 0; }
   }
   function clearAll() {
-    if (confirm('删除本机全部游记（含照片与录音）？此操作不可恢复，建议先导出备份。')) {
+    confirmDialog('删除本机全部游记（含照片与录音）？此操作不可恢复，建议先导出备份。', function () {
       notes = [];
       persist();
       localStorage.removeItem(KEY);
@@ -1451,7 +1578,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
       } catch (e) {}
       flash('已清除全部数据');
-    }
+    }, '全部删除');
   }
   function openPhotoWall() {
     buildUI();

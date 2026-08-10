@@ -186,6 +186,7 @@ main{flex:1 1 auto;position:relative;overflow:hidden}
 .leaflet-control-attribution a{color:var(--cinnabar-600)}
 
 /* ---- Leaflet 弹窗中式化 ---- */
+.leaflet-popup-pane{z-index:1200}   /* 弹窗高于缩放按钮(1000)，关闭按钮不被遮挡 */
 .leaflet-popup-content-wrapper{
   background:#fff;
   border:1px solid var(--line);
@@ -266,7 +267,7 @@ main{flex:1 1 auto;position:relative;overflow:hidden}
   position:absolute;left:8px;right:70px;bottom:8px;
   background:#fff;border:1px solid var(--line);
   border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);
-  z-index:550;display:none;flex-direction:column;
+  z-index:710;display:none;flex-direction:column;
   max-height:34vh;overflow:hidden;
 }
 .tripbar.open{display:flex}

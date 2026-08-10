@@ -143,7 +143,7 @@
 
   /* 时间线（底部横向，与地图双向联动 — 方案 Phase 4） */
   .mm-timeline{
-    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);z-index:900;
+    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);z-index:900;
     display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;
   }
   .mm-timeline::-webkit-scrollbar{display:none}
@@ -156,6 +156,16 @@
   }
   .tl-chip.active{background:var(--color-ink);color:#fff;border-color:var(--color-ink)}
   .tl-chip i{font-style:normal;opacity:.65;margin-right:5px}
+  .tl-trip{
+    flex:none;display:flex;align-items:center;gap:3px;padding:9px 13px;border-radius:999px;
+    background:rgba(200,109,75,.12);border:1px solid rgba(200,109,75,.25);
+    font-size:11px;color:var(--color-primary-dark);letter-spacing:.03em;cursor:pointer;
+    box-shadow:0 4px 14px rgba(30,30,28,.06);backdrop-filter:blur(12px);
+    transition:all var(--duration-fast);white-space:nowrap;
+  }
+  .tl-trip.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+  .tl-trip i{font-style:normal;opacity:.65;margin-right:2px}
+  .tl-trip em{font-style:normal;font-weight:700;margin-left:3px;opacity:.85}
 
   /* ============================================================
      TRACE v2 记忆地图：节点系统 + Memory Sheet（规范 §6/§7）
@@ -163,10 +173,11 @@
   .mem-node{position:relative;width:100%;height:100%;cursor:pointer}
   .mem-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
   .mem-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--color-primary);opacity:.5;pointer-events:none;animation:node-breathe 3s ease-in-out infinite}
+  .mem-node--endpoint{width:36px;height:36px;border-radius:50%;overflow:hidden;border:3px solid var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.3);background:var(--color-bg-soft)}
   .mem-node--endpoint .mem-dot{background:var(--color-primary);width:13px;height:13px}
   .mem-node--endpoint .mem-ring{width:30px;height:30px;opacity:.6}
   .mem-node--photo{width:36px;height:36px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2);background:var(--color-bg-soft)}
-  .mem-node--photo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .mem-node--photo img, .mem-node--endpoint img{width:100%;height:100%;object-fit:cover;border-radius:50%}
   .mem-node--photo.no-photo{background:var(--color-bg-soft)}
   .mem-node--photo.no-photo img{display:none}
   .mem-node--photo.no-photo::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink)}
@@ -186,9 +197,10 @@
   .ms-item__arr{color:var(--color-faint);display:grid;place-items:center}
   .mem-node:hover .mem-dot{transform:translate(-50%,-50%) scale(1.3)}
   /* Memory Sheet */
-  #memSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
-  #memSheet.show{display:block;transform:translateY(0)}
-  #memSheet .sheet__handle{cursor:pointer}
+  #memSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 122px);display:none;max-height:calc(100dvh - 122px - 26px);flex-direction:column;overflow:hidden;transform:translateY(115%);transition:transform 520ms var(--ease-standard);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
+  #memSheet.show{display:flex;transform:translateY(0)}
+  #memSheet .sheet__handle{cursor:pointer;flex:0 0 auto}
+  #msBody{flex:1;min-height:0;overflow-y:auto;padding-right:2px}
   .ms-place{font-family:var(--font-serif);font-size:26px;font-weight:400;margin-top:6px;letter-spacing:.01em}
   .ms-time{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.06em}
   .ms-story{margin-top:14px;font-family:var(--font-serif);font-size:15px;line-height:1.9;color:var(--color-ink-soft);white-space:pre-wrap}
@@ -199,7 +211,7 @@
   .ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
   .ms-tags span{font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:3px 10px;font-weight:600}
   .ms-loc{margin-top:3px;font-size:11px;color:var(--color-faint);letter-spacing:.04em}
-  .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer}
+  .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;z-index:6}
   @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
 </style>
 </head>
@@ -216,6 +228,7 @@
   <!-- TRACE v2 Memory Sheet -->
   <div id="memSheet">
     <div class="sheet__handle" onclick="closeMemSheet()"></div>
+    <button class="ms-close" onclick="closeMemSheet()">✕</button>
     <div id="msBody"></div>
   </div>
   <!-- 右上控制组：图层 + 缩放 -->
@@ -251,6 +264,7 @@
 <script src="vault.js"></script>
 <script>
 let useGCJ = true;
+let tlActive = 0;   // 时间线条当前展开的旅程（0=最新）
 function _tlat(lng,lat){let r=-100+2*lng+3*lat+0.2*lat*lat+0.1*lng*lat+0.2*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lat*Math.PI)+40*Math.sin(lat/3*Math.PI))*2/3;r+=(160*Math.sin(lat/12*Math.PI)+320*Math.sin(lat*Math.PI/30))*2/3;return r;}
 function _tlng(lng,lat){let r=300+lng+2*lat+0.1*lng*lng+0.1*lng*lat+0.1*Math.sqrt(Math.abs(lng));r+=(20*Math.sin(6*lng*Math.PI)+20*Math.sin(2*lng*Math.PI))*2/3;r+=(20*Math.sin(lng*Math.PI)+40*Math.sin(lng/3*Math.PI))*2/3;r+=(150*Math.sin(lng/12*Math.PI)+300*Math.sin(lng/30*Math.PI))*2/3;return r;}
 const _A=6378245.0,_EE=0.00669342162296594323;
@@ -384,23 +398,42 @@ function renderTimeline(){
   tl.innerHTML='';
   if(!ordered.length){ tl.style.display='none'; return; }
   tl.style.display='flex';
-  ordered.forEach(function(n,idx){
-    var d=new Date(n.ts);
-    var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    var chip=document.createElement('button');
-    chip.className='tl-chip';
-    chip.dataset.idx=idx;
-    chip.innerHTML='<i>●</i>'+time;
-    chip.onclick=function(){
-      document.querySelectorAll('.tl-chip').forEach(function(c){c.classList.remove('active');});
-      chip.classList.add('active');
-      if(map) map.flyTo(gxy(n.lat,n.lng),Math.max(map.getZoom(),13),{duration:.6});
-      openMemSheet(n);
-    };
-    tl.appendChild(chip);
+  /* 按旅程分组（间隔 ≤3 天归为一程），时间线条只铺开当前旅程的节点，其余收起为组 chip */
+  var GAP=3*24*3600*1000;
+  var trips=[];
+  ordered.forEach(function(n){
+    var last=trips[trips.length-1];
+    if(last && n.ts-last.end<=GAP){ last.notes.push(n); last.end=n.ts; }
+    else trips.push({start:n.ts,end:n.ts,notes:[n]});
+  });
+  trips.reverse();   // 最新旅程在前
+  if(tlActive>=trips.length) tlActive=0;
+  var fmtD=function(ts){var d=new Date(ts);function p(x){return (x<10?'0':'')+x;}return p(d.getMonth()+1)+'.'+p(d.getDate());};
+  trips.forEach(function(t,i){
+    var g=document.createElement('button');
+    g.className='tl-trip'+(i===tlActive?' active':'');
+    g.innerHTML='<i>●</i>'+fmtD(t.start)+(t.end>t.start?'~'+fmtD(t.end):'')+' <em>'+t.notes.length+'</em>';
+    g.onclick=function(){ tlActive=i; renderTimeline(); };
+    tl.appendChild(g);
+    if(i!==tlActive) return;
+    t.notes.forEach(function(n){
+      var d=new Date(n.ts);
+      var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      var chip=document.createElement('button');
+      chip.className='tl-chip';
+      chip.dataset.nid=n.id;
+      chip.innerHTML='<i>●</i>'+time;
+      chip.onclick=function(){
+        document.querySelectorAll('.tl-chip').forEach(function(c){c.classList.remove('active');});
+        chip.classList.add('active');
+        if(map) map.flyTo(gxy(n.lat,n.lng),Math.max(map.getZoom(),13),{duration:.6});
+        openMemSheet(n);
+      };
+      tl.appendChild(chip);
+    });
   });
 }
-// openMemSheet 时联动高亮对应 chip
+// openMemSheet 时联动高亮对应 chip（按笔记 id 匹配）
 (function(){
   var _orig=openMemSheet;
   if(_orig){
@@ -409,9 +442,7 @@ function renderTimeline(){
       var tl=document.getElementById('mmTimeline');
       if(!tl) return;
       var chips=tl.querySelectorAll('.tl-chip');
-      var notes=TravelNotes.list().filter(function(x){return x.lat!=null&&x.lng!=null;}).sort(function(a,b){return a.ts-b.ts;});
-      var idx=notes.indexOf(n);
-      chips.forEach(function(c,i){c.classList.toggle('active', i===idx);});
+      chips.forEach(function(c){c.classList.toggle('active', c.dataset.nid===n.id);});
     };
   }
 })();
@@ -424,7 +455,7 @@ function openGroupSheet(items){
   const listHtml=sorted.map(function(n){
     const d=new Date(n.ts);
     const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    const th=(n.photos&&n.photos.length)?'<img src="'+n.photos[0]+'" onerror="this.style.display=\'none\'">':'<span>记</span>';
+    const th=(n.photos&&n.photos.length)?'<img src="'+n.photos[0]+'" onclick="zoomPhoto(this.src)" onerror="this.style.display=\'none\'">':'<span>记</span>';
     const t=(n.title||n.siteName||'未命名');
     return '<div class="ms-item" onclick="openMemSheetById(\''+n.id+'\')">'
       +'<div class="ms-item__th">'+th+'</div>'
@@ -433,8 +464,7 @@ function openGroupSheet(items){
       +'<span class="ms-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>'
       +'</div>';
   }).join('');
-  document.getElementById('msBody').innerHTML='<button class="ms-close" onclick="closeMemSheet()">✕</button>'
-    +'<div class="ms-place">'+place+'</div>'
+  document.getElementById('msBody').innerHTML='<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+sorted.length+' 段记忆 · 点击查看</div>'
     +'<div style="margin-top:12px">'+listHtml+'</div>';
   document.getElementById('memSheet').classList.add('show');
@@ -453,12 +483,11 @@ function openMemSheet(n){
   const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   const place=esc(n.title||n.siteName||'未命名地点');
   const story=esc((n.text||n.raw)||'');
-  const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img src="'+x+'" onerror="this.style.display=\'none\'">').join('')+'</div>':'';
+  const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img src="'+x+'" onclick="zoomPhoto(this.src)" onerror="this.style.display=\'none\'">').join('')+'</div>':'';
   const audioHtml=n.audio?'<div class="ms-audio"><span style="font-size:13px;color:var(--color-primary-dark);font-weight:600">▶ 原声</span><audio controls preload="none" src="'+n.audio+'"></audio></div>':'';
   const tagsHtml=(n.tags&&n.tags.length)?'<div class="ms-tags">'+n.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'';
   const locHtml=n.lat!=null?'<div class="ms-loc">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';
-  document.getElementById('msBody').innerHTML='<button class="ms-close" onclick="closeMemSheet()">✕</button>'
-    +'<div class="ms-place">'+place+'</div>'
+  document.getElementById('msBody').innerHTML='<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+time+'</div>'
     +locHtml
     +(story?'<div class="ms-story">'+story+'</div>':'')
@@ -472,10 +501,21 @@ function closeMemSheet(){
   document.getElementById('memSheet').classList.remove('show');
   if(map) setTimeout(function(){map.panBy([0,180],{duration:420});},80);
 }
+/* 照片全屏查看（点击信息框缩略图放大，再点关闭） */
+function zoomPhoto(src){
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;z-index:9800;background:rgba(18,18,16,.93);display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+  var img=document.createElement('img');
+  img.src=src;
+  img.style.cssText='max-width:94vw;max-height:92vh;object-fit:contain;border-radius:10px;box-shadow:0 14px 44px rgba(0,0,0,.55)';
+  m.appendChild(img);
+  m.onclick=function(){ m.remove(); };
+  document.body.appendChild(m);
+}
 
 // 统计条：可收起 / 展开
-// URL ?id= 直达某条游记（首页搜索栏点击进入）
-(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){openMemSheet(nts[i]);},500);break;}}}})();
+// URL ?id= 直达定位某条游记（首页搜索栏点击进入）：仅 flyTo 定位到节点，不自动弹详情大图
+(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();
 
 document.getElementById('statClose').onclick=function(){
   document.getElementById('statBar').style.display='none';

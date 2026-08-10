@@ -22,8 +22,12 @@
   function fileExt(name) { var m = /\.([a-zA-Z0-9]+)$/.exec(name || ''); return m ? m[1].toLowerCase() : 'jpg'; }
 
   /* ---------- 单篇 Markdown ---------- */
-  function mdFor(note) {
+  /* opt：'embed' = 单篇内嵌模式（照片 data URI 直嵌，声音写说明）；
+          字符串 = 整库引用前缀（默认 '../../attachments/'，journeys/年-月/ 回根） */
+  function mdFor(note, opt) {
     var n = note || {};
+    var embed = opt === 'embed';
+    var pre = embed ? null : (opt || '../../attachments/');
     var fm = [
       '---',
       'title: ' + escYaml(n.title || n.siteName || '未命名'),
@@ -43,12 +47,22 @@
     var body = (n.text || n.raw || '').trim();
     var parts = [fm];
     parts.push(body || '*（这篇游记没有文字内容）*');
-    if (n.audio) parts.push('\n## 原声\n\n![原声](audio-' + n.id + '.m4a)');
+    if (n.audio) {
+      if (embed) parts.push('\n## 原声\n\n> 本篇有语音原声（Markdown 无法内嵌音频，请用「导出完整文档」收听）');
+      else parts.push('\n## 原声\n\n![原声](' + pre + 'audio-' + n.id + '.m4a)');
+    }
     if (n.photos && n.photos.length) {
       parts.push('\n## 照片\n');
       n.photos.forEach(function (p, i) {
-        var name = attachName('photo', n.id, i, p);
-        parts.push('![' + '照片 ' + (i + 1) + '](' + name + ')');
+        if (!p) return;
+        if (embed) {
+          if (/^data:/.test(p)) parts.push('![' + '照片 ' + (i + 1) + '](' + p + ')');
+          else parts.push('![' + '照片 ' + (i + 1) + '](' + p + ')\n\n> 照片文件未随本 MD 携带，请在 App 内查看');
+        } else {
+          var name = attachName('photo', n.id, i, p);
+          if (!name) return;
+          parts.push('![' + '照片 ' + (i + 1) + '](' + pre + name + ')');
+        }
       });
     }
     return parts.join('\n') + '\n';
@@ -84,6 +98,27 @@
       for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
       return new Blob([u8], { type: mime || 'audio/mp4' });
     } catch (e) { return null; }
+  }
+  /* 收集单篇的可导出附件（data URI 照片 + 原声），返回 { 'attachments/xx.jpg': Blob } */
+  function collectAttachments(note) {
+    var n = note || {}, out = {};
+    if (n.photos && n.photos.length) {
+      n.photos.forEach(function (p, i) {
+        if (!p) return;
+        var nm = attachName('photo', n.id, i, p);
+        if (!nm || !/^data:/.test(p)) return;   // 远程/相对路径不打包（md 引用原地址）
+        var b = toBlob(p);
+        if (b) out['attachments/' + nm] = b;
+      });
+    }
+    if (n.audio) {
+      var nm = 'audio-' + n.id + '.m4a';
+      var b = null;
+      if (/^data:/.test(n.audio)) b = toBlob(n.audio);
+      else if (!/^(https?:|file:|blob:)/.test(n.audio)) b = b64ToBlob(n.audio, 'audio/mp4');
+      if (b) out['attachments/' + nm] = b;
+    }
+    return out;
   }
 
   /* ---------- 整库构建 ---------- */
@@ -290,17 +325,69 @@
   }
 
   /* ---------- 导出入口 ---------- */
-  function exportOne(note) {
-    var md = mdFor(note);
-    var base = fn(note.title || note.siteName || '游记', 40) || '游记';
-    if (window.AndroidVoice && AndroidVoice.saveTextFile) {
-      saveFileAndroid('游记-' + base + '.md', md).then(function (ok) {
-        flash(ok ? '已保存：Download/' + '游记-' + base + '.md' : '保存失败');
-      });
-    } else {
-      download('游记-' + base + '.md', md);
-      flash('已下载 ' + base + '.md');
+  function escH(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  /* 双轨制·轨 1：单篇 MD —— 照片 data URI 内嵌（打开即见图），声音写说明 */
+  async function exportOne(note) {
+    var n = note || {};
+    var base = fn(n.title || n.siteName || '游记', 40) || '游记';
+    var fname = '游记-' + base + '.md';
+    var md = mdFor(n, 'embed');
+    /* 路径 1：系统分享面板（保存位置由用户亲眼指定，最可靠） */
+    if (navigator.canShare && navigator.share) {
+      try {
+        var sf = new File([md], fname, { type: 'text/markdown' });
+        var sdata = { files: [sf], title: '导出游记' };
+        if (navigator.canShare(sdata)) {
+          await navigator.share(sdata);
+          flash('已分享，请在面板中选择保存位置');
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;  // 用户取消
+        /* 分享失败 → 降级 */
+      }
     }
+    /* 路径 2：Android 原生壳 */
+    if (window.AndroidVoice && AndroidVoice.saveTextFile) {
+      saveFileAndroid(fname, md).then(function (ok) {
+        flash(ok ? '已保存，请在系统下载目录 / App 文件列表查找，找不到可用「复制 MD」' : '保存失败：需存储权限，或改用「复制 MD」');
+      });
+      return;
+    }
+    /* 路径 3：浏览器下载 */
+    download(fname, md);
+    flash('已下载 ' + fname + '（照片已内嵌，Obsidian / Typora 打开即见图；声音请用「导出完整文档」）');
+  }
+  /* 双轨制·轨 2：单篇完整文档 —— HTML 单文件，照片+原声全部内嵌，浏览器即看即听 */
+  function exportOneHtml(note) {
+    var n = note || {};
+    var base = fn(n.title || n.siteName || '游记', 40) || '游记';
+    var photos = (n.photos || []).map(function (p, i) {
+      if (!p) return '';
+      var cap = /^data:/.test(p) ? ('照片 ' + (i + 1)) : ('照片 ' + (i + 1) + '（原文件未随文档携带）');
+      return '<figure><img src="' + escH(p) + '" alt="照片 ' + (i + 1) + '"><figcaption>' + cap + '</figcaption></figure>';
+    }).join('');
+    var audio = '';
+    if (n.audio) {
+      audio = /^data:/.test(n.audio)
+        ? '<section><h2>原声</h2><audio controls preload="none" src="' + n.audio + '"></audio></section>'
+        : '<section><h2>原声</h2><p class="dim">（原声文件未随文档携带，请在 App 内收听）</p></section>';
+    }
+    var meta = [
+      n.date ? '<p class="meta">日期 · ' + escH(n.date) + '</p>' : '',
+      n.siteName ? '<p class="meta">地点 · ' + escH(n.siteName) + '</p>' : '',
+      (n.lat != null) ? '<p class="meta">坐标 · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) + '</p>' : '',
+      (n.tags && n.tags.length) ? '<p class="meta">标签 · ' + n.tags.map(escH).join(' / ') + '</p>' : ''
+    ].join('');
+    var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' + escH(n.title || n.siteName || '游记') + '</title>' +
+      '<style>body{max-width:720px;margin:0 auto;padding:32px 20px 60px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#2c2c29;line-height:1.8;background:#faf8f3}h1{font-size:26px;margin:0 0 10px;color:#1f3634}.meta{color:#8a857a;font-size:13px;margin:3px 0}.story{white-space:pre-wrap;margin:22px 0;font-size:15.5px}img{max-width:100%;border-radius:10px;display:block;margin:10px 0}figure{margin:0 0 18px}figcaption{color:#8a857a;font-size:12px;text-align:center;margin-top:4px}audio{width:100%;margin:10px 0}h2{font-size:18px;margin:26px 0 6px;color:#1f3634}.dim{color:#a09a8e;font-size:13px}</style></head><body>' +
+      '<h1>' + escH(n.title || n.siteName || '未命名') + '</h1>' + meta +
+      '<div class="story">' + escH(n.text || n.raw || '*（这篇游记没有文字内容）*') + '</div>' +
+      audio +
+      '<h2>照片</h2>' + (photos || '<p class="dim">本篇没有照片</p>') +
+      '</body></html>';
+    download('游记-' + base + '.html', html, 'text/html');
+    flash('已下载 ' + base + '.html（照片与原声已内嵌，双击浏览器打开）');
   }
   async function exportVault(notesIn) {
     if (!notesIn || !notesIn.length) { flash('还没有游记，先去记录几篇'); return; }
@@ -329,6 +416,7 @@
     buildVault: buildVault,
     buildZip: buildZip,
     exportOne: exportOne,
+    exportOneHtml: exportOneHtml,
     exportVault: exportVault
   };
 })();

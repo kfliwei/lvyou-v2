@@ -152,6 +152,7 @@
   <!-- 底部操作（列表） -->
   <div class="footbar" id="footList">
     <button class="btn-secondary" onclick="importMd()">导入 MD 文件</button>
+    <button class="btn-secondary" onclick="openExternalList()" id="btnExt">外部 MD</button>
     <button class="btn-primary" onclick="exportAll()">导出整库</button>
   </div>
   <input type="file" id="fileMd" accept=".md,.markdown,.txt" multiple style="display:none">
@@ -172,6 +173,7 @@
      详情预览(渲染+源码)/复制/导出/删除/编辑，并可导入本地 .md 浏览。
      ============================================================ */
   var KEY = 'travelNotes';
+  var EXT_KEY = 'travelExtMds';   // 外部导入 MD 持久化（刷新后保持）
   var notes = [];          // 全部游记
   var externals = [];      // 导入的外部 MD（仅浏览，不入库）
   var tagFilter = '', kw = '';
@@ -237,6 +239,20 @@
       if (hit) { arr[arr.indexOf(hit)] = n; } else arr.push(n);
       localStorage.setItem(KEY, JSON.stringify(arr));
     } catch (e) {}
+  }
+
+  /* ---------- 外部 MD 持久化（刷新后保持） ---------- */
+  function saveExt() {
+    try { localStorage.setItem(EXT_KEY, JSON.stringify(externals)); }
+    catch (e) { toast('外部 MD 存储空间不足，未完整保存'); }
+  }
+  function loadExt() {
+    try { externals = JSON.parse(localStorage.getItem(EXT_KEY) || '[]') || []; }
+    catch (e) { externals = []; }
+  }
+  function updateExtBtn() {
+    var b = document.getElementById('btnExt');
+    if (b) b.textContent = externals.length ? ('外部 MD (' + externals.length + ')') : '外部 MD';
   }
 
   /* ---------- 工具 ---------- */
@@ -526,7 +542,7 @@
         } catch (err) {}
         done++;
         if (done === total) {
-          if (added) { openExternalList(); }
+          if (added) { saveExt(); updateExtBtn(); openExternalList(); }
           else toast('没有可识别的 .md 文件');
           e.target.value = '';
         }
@@ -585,6 +601,7 @@
     document.getElementById('stPhoto').textContent = '—';
     document.getElementById('stWords').textContent = words.toLocaleString();
     document.getElementById('statLabel').textContent = '外部 ' + externals.length + ' 篇';
+    updateExtBtn();
   }
   function renderExtList() {
     var body = document.getElementById('listBody');
@@ -638,6 +655,7 @@
     if (!cur || curSource !== 'external') return;
     externals = externals.filter(function (x) { return x.id !== cur.id; });
     cur = null;
+    saveExt(); updateExtBtn();
     if (externals.length) { refreshStats2(); renderExtList(); showView('list'); }
     else { extMode = false; refreshStats(); renderChips(); renderList(); showView('list'); }
     toast('已移除');
@@ -661,11 +679,13 @@
     renderChips();
     renderList();
   });
+  loadExt(); updateExtBtn();
 
   window.__mdManager = {
     goList: goList, toggleSrc: toggleSrc, copyCur: copyCur, exportOne: exportOne,
     delCur: delCur, toggleEdit: toggleEdit, saveEdit: saveEdit,
     importMd: importMd, expExt: expExt, delExt: delExt, exportAll: exportAll,
+    openExternalList: openExternalList,
     zoomPhoto: zoomPhoto
   };
 })();
@@ -680,6 +700,7 @@
   function toggleEdit(){ window.__mdManager && __mdManager.toggleEdit(); }
   function saveEdit(){ window.__mdManager && __mdManager.saveEdit(); }
   function importMd(){ window.__mdManager && __mdManager.importMd(); }
+  function openExternalList(){ window.__mdManager && __mdManager.openExternalList(); }
   function expExt(){ window.__mdManager && __mdManager.expExt(); }
   function delExt(){ window.__mdManager && __mdManager.delExt(); }
   function exportAll(){ window.__mdManager && __mdManager.exportAll(); }
