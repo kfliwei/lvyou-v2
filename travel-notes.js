@@ -132,7 +132,7 @@
 --b6:var(--color-primary);--b7:#1f3634;--b8:#162725;--b9:#111c1b;--a5:#8d5b3c;--a3:#b8860b;--d3:#8b8171;\
 --bg:#f6f1e5;--sf:#fbf8f1;--sf2:#efe8d8;--ln:#e4dbc6;--i9:#26241f;--i7:#3d3a33;--i5:#6b665c;\
 --sm:0 1px 3px rgba(60,50,30,.07);--md:0 4px 14px rgba(60,50,30,.10);--lg:0 12px 32px rgba(60,50,30,.14);\
---tf:150ms ease;--tn:320ms cubic-bezier(.2,.9,.3,1)}\
+--tf:150ms ease;--tn:320ms cubic-bezier(.2,.9,.3,1)}:root.theme-dark{--bg:var(--color-bg);--sf:var(--color-surface);--sf2:var(--color-bg-soft);--ln:var(--color-line);--i9:var(--color-ink);--i7:var(--color-ink-soft);--i5:var(--color-muted);--b7:var(--color-ink);--b9:var(--color-ink);--b6:var(--color-primary);--d3:var(--color-primary)}\
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}\
 :focus-visible{outline:2px solid var(--a3);outline-offset:2px;border-radius:2px}\
 .tn-mask{position:fixed;inset:0;background:rgba(17,28,27,.6);z-index:9000;display:none}\
