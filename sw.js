@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v2';
+var CACHE = 'trace-v3';
 var SHELL = [
   './', './index.html', './explore-map.html', './travel-map.html',
   './workshop.html', './settings.html', './md-manager.html', './review.html',
@@ -51,14 +51,13 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  e.respondWith(caches.match(req).then(function (hit) {     /* 其余同源：缓存优先 */
-    if (hit) return hit;
-    return fetch(req).then(function (res) {
-      if (res && res.ok) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(req, clone); });
-      }
-      return res;
+  e.respondWith(caches.open(CACHE).then(function (c) {      /* 其余同源：stale-while-revalidate */
+    return c.match(req).then(function (hit) {
+      var f = fetch(req).then(function (res) {
+        if (res && res.ok) c.put(req, res.clone());
+        return res;
+      }).catch(function () { return hit; });
+      return hit || f;
     });
   }));
 });
