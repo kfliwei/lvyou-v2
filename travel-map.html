@@ -275,6 +275,7 @@
       <div class="s-sub" id="statSub"></div>
     </div>
     <button class="tbBtn" id="shareBtn" onclick="shareTrack()" style="display:none;flex:0 0 auto">制图分享</button>
+    <button class="tbBtn" id="playBtn" onclick="togglePlay()" style="display:none;flex:0 0 auto">▶ 回放</button>
     <button class="statClose" id="statClose" title="收起统计">✕</button>
   </div>
   <button class="statOpen" id="statOpen" title="查看游记统计"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20 V14"/><path d="M12 20 V8"/><path d="M19 20 V11"/></svg></button>
@@ -414,6 +415,7 @@ function refresh(){
   document.getElementById('statSub').textContent=ordered.length>=2?('起点 '+(ordered[0].title||ordered[0].siteName)+' · 终点 '+(ordered[ordered.length-1].title||ordered[ordered.length-1].siteName)):'（节点将按记录时间连成旅程线）';
   document.getElementById('emptyTip').style.display=(notes.length||localStorage.getItem('tn_emptyClosed')==='1')?'none':'flex';
   document.getElementById('shareBtn').style.display=ordered.length>=2?'block':'none';
+  document.getElementById('playBtn').style.display=ordered.length>=2?'block':'none';
   renderTimeline();
 }
 
@@ -640,6 +642,29 @@ window.TravelNotes._onReady = function(){ refresh(); };
 window.TravelNotes._afterSave = function(){ refresh(); };
 TravelNotes.init({});
 setTimeout(()=>{ if(TravelNotes.list().length) map.invalidateSize(); },300);
+
+let _playTimer=null,_playIdx=0,_playOrder=[];
+function togglePlay(){
+  if(_playTimer){ stopPlay(); return; }
+  _playOrder = TravelNotes.list().filter(function(n){return n.lat!=null&&n.lng!=null;}).sort(function(a,b){return a.ts-b.ts;});
+  if(_playOrder.length<2){ flash('至少需要 2 个游记节点'); return; }
+  _playIdx=0;
+  document.getElementById('playBtn').textContent='⏹ 停止';
+  stepPlay();
+}
+function stepPlay(){
+  if(_playIdx>=_playOrder.length){ stopPlay(); return; }
+  var n=_playOrder[_playIdx];
+  if(map) map.flyTo(gxy(n.lat,n.lng),Math.max(map.getZoom(),13),{duration:.8});
+  openMemSheet(n);
+  _playIdx++;
+  _playTimer=setTimeout(stepPlay,1600);
+}
+function stopPlay(){
+  clearTimeout(_playTimer); _playTimer=null;
+  var b=document.getElementById('playBtn');
+  if(b) b.textContent='▶ 回放';
+}
 
 window.__tnAnywhere=function(){
   const open=p=>TravelNotes.openPanel({label:'当前位置（GPS）',lat:p.lat,lng:p.lng});
