@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v1';
+var CACHE = 'trace-v2';
 var SHELL = [
   './', './index.html', './explore-map.html', './travel-map.html',
   './workshop.html', './settings.html', './md-manager.html', './review.html',
@@ -27,8 +27,16 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== location.origin) return;              /* 第三方（瓦片/API）不缓存 */
-  if (req.mode === 'navigate') {                            /* 离线导航 → 首页 */
-    e.respondWith(caches.match('./index.html'));
+  if (req.mode === 'navigate') {                            /* 导航：网络优先；断网回退到已缓存页/首页 */
+    e.respondWith(fetch(req).then(function (res) {
+      if (res && res.ok) {
+        var clone = res.clone();
+        caches.open(CACHE).then(function (c) { c.put(req, clone); });
+      }
+      return res;
+    }).catch(function () {
+      return caches.match(req).then(function (hit) { return hit || caches.match('./index.html'); });
+    }));
     return;
   }
   if (RUNTIME.test(url.pathname)) {                         /* 数据文件：stale-while-revalidate */
