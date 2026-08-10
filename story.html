@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>旅程叙事 · 行迹</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  #storyMap{position:sticky;top:0;height:44vh;z-index:50;background:var(--map-bg)}
+  #storyWrap{position:relative;z-index:60;background:var(--color-bg)}
+  .story-bar{position:sticky;top:0;z-index:70;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--color-line)}
+  .story-bar .back{width:34px;height:34px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+  .story-bar .title{flex:1;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink)}
+  .story-bar select{flex:0 0 auto;max-width:140px;height:34px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:12px;padding:0 10px}
+  #cards{padding:10px 16px 60px}
+  .story-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:18px 18px 16px;margin-bottom:14px;transition:box-shadow .3s}
+  .story-card.active{box-shadow:0 0 0 2px var(--color-primary)}
+  .story-card .sc-date{font-size:11.5px;color:var(--color-muted);letter-spacing:.06em}
+  .story-card .sc-place{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--color-ink);margin-top:6px;line-height:1.3}
+  .story-card .sc-meta{font-size:12px;color:var(--color-muted);margin-top:5px}
+  .story-card .sc-txt{font-family:var(--font-serif);font-size:14px;line-height:1.9;color:var(--color-ink-soft);margin-top:10px;white-space:pre-wrap}
+  .story-card .sc-pics{display:flex;gap:6px;margin-top:10px;overflow-x:auto}
+  .story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto}
+  .story-card .sc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .story-card .sc-tags span{font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);padding:2px 9px;border-radius:999px}
+  .story-empty{padding:60px 20px;text-align:center;color:var(--color-muted)}
+</style>
+</head>
+<body>
+<div id="storyMap"></div>
+<div id="storyWrap">
+  <div class="story-bar">
+    <button class="back" onclick="location.href='settings.html'">←</button>
+    <div class="title">旅程叙事</div>
+    <select id="tripSel"></select>
+  </div>
+  <div id="cards"></div>
+</div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="travel-notes.js"></script>
+<script>
+/* 滚动叙事地图：滚动卡片，地图跟随飞至对应节点 */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var GAP=3*24*3600*1000;
+var notes=[], trips=[], curTrip='all', cards=[];
+var map=L.map('storyMap',{zoomControl:false,attributionControl:true,scrollWheelZoom:false}).setView([35,104],4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+var curMarker=null;
+
+function groupTrips(list){
+  var sorted=list.slice().sort(function(a,b){return a.ts-b.ts;});
+  var out=[];
+  sorted.forEach(function(n){
+    var last=out[out.length-1];
+    if(last && n.ts-last.end<=GAP){ last.notes.push(n); last.end=n.ts; }
+    else out.push({start:n.ts,end:n.ts,notes:[n]});
+  });
+  return out;
+}
+function renderSel(){
+  var sel=document.getElementById('tripSel');
+  sel.innerHTML='<option value="all">全部旅程</option>'+trips.map(function(t,i){
+    return '<option value="'+i+'">'+(t.notes[0].date||'').slice(0,10)+' ~ '+(t.notes[t.notes.length-1].date||'').slice(0,10)+'（'+t.notes.length+' 篇）</option>';
+  }).join('');
+}
+function render(){
+  notes=(window.TravelNotes?TravelNotes.list():[]);
+  trips=groupTrips(notes.filter(function(n){return n.lat!=null&&n.lng!=null;}));
+  renderSel();
+  var list = curTrip==='all' ? trips.reduce(function(a,t){return a.concat(t.notes);},[]) : (trips[+curTrip]?trips[+curTrip].notes:[]);
+  cards=list.slice().sort(function(a,b){return a.ts-b.ts;});
+  var box=document.getElementById('cards');
+  if(!cards.length){ box.innerHTML='<div class="story-empty">还没有带坐标的游记，先在地图上记录几篇。</div>'; return; }
+  box.innerHTML=cards.map(function(n,i){
+    var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p){return '<img src="'+esc(p)+'" onerror="this.remove()">';}).join('')+'</div>':'';
+    var tags=(n.tags&&n.tags.length)?'<div class="sc-tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
+    return '<div class="story-card" data-i="'+i+'">'
+      +'<div class="sc-date">'+esc(n.date||'')+'</div>'
+      +'<div class="sc-place">'+esc(n.title||n.siteName||'未命名')+'</div>'
+      +'<div class="sc-meta">'+esc(n.siteName||'')+(n.weather?' · '+esc(n.weather):'')+'</div>'
+      +'<div class="sc-txt">'+esc(n.text||n.raw)+'</div>'+pics+tags+'</div>';
+  }).join('');
+  fitBounds();
+  setActive(0);
+}
+function fitBounds(){
+  var pts=cards.map(function(n){return [n.lat,n.lng];});
+  if(pts.length) map.fitBounds(pts,{padding:[30,30]});
+}
+function setActive(i){
+  var els=document.querySelectorAll('.story-card');
+  els.forEach(function(e){e.classList.remove('active');});
+  if(els[i]) els[i].classList.add('active');
+  var n=cards[i]; if(!n) return;
+  if(curMarker) map.removeLayer(curMarker);
+  curMarker=L.marker([n.lat,n.lng],{icon:L.divIcon({className:'',html:'<div style="width:16px;height:16px;border-radius:50%;background:#C86D4B;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
+  map.flyTo([n.lat,n.lng],Math.max(map.getZoom(),10),{duration:.7});
+}
+/* scroll-spy：以卡片相对视口中位判断激活 */
+var _spyTimer=null;
+function onScroll(){
+  if(_spyTimer) return;
+  _spyTimer=setTimeout(function(){
+    _spyTimer=null;
+    var els=document.querySelectorAll('.story-card');
+    var best=-1,bestD=1e9;
+    var mid=window.innerHeight*0.55;
+    els.forEach(function(e,i){
+      var r=e.getBoundingClientRect();
+      var d=Math.abs((r.top+r.height/2)-mid);
+      if(d<bestD){bestD=d;best=i;}
+    });
+    if(best>=0 && best!==lastActive){ lastActive=best; setActive(best); }
+  },120);
+}
+var lastActive=-1;
+window.addEventListener('scroll',onScroll,{passive:true});
+document.getElementById('tripSel').onchange=function(){ curTrip=this.value; lastActive=-1; render(); };
+window.TravelNotes._onReady=render;
+window.TravelNotes._afterSave=render;
+TravelNotes.init({});
+setTimeout(function(){ map.invalidateSize(); },300);
+</script>
+</body>
+</html>
