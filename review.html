@@ -56,6 +56,9 @@
   .tagcloud span{font-size:11.5px;color:var(--color-primary-dark);background:var(--color-primary-soft);padding:4px 12px;border-radius:999px}
   .places{display:flex;flex-wrap:wrap;gap:8px}
   .places span{font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);padding:5px 12px;border-radius:999px}
+  .provbar{display:flex;flex-wrap:wrap}
+  .prov{display:inline-flex;align-items:center;gap:4px;margin:4px 6px 4px 0;padding:6px 12px;border-radius:999px;background:var(--color-primary);color:#fff;font-size:11.5px}
+  .prov b{font-weight:700;margin-left:2px}
   .empty{text-align:center;padding:48px 20px}
   .empty .em{font-family:var(--font-serif);font-size:44px;color:var(--color-faint)}
   .empty b{display:block;margin-top:12px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
@@ -72,6 +75,7 @@
   </header>
   <div class="content">
     <div class="stats" id="stats"></div>
+    <div class="stats" id="stats2"></div>
     <div id="todayBox" style="display:none"></div>
     <div class="cal-card">
       <div class="cal-head">
@@ -85,6 +89,7 @@
       <div class="cal-grid" id="calGrid"></div>
     </div>
     <div id="dayBox"></div>
+    <div class="sec"><div class="sec-title">省份足迹</div><div class="provbar" id="provBar"></div></div>
     <div class="sec"><div class="sec-title">月份分布</div><div class="monthbar" id="monthBar"></div></div>
     <div class="sec"><div class="sec-title">标签</div><div class="tagcloud" id="tagCloud"></div></div>
     <div class="sec"><div class="sec-title">到过的地方</div><div class="places" id="places"></div></div>
@@ -108,7 +113,48 @@ function render(){
     else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
     selDay=Object.keys(dayMap).sort().pop()||'';
   }
-  renderStats(); renderToday(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+  renderStats(); renderToday(); renderStats2(); renderProv(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+}
+function maxStreak(){
+  var days = Object.keys(dayMap).sort(), best = 0, cur = 0, prev = null;
+  days.forEach(function (d) {
+    if (prev) {
+      var a = new Date(prev + 'T00:00:00'), b = new Date(d + 'T00:00:00');
+      cur = (b - a) / 86400000 === 1 ? cur + 1 : 1;
+    } else cur = 1;
+    if (cur > best) best = cur;
+    prev = d;
+  });
+  return best;
+}
+function haversineKm(a, b){
+  var R = 6371, rad = Math.PI / 180;
+  var dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+  var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+function renderStats2(){
+  var provs = {}, cities = {}, km = 0;
+  var ordered = notes.filter(function (n) { return n.lat != null; }).sort(function (a, b) { return a.ts - b.ts; });
+  for (var i = 1; i < ordered.length; i++) km += haversineKm(ordered[i - 1], ordered[i]);
+  notes.forEach(function (n) {
+    if (n.province) provs[n.province] = 1;
+    if (n.city) cities[n.city] = 1;
+  });
+  document.getElementById('stats2').innerHTML =
+    '<div><b>' + Object.keys(provs).length + '</b><span>省份</span></div>' +
+    '<div><b>' + Object.keys(cities).length + '</b><span>城市</span></div>' +
+    '<div><b>' + maxStreak() + '</b><span>最长连续(天)</span></div>' +
+    '<div><b>' + (km > 0 ? km.toFixed(0) : '—') + '</b><span>公里</span></div>';
+}
+function renderProv(){
+  var p = {};
+  notes.forEach(function (n) { var k = n.province || '未分类'; p[k] = (p[k] || 0) + 1; });
+  var arr = Object.keys(p).sort(function (a, b) { return p[b] - p[a]; });
+  var max = 0; arr.forEach(function (k) { if (p[k] > max) max = p[k]; });
+  document.getElementById('provBar').innerHTML = arr.map(function (k) {
+    return '<span class="prov" style="opacity:' + (0.45 + p[k] / max * 0.55).toFixed(2) + '">' + esc(k) + ' <b>' + p[k] + '</b></span>';
+  }).join('') || '<span class="prov">还没有记录</span>';
 }
 function renderToday(){
   var box = document.getElementById('todayBox');
