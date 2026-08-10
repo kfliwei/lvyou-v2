@@ -1111,6 +1111,34 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       }).catch(function () {});
   }
 
+  /* 逆地理编码（BigDataCloud 免费无 key）：坐标 → 省/市/县 */
+  function reverseGeo(lat, lng, cb) {
+    fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=zh')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        cb({ province: j.principalSubdivision || '', city: j.city || j.locality || '', county: j.locality || '' });
+      })
+      .catch(function () { cb(null); });
+  }
+  /* 批量补全：遍历缺省/市的坐标游记，成功后持久化 */
+  function backfillGeo(cb) {
+    var todo = notes.filter(function (n) { return n.lat != null && n.lng != null && !n.province; });
+    var done = 0, filled = 0, n = todo.length;
+    if (!n) { cb && cb(0, 0); return; }
+    todo.forEach(function (note) {
+      reverseGeo(note.lat, note.lng, function (g) {
+        if (g && g.province) {
+          note.province = g.province;
+          if (g.city) note.city = g.city;
+          if (g.county) note.county = g.county;
+          filled++;
+        }
+        done++;
+        if (done === n) { if (filled) persist(); if (cb) cb(filled, n); }
+      });
+    });
+  }
+
   /* ---------- 保存 / 地图标记 ---------- */
   function saveNote() {
     var ai = $X(ui.panel, '#tnAI'), text = ai.style.display === 'block' ? ai.textContent.trim() : '';
@@ -1141,6 +1169,11 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     persist();
     renderTNLayer();
     if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
+    if (!note.province && note.lat != null) {
+      reverseGeo(note.lat, note.lng, function (g) {
+        if (g && g.province) { note.province = g.province; if (g.city) note.city = g.city; if (g.county) note.county = g.county; persist(); }
+      });
+    }
     attachWeather(note);
     resetPanelAfterSave();
     flash('已保存 · 可继续录制下一篇');
@@ -1774,6 +1807,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         } catch (e) {}
       }
       cb && cb(notes.filter(byRange));
-    }
+    },
+    backfillGeo: backfillGeo
   };
 })();

@@ -131,6 +131,7 @@
         <button class="btn-secondary" onclick="TravelNotes.importNotes()">导入备份</button>
         <button class="btn-secondary" onclick="location.href='md-manager.html'">管理 MD 库</button>
         <button class="btn-secondary" onclick="location.href='review.html'">旅程回顾</button>
+        <button class="btn-secondary" onclick="backfillGeoBtn()">补全地点信息</button>
         <button class="btn-secondary" onclick="if(window.Vault)Vault.exportVault(TravelNotes.list())">导出 Obsidian 库</button>
         <button class="data-danger" onclick="clearAll()">清除全部数据</button>
       </div>
@@ -221,6 +222,12 @@
     el.classList.toggle('off', !off);
     if (k === 'tn_keepAudio') localStorage.setItem('tn_keepAudio', off ? '1' : '0');
     if (k === 'tn_themeNotes') localStorage.setItem('tn_themeNotes', off ? '1' : '0');
+  }
+  function backfillGeoBtn(){
+    if (!window.TravelNotes || !TravelNotes.backfillGeo) { toast('不可用'); return; }
+    TravelNotes.backfillGeo(function (filled, total) {
+      toast(total ? ('已补全 ' + filled + '/' + total + ' 处地点信息') : '所有游记都有地点信息');
+    });
   }
   function clearAll(){
     if (!confirm('确定清除全部游记数据？此操作不可恢复。')) return;
