@@ -951,3 +951,24 @@ body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var
 .theme-dark .rz-row{background:var(--color-surface);border-color:var(--color-line);border-left-color:var(--color-primary)}
 .theme-dark .rz-row__tx b{color:var(--color-ink)}
 .theme-dark .rz-row__tx small{color:var(--color-muted)}
+
+/* ---- 深色：Location Sheet（专题页）+ 潜伏浅色底组件 ---- */
+.theme-dark .location-sheet{background:rgba(29,28,25,.96);border-color:var(--color-line)}
+.theme-dark .audio-chip .play{background:var(--color-primary);color:#fff}
+.theme-dark .btn-primary--dark{background:var(--color-primary);color:#fff}
+
+/* ---- 深色：travel-notes 运行时浮层（design.css 把底写死浅色、文字走 var()，深色下会浅底浅字隐形） ---- */
+.theme-dark body .tn-listbar{background:rgba(29,28,25,.9);border-bottom-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-listbar input{background:rgba(255,255,255,.08);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-listbar input::placeholder{color:var(--color-faint)}
+.theme-dark body .tn-listbar .tn-setbtn{background:rgba(255,255,255,.06);color:var(--color-muted);border-color:var(--color-line-strong)}
+.theme-dark body .tn-quotes .bar{background:rgba(29,28,25,.9);border-bottom-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-quotes .sr input{background:rgba(255,255,255,.08);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-settings{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark body .tn-settings input{background:var(--color-surface);color:var(--color-ink)}
+.theme-dark body .tn-dlg{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark body .tn-dlg textarea,.theme-dark body .tn-dlg input{background:var(--color-surface);color:var(--color-ink)}
+.theme-dark body .tn-editpage .bar{background:rgba(29,28,25,.9);border-bottom-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-editpage .body input,.theme-dark body .tn-editpage .body textarea{background:var(--color-surface);color:var(--color-ink)}
+.theme-dark body .tn-wall .bar{background:rgba(29,28,25,.9);border-bottom-color:var(--color-line);color:var(--color-ink)}
+.theme-dark body .tn-ai{background:var(--color-surface);color:var(--color-ink-soft)}

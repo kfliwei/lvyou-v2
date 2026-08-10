@@ -215,6 +215,22 @@
   .ms-loc{margin-top:3px;font-size:11px;color:var(--color-faint);letter-spacing:.04em}
   .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;z-index:6}
   @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
+
+  /* ============================================================
+     TRACE v2 深色模式（travel-map 本地浮层 · 覆盖硬编码浅色底）
+     本页只加载 design.css 不加载 map.css，故在此补全：
+     浅色浮层文字用 var(--color-*)（深色下变浅），若不把底色改深会浅底浅字隐形。
+     ============================================================ */
+  .theme-dark .leaflet-tile-pane .leaflet-tile{filter:sepia(.2) saturate(.45) brightness(.6) contrast(1.05)}
+  .theme-dark .stat,.theme-dark .statOpen{background:rgba(29,28,25,.9);border-color:var(--color-line)}
+  .theme-dark .statClose{background:rgba(255,255,255,.08);color:var(--color-muted)}
+  .theme-dark .emptyTip{background:rgba(29,28,25,.92);border-color:var(--color-line)}
+  .theme-dark .tl-chip{background:rgba(29,28,25,.85);border-color:var(--color-line);color:var(--color-muted)}
+  .theme-dark .tl-chip.active{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
+  .theme-dark .tl-trip{background:rgba(200,109,75,.16);border-color:rgba(200,109,75,.35);color:var(--color-primary-dark)}
+  .theme-dark #memSheet{background:rgba(29,28,25,.96);border-color:var(--color-line)}
+  .theme-dark .ms-item{border-bottom-color:var(--color-line)}
+  .theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
 </style>
 </head>
 <body>
