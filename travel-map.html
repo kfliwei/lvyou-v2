@@ -356,6 +356,18 @@ function flash(msg){
   d.textContent=msg; document.body.appendChild(d);
   setTimeout(()=>d.remove(),2400);
 }
+function tagColor(n){
+  var rules=[
+    ['美食','吃','食','#71806C'],['日出','日落','晨','昏','#C86D4B'],
+    ['山','徒步','爬','#6D7D88'],['海','湖','江','河','#5F6D76'],
+    ['建筑','古迹','寺','庙','塔','#A9563B'],['雨','雪','#8C7B66']
+  ];
+  var hay=((n.tags||[]).join(' ')+' '+(n.siteName||'')+' '+(n.title||''));
+  for(var i=0;i<rules.length;i++){
+    for(var j=0;j<rules[i].length-1;j++){ if(hay.indexOf(rules[i][j])>=0) return rules[i][rules[i].length-1]; }
+  }
+  return '#C86D4B';
+}
 function refresh(){
   const notes=TravelNotes.list();
   if (tnLayer) map.removeLayer(tnLayer);
@@ -385,7 +397,7 @@ function refresh(){
       const first=items[0];
       const photo=first.photos&&first.photos.length?first.photos[0]:null;
       const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
-      const nodeInner=photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot"></span>';
+      const nodeInner=photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>';
       const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'<span class="mem-badge">'+items.length+'</span></div>';
       const nodeSize=photo?[36,36]:[26,26];
       const nodeAnchor=photo?[18,18]:[13,13];
@@ -400,7 +412,7 @@ function refresh(){
       const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
       const nodeInner=photo
         ?'<img src="'+photo+'" alt="" onerror="this.remove()">'
-        :(isStart?'<span class="mem-ring"></span><span class="mem-dot"></span>':isEnd?'<span class="mem-ring"></span><span class="mem-dot"></span>':'<span class="mem-dot"></span>');
+        :(isStart?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':isEnd?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':'<span class="mem-dot" style="background:'+tagColor(n)+'"></span>');
       const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'</div>';
       const nodeSize=photo?[36,36]:[26,26];
       const nodeAnchor=photo?[18,18]:[13,13];
