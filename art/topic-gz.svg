@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：贵州 — 峰林碧水·苗寨吊脚楼（翠青/靛蓝/朱砂色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFF2E6"/>
+      <stop offset="1" stop-color="#DCE6D6"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3E7CB1"/>
+      <stop offset="1" stop-color="#2E5F8A"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山（峰林剪影） -->
+  <path d="M-20 210 L60 150 L110 175 L170 120 L230 165 L300 135 L370 170 L440 130 L540 195 L540 245 L-20 245 Z" fill="#71806C" opacity=".55"/>
+  <path d="M-20 235 L80 185 L150 205 L230 165 L310 195 L390 175 L470 205 L540 190 L540 250 L-20 250 Z" fill="#5F8A6B" opacity=".75"/>
+  <!-- 碧水（江河） -->
+  <path d="M-20 300 Q150 262 300 296 T540 292 L540 340 L-20 340 Z" fill="url(#water)" opacity=".85"/>
+  <!-- 苗寨吊脚楼（近景） -->
+  <g fill="#20201D">
+    <rect x="330" y="268" width="52" height="34" rx="2"/>
+    <rect x="342" y="252" width="28" height="18" rx="2"/>
+    <path d="M326 268 L368 268 L368 262 L326 262 Z" fill="#20201D" opacity=".9"/>
+    <rect x="338" y="278" width="10" height="14"/>
+    <rect x="364" y="278" width="10" height="14"/>
+    <rect x="330" y="272" width="52" height="4" fill="#20201D" opacity=".6"/>
+    <circle cx="356" cy="261" r="3.2" fill="#E0DCCB" opacity=".9"/>
+  </g>
+  <!-- 鼓楼（左） -->
+  <g fill="#20201D">
+    <path d="M120 302 L120 272 L132 264 L144 272 L144 302 Z"/>
+    <path d="M118 264 L144 264 L131 240 Z"/>
+    <rect x="126" y="284" width="12" height="18"/>
+  </g>
+  <!-- 瀑布线（中） -->
+  <path d="M250 250 Q252 268 250 286 Q249 296 251 306" stroke="#E8F1F7" stroke-width="4" fill="none" stroke-linecap="round" opacity=".9"/>
+  <path d="M256 254 Q258 272 256 290" stroke="#E8F1F7" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".7"/>
+  <!-- 印章：黔 -->
+  <g transform="translate(96 214)">
+    <rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+    <text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">黔</text>
+  </g>
+</svg>

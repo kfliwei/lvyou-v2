@@ -28,7 +28,9 @@
   .story-item{display:flex;align-items:center;gap:14px;padding:17px 2px;text-decoration:none;border-bottom:1px solid var(--color-line);transition:padding var(--duration-fast) var(--ease-standard)}
   .story-item:last-child{border-bottom:0}
   .story-item:active{padding-left:8px}
-  .story-item__stamp{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-family:var(--font-serif);font-size:17px;flex:0 0 auto}
+  .story-item__stamp{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-family:var(--font-serif);font-size:17px;flex:0 0 auto;overflow:hidden;position:relative}
+  .story-item__stamp img{width:100%;height:100%;object-fit:cover;display:block}
+  .story-item__stamp span{position:absolute;right:4px;bottom:2px;font-size:10.5px;line-height:1;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);opacity:.92}
   .story-item__main{flex:1;min-width:0}
   .story-item__title{font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-ink);letter-spacing:.01em}
   .story-item__loc{font-size:11px;color:var(--color-muted);margin-top:4px;letter-spacing:.04em}
@@ -45,6 +47,81 @@
   .bottom-nav__item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:20px;color:var(--color-muted);font-size:11px;letter-spacing:.04em;text-decoration:none;min-height:44px}
   .bottom-nav__item.active{color:var(--color-ink);background:rgba(255,255,255,.65);font-weight:600}
   
+
+/* ============================================================
+   TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
+   ============================================================ */
+.theme-dark .topbar,.theme-dark .tripbar{background:rgba(29,28,25,.92);border-bottom-color:var(--color-line)}
+.theme-dark .t-row .back{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
+.theme-dark .t-row .act,.theme-dark .t-row .act.sec{background:rgba(255,255,255,.06);color:var(--color-ink-soft);border-color:var(--color-line-strong)}
+.theme-dark .bottom-nav,.theme-dark .tabbar{background:#1a1a17;border-top-color:var(--color-line)}
+.theme-dark .bottom-nav__item,.theme-dark .tabbar button{color:var(--color-muted)}
+.theme-dark .bottom-nav__item.active,.theme-dark .tabbar button.on{color:var(--color-ink);background:rgba(255,255,255,.06)}
+.theme-dark .chips button{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .chips button.on{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.theme-dark .search-bar,.theme-dark .hero__search{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .search-bar input,.theme-dark .hero__search input{color:var(--color-ink)}
+.theme-dark .search-bar input::placeholder{color:var(--color-faint)}
+.theme-dark .btn-secondary{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .btn-primary{background:var(--color-primary);color:#fff}
+.theme-dark .text-link{color:var(--color-ink)}
+.theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+.theme-dark .ls-place,.theme-dark .ls-loc,.theme-dark .arrive-place{color:var(--color-ink)}
+.theme-dark .ls-desc,.theme-dark .ls-hist,.theme-dark .arrive-eyebrow,.theme-dark .arrive-ask{color:var(--color-ink-soft)}
+.theme-dark .ls-img{background:var(--color-bg-soft)}
+.theme-dark .arrive-card{background:rgba(29,28,25,.94);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .tr-ring{opacity:.4}
+.theme-dark .fab{background:var(--color-primary);color:#fff;border-color:transparent}
+.theme-dark .ctl,.theme-dark .ctl button{background:rgba(29,28,25,.92);color:var(--color-ink-soft);border-color:var(--color-line)}
+.theme-dark .laymenu{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .laymenu .li{color:var(--color-ink-soft)}
+.theme-dark .laymenu .li.on{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .stat{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .statOpen{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink-soft)}
+.theme-dark .statClose{background:rgba(255,255,255,.08);color:var(--color-muted)}
+.theme-dark .story-item{color:var(--color-ink)}
+.theme-dark .story-item__title{color:var(--color-ink)}
+.theme-dark .story-item__desc{color:var(--color-ink-soft)}
+.theme-dark .home-end{color:var(--color-ink-soft)}
+.theme-dark .empty{color:var(--color-ink-soft)}
+.theme-dark .empty b{color:var(--color-ink)}
+.theme-dark .empty .em{color:var(--color-faint)}
+.theme-dark .section-title{color:var(--color-ink)}
+.theme-dark .eyebrow{color:var(--color-muted)}
+.theme-dark .data-acts .data-danger{color:var(--color-primary-dark);border-color:var(--color-line-strong)}
+.theme-dark .data-acts .data-danger:active{background:var(--color-primary-soft)}
+.theme-dark .group{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .group-title{color:var(--color-ink)}
+.theme-dark .group-sub,.theme-dark .row-label{color:var(--color-muted)}
+.theme-dark input[type=text],.theme-dark input[type=password]{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .storage,.theme-dark .voice-diag{color:var(--color-ink-soft)}
+.theme-dark .switchrow .sw-label{color:var(--color-ink)}
+.theme-dark .switchrow .sw-sub{color:var(--color-muted)}
+.theme-dark .legend{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .legend .lh{color:var(--color-muted)}
+.theme-dark .legend .lt{color:var(--color-ink-soft)}
+.theme-dark .legend .lc{color:var(--color-primary)}
+.theme-dark .sp-topic,.theme-dark .sp-note{color:var(--color-ink-soft)}
+.theme-dark .sp-topic{color:var(--color-primary-dark)}
+.theme-dark .home-end__cta,.theme-dark .hero__cta{color:var(--color-ink)}
+.theme-dark .trip-empty{color:var(--color-ink-soft)}
+.theme-dark .trip-feature__title,.theme-dark .trip-feature__dates{color:var(--color-ink)}
+.theme-dark .trip-feature__meta{color:var(--color-muted)}
+.theme-dark .tn-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .tn-item h4{color:var(--color-ink)}
+.theme-dark .tn-item .tm,.theme-dark .tn-item .tx{color:var(--color-ink-soft)}
+.theme-dark .tn-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .md-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .md-item h3{color:var(--color-ink)}
+.theme-dark .md-item .loc,.theme-dark .md-item .meta{color:var(--color-muted)}
+.theme-dark .md-item .foot{color:var(--color-primary-dark)}
+.theme-dark .md-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .fm-card{background:var(--color-bg-soft);border-color:var(--color-line)}
+.theme-dark .fm-card dt{color:var(--color-muted)}
+.theme-dark .fm-card dd,.theme-dark .md-body{color:var(--color-ink-soft)}
+.theme-dark .fm-card .tags-r span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .footer a{color:var(--color-muted)}
 </style>
 </head>
 <body>
@@ -72,7 +149,7 @@
     <h2 class="sect-title">专题地图</h2>
     <div class="story-list">
       <a class="story-item" href="changzheng.html">
-        <span class="story-item__stamp" style="background:var(--color-primary-soft);color:var(--color-primary-dark)">征</span>
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-primary)"><img src="art/topic-changzheng.svg" alt=""><span>征</span></span>
         <span class="story-item__main">
           <div class="story-item__title">红军长征路线地图</div>
           <div class="story-item__loc">江西 · 贵州 · 四川 · 甘肃 · 陕西</div>
@@ -81,7 +158,7 @@
         <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
       </a>
       <a class="story-item" href="gx-yn.html">
-        <span class="story-item__stamp" style="background:rgba(113,128,108,.14);color:var(--color-green)">滇</span>
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-green)"><img src="art/topic-yunnan.svg" alt=""><span>滇</span></span>
         <span class="story-item__main">
           <div class="story-item__title">广西云南山水地图</div>
           <div class="story-item__loc">桂林 · 阳朔 · 大理 · 西双版纳</div>
@@ -90,7 +167,7 @@
         <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
       </a>
       <a class="story-item" href="qinghai-tibet.html">
-        <span class="story-item__stamp" style="background:rgba(140,123,102,.14);color:var(--color-primary-dark)">藏</span>
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-primary-dark)"><img src="art/topic-tibet.svg" alt=""><span>藏</span></span>
         <span class="story-item__main">
           <div class="story-item__title">青藏风光地图</div>
           <div class="story-item__loc">唐蕃古道 · 山南 · 阿里 · 新藏线</div>
@@ -99,11 +176,56 @@
         <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
       </a>
       <a class="story-item" href="shanxi.html">
-        <span class="story-item__stamp" style="background:rgba(109,125,136,.14);color:var(--color-blue)">晋</span>
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-blue)"><img src="art/topic-shanxi.svg" alt=""><span>晋</span></span>
         <span class="story-item__main">
           <div class="story-item__title">山西古建地图</div>
           <div class="story-item__loc">大同 · 太原 · 平遥 · 运城</div>
           <div class="story-item__desc">国保古建，四条探访路线，梁柱之间是一千年的风雨。</div>
+        </span>
+        <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
+      </a>
+      <a class="story-item" href="topic.html?p=sc">
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-primary)"><img src="art/topic-sc.svg" alt=""><span>川</span></span>
+        <span class="story-item__main">
+          <div class="story-item__title">四川风光人文地图</div>
+          <div class="story-item__loc">成都 · 九寨沟 · 稻城亚丁 · 峨眉山</div>
+          <div class="story-item__desc">天府之国，四百余处山水古迹与蜀味，十条推荐路线。</div>
+        </span>
+        <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
+      </a>
+      <a class="story-item" href="topic.html?p=gs">
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px #C9A05C"><img src="art/topic-gs.svg" alt=""><span>陇</span></span>
+        <span class="story-item__main">
+          <div class="story-item__title">甘肃丝路人文地图</div>
+          <div class="story-item__loc">敦煌 · 嘉峪关 · 张掖 · 甘南 · 天水</div>
+          <div class="story-item__desc">河西走廊三百余处丝路佛光、丹霞草原与陇味，九条推荐路线。</div>
+        </span>
+        <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
+      </a>
+      <a class="story-item" href="topic.html?p=xj">
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px #3E7CB1"><img src="art/topic-xj.svg" alt=""><span>疆</span></span>
+        <span class="story-item__main">
+          <div class="story-item__title">新疆丝路风光地图</div>
+          <div class="story-item__loc">喀纳斯 · 伊犁 · 喀什 · 独库公路 · 吐鲁番</div>
+          <div class="story-item__desc">大美西域近两百处雪山草原、丝路古城与疆味，九条推荐路线。</div>
+        </span>
+        <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
+      </a>
+      <a class="story-item" href="topic.html?p=gz">
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-green)"><img src="art/topic-gz.svg" alt=""><span>黔</span></span>
+        <span class="story-item__main">
+          <div class="story-item__title">贵州山水人文地图</div>
+          <div class="story-item__loc">黄果树 · 荔波 · 西江 · 梵净山 · 镇远</div>
+          <div class="story-item__desc">多彩黔境一百六十余处瀑布溶洞、苗乡侗寨与黔味，九条推荐路线。</div>
+        </span>
+        <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
+      </a>
+      <a class="story-item" href="shanxi-ancient-architecture.html">
+        <span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px var(--color-ink-soft);background:var(--color-bg-soft)"><img src="art/topic-shanxi.svg" alt=""><span>全</span></span>
+        <span class="story-item__main">
+          <div class="story-item__title">山西古建完整版指南</div>
+          <div class="story-item__loc">全省 60+ 国保 · 可检索 · 探访手册</div>
+          <div class="story-item__desc">按朝代 / 地区 / 类型筛选，一千年的斗拱榫卯全在这里。</div>
         </span>
         <span class="story-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>
       </a>

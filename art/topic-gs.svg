@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：甘肃 — 祁连雪山·丝路驼铃·莫高窟（雪白/沙金/朱砂色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F0E3"/>
+      <stop offset="1" stop-color="#E8DCC0"/>
+    </linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E0D9C8"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山（祁连雪峰） -->
+  <path d="M-20 215 L60 130 L110 180 L180 105 L240 170 L310 115 L380 175 L450 130 L540 210 L540 255 L-20 255 Z" fill="url(#snow)" opacity=".94"/>
+  <path d="M60 130 L110 180 L180 105 L240 170 L310 115 L380 175 L450 130" stroke="#CFC4AC" stroke-width="2" fill="none" opacity=".65"/>
+  <!-- 中景（沙金—鸣沙山） -->
+  <path d="M-20 262 Q130 210 280 256 T540 252 L540 302 L-20 302 Z" fill="#C9A05C" opacity=".8"/>
+  <!-- 近景（墨色戈壁） -->
+  <path d="M-20 312 Q170 270 330 308 T540 302 L540 360 L-20 360 Z" fill="#20201D"/>
+  <!-- 驼队剪影（丝路） -->
+  <g transform="translate(300 268)" fill="#20201D">
+    <path d="M0 18 Q-4 6 2 -2 Q8 -8 16 -4 Q22 -8 30 -2 Q34 6 30 18 Z" opacity=".9"/>
+    <circle cx="8" cy="6" r="3" fill="#E8DCC0" opacity=".9"/>
+    <circle cx="24" cy="6" r="3" fill="#E8DCC0" opacity=".9"/>
+    <path d="M-8 18 L-14 14 L-11 18 Z" fill="#20201D"/>
+    <path d="M38 18 L44 12 L42 18 Z" fill="#20201D"/>
+    <circle cx="-13" cy="12" r="1.6" fill="#C9A05C"/>
+    <path d="M-2 12 Q10 6 34 12" stroke="#C9A05C" stroke-width="1.4" fill="none" opacity=".85"/>
+  </g>
+  <!-- 沙丘线 -->
+  <path d="M40 300 Q90 288 140 298 M400 306 Q440 296 490 305" stroke="#4C4A45" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>
+  <!-- 印章：陇 -->
+  <g transform="translate(96 214)">
+    <rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+    <text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">陇</text>
+  </g>
+</svg>

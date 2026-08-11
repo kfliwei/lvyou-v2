@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：长征 — 山路·旗·队伍（陶土/赭石色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E7D9C8"/>
+      <stop offset="1" stop-color="#D9C3A8"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 210 Q70 150 160 200 T360 180 T540 200 L540 250 L-20 250 Z" fill="#C4A98A" opacity=".7"/>
+  <!-- 中景山 -->
+  <path d="M-20 270 Q90 210 210 260 T420 245 T540 270 L540 320 L-20 320 Z" fill="#A9895F" opacity=".85"/>
+  <!-- 近景山（赭石） -->
+  <path d="M-20 320 Q120 270 260 320 T520 315 L520 360 L-20 360 Z" fill="#8F6B45"/>
+  <!-- 蜿蜒山路 -->
+  <path d="M60 340 Q140 300 220 310 T380 290 L500 300" stroke="#F7F5EF" stroke-width="3.5" stroke-linecap="round" opacity=".85"/>
+  <!-- 旗帜（陶土） -->
+  <line x1="330" y1="200" x2="330" y2="260" stroke="#5F4A33" stroke-width="3" stroke-linecap="round"/>
+  <path d="M330 200 L392 214 L330 228 Z" fill="#C86D4B"/>
+  <!-- 行进队伍（墨点） -->
+  <circle cx="250" cy="318" r="4" fill="#3A3226" opacity=".85"/>
+  <circle cx="268" cy="312" r="4" fill="#3A3226" opacity=".75"/>
+  <circle cx="286" cy="318" r="4" fill="#3A3226" opacity=".9"/>
+  <circle cx="304" cy="311" r="4" fill="#3A3226" opacity=".7"/>
+  <!-- 太阳 -->
+  <circle cx="120" cy="90" r="26" fill="#C86D4B" opacity=".85"/>
+  <circle cx="120" cy="90" r="42" fill="#C86D4B" opacity=".1"/>
+  <!-- 云 -->
+  <ellipse cx="420" cy="80" rx="46" ry="11" fill="#F7F5EF" opacity=".6"/>
+  <ellipse cx="452" cy="72" rx="26" ry="9" fill="#F7F5EF" opacity=".5"/>
+</svg>

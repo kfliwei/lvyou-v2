@@ -57,6 +57,81 @@
 .arrive-acts .btn-secondary{flex:1;min-height:48px;border-radius:999px;font-size:14px}
 .arrive-nav{margin-top:16px;font-size:12px;color:var(--color-faint);cursor:pointer;text-decoration:underline}
 .arrive-nav:hover{color:var(--color-primary-dark)}
+
+/* ============================================================
+   TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
+   ============================================================ */
+.theme-dark .topbar,.theme-dark .tripbar{background:rgba(29,28,25,.92);border-bottom-color:var(--color-line)}
+.theme-dark .t-row .back{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
+.theme-dark .t-row .act,.theme-dark .t-row .act.sec{background:rgba(255,255,255,.06);color:var(--color-ink-soft);border-color:var(--color-line-strong)}
+.theme-dark .bottom-nav,.theme-dark .tabbar{background:#1a1a17;border-top-color:var(--color-line)}
+.theme-dark .bottom-nav__item,.theme-dark .tabbar button{color:var(--color-muted)}
+.theme-dark .bottom-nav__item.active,.theme-dark .tabbar button.on{color:var(--color-ink);background:rgba(255,255,255,.06)}
+.theme-dark .chips button{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .chips button.on{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.theme-dark .search-bar,.theme-dark .hero__search{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .search-bar input,.theme-dark .hero__search input{color:var(--color-ink)}
+.theme-dark .search-bar input::placeholder{color:var(--color-faint)}
+.theme-dark .btn-secondary{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .btn-primary{background:var(--color-primary);color:#fff}
+.theme-dark .text-link{color:var(--color-ink)}
+.theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+.theme-dark .ls-place,.theme-dark .ls-loc,.theme-dark .arrive-place{color:var(--color-ink)}
+.theme-dark .ls-desc,.theme-dark .ls-hist,.theme-dark .arrive-eyebrow,.theme-dark .arrive-ask{color:var(--color-ink-soft)}
+.theme-dark .ls-img{background:var(--color-bg-soft)}
+.theme-dark .arrive-card{background:rgba(29,28,25,.94);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .tr-ring{opacity:.4}
+.theme-dark .fab{background:var(--color-primary);color:#fff;border-color:transparent}
+.theme-dark .ctl,.theme-dark .ctl button{background:rgba(29,28,25,.92);color:var(--color-ink-soft);border-color:var(--color-line)}
+.theme-dark .laymenu{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .laymenu .li{color:var(--color-ink-soft)}
+.theme-dark .laymenu .li.on{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .stat{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .statOpen{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink-soft)}
+.theme-dark .statClose{background:rgba(255,255,255,.08);color:var(--color-muted)}
+.theme-dark .story-item{color:var(--color-ink)}
+.theme-dark .story-item__title{color:var(--color-ink)}
+.theme-dark .story-item__desc{color:var(--color-ink-soft)}
+.theme-dark .home-end{color:var(--color-ink-soft)}
+.theme-dark .empty{color:var(--color-ink-soft)}
+.theme-dark .empty b{color:var(--color-ink)}
+.theme-dark .empty .em{color:var(--color-faint)}
+.theme-dark .section-title{color:var(--color-ink)}
+.theme-dark .eyebrow{color:var(--color-muted)}
+.theme-dark .data-acts .data-danger{color:var(--color-primary-dark);border-color:var(--color-line-strong)}
+.theme-dark .data-acts .data-danger:active{background:var(--color-primary-soft)}
+.theme-dark .group{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .group-title{color:var(--color-ink)}
+.theme-dark .group-sub,.theme-dark .row-label{color:var(--color-muted)}
+.theme-dark input[type=text],.theme-dark input[type=password]{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .storage,.theme-dark .voice-diag{color:var(--color-ink-soft)}
+.theme-dark .switchrow .sw-label{color:var(--color-ink)}
+.theme-dark .switchrow .sw-sub{color:var(--color-muted)}
+.theme-dark .legend{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .legend .lh{color:var(--color-muted)}
+.theme-dark .legend .lt{color:var(--color-ink-soft)}
+.theme-dark .legend .lc{color:var(--color-primary)}
+.theme-dark .sp-topic,.theme-dark .sp-note{color:var(--color-ink-soft)}
+.theme-dark .sp-topic{color:var(--color-primary-dark)}
+.theme-dark .home-end__cta,.theme-dark .hero__cta{color:var(--color-ink)}
+.theme-dark .trip-empty{color:var(--color-ink-soft)}
+.theme-dark .trip-feature__title,.theme-dark .trip-feature__dates{color:var(--color-ink)}
+.theme-dark .trip-feature__meta{color:var(--color-muted)}
+.theme-dark .tn-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .tn-item h4{color:var(--color-ink)}
+.theme-dark .tn-item .tm,.theme-dark .tn-item .tx{color:var(--color-ink-soft)}
+.theme-dark .tn-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .md-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .md-item h3{color:var(--color-ink)}
+.theme-dark .md-item .loc,.theme-dark .md-item .meta{color:var(--color-muted)}
+.theme-dark .md-item .foot{color:var(--color-primary-dark)}
+.theme-dark .md-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .fm-card{background:var(--color-bg-soft);border-color:var(--color-line)}
+.theme-dark .fm-card dt{color:var(--color-muted)}
+.theme-dark .fm-card dd,.theme-dark .md-body{color:var(--color-ink-soft)}
+.theme-dark .fm-card .tags-r span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .footer a{color:var(--color-muted)}
 </style>
 
 </head>
@@ -233,7 +308,9 @@ function gcj02Of(lat,lng){
 function pt(s){ return useGCJ? gcj02Of(s.lat,s.lng):[s.lat,s.lng]; }
 function gxy(lat,lng){ return useGCJ? gcj02Of(lat,lng):[lat,lng]; }
 const amapStreet = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
-amapStreet.addTo(map);   // 默认图层：高德街道（GCJ-02 纠偏）
+amapStreet.addTo(map);
+/* 高德瓦片失败自动降级 OSM（国内无网络/被墙时地图不空白） */
+amapStreet.on('tileerror',function(){ if(!map.hasLayer(osmLayer)){ try{ amapStreet.remove(); }catch(e){} osmLayer.addTo(map); } });   // 默认图层：高德街道（GCJ-02 纠偏）
 const amapSat = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'});
 const amapLabel = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:''});
 const amapSatL = L.layerGroup([amapSat,amapLabel]);

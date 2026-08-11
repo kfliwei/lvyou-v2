@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="240" viewBox="0 0 300 240" fill="none">
+  <!-- 记忆地图空状态：等待第一枚足迹 — 克制留白 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFEBE0"/>
+      <stop offset="1" stop-color="#E2DCCB"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="240" fill="url(#sky)"/>
+  <!-- 淡地图网格 -->
+  <path d="M0 60 H300 M0 120 H300 M0 180 H300" stroke="#D8D0BC" stroke-width="1" opacity=".6"/>
+  <path d="M60 0 V240 M120 0 V240 M180 0 V240 M240 0 V240" stroke="#D8D0BC" stroke-width="1" opacity=".6"/>
+  <!-- 路线（虚线，等待延伸） -->
+  <path d="M40 190 Q90 170 140 178 T260 160" stroke="#C86D4B" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round" opacity=".8"/>
+  <!-- 已落下的第一枚节点（陶土呼吸） -->
+  <circle cx="140" cy="178" r="8" fill="#F7F5EF" stroke="#C86D4B" stroke-width="3"/>
+  <circle cx="140" cy="178" r="16" fill="#C86D4B" opacity=".14"/>
+  <!-- 待出发的下一站 -->
+  <circle cx="260" cy="160" r="6" fill="#F7F5EF" stroke="#8B8171" stroke-width="2" opacity=".8"/>
+  <!-- 脚印 -->
+  <ellipse cx="80" cy="128" rx="8" ry="11" fill="#B8AF9A" opacity=".7" transform="rotate(-14 80 128)"/>
+  <ellipse cx="80" cy="140" rx="5" ry="7" fill="#B8AF9A" opacity=".6" transform="rotate(-14 80 140)"/>
+  <!-- 云 -->
+  <ellipse cx="70" cy="46" rx="34" ry="9" fill="#F7F5EF" opacity=".7"/>
+  <ellipse cx="228" cy="40" rx="28" ry="8" fill="#F7F5EF" opacity=".55"/>
+</svg>

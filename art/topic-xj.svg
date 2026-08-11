@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：新疆 — 天山雪峰·丝路驼铃·胡杨（雪白/沙金/朱砂色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2F0E8"/>
+      <stop offset="1" stop-color="#E0DCCB"/>
+    </linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DFE3E2"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山（天山雪峰） -->
+  <path d="M-20 215 L50 120 L100 175 L180 95 L245 168 L315 110 L385 172 L455 125 L540 208 L540 255 L-20 255 Z" fill="url(#snow)" opacity=".94"/>
+  <path d="M50 120 L100 175 L180 95 L245 168 L315 110 L385 172 L455 125" stroke="#C7CFCE" stroke-width="2" fill="none" opacity=".65"/>
+  <!-- 中景（沙金—戈壁沙丘） -->
+  <path d="M-20 262 Q140 210 290 258 T540 252 L540 302 L-20 302 Z" fill="#C9A05C" opacity=".82"/>
+  <!-- 近景（墨色—雅丹戈壁） -->
+  <path d="M-20 312 Q180 270 340 308 T540 302 L540 360 L-20 360 Z" fill="#20201D"/>
+  <!-- 驼队剪影（丝路） -->
+  <g transform="translate(308 272)" fill="#20201D">
+    <path d="M0 16 Q-4 5 2 -2 Q8 -8 15 -3 Q21 -7 29 -1 Q33 5 29 16 Z" opacity=".92"/>
+    <circle cx="7" cy="5" r="2.8" fill="#E0DCCB" opacity=".9"/>
+    <circle cx="22" cy="5" r="2.8" fill="#E0DCCB" opacity=".9"/>
+    <path d="M-7 16 L-13 12 L-10 16 Z" fill="#20201D"/>
+    <path d="M36 16 L42 11 L40 16 Z" fill="#20201D"/>
+    <circle cx="-12" cy="11" r="1.5" fill="#C9A05C"/>
+    <path d="M-2 10 Q10 4 32 10" stroke="#C9A05C" stroke-width="1.4" fill="none" opacity=".85"/>
+  </g>
+  <!-- 胡杨剪影（右） -->
+  <path d="M452 360 Q450 320 458 290 M455 360 Q454 325 460 298 M448 360 Q447 318 453 288" stroke="#4C4A45" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
+  <!-- 印章：疆 -->
+  <g transform="translate(96 214)">
+    <rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+    <text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">疆</text>
+  </g>
+</svg>

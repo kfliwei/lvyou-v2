@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：山西 — 古城墙·塔·飞檐（赭/陶土色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAE0CE"/>
+      <stop offset="1" stop-color="#D8C7AC"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 200 Q80 140 180 190 T400 170 T540 195 L540 240 L-20 240 Z" fill="#C2A880" opacity=".7"/>
+  <!-- 中景 -->
+  <path d="M-20 250 Q100 205 230 245 T440 235 T540 250 L540 300 L-20 300 Z" fill="#A98C66" opacity=".85"/>
+  <!-- 古城墙（墨赭） -->
+  <path d="M-20 300 Q140 260 280 300 T540 292 L540 360 L-20 360 Z" fill="#7A6244"/>
+  <!-- 城墙垛口 -->
+  <path d="M30 300 L30 284 L44 284 L44 300 M54 296 L54 282 L68 282 L68 296 M78 292 L78 280 L92 280 L92 292" stroke="#7A6244" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 城楼（陶土） -->
+  <rect x="200" y="252" width="64" height="30" fill="#C86D4B" opacity=".9"/>
+  <path d="M196 252 L232 232 L268 252 Z" fill="#8F5A3E"/>
+  <rect x="216" y="282" width="32" height="18" fill="#8F5A3E"/>
+  <line x1="232" y1="232" x2="232" y2="222" stroke="#7A6244" stroke-width="3" stroke-linecap="round"/>
+  <!-- 古塔（墨） -->
+  <rect x="412" y="210" width="26" height="60" rx="2" fill="#5F4A33"/>
+  <path d="M408 210 L425 192 L442 210 Z" fill="#5F4A33"/>
+  <rect x="418" y="196" width="14" height="10" rx="1" fill="#8F6B45"/>
+  <path d="M421 250 L421 244 M427 250 L427 244 M433 250 L433 244" stroke="#F7F5EF" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+  <!-- 太阳 -->
+  <circle cx="90" cy="80" r="24" fill="#C86D4B" opacity=".85"/>
+  <!-- 云 -->
+  <ellipse cx="330" cy="66" rx="46" ry="11" fill="#F7F5EF" opacity=".6"/>
+  <ellipse cx="362" cy="58" rx="26" ry="8" fill="#F7F5EF" opacity=".5"/>
+  <!-- 飞鸟 -->
+  <path d="M150 130 Q160 122 170 130" stroke="#7A6244" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>
+  <path d="M180 146 Q188 139 196 146" stroke="#7A6244" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".5"/>
+</svg>

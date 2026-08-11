@@ -846,3 +846,40 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .theme-dark .routeBanner{background:var(--color-primary);color:#fff}
 .theme-dark .legOpen,.theme-dark #legOpen{background:rgba(29,28,25,.9);color:var(--color-primary-dark);border-color:var(--color-line)}
 .theme-dark .leaflet-control-layers-toggle{background-color:var(--color-bg-soft)}
+
+/* ===== 专题页通用组件（topic.html 共用，从 gx-yn 抽取）===== */
+.pickHint{position:absolute;left:50%;transform:translateX(-50%);top:54px;background:#1565c0;color:#fff;padding:8px 14px;border-radius:999px;box-shadow:var(--sh-sm);font-size:13px;z-index:540;cursor:pointer}
+.ls-img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;display:block;margin-top:14px;background:var(--color-bg-soft)}
+.ls-img img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+.ls-place{font-family:var(--font-serif);font-size:30px;font-weight:400;margin-top:8px;letter-spacing:.01em}
+.ls-loc{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.05em}
+.ls-desc{margin-top:12px;font-size:14px;color:var(--color-ink-soft);line-height:1.8}
+.ls-hist{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-ink-soft);line-height:1.8}
+.ls-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+.ls-add{margin-left:auto;font-size:14px;font-weight:600;color:var(--color-primary-dark);padding:12px 6px;cursor:pointer;border-radius:12px;transition:transform var(--duration-fast)}
+.ls-add:active{transform:scale(.95)}
+.ls-add.done{color:var(--color-green)}
+.ls-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-muted);display:flex;gap:22px}
+.ls-more span{cursor:pointer}
+.tr-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
+.tr-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--tint,#7D7970);opacity:.38;pointer-events:none;transition:opacity var(--duration-normal)}
+.tr-major .tr-ring{width:34px;height:34px;opacity:.55}
+.tr-active .tr-dot{background:var(--color-primary);animation:node-breathe 3s ease-in-out infinite}
+.node-num{position:absolute;right:-8px;top:-8px;width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(200,109,75,.4);z-index:3}
+.toast{position:fixed;z-index:9800;left:50%;top:20%;transform:translateX(-50%) translateY(-10px);background:rgba(32,32,29,.92);color:#fff;font-size:13px;letter-spacing:.03em;padding:13px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .28s var(--ease-standard),transform .28s var(--ease-standard)}
+.arrive-eyebrow{font-size:11px;color:var(--color-muted);letter-spacing:.3em;text-transform:uppercase}
+.arrive-place{font-family:var(--font-serif);font-size:34px;font-weight:400;color:var(--color-ink);margin-top:14px;line-height:1.2}
+.arrive-sub{margin-top:8px;font-size:13px;color:var(--color-muted);letter-spacing:.04em}
+.arrive-ask{margin-top:26px;font-family:var(--font-serif);font-size:17px;color:var(--color-ink-soft);line-height:1.7}
+.arrive-acts{display:flex;gap:12px;margin-top:26px}
+.arrive-nav{margin-top:16px;font-size:12px;color:var(--color-faint);cursor:pointer;text-decoration:underline}
+.arrive-nav:hover{color:var(--color-primary-dark)}
+
+/* ===== Location Sheet 显隐（通用专题页，对齐 gx-yn 的 #locSheet 规则）===== */
+#locSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);animation:none}
+#locSheet.show{display:block;transform:translateY(0)}
+#locSheet .sheet__handle{cursor:pointer}
+
+/* ===== arriveDlg 显隐（通用专题页，对齐 gx-yn 的 #arriveDlg 规则）===== */
+#arriveDlg{position:fixed;inset:0;z-index:9400;display:none;align-items:center;justify-content:center;background:rgba(32,32,29,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:24px}
+#arriveDlg.show{display:flex}

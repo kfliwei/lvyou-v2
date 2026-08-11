@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：青藏 — 雪山·经幡·鹰（蓝灰/冷调） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DCE4E4"/>
+      <stop offset="1" stop-color="#C4D0D0"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 210 Q80 140 180 200 T400 175 T540 205 L540 250 L-20 250 Z" fill="#A9B8B8" opacity=".7"/>
+  <!-- 雪山主峰（墨蓝） -->
+  <path d="M170 240 L260 120 L350 240 Z" fill="#7E8E92"/>
+  <path d="M260 120 L300 170 L260 200 L230 172 Z" fill="#EDEFF0" opacity=".95"/>
+  <!-- 雪线 -->
+  <path d="M214 176 L240 150 L268 176 L300 152 L322 178" stroke="#EDEFF0" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+  <!-- 近山 -->
+  <path d="M-20 300 Q110 240 250 295 T540 285 L540 360 L-20 360 Z" fill="#5F6D76"/>
+  <path d="M-20 330 Q130 280 280 328 T540 320" stroke="#6D7D88" stroke-width="2" fill="none" opacity=".8"/>
+  <!-- 经幡（陶土点缀） -->
+  <line x1="420" y1="170" x2="420" y2="290" stroke="#4A5559" stroke-width="3" stroke-linecap="round"/>
+  <path d="M420 170 L470 178 L420 186 Z" fill="#C86D4B"/>
+  <path d="M420 190 L470 198 L420 206 Z" fill="#7E8E92"/>
+  <path d="M420 210 L470 218 L420 226 Z" fill="#B8B3A3"/>
+  <path d="M420 230 L470 238 L420 246 Z" fill="#71806C"/>
+  <!-- 鹰（墨点） -->
+  <path d="M110 120 Q122 108 134 120" stroke="#5F6D76" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".85"/>
+  <path d="M110 120 Q108 110 116 106" stroke="#5F6D76" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".6"/>
+  <path d="M134 120 Q136 110 128 106" stroke="#5F6D76" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".6"/>
+  <!-- 太阳 -->
+  <circle cx="330" cy="80" r="22" fill="#C86D4B" opacity=".75"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="680" viewBox="0 0 520 680" fill="none">
+  <!-- 首页 Hero 背景插画：山峦·路径·晨光 — TRACE 杂志式 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2EEE4"/>
+      <stop offset="1" stop-color="#E9E4D6"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D8A183"/>
+      <stop offset="1" stop-color="#C86D4B"/>
+    </linearGradient>
+  </defs>
+  <!-- 天空 -->
+  <rect width="520" height="680" fill="url(#sky)"/>
+  <!-- 远山（最淡） -->
+  <path d="M-20 400 Q60 330 150 380 T330 350 T540 370 L540 420 L-20 420 Z" fill="#D8D2C2" opacity=".75"/>
+  <!-- 中景山 -->
+  <path d="M-20 470 Q80 400 180 450 T360 430 T540 460 L540 510 L-20 510 Z" fill="#C9C1AC" opacity=".9"/>
+  <!-- 近景山（墨） -->
+  <path d="M-20 560 Q100 470 240 540 T520 545 L520 610 L-20 610 Z" fill="#8B8171"/>
+  <!-- 晨光 -->
+  <circle cx="400" cy="180" r="58" fill="url(#sun)" opacity=".9"/>
+  <circle cx="400" cy="180" r="86" fill="#C86D4B" opacity=".12"/>
+  <!-- 路径：蜿蜒山路 -->
+  <path d="M60 640 Q120 580 200 590 T320 560 T430 585 L520 570" stroke="#F7F5EF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+  <path d="M60 640 Q120 580 200 590 T320 560 T430 585 L520 570" stroke="#C86D4B" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1 9" opacity=".7"/>
+  <!-- 云 -->
+  <ellipse cx="120" cy="120" rx="52" ry="14" fill="#F7F5EF" opacity=".7"/>
+  <ellipse cx="150" cy="112" rx="30" ry="11" fill="#F7F5EF" opacity=".6"/>
+  <ellipse cx="300" cy="250" rx="44" ry="11" fill="#F7F5EF" opacity=".55"/>
+  <!-- 飞鸟 -->
+  <path d="M90 210 Q100 202 110 210" stroke="#8B8171" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/>
+  <path d="M120 224 Q130 216 140 224" stroke="#8B8171" stroke-width="2" fill="none" stroke-linecap="round" opacity=".65"/>
+  <path d="M76 238 Q84 231 92 238" stroke="#8B8171" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".5"/>
+  <!-- 前景植被（陶土色点缀） -->
+  <path d="M40 620 Q52 596 64 620 Z" fill="#C86D4B" opacity=".55"/>
+  <path d="M60 626 Q70 606 80 626 Z" fill="#A9563B" opacity=".45"/>
+  <path d="M452 612 Q464 590 476 612 Z" fill="#C86D4B" opacity=".5"/>
+</svg>

@@ -19,13 +19,13 @@
 
   /* ---- Hero ---- */
   .hero{min-height:88dvh;padding:calc(env(safe-area-inset-top,0px)+48px) 24px 40px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
-  .hero__map{position:absolute;inset:-6%;opacity:.10;pointer-events:none}
-  .hero__map svg{width:100%;height:100%}
+  /* 呼吸节点（稀疏、缓慢呼吸 — 规范：地图节点稀疏、缓慢呼吸） */
   .hn{position:absolute;border-radius:50%;background:var(--color-ink);border:2.5px solid rgba(255,255,255,.85);animation:hnBreathe 3.4s ease-in-out infinite;pointer-events:none}
   .hn:nth-of-type(1){width:7px;height:7px;left:22%;top:16%}
   .hn:nth-of-type(2){width:5px;height:5px;left:74%;top:32%;animation-delay:1.1s}
   .hn:nth-of-type(3){width:6px;height:6px;left:60%;top:62%;animation-delay:2s}
   @keyframes hnBreathe{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,0)}50%{box-shadow:0 0 0 9px rgba(200,109,75,.14)}}
+  .hero__map{position:absolute;inset:-6%;opacity:.10;pointer-events:none}
   .hero__brand{position:relative;z-index:2;font-size:12px;letter-spacing:.34em;color:var(--color-muted);text-transform:uppercase;margin-top:8px}
   .hero__en{position:relative;z-index:2;font-size:11px;letter-spacing:.3em;color:var(--color-faint);margin-top:6px}
   .hero__title{position:relative;z-index:2;margin:0;font-family:var(--font-serif);font-size:clamp(40px,11.5vw,58px);font-weight:400;line-height:1.12;letter-spacing:-.03em;margin-top:clamp(56px,14vh,100px)}
@@ -96,11 +96,18 @@
     width:64px;height:64px;flex:none;border-radius:16px;display:grid;place-items:center;
     font-family:var(--font-serif);font-size:26px;color:#fff;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+    overflow:hidden;position:relative;
   }
-  .story-item[data-seal="cz"] .story-item__stamp{background:var(--color-primary)}
-  .story-item[data-seal="gy"] .story-item__stamp{background:var(--color-green)}
-  .story-item[data-seal="qt"] .story-item__stamp{background:var(--color-blue)}
-  .story-item[data-seal="sx"] .story-item__stamp{background:var(--color-ink-soft)}
+  .story-item__stamp img{width:100%;height:100%;object-fit:cover;display:block}
+  .story-item__stamp span{position:absolute;right:4px;bottom:2px;font-size:11px;line-height:1;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);opacity:.92}
+  .story-item[data-seal="cz"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-primary)}
+  .story-item[data-seal="gy"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-green)}
+  .story-item[data-seal="qt"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-blue)}
+  .story-item[data-seal="sx"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-ink-soft)}
+  .story-item[data-seal="sc"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-primary)}
+  .story-item[data-seal="gs"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px #C9A05C}
+  .story-item[data-seal="xj"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px #3E7CB1}
+  .story-item[data-seal="gz"] .story-item__stamp{box-shadow:inset 0 0 0 1.5px var(--color-green)}
 
   /* ---- 有人走过 ---- */
   .quote-block{padding:44px 8px;text-align:center}
@@ -122,6 +129,81 @@
   .ha-btn:active{transform:scale(.97)}
   .ha-btn.seal{background:var(--color-primary);color:#fff;box-shadow:0 8px 24px rgba(200,109,75,.18)}
   .ha-btn.line{background:var(--color-surface);color:var(--color-ink);border:1px solid var(--color-line-strong)}
+
+/* ============================================================
+   TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
+   ============================================================ */
+.theme-dark .topbar,.theme-dark .tripbar{background:rgba(29,28,25,.92);border-bottom-color:var(--color-line)}
+.theme-dark .t-row .back{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
+.theme-dark .t-row .act,.theme-dark .t-row .act.sec{background:rgba(255,255,255,.06);color:var(--color-ink-soft);border-color:var(--color-line-strong)}
+.theme-dark .bottom-nav,.theme-dark .tabbar{background:#1a1a17;border-top-color:var(--color-line)}
+.theme-dark .bottom-nav__item,.theme-dark .tabbar button{color:var(--color-muted)}
+.theme-dark .bottom-nav__item.active,.theme-dark .tabbar button.on{color:var(--color-ink);background:rgba(255,255,255,.06)}
+.theme-dark .chips button{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .chips button.on{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.theme-dark .search-bar,.theme-dark .hero__search{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .search-bar input,.theme-dark .hero__search input{color:var(--color-ink)}
+.theme-dark .search-bar input::placeholder{color:var(--color-faint)}
+.theme-dark .btn-secondary{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .btn-primary{background:var(--color-primary);color:#fff}
+.theme-dark .text-link{color:var(--color-ink)}
+.theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+.theme-dark .ls-place,.theme-dark .ls-loc,.theme-dark .arrive-place{color:var(--color-ink)}
+.theme-dark .ls-desc,.theme-dark .ls-hist,.theme-dark .arrive-eyebrow,.theme-dark .arrive-ask{color:var(--color-ink-soft)}
+.theme-dark .ls-img{background:var(--color-bg-soft)}
+.theme-dark .arrive-card{background:rgba(29,28,25,.94);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .tr-ring{opacity:.4}
+.theme-dark .fab{background:var(--color-primary);color:#fff;border-color:transparent}
+.theme-dark .ctl,.theme-dark .ctl button{background:rgba(29,28,25,.92);color:var(--color-ink-soft);border-color:var(--color-line)}
+.theme-dark .laymenu{background:rgba(29,28,25,.97);border-color:var(--color-line)}
+.theme-dark .laymenu .li{color:var(--color-ink-soft)}
+.theme-dark .laymenu .li.on{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .stat{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .statOpen{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink-soft)}
+.theme-dark .statClose{background:rgba(255,255,255,.08);color:var(--color-muted)}
+.theme-dark .story-item{color:var(--color-ink)}
+.theme-dark .story-item__title{color:var(--color-ink)}
+.theme-dark .story-item__desc{color:var(--color-ink-soft)}
+.theme-dark .home-end{color:var(--color-ink-soft)}
+.theme-dark .empty{color:var(--color-ink-soft)}
+.theme-dark .empty b{color:var(--color-ink)}
+.theme-dark .empty .em{color:var(--color-faint)}
+.theme-dark .section-title{color:var(--color-ink)}
+.theme-dark .eyebrow{color:var(--color-muted)}
+.theme-dark .data-acts .data-danger{color:var(--color-primary-dark);border-color:var(--color-line-strong)}
+.theme-dark .data-acts .data-danger:active{background:var(--color-primary-soft)}
+.theme-dark .group{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .group-title{color:var(--color-ink)}
+.theme-dark .group-sub,.theme-dark .row-label{color:var(--color-muted)}
+.theme-dark input[type=text],.theme-dark input[type=password]{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .storage,.theme-dark .voice-diag{color:var(--color-ink-soft)}
+.theme-dark .switchrow .sw-label{color:var(--color-ink)}
+.theme-dark .switchrow .sw-sub{color:var(--color-muted)}
+.theme-dark .legend{background:rgba(29,28,25,.92);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .legend .lh{color:var(--color-muted)}
+.theme-dark .legend .lt{color:var(--color-ink-soft)}
+.theme-dark .legend .lc{color:var(--color-primary)}
+.theme-dark .sp-topic,.theme-dark .sp-note{color:var(--color-ink-soft)}
+.theme-dark .sp-topic{color:var(--color-primary-dark)}
+.theme-dark .home-end__cta,.theme-dark .hero__cta{color:var(--color-ink)}
+.theme-dark .trip-empty{color:var(--color-ink-soft)}
+.theme-dark .trip-feature__title,.theme-dark .trip-feature__dates{color:var(--color-ink)}
+.theme-dark .trip-feature__meta{color:var(--color-muted)}
+.theme-dark .tn-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .tn-item h4{color:var(--color-ink)}
+.theme-dark .tn-item .tm,.theme-dark .tn-item .tx{color:var(--color-ink-soft)}
+.theme-dark .tn-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .md-item{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .md-item h3{color:var(--color-ink)}
+.theme-dark .md-item .loc,.theme-dark .md-item .meta{color:var(--color-muted)}
+.theme-dark .md-item .foot{color:var(--color-primary-dark)}
+.theme-dark .md-item .tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .fm-card{background:var(--color-bg-soft);border-color:var(--color-line)}
+.theme-dark .fm-card dt{color:var(--color-muted)}
+.theme-dark .fm-card dd,.theme-dark .md-body{color:var(--color-ink-soft)}
+.theme-dark .fm-card .tags-r span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .footer a{color:var(--color-muted)}
 </style>
 </head>
 <body>
@@ -187,7 +269,8 @@
         </div>
       </div>
       <div id="tripEmpty" style="display:none">
-        <p class="trip-empty">世界还很大。<br>你的第一段旅程，还没有开始。</p>
+        <img src="art/empty-journey.svg" alt="" style="width:240px;max-width:80vw;height:auto;display:block;margin:0 auto 6px">
+        <p class="trip-empty" style="text-align:center">世界还很大。<br>你的第一段旅程，还没有开始。</p>
         <span class="text-link" style="font-size:14px" onclick="location.href='explore-map.html'">开始探索 <span class="arr">→</span></span>
       </div>
     </div>
@@ -209,7 +292,7 @@
           <div class="story-item__desc">战役、会议与纪念地，四条行军路线，一段走得最远的路。</div>
           <div class="story-item__n" id="cntCz"></div>
         </div>
-        <div class="story-item__stamp">征</div>
+        <div class="story-item__stamp"><img src="art/topic-changzheng.svg" alt=""><span>征</span></div>
       </a>
       <a class="story-item" href="gx-yn.html" data-seal="gy">
         <div class="story-item__main">
@@ -218,7 +301,7 @@
           <div class="story-item__desc">山水与烟火之间，七条推荐路线，慢慢走。</div>
           <div class="story-item__n" id="cntGy"></div>
         </div>
-        <div class="story-item__stamp">滇</div>
+        <div class="story-item__stamp"><img src="art/topic-yunnan.svg" alt=""><span>滇</span></div>
       </a>
       <a class="story-item" href="qinghai-tibet.html" data-seal="qt">
         <div class="story-item__main">
@@ -227,7 +310,7 @@
           <div class="story-item__desc">进藏路线与人文地理，越往西走，天地越开阔。</div>
           <div class="story-item__n" id="cntQt"></div>
         </div>
-        <div class="story-item__stamp">藏</div>
+        <div class="story-item__stamp"><img src="art/topic-tibet.svg" alt=""><span>藏</span></div>
       </a>
       <a class="story-item" href="shanxi.html" data-seal="sx">
         <div class="story-item__main">
@@ -236,7 +319,43 @@
           <div class="story-item__desc">国保古建，四条探访路线，梁柱之间是一千年的风雨。</div>
           <div class="story-item__n" id="cntSx"></div>
         </div>
-        <div class="story-item__stamp">晋</div>
+        <div class="story-item__stamp"><img src="art/topic-shanxi.svg" alt=""><span>晋</span></div>
+      </a>
+      <a class="story-item" href="topic.html?p=sc" data-seal="sc">
+        <div class="story-item__main">
+          <div class="story-item__title">四川</div>
+          <div class="story-item__loc">九寨沟 · 峨眉山 · 稻城亚丁 · 成都</div>
+          <div class="story-item__desc">天府之国，雪山古镇与火锅，十条路线，慢慢吃慢慢走。</div>
+          <div class="story-item__n" id="cntSc"></div>
+        </div>
+        <div class="story-item__stamp"><img src="art/topic-sc.svg" alt=""><span>川</span></div>
+      </a>
+      <a class="story-item" href="topic.html?p=gs" data-seal="gs">
+        <div class="story-item__main">
+          <div class="story-item__title">甘肃</div>
+          <div class="story-item__loc">敦煌 · 嘉峪关 · 张掖 · 甘南</div>
+          <div class="story-item__desc">河西走廊与丝路佛光，七彩丹霞与草原秘境，九条路线走遍陇原。</div>
+          <div class="story-item__n" id="cntGs"></div>
+        </div>
+        <div class="story-item__stamp"><img src="art/topic-gs.svg" alt=""><span>陇</span></div>
+      </a>
+      <a class="story-item" href="topic.html?p=xj" data-seal="xj">
+        <div class="story-item__main">
+          <div class="story-item__title">新疆</div>
+          <div class="story-item__loc">喀纳斯 · 伊犁 · 喀什 · 独库公路</div>
+          <div class="story-item__desc">大美西域，雪山草原与丝路古城，九条路线走遍天山南北。</div>
+          <div class="story-item__n" id="cntXj"></div>
+        </div>
+        <div class="story-item__stamp"><img src="art/topic-xj.svg" alt=""><span>疆</span></div>
+      </a>
+      <a class="story-item" href="topic.html?p=gz" data-seal="gz">
+        <div class="story-item__main">
+          <div class="story-item__title">贵州</div>
+          <div class="story-item__loc">黄果树 · 荔波 · 西江 · 梵净山</div>
+          <div class="story-item__desc">多彩黔境，瀑布溶洞与苗乡侗寨，九条路线看尽山水人文。</div>
+          <div class="story-item__n" id="cntGz"></div>
+        </div>
+        <div class="story-item__stamp"><img src="art/topic-gz.svg" alt=""><span>黔</span></div>
       </a>
     </div>
   </section>
@@ -360,6 +479,14 @@
   if(ce) ce.textContent=_qt.length?fmtN(_qt.length):'凡二十六日';
   ce=document.getElementById('cntSx');
   if(ce) ce.textContent=_sx.length?fmtN(_sx.length):'凡五百零四处';
+  ce=document.getElementById('cntSc');
+  if(ce) ce.textContent='凡四百一十二处';
+  ce=document.getElementById('cntGs');
+  if(ce) ce.textContent='凡三百零三处';
+  ce=document.getElementById('cntXj');
+  if(ce) ce.textContent='凡二百八十七处';
+  ce=document.getElementById('cntGz');
+  if(ce) ce.textContent='凡三百二十一处';
 
   // 有人走过：quotes.js 随机一句（条目结构 {k,t,a,s,y}）
   function renderQuote(){
@@ -382,7 +509,7 @@
   function esc2(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   var hs=document.getElementById('homeSearch'),sp=document.getElementById('searchPanel');
   var spNotes=document.getElementById('spNotes'),spTopics=document.getElementById('spTopics');
-  var TOPICS=[['红军长征','changzheng.html'],['广西云南','gx-yn.html'],['青藏风光','qinghai-tibet.html'],['山西古建','shanxi.html']];
+  var TOPICS=[['红军长征','changzheng.html'],['广西云南','gx-yn.html'],['青藏风光','qinghai-tibet.html'],['山西古建','shanxi.html'],['四川','topic.html?p=sc'],['甘肃','topic.html?p=gs'],['新疆','topic.html?p=xj'],['贵州','topic.html?p=gz']];
   function homeSearch(){
     var kw=(hs.value||'').trim();
     if(!kw){sp.style.display='none';return;}

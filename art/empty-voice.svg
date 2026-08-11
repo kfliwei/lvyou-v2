@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="240" viewBox="0 0 300 240" fill="none">
+  <!-- 语音记录空状态：聆听的山谷 — 麦克风与回声 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFEBE0"/>
+      <stop offset="1" stop-color="#E3DDCD"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="240" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-10 180 Q70 140 160 176 T310 172" stroke="#B8AF9A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- 声波（陶土，从中央扩散） -->
+  <circle cx="150" cy="96" r="22" fill="none" stroke="#C86D4B" stroke-width="2" opacity=".8"/>
+  <circle cx="150" cy="96" r="34" fill="none" stroke="#C86D4B" stroke-width="1.6" opacity=".5"/>
+  <circle cx="150" cy="96" r="48" fill="none" stroke="#C86D4B" stroke-width="1.2" opacity=".28"/>
+  <!-- 麦克风（墨） -->
+  <rect x="140" y="60" width="20" height="34" rx="10" fill="#20201D"/>
+  <path d="M132 92 Q132 108 150 108 Q168 108 168 92" stroke="#20201D" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <line x1="150" y1="108" x2="150" y2="118" stroke="#20201D" stroke-width="4" stroke-linecap="round"/>
+  <path d="M138 118 H162" stroke="#20201D" stroke-width="4" stroke-linecap="round"/>
+  <!-- 底部小节点（陶土） -->
+  <circle cx="90" cy="150" r="4" fill="#C86D4B" opacity=".8"/>
+  <circle cx="210" cy="158" r="4" fill="#C86D4B" opacity=".6"/>
+  <!-- 云 -->
+  <ellipse cx="64" cy="44" rx="32" ry="9" fill="#F7F5EF" opacity=".7"/>
+  <ellipse cx="236" cy="56" rx="28" ry="8" fill="#F7F5EF" opacity=".55"/>
+</svg>

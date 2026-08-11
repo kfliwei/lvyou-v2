@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：滇南 — 梯田·云·竹影（灰绿/暖米色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E3E6DA"/>
+      <stop offset="1" stop-color="#CDD3C0"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 200 Q80 150 180 190 T380 175 T540 195 L540 240 L-20 240 Z" fill="#AEBBA0" opacity=".7"/>
+  <!-- 中景山 -->
+  <path d="M-20 250 Q100 200 220 245 T440 230 T540 250 L540 300 L-20 300 Z" fill="#8FA08A" opacity=".85"/>
+  <!-- 梯田（近景层次） -->
+  <path d="M-20 300 Q130 250 260 300 T540 295 L540 360 L-20 360 Z" fill="#6F8371"/>
+  <path d="M-20 322 Q140 278 280 322 T540 318" stroke="#8FA08A" stroke-width="2" fill="none" opacity=".8"/>
+  <path d="M-20 342 Q160 300 300 342 T540 338" stroke="#8FA08A" stroke-width="2" fill="none" opacity=".6"/>
+  <!-- 水田反光（陶土点缀） -->
+  <rect x="380" y="300" width="40" height="14" rx="7" fill="#C86D4B" opacity=".35" transform="rotate(-6 400 307)"/>
+  <rect x="440" y="320" width="30" height="10" rx="5" fill="#C86D4B" opacity=".28" transform="rotate(-5 455 325)"/>
+  <!-- 竹影（墨） -->
+  <path d="M80 300 Q78 250 86 210" stroke="#4A5544" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+  <path d="M86 230 L120 216 M86 252 L114 242 M86 276 L116 264" stroke="#4A5544" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
+  <path d="M60 300 Q56 262 62 232" stroke="#4A5544" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+  <!-- 太阳 -->
+  <circle cx="430" cy="80" r="24" fill="#C86D4B" opacity=".8"/>
+  <!-- 云 -->
+  <ellipse cx="140" cy="70" rx="48" ry="12" fill="#F7F5EF" opacity=".7"/>
+  <ellipse cx="172" cy="62" rx="28" ry="9" fill="#F7F5EF" opacity=".55"/>
+  <ellipse cx="330" cy="130" rx="40" ry="10" fill="#F7F5EF" opacity=".5"/>
+</svg>

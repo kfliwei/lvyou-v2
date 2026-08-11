@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：四川 — 雪山·熊猫·锦江（雪白/竹青/朱砂色系） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2EFE6"/>
+      <stop offset="1" stop-color="#E3DCC8"/>
+    </linearGradient>
+    <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D8E4E0"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山（雪峰） -->
+  <path d="M-20 210 L70 120 L120 170 L180 100 L240 165 L300 110 L360 170 L420 120 L540 205 L540 250 L-20 250 Z" fill="url(#snow)" opacity=".92"/>
+  <path d="M70 120 L120 170 L180 100 L240 165 L300 110 L360 170 L420 120" stroke="#C8D6D0" stroke-width="2" fill="none" opacity=".6"/>
+  <!-- 中景（竹青） -->
+  <path d="M-20 260 Q120 210 260 255 T540 250 L540 300 L-20 300 Z" fill="#71806C" opacity=".8"/>
+  <!-- 近景（墨色） -->
+  <path d="M-20 310 Q160 268 320 305 T540 300 L540 360 L-20 360 Z" fill="#20201D"/>
+  <!-- 竹影 -->
+  <path d="M70 360 Q66 300 78 250 M74 360 Q70 306 82 262 M60 360 Q58 310 66 268" stroke="#4C4A45" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+  <path d="M450 360 Q448 302 458 252 M454 360 Q452 308 462 264" stroke="#4C4A45" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+  <!-- 熊猫（朱砂点缀） -->
+  <circle cx="370" cy="238" r="17" fill="#20201D"/>
+  <circle cx="363" cy="233" r="6" fill="#20201D"/>
+  <circle cx="377" cy="233" r="6" fill="#20201D"/>
+  <circle cx="365" cy="234" r="2.4" fill="#fff"/>
+  <circle cx="375" cy="234" r="2.4" fill="#fff"/>
+  <ellipse cx="370" cy="243" rx="6" ry="4" fill="#20201D"/>
+  <!-- 印章：川 -->
+  <g transform="translate(96 214)">
+    <rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+    <text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">川</text>
+  </g>
+</svg>

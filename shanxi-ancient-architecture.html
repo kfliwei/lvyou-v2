@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西古建筑地图 · 可检索探访指南（完整版）</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
   :root{
     --bg:#f7f3ec; --panel:#fffdf9; --ink:#2c2722; --muted:#7a7168;
@@ -137,7 +139,7 @@
 
 <div class="footer" id="footer"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script>
 const DYN = {
   "新石器":'#a1887f',"春秋":'#5d4037',"汉":'#8d6e63',"南北朝":'#9575cd',
@@ -416,9 +418,10 @@ const DATA = [
 
 // ---------- 初始化 ----------
 const map = L.map('map',{scrollWheelZoom:true}).setView([37.4,112.0],7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19, attribution:'© OpenStreetMap'
-}).addTo(map);
+// 高德街道瓦片（国内可达、无需代理）+ tileerror 兜底 OSM
+const _amap = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'© 高德地图'}).addTo(map);
+const _osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+_amap.on('tileerror', function () { if (!map.hasLayer(_osm)) { try { _amap.remove(); } catch (e) {} _osm.addTo(map); } });
 
 const markers = {};
 let state = {q:'', dy:new Set(), ty:new Set(), city:'', dist:''};

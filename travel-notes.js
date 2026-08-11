@@ -224,8 +224,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-item .pics{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}\
 .tn-item .pics img{width:76px;height:76px;border-radius:3px;object-fit:cover;cursor:pointer;box-shadow:var(--sm)}\
 .tn-item audio{width:100%;margin-top:9px;height:36px}\
-.tn-item .tg{display:flex;gap:8px;margin-top:12px}\
-.tn-item .tg button{flex:1;min-height:42px;padding:0 6px;border:1px solid var(--ln);background:var(--sf2);border-radius:3px;font-size:12.5px;font-weight:700;color:var(--b7);cursor:pointer;transition:var(--tf)}\
+.tn-item .tg{display:flex;gap:4px;margin-top:12px;flex-wrap:nowrap}\
+.tn-item .tg button{flex:1;min-height:40px;padding:0 4px;border:1px solid var(--ln);background:var(--sf2);border-radius:3px;font-size:12px;font-weight:700;color:var(--b7);cursor:pointer;transition:var(--tf);white-space:nowrap;letter-spacing:0}\
 .tn-item .tg button:active{transform:scale(.96)}\
 .tn-item .tg button.danger{background:transparent;color:var(--color-primary)}\
 .tn-empty{padding:70px 30px;text-align:center}\
@@ -1266,7 +1266,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (tagFilter) list = list.filter(function (n) { return (n.tags || []).indexOf(tagFilter) >= 0; });
     body.innerHTML = '';
     if (!list.length) {
-      body.innerHTML = '<div class="tn-empty"><div class="em">记</div><b>还没有游记</b><span>去景点弹窗点「语音游记」，<br>或在地图上随手记录第一篇吧</span></div>';
+      body.innerHTML = '<div class="tn-empty"><div class="em"><img src="art/empty-voice.svg" alt="" style="width:190px;height:auto;max-width:66vw;display:block;margin:0 auto;animation:none"></div><b>还没有游记</b><span>去景点弹窗点「语音游记」，<br>或在地图上随手记录第一篇吧</span></div>';
       var wb0 = $X(ui.list, '#tnWallBtn');
       if (wb0) wb0.style.display = 'none';
       return;
@@ -1758,6 +1758,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   window.TravelNotes = {
     init: init,
+    /* 提前注入 UI（CSS+面板 DOM），供设置页等不弹录音面板的页面保证弹窗/闪屏样式可用 */
+    ensureUI: function () { buildUI(); },
     openPanel: openPanel,
     openList: openList,
     openSettings: openSettings,

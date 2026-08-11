@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="240" viewBox="0 0 300 240" fill="none">
+  <!-- 空状态：待出发的地图与行囊 — 克制的留白插画 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFEBE0"/>
+      <stop offset="1" stop-color="#E4DECE"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="240" fill="url(#sky)"/>
+  <!-- 地平线 -->
+  <path d="M-10 170 Q70 150 160 168 T310 160 L310 240 L-10 240 Z" fill="#D6CEBA"/>
+  <!-- 远山 -->
+  <path d="M-10 195 Q60 155 140 190 T310 185" stroke="#B8AF9A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- 行囊（墨+陶土） -->
+  <rect x="120" y="150" width="60" height="46" rx="14" fill="#20201D"/>
+  <path d="M135 152 Q140 136 150 136 Q160 136 165 152" stroke="#20201D" stroke-width="5" fill="none"/>
+  <rect x="128" y="140" width="44" height="12" rx="6" fill="#C86D4B"/>
+  <path d="M120 176 L180 176" stroke="#C86D4B" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="150" cy="196" r="4" fill="#C86D4B" opacity=".7"/>
+  <!-- 地图虚线（待出发） -->
+  <path d="M30 120 Q70 100 110 112 T190 100 T270 118" stroke="#C86D4B" stroke-width="2.5" stroke-dasharray="1 8" stroke-linecap="round" opacity=".75"/>
+  <!-- 节点 -->
+  <circle cx="110" cy="112" r="5" fill="#F7F5EF" stroke="#20201D" stroke-width="2"/>
+  <circle cx="270" cy="118" r="5" fill="#C86D4B"/>
+  <!-- 云 -->
+  <ellipse cx="60" cy="50" rx="34" ry="9" fill="#F7F5EF" opacity=".75"/>
+  <ellipse cx="82" cy="44" rx="20" ry="7" fill="#F7F5EF" opacity=".6"/>
+  <ellipse cx="220" cy="64" rx="30" ry="8" fill="#F7F5EF" opacity=".55"/>
+  <!-- 飞鸟 -->
+  <path d="M200 96 Q208 90 216 96" stroke="#8B8171" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>
+</svg>

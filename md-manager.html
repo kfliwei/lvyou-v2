@@ -53,6 +53,7 @@
   /* 空态 */
   .empty{text-align:center;padding:56px 20px}
   .empty .em{font-family:var(--font-serif);font-size:52px;color:var(--color-faint);line-height:1}
+  .empty .em img{width:210px;height:auto;max-width:70vw;display:block;margin:0 auto}
   .empty b{display:block;margin-top:16px;font-family:var(--font-serif);font-size:19px;font-weight:400;color:var(--color-ink)}
   .empty span{display:block;margin-top:8px;font-size:13px;color:var(--color-muted);line-height:1.8}
   /* 底部操作 */
@@ -379,11 +380,11 @@
     });
     if (tagFilter) list = list.filter(function (n) { return (n.tags || []).indexOf(tagFilter) >= 0; });
     if (!notes.length) {
-      body.innerHTML = '<div class="empty"><div class="em">文</div><b>还没有游记</b><span>去地图或景点页记录几篇，<br>这里会自动生成 Markdown 库。</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>还没有游记</b><span>去地图或景点页记录几篇，<br>这里会自动生成 Markdown 库。</span></div>';
       return;
     }
     if (!list.length) {
-      body.innerHTML = '<div class="empty"><div class="em">空</div><b>没有匹配的游记</b><span>换个关键词或标签试试</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>没有匹配的游记</b><span>换个关键词或标签试试</span></div>';
       return;
     }
     /* 月份分组 */
@@ -615,7 +616,7 @@
     if (kw2) list = list.filter(function (n) { return (String(n.title) + ' ' + String(n.text) + ' ' + (n.tags || []).join(' ')).toLowerCase().indexOf(kw2) >= 0; });
     body.innerHTML = '';
     if (!list.length) {
-      body.innerHTML = '<div class="empty"><div class="em">引</div><b>没有外部 MD</b><span>点下方「导入 MD 文件」选择<br>本地的 .md 文件来浏览</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>没有外部 MD</b><span>点下方「导入 MD 文件」选择<br>本地的 .md 文件来浏览</span></div>';
       return;
     }
     list.forEach(function (n) {

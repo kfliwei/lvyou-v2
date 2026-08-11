@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="240" viewBox="0 0 300 240" fill="none">
+  <!-- MD 库空状态：待书写的第一页 — 纸张·笔触 -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0ECE2"/>
+      <stop offset="1" stop-color="#E6E0D0"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="240" fill="url(#sky)"/>
+  <!-- 纸张 -->
+  <rect x="82" y="52" width="136" height="148" rx="6" fill="#F7F5EF" stroke="#D6CEBA" stroke-width="1.5"/>
+  <!-- 纸上的文字线条（待书写） -->
+  <path d="M100 82 H200 M100 100 H200 M100 118 H176" stroke="#D8D0BC" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 陶土笔触（第一行） -->
+  <path d="M100 82 Q130 78 160 82" stroke="#C86D4B" stroke-width="3" stroke-linecap="round"/>
+  <!-- 墨点句号 -->
+  <circle cx="176" cy="118" r="4" fill="#20201D" opacity=".85"/>
+  <!-- 铅笔 -->
+  <g transform="rotate(-24 218 182)">
+    <rect x="204" y="176" width="52" height="8" rx="2" fill="#C86D4B"/>
+    <path d="M204 176 L192 180 L204 184 Z" fill="#20201D"/>
+    <rect x="256" y="176" width="8" height="8" fill="#8B8171"/>
+  </g>
+  <!-- 纸张角标（陶土） -->
+  <path d="M82 52 L104 52 L104 74 Z" fill="#C86D4B" opacity=".35"/>
+  <!-- 云 -->
+  <ellipse cx="240" cy="40" rx="28" ry="8" fill="#F7F5EF" opacity=".6"/>
+</svg>
