@@ -132,10 +132,9 @@
     if (!nearBar) {
       nearBar = document.createElement('div');
       nearBar.id = 'nearBar';
-      nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;gap:6px;background:rgba(250,248,243,.95);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:6px 8px;z-index:1200;backdrop-filter:blur(16px);white-space:nowrap';
-      nearBar.innerHTML = '<span style="font-size:11.5px;color:var(--color-muted);padding:0 6px;font-family:var(--font-sans)">附近</span>' +
-        [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:7px 14px;border-radius:999px;font-size:12.5px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans)">' + k + 'km</span>'; }).join('') +
-        '<span id="nearX" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer">✕</span>';
+      nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(250,248,243,.96);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:5px 6px;z-index:1200;backdrop-filter:blur(16px);max-width:calc(100vw - 24px)';
+      nearBar.innerHTML = [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:6px 9px;border-radius:999px;font-size:12px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans);white-space:nowrap">' + k + 'km</span>'; }).join('') +
+        '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer;flex-shrink:0">✕</span>';
       document.getElementById('mapEl').appendChild(nearBar);
       /* 关键：禁止 nearBar 的点击冒泡到地图（否则点半径/✕ 会触发地图 click 重新弹回半径条） */
       if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearBar);
