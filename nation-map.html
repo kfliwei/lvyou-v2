@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>全国景点地图 · 行迹</title>
+<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  /* 顶栏 */
+  .topbar{position:sticky;top:0;z-index:1100;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px)+8px) 12px 10px;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07)}
+  .t-row{display:flex;align-items:center;gap:8px;height:40px;width:100%}
+  .back{width:34px;height:34px;flex:0 0 auto;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .back:active{transform:scale(.92)}
+  .title{flex:0 0 auto;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink)}
+  .title small{font-family:var(--font-sans);font-size:10.5px;color:var(--color-muted);margin-left:4px}
+  .search{flex:1;min-width:0;position:relative}
+  .search input{width:100%;height:36px;padding:0 14px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-bg-soft);color:var(--color-ink);font-size:13px;outline:0;box-sizing:border-box;font-family:var(--font-sans)}
+  .search input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  .sdrop{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:300px;overflow-y:auto;background:rgba(250,248,243,.98);border:1px solid var(--color-line);border-radius:16px;box-shadow:var(--shadow-float);padding:6px;z-index:1200}
+  .sdrop .sd{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:11px;cursor:pointer}
+  .sdrop .sd:active{background:var(--color-bg-soft)}
+  .sdrop .sd b{font-family:var(--font-serif);font-size:14px;font-weight:400;color:var(--color-ink)}
+  .sdrop .sd small{font-size:11px;color:var(--color-muted)}
+  .sdrop .sd .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .sdrop .sd-empty{font-size:12px;color:var(--color-faint);padding:10px 12px}
+  /* 地图 */
+  #map{position:absolute;inset:0;top:0;z-index:0}
+  .leaflet-tile-pane .leaflet-tile{filter:sepia(.32) saturate(.52) brightness(1.07) contrast(.93)}
+  .theme-dark .leaflet-tile-pane .leaflet-tile{filter:sepia(.2) saturate(.45) brightness(.6) contrast(1.05)}
+  /* 右上控制组 */
+  .ctl{position:absolute;right:12px;top:64px;width:40px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-radius:12px;box-shadow:var(--shadow-medium);overflow:hidden;z-index:1001}
+  .ctl button{width:40px;height:40px;border:0;background:none;display:flex;align-items:center;justify-content:center;color:var(--ink-700);cursor:pointer}
+  .ctl button:active{background:var(--paper-200)}
+  .ctl .sep{height:1px;background:var(--paper-300);margin:0 6px}
+  .zoomplus{font-size:19px;font-weight:700;line-height:1}
+  .zoomminus{width:14px;height:2px;background:currentColor;border-radius:1px;display:block}
+  .theme-dark .ctl{background:rgba(29,28,25,.9)}
+  .theme-dark .ctl button{color:var(--color-ink-soft)}
+  .theme-dark .ctl button:active{background:var(--color-bg-soft)}
+  /* 底部浮层容器 */
+  .overlay{position:absolute;left:10px;right:10px;z-index:1000}
+  /* 省筛选 chips */
+  .provs{position:absolute;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:1000;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
+  .provs::-webkit-scrollbar{display:none}
+  .pchip{flex:none;padding:7px 13px;border-radius:999px;background:rgba(250,248,243,.9);border:1px solid rgba(32,32,29,.08);font-size:11.5px;color:var(--color-muted);cursor:pointer;box-shadow:0 3px 10px rgba(30,30,28,.05);backdrop-filter:blur(10px)}
+  .pchip.on{background:var(--color-ink);color:#fff;border-color:var(--color-ink);font-weight:600}
+  .theme-dark .pchip{background:rgba(29,28,25,.85);color:var(--color-muted)}
+  .theme-dark .pchip.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
+  /* 半径条 */
+  .radii{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;align-items:center;gap:6px;background:rgba(250,248,243,.95);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:var(--shadow-float);padding:6px 8px;z-index:1100;backdrop-filter:blur(16px);white-space:nowrap}
+  .radii.show{display:flex}
+  .radii .rt{font-size:11.5px;color:var(--color-muted);padding:0 6px;font-family:var(--font-sans)}
+  .radii .rchip{padding:7px 14px;border-radius:999px;font-size:12.5px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans)}
+  .radii .rchip.on{background:var(--color-primary);color:#fff;font-weight:600}
+  .radii .rclose{width:26px;height:26px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer}
+  .theme-dark .radii{background:rgba(29,28,25,.95)}
+  /* 结果面板 */
+  .rlist{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;max-height:38vh;overflow-y:auto;background:rgba(250,248,243,.97);border:1px solid rgba(32,32,29,.07);border-radius:20px;box-shadow:var(--shadow-float);padding:8px 10px 10px;z-index:1000;backdrop-filter:blur(20px)}
+  .rlist.show{display:block}
+  .rl-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 8px;font-size:12px;color:var(--color-muted);font-family:var(--font-sans)}
+  .rl-head b{font-family:var(--font-serif);font-size:15px;font-weight:400;color:var(--color-ink)}
+  .rl-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .rl-item:last-child{border-bottom:0}
+  .rl-item .d{width:34px;flex:0 0 auto;font-size:11px;color:var(--color-primary-dark);font-family:var(--font-sans);font-weight:600}
+  .rl-item .m{flex:1;min-width:0}
+  .rl-item .m b{font-family:var(--font-serif);font-size:14px;font-weight:400;color:var(--color-ink)}
+  .rl-item .m small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
+  .rl-item .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .theme-dark .rlist{background:rgba(29,28,25,.96)}
+  .theme-dark .rl-item{border-bottom-color:var(--color-line)}
+  /* 详情 sheet */
+  #dSheet{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:1200;display:none;max-height:62vh;overflow-y:auto;background:rgba(250,248,243,.98);backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:28px;box-shadow:var(--shadow-float);padding:12px 18px 20px}
+  #dSheet.show{display:block}
+  .ds-close{position:absolute;right:14px;top:12px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:13px;cursor:pointer}
+  .ds-place{font-family:var(--font-serif);font-size:24px;font-weight:400;margin-top:4px}
+  .ds-loc{font-size:12px;color:var(--color-muted);margin-top:6px;letter-spacing:.03em}
+  .ds-theme{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11.5px;color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:4px 12px;font-weight:600}
+  .ds-desc{margin-top:12px;font-family:var(--font-serif);font-size:14.5px;line-height:1.9;color:var(--color-ink-soft)}
+  .ds-meta{margin-top:12px;font-size:12px;color:var(--color-muted);line-height:1.9}
+  .ds-img{margin-top:12px}
+  .ds-img img{width:100%;max-height:180px;object-fit:cover;border-radius:14px}
+  .theme-dark #dSheet{background:rgba(29,28,25,.96)}
+  /* 缩放提示 */
+  .zTip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:950;background:rgba(250,248,243,.94);border:1px solid rgba(32,32,29,.07);border-radius:14px;box-shadow:var(--shadow-medium);padding:10px 16px;font-size:12.5px;color:var(--color-muted);display:none;backdrop-filter:blur(12px)}
+  .zTip.show{display:block}
+  .theme-dark .zTip{background:rgba(29,28,25,.92)}
+  /* ===== 专题页同款：印章式节点（对齐 topic-common.js / map.css）===== */
+  .tr-node{position:relative;width:26px;height:26px}
+  .tr-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
+  .tr-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--tint,#7D7970);opacity:.38;pointer-events:none;transition:opacity var(--duration-normal)}
+  .tr-major .tr-ring{width:34px;height:34px;opacity:.55}
+  .tr-active .tr-dot{background:var(--color-primary);animation:node-breathe 3s ease-in-out infinite}
+  .tr-node:hover .tr-dot{transform:translate(-50%,-50%) scale(1.3)}
+  .theme-dark .tr-ring{opacity:.4}
+  /* ===== 专题页同款：底部信息 Sheet（对齐 map.css #locSheet / .ls-*）===== */
+  #locSheet{position:fixed;z-index:1200;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);animation:none}
+  #locSheet.show{display:block;transform:translateY(0)}
+  #locSheet .sheet__handle{cursor:pointer}
+  .ls-img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;display:block;margin-top:14px;background:var(--color-bg-soft)}
+  .ls-img img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+  .ls-place{font-family:var(--font-serif);font-size:30px;font-weight:400;margin-top:8px;letter-spacing:.01em}
+  .ls-loc{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.05em}
+  .ls-desc{margin-top:12px;font-size:14px;color:var(--color-ink-soft);line-height:1.8}
+  .ls-hist{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-ink-soft);line-height:1.8}
+  .ls-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+  .ls-add{margin-left:auto;font-size:14px;font-weight:600;color:var(--color-primary-dark);padding:12px 6px;cursor:pointer;border-radius:12px;transition:transform var(--duration-fast)}
+  .ls-add:active{transform:scale(.95)}
+  .ls-add.done{color:var(--color-green)}
+  .ls-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-muted);display:flex;gap:22px}
+  .ls-more span{cursor:pointer}
+  .theme-dark #locSheet{background:rgba(29,28,25,.96)}
+  .theme-dark .ls-place,.theme-dark .ls-loc{color:var(--color-ink)}
+  .theme-dark .ls-desc,.theme-dark .ls-hist{color:var(--color-ink-soft)}
+  .theme-dark .ls-img{background:var(--color-bg-soft)}
+  .theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="t-row">
+      <button class="back" onclick="location.href='explore-map.html'">←</button>
+      <div class="title">全国景点 <small id="cntLabel"></small></div>
+      <div class="search">
+        <input id="q" type="search" placeholder="模糊搜索：景点 / 城市 / 主题…" autocomplete="off">
+        <div class="sdrop" id="sdrop" style="display:none"></div>
+      </div>
+    </div>
+  </header>
+  <div id="map"></div>
+  <div class="ctl">
+    <button id="layBtn" title="切换图层"><span class="layicon" style="position:relative;width:18px;height:18px;display:block"><span style="position:absolute;right:0;bottom:0;width:15px;height:15px;border:1.6px solid currentColor;border-radius:3px"></span><span style="position:absolute;left:0;top:0;width:11px;height:11px;background:currentColor;border-radius:3px;opacity:.9"></span></span></button>
+    <div class="sep"></div>
+    <button id="zi" title="放大"><span class="zoomplus">+</span></button>
+    <div class="sep"></div>
+    <button id="zo" title="缩小"><span class="zoomminus"></span></button>
+  </div>
+  <div class="zTip" id="zTip">放大查看节点 · 点击地图任意位置查附近景点</div>
+  <div class="provs" id="provs"></div>
+  <div class="radii" id="radii">
+    <span class="rt">附近</span>
+    <span class="rchip" data-km="10">10km</span>
+    <span class="rchip" data-km="30">30km</span>
+    <span class="rchip" data-km="50">50km</span>
+    <span class="rchip" data-km="100">100km</span>
+    <button class="rclose" id="rClose">✕</button>
+  </div>
+  <div class="rlist" id="rlist">
+    <div class="rl-head"><b id="rlTitle">附近景点</b><span id="rlClose" style="cursor:pointer">收起 ✕</span></div>
+    <div id="rlBody"></div>
+  </div>
+  <div class="location-sheet" id="locSheet">
+    <div class="sheet__handle" onclick="closeSheet()"></div>
+    <div id="lsBody"></div>
+  </div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="nation-data.js"></script>
+<script>
+(function () {
+  var SITES = window.NATION_SITES || [];
+  var META = window.NATION_META || { topics: {}, provinces: [] };
+  document.getElementById('cntLabel').textContent = META.count + ' 处';
+  var prov = null, curP = null, curR = null, sheetIdx = null;
+  var useGCJ = true;
+  document.documentElement.classList.toggle('theme-dark', (localStorage.getItem('tn_dark') || 'auto') === 'dark');
+
+  /* ---- GCJ-02 纠偏（同专题页） ---- */
+  function _tlat(lng, lat) { var r = -100 + 2 * lng + 3 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng)); r += (20 * Math.sin(6 * lng * Math.PI) + 20 * Math.sin(2 * lng * Math.PI)) * 2 / 3; r += (20 * Math.sin(lat * Math.PI) + 40 * Math.sin(lat / 3 * Math.PI)) * 2 / 3; r += (160 * Math.sin(lat / 12 * Math.PI) + 320 * Math.sin(lat * Math.PI / 30)) * 2 / 3; return r; }
+  function _tlng(lng, lat) { var r = 300 + lng + 2 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng)); r += (20 * Math.sin(6 * lng * Math.PI) + 20 * Math.sin(2 * lng * Math.PI)) * 2 / 3; r += (20 * Math.sin(lng * Math.PI) + 40 * Math.sin(lng / 3 * Math.PI)) * 2 / 3; r += (150 * Math.sin(lng / 12 * Math.PI) + 300 * Math.sin(lng / 30 * Math.PI)) * 2 / 3; return r; }
+  var _A = 6378245.0, _EE = 0.00669342162296594323;
+  function gcj02Of(lat, lng) { if (lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271) return [lat, lng]; var dlat = _tlat(lng - 105, lat - 35), dlng = _tlng(lng - 105, lat - 35); var rl = lat / 180 * Math.PI, m = Math.sin(rl), mm = 1 - _EE * m * m, sm = Math.sqrt(mm); dlat = (dlat * 180) / ((_A * (1 - _EE)) / (mm * sm) * Math.PI); dlng = (dlng * 180) / (_A / sm * Math.cos(rl) * Math.PI); return [lat + dlat, lng + dlng]; }
+  function pt(s) { var g = useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; return [g[0], g[1]]; }
+  function haversine(lat1, lng1, lat2, lng2) { var R = 6371, dLa = (lat2 - lat1) * Math.PI / 180, dLo = (lng2 - lng1) * Math.PI / 180; var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLo / 2) * Math.sin(dLo / 2); return 2 * R * Math.asin(Math.sqrt(a)); }
+
+  /* ---- 主题色（覆盖各省 theme + 山西 ty） ---- */
+  var COLORS = { '高原湖泊': '#5F6D76', '雪山冰川': '#9C9A92', '名山大川': '#71806C', '峡谷天堑': '#8A5A44', '江河瀑布': '#5F6D76', '古建寺院': '#A9563B', '古城古镇': '#8A5A44', '古城遗址': '#7E7663', '红色遗迹': '#C86D4B', '民族风情': '#C86D4B', '城市地标': '#6D7D88', '溶洞奇观': '#8C7B66', '森林草原': '#71806C', '森林山川': '#71806C', '宗教圣地': '#A9563B', '遗址陵墓': '#7E7663', '温泉康养': '#C86D4B', '石窟艺术': '#A9563B', '丹霞地貌': '#BA7517', '雅丹地貌': '#BA7517', '沙漠戈壁': '#BA7517', '草原湿地': '#639922', '石窟寺': '#A9563B', '佛寺': '#A9563B', '古塔': '#7E7663', '楼阁牌坊': '#8A5A44', '名城名镇': '#8A5A44', '壁画彩塑': '#C86D4B', '关隘长城': '#993C1D', '窑洞民居': '#BA7517', '庙宇道观': '#A9563B', '文庙书院': '#A9563B', '陵墓': '#7E7663', '桥梁': '#6D7D88', '教堂会馆': '#6D7D88', '其他': '#B4AFA4' };
+  function colorOf(s) { return COLORS[s.theme] || COLORS[s.ty] || '#B4AFA4'; }
+
+  /* ---- 地图 ---- */
+  var map = L.map('map', { zoomControl: false }).setView([34.5, 103.5], 5);
+  var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OSM' });
+  var amapStreet = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德' });
+  var amapSat = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德' });
+  var layers = [ { n: '街道', l: amapStreet }, { n: '卫星', l: amapSat }, { n: 'OSM', l: osmLayer } ];
+  amapStreet.addTo(map);
+  document.getElementById('layBtn').onclick = function () { var cur = layers.filter(function (x) { return map.hasLayer(x.l); })[0] || layers[0]; var i = (layers.indexOf(cur) + 1) % layers.length; layers.forEach(function (x) { map.removeLayer(x.l); }); layers[i].l.addTo(map); useGCJ = (layers[i].n !== 'OSM'); nodeLayer.clearLayers(); renderNodes(); };
+  document.getElementById('zi').onclick = function () { map.zoomIn(); };
+  document.getElementById('zo').onclick = function () { map.zoomOut(); };
+
+  /* ---- 节点动态渲染（视野 + 缩放 + 省份） ---- */
+  var nodeLayer = L.layerGroup().addTo(map);
+  var resLayer = L.layerGroup().addTo(map);
+  var pointMarker = null, circle = null;
+  /* 印章式节点（与专题页 topic-common.js nodeIcon 同款） */
+  function nodeIcon(s, active, major) {
+    var theme = colorOf(s);
+    var cls = 'tr-node' + (active ? ' tr-active' : '') + (major ? ' tr-major' : '');
+    var html = '<div class="' + cls + '"><span class="tr-ring" style="--tint:' + theme + '"></span><span class="tr-dot"></span></div>';
+    return L.divIcon({ className: '', html: html, iconSize: [26, 26], iconAnchor: [13, 13] });
+  }
+  function visibleNodes() {
+    var b = map.getBounds();
+    return SITES.filter(function (s) { return (!prov || s.province === prov) && b.contains(pt(s)); });
+  }
+  var renderTimer = null;
+  function renderNodes() {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(function () {
+      nodeLayer.clearLayers();
+      var z = map.getZoom();
+      document.getElementById('zTip').classList.toggle('show', z < 7);
+      if (z < 7) return;
+      var list = visibleNodes();
+      var idx = {};
+      SITES.forEach(function (s, i) { idx[s.name + '|' + s.lat + '|' + s.lng] = i; });
+      list.forEach(function (s) {
+        var m = L.marker(pt(s), { icon: nodeIcon(s, false) });
+        m.on('click', function () { openSheet(idx[s.name + '|' + s.lat + '|' + s.lng]); });
+        m.addTo(nodeLayer);
+      });
+    }, 220);
+  }
+  map.on('moveend', renderNodes);
+  map.on('zoomend', renderNodes);
+  renderNodes();
+
+  /* ---- 点击地图：选半径查附近 ---- */
+  map.on('click', function (e) {
+    if (pointMarker) map.removeLayer(pointMarker);
+    if (circle) map.removeLayer(circle);
+    pointMarker = L.circleMarker([e.latlng.lat, e.latlng.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#C86D4B', fillOpacity: 1 }).addTo(map);
+    curP = { lat: e.latlng.lat, lng: e.latlng.lng };
+    document.getElementById('radii').classList.add('show');
+  });
+  document.querySelectorAll('.rchip').forEach(function (c) {
+    c.onclick = function () {
+      if (!curP) return;
+      document.querySelectorAll('.rchip').forEach(function (x) { x.classList.remove('on'); });
+      c.classList.add('on');
+      curR = +c.dataset.km;
+      document.getElementById('radii').classList.remove('show');
+      nearQuery(curP.lat, curP.lng, curR);
+    };
+  });
+  document.getElementById('rClose').onclick = function () { document.getElementById('radii').classList.remove('show'); };
+  function nearQuery(lat, lng, km) {
+    var hits = SITES.map(function (s) { return { s: s, d: haversine(lat, lng, s.lat, s.lng) }; })
+      .filter(function (h) { return h.d <= km; })
+      .sort(function (a, b) { return a.d - b.d; })
+      .slice(0, 20);
+    resLayer.clearLayers();
+    if (circle) map.removeLayer(circle);
+    circle = L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06 }).addTo(map);
+    hits.forEach(function (h, i) {
+      L.marker(pt(h.s), { icon: nodeIcon(h.s, false, true) }).addTo(resLayer);
+    });
+    var body = document.getElementById('rlBody');
+    body.innerHTML = hits.length
+      ? hits.map(function (h, i) {
+        return '<div class="rl-item" data-i="' + idxOf(h.s) + '">' +
+          '<span class="d">' + h.d.toFixed(0) + 'km</span>' +
+          '<span class="dot" style="background:' + colorOf(h.s) + '"></span>' +
+          '<div class="m"><b>' + esc(h.s.label) + '</b><small>' + esc(h.s.province + ' · ' + h.s.city) + (h.s.theme ? ' · ' + esc(h.s.theme) : '') + '</small></div></div>';
+      }).join('')
+      : '<div class="rl-item"><div class="m"><b>该半径内暂无收录景点</b><small>换个半径或放大地图看看</small></div></div>';
+    document.getElementById('rlTitle').textContent = '附近景点 · ' + curR + 'km · ' + hits.length + ' 处';
+    document.getElementById('rlist').classList.add('show');
+    body.querySelectorAll('.rl-item[data-i]').forEach(function (el) {
+      el.onclick = function () { flyTo(+el.dataset.i); };
+    });
+  }
+  var idxMap = {};
+  SITES.forEach(function (s, i) { idxMap[s.name + '|' + s.lat + '|' + s.lng] = i; });
+  function idxOf(s) { return idxMap[s.name + '|' + s.lat + '|' + s.lng]; }
+  document.getElementById('rlClose').onclick = function () { document.getElementById('rlist').classList.remove('show'); resLayer.clearLayers(); };
+
+  /* ---- 模糊搜索 ---- */
+  var qEl = document.getElementById('q'), sdrop = document.getElementById('sdrop');
+  var st = null;
+  qEl.oninput = function () {
+    clearTimeout(st);
+    st = setTimeout(fuzzy, 220);
+  };
+  function fuzzy() {
+    var q = (qEl.value || '').trim().toLowerCase();
+    if (!q) { sdrop.style.display = 'none'; return; }
+    var hits = [];
+    for (var i = 0; i < SITES.length; i++) {
+      var s = SITES[i];
+      var hay = (s.name + s.label + s.region + s.city + s.county + s.theme + (s.ty || '') + s.desc + (s.best || '')).toLowerCase();
+      if (hay.indexOf(q) >= 0) { hits.push(i); if (hits.length >= 12) break; }
+    }
+    sdrop.style.display = 'block';
+    sdrop.innerHTML = hits.length
+      ? hits.map(function (i) { var s = SITES[i]; return '<div class="sd" data-i="' + i + '"><span class="dot" style="background:' + colorOf(s) + '"></span><div><b>' + esc(s.label) + '</b><small>' + esc(s.province + ' · ' + s.city + (s.county ? ' · ' + s.county : '')) + '</small></div></div>'; }).join('')
+      : '<div class="sd-empty">没有匹配的景点，换个关键词试试</div>';
+    sdrop.querySelectorAll('.sd[data-i]').forEach(function (el) {
+      el.onclick = function () { sdrop.style.display = 'none'; qEl.value = ''; flyTo(+el.dataset.i); };
+    });
+  }
+  document.addEventListener('click', function (e) { if (!e.target.closest('.search')) sdrop.style.display = 'none'; });
+
+  /* ---- 省份筛选 ---- */
+  var pEl = document.getElementById('provs');
+  var chips = [''].concat(META.provinces);
+  pEl.innerHTML = chips.map(function (p) { return '<span class="pchip' + (p === '' ? ' on' : '') + '" data-p="' + p + '">' + (p === '' ? '全部' : p) + '</span>'; }).join('');
+  pEl.querySelectorAll('.pchip').forEach(function (c) {
+    c.onclick = function () {
+      pEl.querySelectorAll('.pchip').forEach(function (x) { x.classList.remove('on'); });
+      c.classList.add('on');
+      prov = c.dataset.p === '' ? null : c.dataset.p;
+      renderNodes();
+      if (prov) {
+        var ps = SITES.filter(function (s) { return s.province === prov; });
+        if (ps.length) map.fitBounds(L.latLngBounds(ps.map(pt)), { padding: [30, 60] });
+      }
+    };
+  });
+
+  /* ---- 详情（专题页同款 ls-* 结构） ---- */
+  function openSheet(i) {
+    var s = SITES[i]; if (!s) return;
+    sheetIdx = i;
+    var img = s.img ? '<div class="ls-img"><img src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
+    var themeTxt = s.theme || s.ty || '';
+    document.getElementById('lsBody').innerHTML =
+      '<div class="ls-place">' + esc(s.label) + '</div>' +
+      '<div class="ls-loc">' + (themeTxt ? esc(themeTxt) + ' · ' : '') + esc(s.province + ' · ' + s.city + (s.county ? ' · ' + s.county : '')) + '</div>' +
+      img +
+      '<div class="ls-desc">' + esc(s.desc) + '</div>' +
+      '<div class="ls-hist">' +
+        (s.best ? '🗓 最佳季节 · ' + esc(s.best) + '<br>' : '') +
+        (s.elev ? '海拔 ' + esc(s.elev) + ' m<br>' : '') +
+        '来源专题 · ' + esc(s.topicName || '') +
+      '</div>' +
+      '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span></div>';
+    document.getElementById('locSheet').classList.add('show');
+  }
+  function closeSheet() { document.getElementById('locSheet').classList.remove('show'); }
+  function flyTo(i) {
+    var s = SITES[i]; if (!s) return;
+    map.flyTo(pt(s), Math.max(map.getZoom(), 10), { duration: .6 });
+    setTimeout(function () { openSheet(i); }, 620);
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  document.getElementById('zTip').addEventListener('click', function () { map.setView([34.5, 103.5], 7); });
+})();
+</script>
+</body>
+</html>

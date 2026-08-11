@@ -12,8 +12,9 @@
   var routeLayer = null, curSite = null, tripRouteLayer = null;
   var userLatLng = null, userMarker = null, watchId = null, pickMode = false;
   var trip = [], routeOrders = {};
+  var nearLayer = null, nearP = null, nearBar = null;
   var state = { q: "", region: "", theme: "", city: "", sort: "" };
-  var FOOD_STATE = { q: "", city: "", type: "" };
+  var FOOD_STATE = { q: "", prov: "", city: "", type: "" };
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function $(id) { return document.getElementById(id); }
@@ -97,8 +98,71 @@
     map.on('movestart', function () { layMenu.classList.remove('show'); });
     map.on('click', function (e) {
       if (pickMode) { pickMode = false; hidePickHint(); locateSuccess({ coords: { latitude: e.latlng.lat, longitude: e.latlng.lng } }); return; }
+      if (M.nearEnabled) { nearPick(e.latlng); return; }
       spotRec(e.latlng.lat, e.latlng.lng);
     });
+    /* LOD 分级：平移 / 缩放时按当前视野与级别重渲染（仅全国页） */
+    if (M.lodEnabled) {
+      map.on('moveend', function () { if (lastMarkerList) renderMarkers(lastMarkerList); });
+      map.on('zoomend', function () { if (lastMarkerList) renderMarkers(lastMarkerList); });
+    }
+  }
+
+  /* ---------- 全国页：点击查附近（M.nearEnabled） ---------- */
+  var nearHits = [];
+  function clearNearLayer() { if (nearLayer) { map.removeLayer(nearLayer); nearLayer = null; } }
+  function hideNearBar() { if (nearBar) nearBar.style.display = 'none'; }
+  function restoreMarkers() {
+    /* 恢复被「查附近」高亮的节点为普通图标 */
+    if (nearHits.length && lastMarkerList) renderMarkers(lastMarkerList);
+    nearHits = [];
+  }
+  /* 附近高亮图标：主题色实心圆点 + 扩散光环 + 放大，明显区别于普通节点 */
+  function nearIcon(s) {
+    var theme = colorOf(s);
+    var html = '<div class="tr-node tr-major"><span class="tr-halo" style="--tint:' + theme + '"></span><span class="tr-ring" style="--tint:' + theme + ';opacity:.85"></span><span class="tr-dot" style="background:' + theme + '"></span></div>';
+    return L.divIcon({ className: '', html: html, iconSize: [40, 40], iconAnchor: [20, 20] });
+  }
+  function nearPick(latlng) {
+    restoreMarkers();
+    clearNearLayer();
+    nearLayer = L.layerGroup().addTo(map);
+    L.circleMarker([latlng.lat, latlng.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#C86D4B', fillOpacity: 1 }).addTo(nearLayer);
+    nearP = [latlng.lat, latlng.lng];
+    if (!nearBar) {
+      nearBar = document.createElement('div');
+      nearBar.id = 'nearBar';
+      nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;gap:6px;background:rgba(250,248,243,.95);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:6px 8px;z-index:1200;backdrop-filter:blur(16px);white-space:nowrap';
+      nearBar.innerHTML = '<span style="font-size:11.5px;color:var(--color-muted);padding:0 6px;font-family:var(--font-sans)">附近</span>' +
+        [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:7px 14px;border-radius:999px;font-size:12.5px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans)">' + k + 'km</span>'; }).join('') +
+        '<span id="nearX" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer">✕</span>';
+      document.getElementById('mapEl').appendChild(nearBar);
+      /* 关键：禁止 nearBar 的点击冒泡到地图（否则点半径/✕ 会触发地图 click 重新弹回半径条） */
+      if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearBar);
+      nearBar.querySelectorAll('.nk').forEach(function (c) {
+        c.onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); nearQuery(nearP[0], nearP[1], +c.dataset.k); };
+      });
+      nearBar.querySelector('#nearX').onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); clearNearLayer(); restoreMarkers(); };
+    }
+    nearBar.style.display = 'flex';
+  }
+  function nearQuery(lat, lng, km) {
+    clearNearLayer();
+    nearLayer = L.layerGroup().addTo(map);
+    L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06 }).addTo(nearLayer);
+    var hits = SITES.map(function (s) { return { s: s, d: haversine([lat, lng], [s.lat, s.lng]) }; })
+      .filter(function (h) { return h.d <= km; })
+      .sort(function (a, b) { return a.d - b.d; });
+    /* 圈内节点高亮：nearIcon（主题色圆点+光环+放大），
+       LOD 聚合下未单独渲染的补画高亮图标到 nearLayer —— 不切列表视图 */
+    restoreMarkers();
+    nearHits = hits.map(function (h) { return h.s.__i; });
+    hits.forEach(function (h) {
+      var m = markers.get(h.s.__i);
+      if (m) m.setIcon(nearIcon(h.s));
+      else L.marker(pt(h.s), { icon: nearIcon(h.s), zIndexOffset: 800 }).addTo(nearLayer);
+    });
+    showTripToast('📍 附近 ' + km + 'km · ' + hits.length + ' 处（高亮显示，点击地图其他位置恢复）');
   }
 
   /* ---------- 随手记 ---------- */
@@ -138,8 +202,65 @@
     return L.divIcon({ className: '', html: html, iconSize: [26, 26], iconAnchor: [13, 13] });
   }
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
+  /* 省级聚合点图标（LOD 最低层，全国视野）：胶囊形 省简称 + 数量 */
+  function provIcon(name, n, tint) {
+    var html = '<div style="display:flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:999px;background:' + tint + ';color:#fff;font-size:12.5px;font-weight:600;font-family:var(--font-sans);box-shadow:0 3px 12px rgba(0,0,0,.3);border:2px solid #fff;white-space:nowrap">' + name + '<b style="font-size:11px;opacity:.85">' + n + '</b></div>';
+    return L.divIcon({ className: '', html: html, iconSize: [54, 34], iconAnchor: [27, 17] });
+  }
+  /* 城市聚合点图标（LOD 中层，省视野）：圆形数字徽标 */
+  function clusterIcon(n, tint) {
+    var html = '<div style="width:32px;height:32px;border-radius:50%;background:' + tint + ';color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.28);font-family:var(--font-sans);letter-spacing:-.02em">' + n + '</div>';
+    return L.divIcon({ className: '', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
+  }
+  /* LOD 三级渲染（M.lodEnabled，全国页）：
+     zoom < 5.5 省级聚合（全国视野）→ 5.5-7.5 城市聚合（省视野）→ >=7.5 具体节点（市视野，含视野裁剪与重要主题过滤） */
+  function renderLOD(list) {
+    var z = map.getZoom(), b = map.getBounds();
+    markerLayer.clearLayers(); markers.clear();
+    if (z < 5.5) {
+      var byProv = {};
+      list.forEach(function (s) {
+        if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
+        (byProv[s.region] = byProv[s.region] || []).push(s);
+      });
+      Object.keys(byProv).forEach(function (prov) {
+        var arr = byProv[prov], s0 = arr[0];
+        var bnd = L.latLngBounds(arr.map(pt));
+        var short = M.regionShort[prov] || prov;
+        var m = L.marker(bnd.getCenter(), { icon: provIcon(short, arr.length, colorOf(s0)), zIndexOffset: -600 });
+        m.on('click', function () { map.flyToBounds(bnd, { padding: [50, 70], maxZoom: 6.8 }); });
+        markerLayer.addLayer(m); markers.set('p:' + prov, m);
+      });
+      return;
+    }
+    if (z < 7.5) {
+      var byCity = {};
+      list.forEach(function (s) {
+        if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
+        var key = s.region + '|' + (s.city || '其他');
+        (byCity[key] = byCity[key] || []).push(s);
+      });
+      Object.keys(byCity).forEach(function (key) {
+        var arr = byCity[key], s0 = arr[0];
+        var bnd = L.latLngBounds(arr.map(pt));
+        var m = L.marker(bnd.getCenter(), { icon: clusterIcon(arr.length, colorOf(s0)), zIndexOffset: -500 });
+        m.on('click', function () { map.flyToBounds(bnd, { padding: [50, 70], maxZoom: 10 }); });
+        markerLayer.addLayer(m); markers.set('c:' + key, m);
+      });
+      return;
+    }
+    list.forEach(function (s) {
+      if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
+      if (z < 9 && !isMajorSite(s)) return; /* 中缩放只显示重要主题 */
+      if (!b.contains(pt(s))) return;       /* 视野裁剪 */
+      var m = L.marker(pt(s), { icon: nodeIcon(s, false) });
+      m.on('click', function () { openSheet(s.__i); });
+      markerLayer.addLayer(m); markers.set(s.__i, m);
+    });
+  }
   function renderMarkers(list) {
     lastMarkerList = list;
+    if (M.lodEnabled) { renderLOD(list); return; }
     markerLayer.clearLayers(); markers.clear();
     list.forEach(function (s) {
       if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
@@ -277,58 +398,114 @@
     g.forEach(function (kv) { var k = kv[0], lab = kv[1]; if (s[k]) h += '<div class="grp"><span class="lab">' + lab + '</span>' + s[k] + '</div>'; });
     return h;
   }
+  function makeCard(s) {
+    var rp = refPoint();
+    var c = colorOf(s);
+    var card = document.createElement('div');
+    card.className = 'card'; card.dataset.i = s.__i;
+    var km = (rp && s._d != null) ? '<span class="km">📍 ' + s._d.toFixed(0) + ' km</span>' : '';
+    var alt = (s.elev && +s.elev >= 5000) ? '<span class="tag" style="background:var(--cinnabar-500)">⚠ 极高海拔</span>' : '';
+    var dh = detHtml(s);
+    card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
+      '<img loading="lazy" src="' + s.img + '" alt="' + s.label + '" onerror="this.style.display=\'none\'">' +
+      '<span class="tag">' + (M.themeIcons[s.theme] || '') + ' ' + s.theme + '</span></div>' +
+      '<div class="body"><div class="nm">' + s.label + '</div>' +
+      '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
+      '<div class="ds">' + s.desc + (s.best ? ('　🗓 最佳 ' + s.best) : '') + '</div>' +
+      '<div class="detail">' + dh + '</div>' + km + '</div>' +
+      '<div class="arr">›</div>';
+    card.onclick = function () {
+      flyToSite(s.__i);
+      var d = card.querySelector('.detail');
+      if (d && d.innerHTML.trim()) { d.classList.toggle('sh'); card.querySelector('.arr').textContent = d.classList.contains('sh') ? '˄' : '›'; }
+    };
+    return card;
+  }
+  /* 批量插入卡片（分批防卡） */
+  function batchAppend(body, arr) {
+    var BATCH = 120, idx = 0;
+    (function next() {
+      var end = Math.min(idx + BATCH, arr.length);
+      for (; idx < end; idx++) body.appendChild(makeCard(arr[idx]));
+      if (idx < arr.length) setTimeout(next, 40);
+    })();
+  }
+  var lvState = {}; /* 省分组折叠/渲染状态 */
   function renderList(list) {
     var grid = $('grid');
     grid.innerHTML = '';
     $('listEmpty').style.display = list.length ? 'none' : 'block';
-    var rp = refPoint();
-    list.forEach(function (s) {
-      var c = colorOf(s);
-      var card = document.createElement('div');
-      card.className = 'card'; card.dataset.i = s.__i;
-      var km = (rp && s._d != null) ? '<span class="km">📍 ' + s._d.toFixed(0) + ' km</span>' : '';
-      var alt = (s.elev && +s.elev >= 5000) ? '<span class="tag" style="background:var(--cinnabar-500)">⚠ 极高海拔</span>' : '';
-      var dh = detHtml(s);
-      card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
-        '<img loading="lazy" src="' + s.img + '" alt="' + s.label + '" onerror="this.style.display=\'none\'">' +
-        '<span class="tag">' + (M.themeIcons[s.theme] || '') + ' ' + s.theme + '</span></div>' +
-        '<div class="body"><div class="nm">' + s.label + '</div>' +
-        '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
-        '<div class="ds">' + s.desc + (s.best ? ('　🗓 最佳 ' + s.best) : '') + '</div>' +
-        '<div class="detail">' + dh + '</div>' + km + '</div>' +
-        '<div class="arr">›</div>';
-      card.onclick = function () {
-        flyToSite(s.__i);
-        var d = card.querySelector('.detail');
-        if (d && d.innerHTML.trim()) { d.classList.toggle('sh'); card.querySelector('.arr').textContent = d.classList.contains('sh') ? '˄' : '›'; }
-      };
-      grid.appendChild(card);
-    });
+    /* 全国页：按省分组可折叠（默认收起，点开懒加载该省卡片） */
+    if (M.listGroupByRegion) {
+      var groups = {};
+      list.forEach(function (s) { (groups[s.region] = groups[s.region] || []).push(s); });
+      var provs = Object.keys(groups).sort(function (a, b) { return groups[b].length - groups[a].length; });
+      provs.forEach(function (prov) {
+        var arr = groups[prov];
+        var grp = document.createElement('div'); grp.className = 'lv-group'; grp.dataset.prov = prov;
+        var head = document.createElement('div'); head.className = 'lv-head';
+        var short = M.regionShort[prov] || prov;
+        head.innerHTML = '<span class="lv-badge">' + short + '</span><span class="lv-name">' + prov + '</span><span class="lv-cnt">' + arr.length + ' 处</span><span class="lv-arr">▾</span>';
+        var body = document.createElement('div'); body.className = 'lv-body';
+        var st = lvState[prov] || (lvState[prov] = { open: false, rendered: false });
+        if (st.open) { grp.classList.add('open'); if (!st.rendered) { st.rendered = true; batchAppend(body, arr); } body.style.display = ''; }
+        head.onclick = function () {
+          var isOpen = grp.classList.toggle('open');
+          st.open = isOpen;
+          if (isOpen && !st.rendered) { st.rendered = true; batchAppend(body, arr); }
+          body.style.display = isOpen ? '' : 'none';
+        };
+        grp.appendChild(head); grp.appendChild(body);
+        grid.appendChild(grp);
+      });
+      $('listCnt').textContent = '共 ' + list.length + ' 处 · 按省';
+      return;
+    }
+    /* 其他专题：原有平铺逻辑（分批） */
+    if (list.length > 120) batchAppend(grid, list);
+    else list.forEach(function (s) { grid.appendChild(makeCard(s)); });
     $('listCnt').textContent = '共 ' + list.length + ' 处';
   }
   function highlightCard(i) {
     document.querySelectorAll('.card.hl').forEach(function (c) { c.classList.remove('hl'); });
     var el = $('grid').querySelector('.card[data-i="' + i + '"]');
-    if (el) { el.classList.add('hl'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    if (el) { el.classList.add('hl'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    /* 全国页：该节点所在省组未展开时，先展开再高亮 */
+    if (M.listGroupByRegion) {
+      var s = SITES[i]; if (!s) return;
+      var grp = $('grid').querySelector('.lv-group[data-prov="' + s.region + '"]');
+      if (grp && !grp.classList.contains('open')) {
+        grp.querySelector('.lv-head').click();
+        setTimeout(function () { highlightCard(i); }, 80);
+      }
+    }
   }
 
   /* ---------- 主题 ---------- */
+  var thState = {}; /* 主题折叠状态 */
   function renderThemes(list) {
     var tl = $('tl'); tl.innerHTML = '';
     M.themeOrder.forEach(function (th) {
       var items = list.filter(function (s) { return s.theme === th; }); if (!items.length) return;
-      var sec = document.createElement('div'); sec.className = 'tl-era';
+      var sec = document.createElement('div'); sec.className = 'tl-era'; sec.dataset.th = th;
       var head = document.createElement('div'); head.className = 'tl-head';
-      head.innerHTML = '<span class="d" style="background:' + M.themes[th] + '"></span><h3>' + th + ' ' + (M.themeIcons[th] || '') + '</h3><span class="cnt">' + items.length + ' 处</span>';
-      sec.appendChild(head);
+      head.innerHTML = '<span class="d" style="background:' + M.themes[th] + '"></span><h3>' + th + ' ' + (M.themeIcons[th] || '') + '</h3><span class="cnt">' + items.length + ' 处</span><span class="tl-arr">▾</span>';
+      var body = document.createElement('div'); body.className = 'tl-body';
       items.forEach(function (s) {
         var row = document.createElement('div'); row.className = 'tl-row';
         var elev = s.elev ? ('· ' + s.elev + 'm') : '';
         var rs = s.region; for (var k in M.regionShort) { rs = rs.replace(k, M.regionShort[k]); }
         row.innerHTML = '<div class="t">' + rs + '</div><div><div class="n">' + s.label + '</div><div class="c">' + s.city + (s.county ? ('·' + s.county) : '') + ' ' + elev + '</div></div>';
         row.onclick = function () { flyToSite(s.__i); };
-        sec.appendChild(row);
+        body.appendChild(row);
       });
+      /* 点击主题头折叠/展开该主题的行；默认折叠（thState 记录展开态，undefined=折叠） */
+      if (thState[th] !== true) sec.classList.add('collapsed');
+      head.onclick = function () {
+        var isColl = sec.classList.toggle('collapsed');
+        thState[th] = !isColl;
+      };
+      sec.appendChild(head); sec.appendChild(body);
       tl.appendChild(sec);
     });
   }
@@ -528,17 +705,24 @@
       if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city); return; }
       if (f === state.theme || f === state.region || f === state.city) c.classList.add('on'); else c.classList.remove('on');
     });
+    /* 图例选中态与顶部 chips 同步（M.legendFilter） */
+    document.querySelectorAll('#legBody .lg').forEach(function (el) {
+      var isAll = (el.dataset.th === '');
+      el.classList.toggle('on', isAll ? !state.theme : el.dataset.th === state.theme);
+    });
   }
   function buildChips() {
     var dynChips = $('dynChips'); dynChips.innerHTML = '';
     var c = mkChip('全部', true); c.className = 'chip all on';
     c.onclick = function () { state.theme = ''; state.region = ''; state.city = ''; syncChips(); renderAll(); };
     dynChips.appendChild(c);
-    M.themeOrder.forEach(function (th) {
-      var cc = mkChip((M.themeIcons[th] || '') + ' ' + th, false, M.themes[th]);
-      cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); };
-      dynChips.appendChild(cc);
-    });
+    if (M.themeChips !== false) {
+      M.themeOrder.forEach(function (th) {
+        var cc = mkChip((M.themeIcons[th] || '') + ' ' + th, false, M.themes[th]);
+        cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); };
+        dynChips.appendChild(cc);
+      });
+    }
     [...new Set(SITES.map(function (s) { return s.region; }))].sort().forEach(function (r) {
       var cc = mkChip(r, false);
       cc.onclick = function () {
@@ -548,20 +732,33 @@
       };
       dynChips.appendChild(cc);
     });
-    [...new Set(SITES.map(function (s) { return s.city; }))].sort().forEach(function (city) {
-      var cc = mkChip(city, false);
-      cc.onclick = function () {
-        state.city = (state.city === city ? '' : city);
-        if (state.city) { var r = SITES.find(function (s) { return s.city === state.city; }); if (r && r.region !== state.region) state.region = r.region; }
-        syncChips(); renderAll();
-      };
-      dynChips.appendChild(cc);
-    });
+    if (M.cityChips !== false) {
+      [...new Set(SITES.map(function (s) { return s.city; }))].sort().forEach(function (city) {
+        var cc = mkChip(city, false);
+        cc.onclick = function () {
+          state.city = (state.city === city ? '' : city);
+          if (state.city) { var r = SITES.find(function (s) { return s.city === state.city; }); if (r && r.region !== state.region) state.region = r.region; }
+          syncChips(); renderAll();
+        };
+        dynChips.appendChild(cc);
+      });
+    }
     var legBody = $('legBody'); legBody.innerHTML = '';
+    /* 图例首行：全部（清除主题筛选） */
+    var allRow = document.createElement('div'); allRow.className = 'lg'; allRow.dataset.th = '';
+    allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + SITES.length + '</span>';
+    allRow.onclick = function () { state.theme = ''; syncChips(); renderAll(); };
+    legBody.appendChild(allRow);
     M.themeOrder.forEach(function (th) {
       if (!SITES.some(function (s) { return s.theme === th; })) return;
-      var r = document.createElement('div'); r.className = 'lg';
-      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + (M.themeIcons[th] || '') + ' ' + th;
+      var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
+      var cnt = SITES.filter(function (s) { return s.theme === th; }).length;
+      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + (M.themeIcons[th] || '') + ' ' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + cnt + '</span>';
+      /* 图例即标签：点击切换该主题筛选（与顶部 chips 联动） */
+      r.onclick = function () {
+        state.theme = (state.theme === th ? '' : th);
+        syncChips(); renderAll();
+      };
       legBody.appendChild(r);
     });
     var legEl = $('legend'), legOpen = $('legOpen');
@@ -577,9 +774,10 @@
   function getFoodFiltered() {
     var q = (FOOD_STATE.q || "").trim().toLowerCase();
     return FOOD.filter(function (d) {
+      if (FOOD_STATE.prov && d.province !== FOOD_STATE.prov) return false;
       if (FOOD_STATE.city && d.city !== FOOD_STATE.city) return false;
       if (FOOD_STATE.type && d.type !== FOOD_STATE.type) return false;
-      if (q) { var hay = (d.name + d.city + (d.county || "") + d.desc + (d.feature || "") + (d.with || "")).toLowerCase(); if (!hay.includes(q)) return false; }
+      if (q) { var hay = (d.name + d.city + (d.county || "") + (d.province || "") + d.desc + (d.feature || "") + (d.with || "")).toLowerCase(); if (!hay.includes(q)) return false; }
       return true;
     });
   }
@@ -621,11 +819,36 @@
   }
   function buildFoodBar() {
     if (!M.foodEnabled || !FOOD.length) return;
-    [...new Set(FOOD.map(function (d) { return d.city; }))].sort().forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c; $('foodCity').appendChild(o); });
-    [...new Set(FOOD.map(function (d) { return d.type; }))].sort().forEach(function (t) { var o = document.createElement('option'); o.value = t; o.textContent = t; $('foodType').appendChild(o); });
+    var provSel = $('foodProv'), citySel = $('foodCity'), typeSel = $('foodType');
+    [...new Set(FOOD.map(function (d) { return d.province; }).filter(Boolean))].sort().forEach(function (p) { var o = document.createElement('option'); o.value = p; o.textContent = p; provSel.appendChild(o); });
+    [...new Set(FOOD.map(function (d) { return d.type; }))].sort().forEach(function (t) { var o = document.createElement('option'); o.value = t; o.textContent = t; typeSel.appendChild(o); });
+    /* 省→城市联动：按当前省重建城市下拉 */
+    function rebuildCity(keep) {
+      var cur = FOOD_STATE.city;
+      citySel.innerHTML = '<option value="">全部城市</option>';
+      [...new Set(FOOD.filter(function (d) { return !FOOD_STATE.prov || d.province === FOOD_STATE.prov; }).map(function (d) { return d.city; }).filter(Boolean))].sort()
+        .forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c; citySel.appendChild(o); });
+      FOOD_STATE.city = (keep && cur && [...citySel.options].some(function (o) { return o.value === cur; })) ? cur : '';
+      citySel.value = FOOD_STATE.city;
+    }
+    rebuildCity();
     $('foodSearch').oninput = function (e) { FOOD_STATE.q = e.target.value; renderFood(); };
-    $('foodCity').onchange = function (e) { FOOD_STATE.city = e.target.value; renderFood(); };
-    $('foodType').onchange = function (e) { FOOD_STATE.type = e.target.value; renderFood(); };
+    provSel.onchange = function (e) {
+      FOOD_STATE.prov = e.target.value;
+      if (!FOOD_STATE.prov) { FOOD_STATE.city = ''; rebuildCity(); }
+      else rebuildCity();
+      renderFood();
+    };
+    citySel.onchange = function (e) {
+      FOOD_STATE.city = e.target.value;
+      if (FOOD_STATE.city && !FOOD_STATE.prov) {
+        /* 选城市自动锁定省份 */
+        var d = FOOD.find(function (x) { return x.city === FOOD_STATE.city; });
+        if (d && d.province) { FOOD_STATE.prov = d.province; provSel.value = d.province; rebuildCity(true); }
+      }
+      renderFood();
+    };
+    typeSel.onchange = function (e) { FOOD_STATE.type = e.target.value; renderFood(); };
   }
 
   /* ---------- 启动 ---------- */
@@ -668,6 +891,23 @@
     buildChips();
     // 美食
     buildFoodBar();
+    // 路线：聚合省份专题路线到全国页（M.routesFrom: {sc:'川',...}）
+    if (M.routesFrom && window.TOPIC_REGISTRY) {
+      var _merged = [];
+      Object.keys(M.routesFrom).forEach(function (pid) {
+        var sub = window.TOPIC_REGISTRY[pid];
+        if (!sub || !sub.routes || !sub.routes.length) return;
+        var tag = M.routesFrom[pid];
+        sub.routes.forEach(function (rt) {
+          _merged.push({
+            name: tag + ' · ' + rt.name,
+            color: rt.color, desc: rt.desc,
+            days: rt.days
+          });
+        });
+      });
+      if (_merged.length) M.routes = M.routes.concat(_merged);
+    }
     // 路线
     renderRoutes();
     var routeSel = $('routeSel');
