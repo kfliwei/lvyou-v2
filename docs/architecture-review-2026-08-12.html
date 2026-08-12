@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE v2 · 架构与 UI/UX 审核报告（v2 修正版）</title>
+<style>
+  :root{
+    --bg:#F7F5EF; --surface:#FFFFFF; --ink:#20201D; --ink-soft:#4C4A45;
+    --muted:#7D7970; --faint:#AAA59B; --line:rgba(32,32,29,.10);
+    --primary:#C86D4B; --primary-dark:#A9563B; --primary-soft:rgba(200,109,75,.10);
+    --green:#71806C; --blue:#6D7D88; --red:#B4543A;
+    --serif:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+    --sans:"PingFang SC","HarmonyOS Sans","Noto Sans SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:15px}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 28px 80px}
+  .hero{padding:48px 0 36px;border-bottom:1px solid var(--line)}
+  .hero .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:34px;margin-top:10px;line-height:1.3}
+  .hero .sub{color:var(--muted);margin-top:10px;font-size:14px}
+  .hero .meta{margin-top:18px;font-size:12.5px;color:var(--faint);letter-spacing:.05em}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:30px 0}
+  .metric{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 16px}
+  .metric .v{font-family:var(--serif);font-size:30px;color:var(--primary-dark)}
+  .metric .k{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.08em}
+  h2{font-family:var(--serif);font-weight:400;font-size:24px;margin:52px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .no{color:var(--primary);font-size:14px;letter-spacing:.2em}
+  .lead{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:18px 0}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px}
+  .card h4{font-family:var(--serif);font-weight:600;font-size:16px;margin-bottom:6px}
+  .card p{font-size:13.5px;color:var(--ink-soft)}
+  .card .tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;margin-bottom:10px;letter-spacing:.06em}
+  .tag.p0{background:#FBE9E3;color:var(--red)}
+  .tag.p1{background:#F3EFE4;color:#7E7663}
+  .tag.p2{background:var(--primary-soft);color:var(--primary-dark)}
+  .tag.ok{background:#ECEFEA;color:var(--green)}
+  table{width:100%;border-collapse:collapse;margin:16px 0 8px;background:var(--surface);border-radius:14px;overflow:hidden;font-size:13.5px}
+  th{background:#F0EDE5;text-align:left;padding:10px 14px;font-weight:600;font-size:12.5px;letter-spacing:.06em;color:var(--ink-soft)}
+  td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+  td b{font-weight:600}
+  .pill{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+  .pill.red{background:#FBE9E3;color:var(--red)}
+  .pill.amber{background:#F3EFE4;color:#8A6D3B}
+  .pill.green{background:#ECEFEA;color:var(--green)}
+  .pill.blue{background:#EDF0F2;color:var(--blue)}
+  .pill.gray{background:#F0EDE5;color:var(--muted)}
+  .score-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+  .score-row .name{width:110px;font-size:13px;color:var(--ink-soft);flex:none}
+  .score-row .bar{flex:1;height:8px;background:#E6E1D7;border-radius:99px;overflow:hidden}
+  .score-row .fill{height:100%;border-radius:99px;background:var(--primary)}
+  .score-row .val{width:36px;font-size:13px;color:var(--primary-dark);font-weight:600}
+  .tl{border-left:2px solid #E0D9CC;margin:20px 0 10px 8px;padding-left:22px}
+  .tl-item{position:relative;margin-bottom:24px}
+  .tl-item::before{content:"";position:absolute;left:-29px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2.5px solid var(--primary)}
+  .tl-item .ph{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .tl-item h4{font-family:var(--serif);font-size:17px;font-weight:600;margin:2px 0 6px}
+  .tl-item p{font-size:13.5px;color:var(--ink-soft)}
+  .tl-item ul{margin:6px 0 0 18px;font-size:13px;color:var(--ink-soft)}
+  figure{margin:20px 0}
+  figure svg{width:100%;height:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+  figcaption{font-size:12px;color:var(--faint);text-align:center;margin-top:8px}
+  .note{background:var(--primary-soft);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--primary-dark);margin:16px 0}
+  .footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+  .strike{text-decoration:line-through;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="kicker">Architecture &amp; UX Review · v2</div>
+    <h1>行迹 TRACE v2 · 架构与 UI/UX 审核报告</h1>
+    <p class="sub">审核范围：F:\MyAi\trace\lvyou-v2（master @ 871f6c4，2026-08-11 晚更新后）· 移动优先纯前端 PWA</p>
+    <div class="meta">审核人：兔宝（架构 + UI/UX）｜日期：2026-08-12｜v2 修正：按兔爸反馈剔除「已有功能」与「不做项」，聚焦真实增量</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="v">16</div><div class="k">HTML 页面</div></div>
+    <div class="metric"><div class="v">12</div><div class="k">专题注册（含全国）</div></div>
+    <div class="metric"><div class="v">3362</div><div class="k">全国景点节点</div></div>
+    <div class="metric"><div class="v">1.6MB</div><div class="k">nation-data.js</div></div>
+    <div class="metric"><div class="v">30+</div><div class="k">提交 / 2 天</div></div>
+    <div class="metric"><div class="v">0</div><div class="k">构建 / 测试框架</div></div>
+  </div>
+
+  <h2><span class="no">01</span>总体结论</h2>
+  <p class="lead">数据驱动专题引擎、移动优先设计 token、PWA 离线分层、文档驱动迭代，方向全对。核心问题不在「怎么加功能」，而在「代码收敛」与「体验闭环」——建议优先做四件事：公共层抽取、全国地图性能、想去清单闭环、足迹海报成品化。</p>
+
+  <h2><span class="no">02</span>架构评分</h2>
+  <p class="lead">六维评估（10 分制），基于源码逐文件核验：</p>
+  <div class="score-row"><span class="name">数据驱动架构</span><div class="bar"><div class="fill" style="width:88%"></div></div><span class="val">8.8</span></div>
+  <div class="score-row"><span class="name">离线 / PWA 能力</span><div class="bar"><div class="fill" style="width:78%"></div></div><span class="val">7.8</span></div>
+  <div class="score-row"><span class="name">可维护性</span><div class="bar"><div class="fill" style="width:55%"></div></div><span class="val">5.5</span></div>
+  <div class="score-row"><span class="name">性能</span><div class="bar"><div class="fill" style="width:65%"></div></div><span class="val">6.5</span></div>
+  <div class="score-row"><span class="name">数据安全</span><div class="bar"><div class="fill" style="width:50%"></div></div><span class="val">5.0</span></div>
+  <div class="score-row"><span class="name">UI/UX 完成度</span><div class="bar"><div class="fill" style="width:85%"></div></div><span class="val">8.5</span></div>
+
+  <h2><span class="no">03</span>现状架构</h2>
+  <p class="lead">六层结构清晰，但「公共工具层」缺失——同一段 GCJ-02 纠偏、距离计算、转义函数在 3~4 个文件里各存一份。</p>
+  <figure>
+  <svg viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#AAA59B"/></marker>
+    </defs>
+    <text x="24" y="34" font-size="15" fill="#4C4A45" font-weight="600">页面层</text>
+    <g>
+      <rect x="24" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="89" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">index 首页</text><text x="89" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">杂志式入口</text>
+      <rect x="170" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="235" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">explore-map</text><text x="235" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">专题入口</text>
+      <rect x="316" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="381" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">travel-map</text><text x="381" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">我的游记地图</text>
+      <rect x="462" y="44" width="130" height="42" rx="10" fill="#FBE9E3" stroke="#C86D4B" stroke-width="1.4"/><text x="527" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">nation-map ★</text><text x="527" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">全国 3362 节点</text>
+      <rect x="608" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="673" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">topic.html</text><text x="673" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">专题通用页</text>
+      <rect x="754" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="819" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">story / review</text><text x="819" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">叙事 / 回顾</text>
+      <rect x="900" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="965" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">workshop / md</text><text x="965" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">工坊 / MD 库</text>
+      <rect x="1046" y="44" width="130" height="42" rx="10" fill="#FAF8F3" stroke="#D8D4CB" stroke-width="1.2"/><text x="1111" y="62" text-anchor="middle" font-size="12.5" fill="#20201D">settings</text><text x="1111" y="78" text-anchor="middle" font-size="10.5" fill="#AAA59B">设置</text>
+    </g>
+    <line x1="24" y1="100" x2="1176" y2="100" stroke="#AAA59B" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <text x="24" y="130" font-size="15" fill="#4C4A45" font-weight="600">引擎 / 逻辑层</text>
+    <g>
+      <rect x="24" y="140" width="215" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="131" y="160" text-anchor="middle" font-size="12.5" fill="#20201D">travel-notes.js（117KB）</text><text x="131" y="178" text-anchor="middle" font-size="10.5" fill="#AAA59B">语音游记 · AI 润色 · 照片</text>
+      <rect x="255" y="140" width="215" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="362" y="160" text-anchor="middle" font-size="12.5" fill="#20201D">topic-common.js（61KB）</text><text x="362" y="178" text-anchor="middle" font-size="10.5" fill="#AAA59B">专题引擎 + 行程/路线 ✅</text>
+      <rect x="486" y="140" width="215" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="593" y="160" text-anchor="middle" font-size="12.5" fill="#20201D">results.js / vault.js</text><text x="593" y="178" text-anchor="middle" font-size="10.5" fill="#AAA59B">成果工坊 · 长图/导出 ✅</text>
+      <rect x="717" y="140" width="215" height="52" rx="10" fill="#FBE9E3" stroke="#C86D4B" stroke-width="1.4"/><text x="824" y="160" text-anchor="middle" font-size="12.5" fill="#20201D">⚠️ 公共工具函数 ×3~4 份</text><text x="824" y="178" text-anchor="middle" font-size="10.5" fill="#AAA59B">GCJ-02 / haversine / esc 重复</text>
+      <rect x="948" y="140" width="228" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="1062" y="160" text-anchor="middle" font-size="12.5" fill="#20201D">topic-meta.js（88KB）</text><text x="1062" y="178" text-anchor="middle" font-size="10.5" fill="#AAA59B">12 省专题注册表 ✅</text>
+    </g>
+    <line x1="24" y1="206" x2="1176" y2="206" stroke="#AAA59B" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <text x="24" y="236" font-size="15" fill="#4C4A45" font-weight="600">数据层</text>
+    <g>
+      <rect x="24" y="246" width="200" height="52" rx="10" fill="#F3EFE4" stroke="#C9C0AC" stroke-width="1.2"/><text x="124" y="266" text-anchor="middle" font-size="12.5" fill="#20201D">nation-data.js ⚠️1.6MB</text><text x="124" y="284" text-anchor="middle" font-size="10.5" fill="#AAA59B">全国 3362 节点全量加载</text>
+      <rect x="240" y="246" width="200" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="340" y="266" text-anchor="middle" font-size="12.5" fill="#20201D">12 省 *-data.js</text><text x="340" y="284" text-anchor="middle" font-size="10.5" fill="#AAA59B">20KB~236KB / 省</text>
+      <rect x="456" y="246" width="200" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="556" y="266" text-anchor="middle" font-size="12.5" fill="#20201D">*-food.js 美食数据</text><text x="556" y="284" text-anchor="middle" font-size="10.5" fill="#AAA59B">每省一文件</text>
+      <rect x="672" y="246" width="200" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="772" y="266" text-anchor="middle" font-size="12.5" fill="#20201D">images/ s*.svg</text><text x="772" y="284" text-anchor="middle" font-size="10.5" fill="#AAA59B">500+ 景点图标（SVG）</text>
+      <rect x="888" y="246" width="288" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="1032" y="266" text-anchor="middle" font-size="12.5" fill="#20201D">tools/ gen-nation.js ✅</text><text x="1032" y="284" text-anchor="middle" font-size="10.5" fill="#AAA59B">数据生成器 + 校验脚本</text>
+    </g>
+    <line x1="24" y1="312" x2="1176" y2="312" stroke="#AAA59B" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <text x="24" y="342" font-size="15" fill="#4C4A45" font-weight="600">存储 / 运行时</text>
+    <g>
+      <rect x="24" y="352" width="250" height="52" rx="10" fill="#F3EFE4" stroke="#C9C0AC" stroke-width="1.2"/><text x="149" y="372" text-anchor="middle" font-size="12.5" fill="#20201D">IndexedDB 游记库（本机）</text><text x="149" y="390" text-anchor="middle" font-size="10.5" fill="#AAA59B">手动导出/导入可用 · 无自动同步</text>
+      <rect x="290" y="352" width="250" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="415" y="372" text-anchor="middle" font-size="12.5" fill="#20201D">localStorage 设置 / 深色 / Key</text><text x="415" y="390" text-anchor="middle" font-size="10.5" fill="#AAA59B">tn_dark · tn_aiKey · tn_model</text>
+      <rect x="556" y="352" width="250" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="681" y="372" text-anchor="middle" font-size="12.5" fill="#20201D">sw.js 离线缓存 trace-v6</text><text x="681" y="390" text-anchor="middle" font-size="10.5" fill="#AAA59B">shell 预缓存 + 数据 SWR ✅</text>
+      <rect x="822" y="352" width="354" height="52" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="999" y="372" text-anchor="middle" font-size="12.5" fill="#20201D">APK「行迹-v1.8」WebView 壳</text><text x="999" y="390" text-anchor="middle" font-size="10.5" fill="#AAA59B">AndroidVoice bridge：讯飞/Google 语音</text>
+    </g>
+    <line x1="24" y1="418" x2="1176" y2="418" stroke="#AAA59B" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <text x="24" y="448" font-size="15" fill="#4C4A45" font-weight="600">外部服务</text>
+    <g>
+      <rect x="24" y="458" width="165" height="42" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="106" y="477" text-anchor="middle" font-size="12" fill="#20201D">DeepSeek API</text><text x="106" y="492" text-anchor="middle" font-size="10.5" fill="#AAA59B">润色/名句/年报</text>
+      <rect x="205" y="458" width="165" height="42" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="287" y="477" text-anchor="middle" font-size="12" fill="#20201D">open-meteo</text><text x="287" y="492" text-anchor="middle" font-size="10.5" fill="#AAA59B">历史天气（免费）</text>
+      <rect x="386" y="458" width="165" height="42" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="468" y="477" text-anchor="middle" font-size="12" fill="#20201D">BigDataCloud</text><text x="468" y="492" text-anchor="middle" font-size="10.5" fill="#AAA59B">逆地理（无 key）</text>
+      <rect x="567" y="458" width="165" height="42" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="649" y="477" text-anchor="middle" font-size="12" fill="#20201D">高德 / OSM 瓦片</text><text x="649" y="492" text-anchor="middle" font-size="10.5" fill="#AAA59B">在线地图（离线无）</text>
+      <rect x="748" y="458" width="165" height="42" rx="10" fill="#FFFFFF" stroke="#D8D4CB" stroke-width="1.2"/><text x="830" y="477" text-anchor="middle" font-size="12" fill="#20201D">Leaflet 1.9</text><text x="830" y="492" text-anchor="middle" font-size="10.5" fill="#AAA59B">唯一前端依赖</text>
+    </g>
+  </svg>
+  <figcaption>图 1 · 行迹 TRACE v2 现状架构（★ = 本次审核重点，⚠️ = 风险点，✅ = 已具备能力）</figcaption>
+  </figure>
+
+  <h2><span class="no">04</span>做得好的地方（保留）</h2>
+  <div class="cards">
+    <div class="card"><span class="tag ok">架构</span><h4>数据驱动专题引擎</h4><p>topic-meta.js 注册表 + topic-common.js 通用引擎，新增省份 = 数据文件 + 注册一条 + 入口卡片，不复制页面。12 省已跑通，这是全项目最值钱的架构决策。</p></div>
+    <div class="card"><span class="tag ok">数据</span><h4>代码生成器 + 校验</h4><p>tools/gen-nation.js 自动生成 nation-data.js，_verify-nation.js 做校验，数据与手写代码分离，避免 3362 个节点手工维护出错。</p></div>
+    <div class="card"><span class="tag ok">离线</span><h4>PWA 分层缓存</h4><p>shell 预缓存 + 数据文件 stale-while-revalidate + 导航网络优先断网回退，缓存版本号管理清晰（trace-v6），加失败容错（逐条 add + catch）。</p></div>
+    <div class="card"><span class="tag ok">功能</span><h4>路线规划已落地</h4><p>topic-common.js：toggleTrip 勾选景点、drawTripRoute 按序画线、localStorage 按专题持久化行程、导航衔接。用户确认已满足需求。</p></div>
+    <div class="card"><span class="tag ok">功能</span><h4>长图分享 + 回顾统计已有</h4><p>results.js shareCanvas 生成分享长图；review.html 省份热力、月历热力、足迹统计齐备。海报基础能力已具备。</p></div>
+    <div class="card"><span class="tag ok">工程</span><h4>文档驱动迭代</h4><p>docs/superpowers 计划文档 + 按任务提交，两天 30+ commits 仍保持可追踪，小步快跑的正确姿势。</p></div>
+  </div>
+
+  <h2><span class="no">05</span>问题清单（按优先级）</h2>
+  <table>
+    <tr><th style="width:70px">级别</th><th style="width:180px">问题</th><th>影响与证据</th><th style="width:150px">建议方案</th></tr>
+    <tr><td><span class="pill red">P0</span></td><td><b>公共工具函数重复 3~4 份</b></td><td>GCJ-02 纠偏在 travel-map.html:298、topic-common.js、nation-map.html 各一份；haversine 在 topic-common.js 有 2 个版本、nation-map.html 1 份；esc()/flash() 每文件一份。改一处纠偏算法要同步 4 处，迟早不一致。</td><td>抽 geo.js / util.js 公共模块，页面统一引用</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>nation-data.js 1.6MB 全量阻塞加载</b></td><td>&lt;script src&gt; 同步阻塞首屏；全国地图首开体验受网速支配。当前只在 zoom&lt;7 时不渲染（节省的是绘制不是下载）。</td><td>按省拆分 + 动态 import / 进入省份时懒加载</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>深色模式靠 4 处重复补丁</b></td><td>index.html / explore-map.html 各内联 40+ 行几乎相同的 .theme-dark 覆盖，design.css / map.css / travel-notes.js 注入 CSS 还有 3 份。新增一个组件要同步 4~5 处。</td><td>收敛进 design.css 组件级 token；补丁去重为一次全局覆盖</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>sw.js 预缓存清单手动维护</b></td><td>昨晚新增 nation-map.html 未加入 SHELL（离线首次访问会回退首页）。清单靠人肉同步，页面多了必漏。</td><td>构建时生成清单（或 tools/ 脚本扫描 .html 自动更新 SHELL）</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>专题计数 fallback 硬编码</b></td><td>index.html 里「凡一百六十一处」等 8 个计数是写死的 fallback，数据扩充后数字过期，每次扩数据都要手改。</td><td>从 TOPIC_REGISTRY 读真实计数；无数据时显示「凡若干处」不写死</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>页面内联 CSS 分散</b></td><td>每页 head 内 5~15KB 内联样式（.topbar 等基础组件每页重写一遍）+ design.css 59KB + map.css 50KB，样式事实上有 4+ 个真相源。</td><td>公共组件类移入 design.css，页面只留专属样式</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>无自动化测试</b></td><td>验证 = node --check + grep + 人工冒烟。页面 16 个、数据 1.6MB，回归靠自觉。至少给数据层（haversine/gcj02/分组）补 node 单测。</td><td>tools/ 下加 test-geo.js、test-data.js 校验脚本</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>AI key 存 localStorage 直连 DeepSeek</b></td><td>key 由设置页填入存 localStorage（非硬编码，这点 OK），但纯前端直连 API，任何 XSS/分享出去的页面都能被提取 key 盗刷。</td><td>个人使用可接受；若公开部署需后端代理或限流</td></tr>
+    <tr><td><span class="pill gray">已决策</span></td><td><span class="strike">数据云同步 / 门票季节详情</span></td><td>WebDAV 同步与景点详情字段增强按兔爸决策不做；本地已有导出/导入（travel-notes.js exportNotes/importNotes、vault.js 导出 MD/GPX）可覆盖基本备份诉求。</td><td>保持现状</td></tr>
+  </table>
+
+  <h2><span class="no">06</span>建议清单（已剔除已有功能与不做项）</h2>
+  <p class="lead">以下均为核实后的真实增量。已确认已有的：路线规划（勾选→画线→持久化→导航）、长图分享（shareCanvas）、月历热力（review.html）——不再列入。</p>
+  <table>
+    <tr><th style="width:52px">优先级</th><th style="width:170px">功能</th><th>价值说明</th><th style="width:120px">成本估计</th></tr>
+    <tr><td><span class="pill red">P0</span></td><td><b>想去清单 + 打卡闭环</b></td><td>当前详情 sheet 只有「加入今天行程」（当天路线）；缺跨天的「心愿单」：收藏想去 → 全国/专题地图上显示心愿节点 → 到达一键「打卡并记录」直接开语音游记。把浏览行为转成记录行为，激活收藏数据。</td><td>2 天</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>足迹地图海报成品化</b></td><td>shareCanvas 做的是「文字长图」；增量是「足迹地图海报」：省份热力轮廓 + 足迹折线 + 里程/天数/城市数统计 + 专题印章，Canvas 合成 PNG。这才是可传播的年度分享卡。</td><td>2~3 天</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>离线瓦片包</b></td><td>设置页「下载某省离线地图」把该区域 z8~z14 瓦片写入 Cache API；配合现有 sw.js 分层，实现真正的无网可逛（当前离线只有壳，地图空白）。</td><td>2~3 天</td></tr>
+    <tr><td><span class="pill amber">P1</span></td><td><b>全国地图节点聚合</b></td><td>zoom&lt;7 时节点全隐藏太粗暴，改用聚合气泡（「12 处」），缩放过程连续、地图更「活」，顺带缓解 3362 节点渲染压力。</td><td>1~2 天</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>专题差异化封面</b></td><td>12 个专题共用同一模板同质化；注册表已有 themes 色板，给每省派生主色 + 封面图（art/ 已有 8 张专题 SVG 补全即可），一眼区分川甘疆黔。</td><td>1~2 天</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>底部导航 5 Tab</b></td><td>review（回顾）入口目前藏在设置页，埋得太深。升级「探索/地图/旅途/回顾/我的」五 Tab，回顾页使用率会明显上升。</td><td>0.5 天</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>「这个季节去哪」推荐</b></td><td>首页 hero 下动态模块：按当前月份 + 用户位置推荐 3 个当季景点（数据已有 best 字段），把静态杂志首页变成活的。</td><td>1 天</td></tr>
+    <tr><td><span class="pill green">P2</span></td><td><b>加载骨架屏</b></td><td>1.6MB 数据 + 瓦片加载期间，地图区显示骨架/进度，避免白屏。sw.js 缓存命中后自然消失。</td><td>0.5 天</td></tr>
+  </table>
+
+  <h2><span class="no">07</span>UI/UX 提升建议</h2>
+  <div class="cards">
+    <div class="card"><span class="tag p2">地图</span><h4>节点聚合 + 省份 chips 分组</h4><p>zoom&lt;7 用聚合气泡代替全隐藏；12+ 省 chips 平铺横向滚动（34 省必失控）改区域分组折叠（华北/西北/西南…）。</p></div>
+    <div class="card"><span class="tag p2">详情</span><h4>详情 sheet 动作条</h4><p>固定底部动作：导航（高德 URI scheme）/ 收藏想去（配合心愿单）/ 生成分享卡 / 记录到此一游。当前只有「添加到行程」，闭环不全。</p></div>
+    <div class="card"><span class="tag p2">视觉</span><h4>专题差异化封面</h4><p>每省派生主色调 + 封面图（注册表已有色值，art/ 已有 8 张专题 SVG），打破 12 专题同模板的视觉疲劳。</p></div>
+    <div class="card"><span class="tag p2">性能</span><h4>加载骨架屏</h4><p>数据 + 瓦片加载期显示骨架/进度，避免白屏；SW 缓存命中后自然消失。</p></div>
+    <div class="card"><span class="tag p2">导航</span><h4>底部导航 5 Tab</h4><p>回顾页从设置页上位到主导航「探索/地图/旅途/回顾/我的」。</p></div>
+    <div class="card"><span class="tag p2">首页</span><h4>时令推荐模块</h4><p>hero 下方按月份推荐当季目的地，让首页从静态杂志变成活入口。</p></div>
+  </div>
+
+  <h2><span class="no">08</span>90 天路线图</h2>
+  <div class="tl">
+    <div class="tl-item">
+      <div class="ph">Phase 1 · 架构加固（第 1~30 天）</div>
+      <h4>还债：公共层 + 性能</h4>
+      <ul>
+        <li>抽 geo.js（GCJ-02/haversine）+ util.js（esc/flash），4 处引用替换，删重复代码</li>
+        <li>深色补丁收敛进 design.css 组件级 token</li>
+        <li>nation-data.js 按省拆分懒加载；sw.js 清单改为脚本生成；专题计数改为读注册表</li>
+      </ul>
+    </div>
+    <div class="tl-item">
+      <div class="ph">Phase 2 · 闭环与传播（第 31~60 天）</div>
+      <h4>让用户想回来、想分享</h4>
+      <ul>
+        <li>想去清单 + 打卡转化闭环，与语音游记打通</li>
+        <li>足迹地图海报（省份热力 + 路线 + 统计）成品化</li>
+        <li>底部导航 5 Tab（回顾页上位）</li>
+      </ul>
+    </div>
+    <div class="tl-item">
+      <div class="ph">Phase 3 · 体验深化（第 61~90 天）</div>
+      <h4>从「记录工具」到「旅行伴侣」</h4>
+      <ul>
+        <li>离线瓦片包 + 全国地图节点聚合</li>
+        <li>专题差异化视觉 + 时令推荐</li>
+        <li>数据层 node 单测（geo/分组/聚合）</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">一句话总结：<b>架构骨架扎实，方向正确；优先做「公共层收敛」与「全国地图性能」两件还债事，然后让「想去清单 + 足迹海报」把应用从记录工具变成能被传播的作品。</b></div>
+
+  <div class="footer">行迹 TRACE v2 · 架构与 UI/UX 审核报告（v2 修正版）｜基于 master @ 871f6c4 源码逐文件核验｜已剔除已有功能与不做项｜2026-08-12</div>
+</div>
+</body>
+</html>
