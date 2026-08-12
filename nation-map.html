@@ -117,6 +117,18 @@
   .theme-dark .ls-desc,.theme-dark .ls-hist{color:var(--color-ink-soft)}
   .theme-dark .ls-img{background:var(--color-bg-soft)}
   .theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+  /* 加载骨架：1.6MB 数据下载期间显示 */
+  .map-skeleton{position:absolute;inset:0;top:64px;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--color-bg);overflow:hidden}
+  .map-skeleton .sk-pulse{width:64px;height:64px;border-radius:50%;background:var(--color-bg-deep);position:relative;overflow:hidden}
+  .map-skeleton .sk-pulse::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:skShimmer 1.4s infinite}
+  .map-skeleton .sk-text{font-size:12.5px;color:var(--color-muted);letter-spacing:.1em}
+  .map-skeleton .sk-bar{width:180px;height:6px;border-radius:99px;background:var(--color-bg-deep);overflow:hidden;position:relative}
+  .map-skeleton .sk-bar::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:skShimmer 1.4s infinite}
+  @keyframes skShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  /* 聚合气泡（zoom<7 时替代全隐藏） */
+  .cl-bubble{display:grid;place-items:center;border-radius:50%;background:var(--color-ink);color:#fff;font-size:12px;font-weight:600;border:2.5px solid rgba(255,255,255,.9);box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;font-family:var(--font-sans)}
+  .cl-bubble:active{transform:scale(.92)}
+  .theme-dark .cl-bubble{border-color:rgba(29,28,25,.9)}
 </style>
 </head>
 <body>
@@ -131,6 +143,11 @@
     </div>
   </header>
   <div id="map"></div>
+  <div class="map-skeleton" id="mapSkeleton">
+    <div class="sk-pulse"></div>
+    <div class="sk-bar"></div>
+    <div class="sk-text">全国景点数据加载中…</div>
+  </div>
   <div class="ctl">
     <button id="layBtn" title="切换图层"><span class="layicon" style="position:relative;width:18px;height:18px;display:block"><span style="position:absolute;right:0;bottom:0;width:15px;height:15px;border:1.6px solid currentColor;border-radius:3px"></span><span style="position:absolute;left:0;top:0;width:11px;height:11px;background:currentColor;border-radius:3px;opacity:.9"></span></span></button>
     <div class="sep"></div>
@@ -163,6 +180,7 @@
 <script src="nation-data.js"></script>
 <script>
 (function () {
+  var sk = document.getElementById('mapSkeleton'); if (sk) sk.remove();
   var SITES = window.NATION_SITES || [];
   var META = window.NATION_META || { topics: {}, provinces: [] };
   document.getElementById('cntLabel').textContent = META.count + ' 处';
@@ -215,7 +233,7 @@
       nodeLayer.clearLayers();
       var z = map.getZoom();
       document.getElementById('zTip').classList.toggle('show', z < 7);
-      if (z < 7) return;
+      if (z < 7) { renderClusters(z); return; }
       var list = visibleNodes();
       var idx = {};
       SITES.forEach(function (s, i) { idx[s.name + '|' + s.lat + '|' + s.lng] = i; });
@@ -225,6 +243,24 @@
         m.addTo(nodeLayer);
       });
     }, 220);
+  }
+  function renderClusters(z) {
+    var list = visibleNodes();
+    if (!list.length) return;
+    var groups = {};
+    list.forEach(function (s) {
+      var p = map.latLngToContainerPoint(pt(s));
+      var k = Math.round(p.x / 64) + ',' + Math.round(p.y / 64);
+      (groups[k] = groups[k] || []).push(s);
+    });
+    Object.keys(groups).forEach(function (k) {
+      var g = groups[k], c = g.length;
+      var size = c > 50 ? 46 : c > 10 ? 38 : 30;
+      var html = '<div class="cl-bubble" style="width:' + size + 'px;height:' + size + 'px">' + c + '</div>';
+      var m = L.marker(g[0] ? pt(g[0]) : [0, 0], { icon: L.divIcon({ className: '', html: html, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) });
+      m.on('click', function () { map.setView(pt(g[0]), Math.min(z + 2, 8), { animate: true }); });
+      m.addTo(nodeLayer);
+    });
   }
   map.on('moveend', renderNodes);
   map.on('zoomend', renderNodes);

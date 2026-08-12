@@ -629,7 +629,7 @@ img{max-width:100%;display:block}
   position:fixed;z-index:100;left:50%;bottom:14px;
   width:min(calc(100% - 24px),480px);height:76px;
   transform:translateX(-50%);
-  display:grid;grid-template-columns:repeat(4,1fr);padding:8px;
+  display:grid;grid-template-columns:repeat(5,1fr);padding:8px;
   background:rgba(250,248,243,.90);
   border:1px solid rgba(32,32,29,.07);border-radius:28px;
   box-shadow:var(--shadow-float);

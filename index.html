@@ -75,6 +75,16 @@
   .fade-up{opacity:0;animation:fadeUp .7s var(--ease-standard) forwards}
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
+  /* ---- 时令推荐 ---- */
+  .season-item{display:flex;align-items:center;gap:14px;padding:15px 2px;border-bottom:1px solid var(--color-line);cursor:pointer;text-decoration:none}
+  .season-item:last-child{border-bottom:0}
+  .season-item:active{padding-left:8px}
+  .season-item__no{width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:1px solid var(--color-line-strong);display:grid;place-items:center;font-family:var(--font-serif);font-size:15px;color:var(--color-primary-dark)}
+  .season-item__main{flex:1;min-width:0}
+  .season-item__name{font-family:var(--font-serif);font-size:17px;color:var(--color-ink)}
+  .season-item__loc{font-size:11.5px;color:var(--color-muted);margin-top:3px;letter-spacing:.04em}
+  .season-item__arr{color:var(--color-faint);flex:0 0 auto}
+
   /* ---- 最近的旅行 ---- */
   .trip-feature__img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block;background:linear-gradient(150deg,#B8B09B,#5C6B60)}
   .trip-feature__title{margin-top:16px;font-family:var(--font-serif);font-size:30px;font-weight:400;line-height:1.2}
@@ -248,6 +258,13 @@
     </div>
   </section>
 
+  <!-- ============ 这个季节，去哪？ ============ -->
+  <section class="home-section" style="padding-top:48px">
+    <p class="eyebrow fade-up">In Season</p>
+    <h2 class="section-title fade-up" id="seasonTitle">这个季节，去哪？</h2>
+    <div class="season-list fade-up" id="seasonList" style="margin-top:14px;animation-delay:80ms"></div>
+  </section>
+
   <!-- ============ 最近的旅行 ============ -->
   <section class="home-section">
     <p class="eyebrow fade-up">Recent Journey</p>
@@ -395,6 +412,9 @@
   <a class="bottom-nav__item" href="travel-map.html">
     <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19 C6 15 8 15 10 19 C12 15 14 15 16 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 6 C6 3 8 3 10 6 C12 3 14 3 16 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>旅途
   </a>
+  <a class="bottom-nav__item" href="review.html">
+    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 5 H20 V19 H4 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 9 H20" stroke="currentColor" stroke-width="1.6"/><path d="M8 3 V6 M16 3 V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>回顾
+  </a>
   <a class="bottom-nav__item" href="settings.html">
     <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.2" opacity=".5"/></svg></span>我的
   </a>
@@ -501,6 +521,34 @@
     } catch(e){}
   }
 
+  // 时令推荐：每月 3 个当季目的地（链接到对应专题页）
+  var SEASONS = {
+    1: [{n:'西双版纳', loc:'云南 · 暖冬避寒', href:'gx-yn.html'},{n:'梵净山', loc:'贵州 · 冬雪佛光', href:'topic.html?p=gz'},{n:'海螺沟', loc:'四川 · 冰川温泉', href:'topic.html?p=sc'}],
+    2: [{n:'罗平油菜花', loc:'云南 · 早春金海', href:'gx-yn.html'},{n:'平遥社火', loc:'山西 · 正月古韵', href:'shanxi.html'},{n:'黄果树', loc:'贵州 · 春水初涨', href:'topic.html?p=gz'}],
+    3: [{n:'林芝桃花', loc:'西藏 · 雪域春色', href:'qinghai-tibet.html'},{n:'桂林烟雨', loc:'广西 · 山水如墨', href:'gx-yn.html'},{n:'金川梨花', loc:'四川 · 河谷花雪', href:'topic.html?p=sc'}],
+    4: [{n:'大同古建', loc:'山西 · 春游国保', href:'shanxi.html'},{n:'敦煌', loc:'甘肃 · 丝路春沙', href:'topic.html?p=gs'},{n:'峨眉山', loc:'四川 · 杜鹃云海', href:'topic.html?p=sc'}],
+    5: [{n:'伊犁', loc:'新疆 · 草原初绿', href:'topic.html?p=xj'},{n:'甘南', loc:'甘肃 · 秘境花开', href:'topic.html?p=gs'},{n:'香格里拉', loc:'云南 · 高山杜鹃', href:'gx-yn.html'}],
+    6: [{n:'青海湖', loc:'青海 · 环湖骑行季', href:'qinghai-tibet.html'},{n:'薰衣草河谷', loc:'新疆 · 紫色六月', href:'topic.html?p=xj'},{n:'荔波', loc:'贵州 · 清凉戏水', href:'topic.html?p=gz'}],
+    7: [{n:'呼伦贝尔', loc:'内蒙古 · 草原盛夏', href:'topic.html?p=nmg'},{n:'甘南草原', loc:'甘肃 · 避暑胜地', href:'topic.html?p=gs'},{n:'九寨沟', loc:'四川 · 清凉海子', href:'topic.html?p=sc'}],
+    8: [{n:'独库公路', loc:'新疆 · 一日四季', href:'topic.html?p=xj'},{n:'茶卡盐湖', loc:'青海 · 天空之镜', href:'qinghai-tibet.html'},{n:'恩施大峡谷', loc:'湖北 · 避暑秘境', href:'nation-map.html'}],
+    9: [{n:'喀纳斯', loc:'新疆 · 秋色初染', href:'topic.html?p=xj'},{n:'张掖丹霞', loc:'甘肃 · 七彩之秋', href:'topic.html?p=gs'},{n:'稻城亚丁', loc:'四川 · 秋日圣山', href:'topic.html?p=sc'}],
+    10:[{n:'九寨沟彩林', loc:'四川 · 层林尽染', href:'topic.html?p=sc'},{n:'额济纳', loc:'内蒙古 · 胡杨金秋', href:'topic.html?p=nmg'},{n:'平遥古城', loc:'山西 · 秋高气爽', href:'shanxi.html'}],
+    11:[{n:'腾冲银杏村', loc:'云南 · 满地金黄', href:'gx-yn.html'},{n:'阳朔', loc:'广西 · 秋日骑行', href:'gx-yn.html'},{n:'梵净山', loc:'贵州 · 云海佛光', href:'topic.html?p=gz'}],
+    12:[{n:'西双版纳', loc:'云南 · 暖冬之旅', href:'gx-yn.html'},{n:'海螺沟', loc:'四川 · 冰川温泉', href:'topic.html?p=sc'},{n:'荔波小七孔', loc:'贵州 · 冬游绿谷', href:'topic.html?p=gz'}]
+  };
+  (function () {
+    var picks = SEASONS[new Date().getMonth() + 1] || [];
+    var el = document.getElementById('seasonList');
+    if (!el || !picks.length) return;
+    document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';
+    el.innerHTML = picks.map(function (p, i) {
+      return '<a class="season-item" href="' + p.href + '">' +
+        '<span class="season-item__no">' + (i + 1) + '</span>' +
+        '<span class="season-item__main"><span class="season-item__name">' + p.n + '</span>' +
+        '<span class="season-item__loc">' + p.loc + '</span></span>' +
+        '<span class="season-item__arr">→</span></a>';
+    }).join('');
+  })();
   window.TravelNotes._onReady = function () { refreshHome(); drawRoute(); renderQuote(); };
   TravelNotes.init({});
   window.TravelNotes._afterSave = function () { refreshHome(); drawRoute(); };
