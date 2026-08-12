@@ -217,7 +217,8 @@
         var bnd = L.latLngBounds(arr.map(pt));
         var short = M.regionShort[prov] || prov;
         var m = L.marker(bnd.getCenter(), { icon: provIcon(short, arr.length, colorOf(s0)), zIndexOffset: -600 });
-        m.on('click', function () { map.flyToBounds(bnd, { padding: [50, 70], maxZoom: 6.8 }); });
+        var _mz = arr.length <= 30 ? 9.2 : arr.length <= 80 ? 8.2 : 6.8;  /* 节点少→展开更聚焦，避免视野空荡 */
+        m.on('click', function () { map.flyToBounds(bnd, { padding: [40, 55], maxZoom: _mz }); });
         markerLayer.addLayer(m); markers.set('p:' + prov, m);
       });
       return;
@@ -233,7 +234,8 @@
         var arr = byCity[key], s0 = arr[0];
         var bnd = L.latLngBounds(arr.map(pt));
         var m = L.marker(bnd.getCenter(), { icon: clusterIcon(arr.length, colorOf(s0)), zIndexOffset: -500 });
-        m.on('click', function () { map.flyToBounds(bnd, { padding: [50, 70], maxZoom: 10 }); });
+        var _cmz = arr.length <= 12 ? 10.6 : 10;  /* 小聚合展开更聚焦 */
+        m.on('click', function () { map.flyToBounds(bnd, { padding: [40, 55], maxZoom: _cmz }); });
         markerLayer.addLayer(m); markers.set('c:' + key, m);
       });
       return;
