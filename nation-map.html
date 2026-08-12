@@ -228,16 +228,19 @@
 
   /* ---- 主题色（覆盖各省 theme + 山西 ty） ---- */
   /* 主题色：单一真相源（TOPIC_REGISTRY 各省 themes 汇总，删除了原内联 40+ 行） */
+  /* 主题别名归一（全站规范表 window.THEME_ALIAS） */
+  var ALIAS = window.THEME_ALIAS || {};
+  function thNorm(t) { return ALIAS[t] || t; }
   var COLORS = (function () {
     var c = {};
     Object.keys(window.TOPIC_REGISTRY || {}).forEach(function (k) {
       var t = (window.TOPIC_REGISTRY[k].themes || {});
-      Object.keys(t).forEach(function (th) { if (!c[th]) c[th] = t[th]; });
+      Object.keys(t).forEach(function (th) { var n = thNorm(th); if (!c[n]) c[n] = t[th]; });
     });
     return c;
   })();
   var curTheme = '';   /* 图例主题筛选 */
-  function colorOf(s) { return COLORS[s.theme] || COLORS[s.ty] || '#B4AFA4'; }
+  function colorOf(s) { return COLORS[thNorm(s.theme)] || COLORS[thNorm(s.ty)] || '#B4AFA4'; }
 
   /* ---- 地图 ---- */
   var map = L.map('map', { zoomControl: false }).setView([34.5, 103.5], 5);
@@ -277,7 +280,7 @@
   }
   function visibleNodes() {
     var b = map.getBounds();
-    return SITES.filter(function (s) { return (!prov || s.province === prov) && (!curTheme || (s.theme || s.ty) === curTheme) && b.contains(pt(s)); });
+    return SITES.filter(function (s) { return (!prov || s.province === prov) && (!curTheme || thNorm(s.theme || s.ty) === curTheme) && b.contains(pt(s)); });
   }
   var renderTimer = null;
   function renderNodes() {
@@ -432,7 +435,7 @@
   allRow.onclick = function () { curTheme = ''; syncLeg(); renderNodes(); };
   legBody.appendChild(allRow);
   Object.keys(COLORS).forEach(function (th) {
-    var cnt = SITES.filter(function (s) { return (s.theme || s.ty) === th; }).length;
+    var cnt = SITES.filter(function (s) { return thNorm(s.theme || s.ty) === th; }).length;
     if (!cnt) return;
     var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
     r.innerHTML = '<span class="dot" style="background:' + COLORS[th] + '"></span>' + th + '<span class="cnt">' + cnt + '</span>';
