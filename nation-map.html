@@ -158,6 +158,8 @@
   </div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="wishlist.js"></script>
+<script src="travel-notes.js"></script>
 <script src="nation-data.js"></script>
 <script>
 (function () {
@@ -337,10 +339,24 @@
         (s.elev ? '海拔 ' + esc(s.elev) + ' m<br>' : '') +
         '来源专题 · ' + esc(s.topicName || '') +
       '</div>' +
+      '<div class="ls-actions">' +
+      '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
+      '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="recordHere(' + i + ')">✎ 语音记录</button>' +
+      '</div>' +
       '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span></div>';
     document.getElementById('locSheet').classList.add('show');
   }
   function closeSheet() { document.getElementById('locSheet').classList.remove('show'); }
+  function toggleWish(i) {
+    var s = SITES[i]; if (!s) return;
+    var on = window.Wish ? Wish.toggle(s) : false;
+    var b = document.querySelector('.ls-wish');
+    if (b) { b.textContent = on ? '♥ 已想去' : '♡ 想去'; b.classList.toggle('done', on); }
+  }
+  function recordHere(i) {
+    var s = SITES[i]; if (!s) return;
+    try { window.TravelNotes.openPanel({ label: s.label, lat: s.lat, lng: s.lng }); } catch (e) {}
+  }
   function flyTo(i) {
     var s = SITES[i]; if (!s) return;
     map.flyTo(pt(s), Math.max(map.getZoom(), 10), { duration: .6 });

@@ -278,6 +278,7 @@
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
       '<div class="ls-actions">' +
+      '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
       '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 16px" onclick="window.TravelNotes.openPanel(' + i + ')">🎙 语音记录</button>' +
       '<span class="ls-add' + (inT ? ' done' : '') + '" onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
@@ -322,6 +323,12 @@
     if (k >= 0) trip.splice(k, 1); else trip.push(i);
     saveTrip(); renderTripBar(); drawTripRoute();
     if (isAdd) showTripToast('+1 已加入今天的行程');
+    refreshSheet();
+  }
+  function toggleWish(i) {
+    var s = SITES[i]; if (!s) return;
+    var on = window.Wish ? Wish.toggle(s) : false;
+    showTripToast(on ? '已加入想去清单' : '已从想去清单移除');
     refreshSheet();
   }
   function renderTripBar() {
@@ -932,6 +939,7 @@
   window.TopicEngine = {
     init: init,
     toggleTrip: toggleTrip,
+    toggleWish: toggleWish,
     flyToSite: flyToSite,
     closeSheet: closeSheet,
     openSheet: openSheet

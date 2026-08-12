@@ -7,6 +7,7 @@ var SHELL = [
   './test-data.html', './topic.html', './topic-common.js', './topic-meta.js',
   './design.css', './map.css', './theme.js',
   './travel-notes.js', './results.js', './vault.js', './quotes.js',
+  './wishlist.js', './wishlist.html',
   './vendor/leaflet/leaflet.css', './vendor/leaflet/leaflet.js',
   './images/icon.svg', './manifest.webmanifest',
   './art/hero-journey.svg',

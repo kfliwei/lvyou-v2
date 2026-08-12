@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>想去清单 · 行迹</title>
+<link rel="stylesheet" href="design.css">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+  .t-row{display:flex;align-items:center;gap:8px;height:42px}
+  .t-row .back{width:34px;height:34px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .t-row .back:active{transform:scale(.92)}
+  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
+  .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
+  .wrap{padding:20px 16px 120px;max-width:520px;margin:0 auto}
+  .wl-empty{text-align:center;padding:70px 20px;color:var(--color-faint)}
+  .wl-empty .em{font-family:var(--font-serif);font-size:22px;color:var(--color-ink-soft);line-height:1.8}
+  .wl-empty p{font-size:13px;margin-top:10px;line-height:1.8}
+  .wl-empty a{color:var(--color-primary-dark);font-size:14px;font-weight:600}
+  .wl-item{display:flex;align-items:center;gap:12px;padding:16px 4px;border-bottom:1px solid var(--color-line)}
+  .wl-item:last-child{border-bottom:0}
+  .wl-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .wl-main{flex:1;min-width:0}
+  .wl-main b{font-family:var(--font-serif);font-size:16.5px;font-weight:400;color:var(--color-ink);display:block}
+  .wl-main small{font-size:11.5px;color:var(--color-muted);display:block;margin-top:3px}
+  .wl-main .wl-tag{display:inline-block;font-size:10.5px;color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:1px 8px;margin-top:6px}
+  .wl-main .wl-done-tag{background:#ECEFEA;color:var(--color-green)}
+  .wl-acts{display:flex;gap:8px;flex:0 0 auto}
+  .wl-btn{min-height:36px;padding:0 14px;border-radius:999px;font-size:12.5px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap}
+  .wl-btn:active{transform:scale(.95)}
+  .wl-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
+  .wl-btn.done{background:#ECEFEA;border-color:transparent;color:var(--color-green)}
+  .wl-remove{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--color-faint);font-size:14px;cursor:pointer;flex:0 0 auto}
+  .wl-remove:active{background:var(--color-bg-soft)}
+  .theme-dark .topbar{background:rgba(29,28,25,.92)}
+  .theme-dark .wl-item{border-bottom-color:var(--color-line)}
+  .theme-dark .wl-main b{color:var(--color-ink)}
+  .theme-dark .wl-btn{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="history.back()">←</button>
+    <div class="title">想去清单 <small id="cntLabel"></small></div>
+    <button class="wl-btn" style="min-height:34px" onclick="location.href='explore-map.html'">去探索</button>
+  </div>
+</header>
+<div class="wrap">
+  <div id="wlBody"></div>
+  <div class="wl-empty" id="wlEmpty" style="display:none">
+    <div class="em">想去的地方，<br>先记在这里。</div>
+    <p>在专题地图或全国地图点开景点详情，<br>点「♡ 想去」就会出现在这里。<br>到了之后一键打卡，直接开始语音游记。</p>
+    <a href="explore-map.html">去地图看看 →</a>
+  </div>
+</div>
+
+<script src="wishlist.js"></script>
+<script src="travel-notes.js"></script>
+<script>
+(function () {
+  var body = document.getElementById('wlBody');
+  var empty = document.getElementById('wlEmpty');
+  var cnt = document.getElementById('cntLabel');
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function themeColor(t) {
+    var map = { '高原湖泊':'#5F6D76','雪山冰川':'#9C9A92','名山大川':'#71806C','峡谷天堑':'#8A5A44','江河瀑布':'#5F6D76','古建寺院':'#A9563B','古城古镇':'#8A5A44','古城遗址':'#7E7663','红色遗迹':'#C86D4B','民族风情':'#C86D4B','城市地标':'#6D7D88','溶洞奇观':'#8C7B66','森林草原':'#71806C','森林山川':'#71806C','宗教圣地':'#A9563B','遗址陵墓':'#7E7663','温泉康养':'#C86D4B','石窟艺术':'#A9563B','丹霞地貌':'#BA7517','雅丹地貌':'#BA7517','沙漠戈壁':'#BA7517','草原湿地':'#639922','石窟寺':'#A9563B','佛寺':'#A9563B','古塔':'#7E7663','楼阁牌坊':'#8A5A44','名城名镇':'#8A5A44','壁画彩塑':'#C86D4B','关隘长城':'#993C1D','窑洞民居':'#BA7517','庙宇道观':'#A9563B','文庙书院':'#A9563B','陵墓':'#7E7663','桥梁':'#6D7D88','教堂会馆':'#6D7D88' };
+    return map[t] || '#B4AFA4';
+  }
+  function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }
+  function render() {
+    var list = window.Wish.list();
+    cnt.textContent = list.length ? list.length + ' 处' : '';
+    empty.style.display = list.length ? 'none' : 'block';
+    body.innerHTML = list.map(function (w, i) {
+      var done = !!w.visited;
+      var loc = [w.region, w.city].filter(Boolean).join(' · ');
+      return '<div class="wl-item">' +
+        '<span class="wl-dot" style="background:' + themeColor(w.theme) + '"></span>' +
+        '<div class="wl-main">' +
+          '<b>' + esc(w.label) + '</b>' +
+          '<small>' + esc(loc || '未定位区域') + (w.theme ? ' · ' + esc(w.theme) : '') + '</small>' +
+          (w.theme ? '<span class="wl-tag' + (done ? ' wl-done-tag' : '') + '">' + (done ? '已打卡 · ' + fmt(w.visited) : esc(w.theme)) + '</span>' : '') +
+        '</div>' +
+        '<div class="wl-acts">' +
+          (done
+            ? '<button class="wl-btn done" onclick="location.href=\'travel-map.html\'">已在旅途中</button>'
+            : '<button class="wl-btn primary" onclick="doCheckin(' + i + ')">打卡</button>' +
+              '<button class="wl-btn" onclick="doRecord(' + i + ')">记录</button>') +
+        '</div>' +
+        '<button class="wl-remove" onclick="doRemove(' + i + ')">✕</button>' +
+      '</div>';
+    }).join('');
+  }
+  /* 打卡：标记已访问 + 直接打开语音游记面板（在景点坐标上） */
+  function doCheckin(i) {
+    var w = window.Wish.list()[i]; if (!w) return;
+    window.Wish.checkin(w);
+    render();
+    flash('已打卡 · ' + w.label + '，可以开始记录啦');
+    try { window.TravelNotes.openPanel({ label: w.label, lat: w.lat, lng: w.lng }); } catch (e) {}
+  }
+  /* 仅记录（不打勾）：直接打开语音面板 */
+  function doRecord(i) {
+    var w = window.Wish.list()[i]; if (!w) return;
+    try { window.TravelNotes.openPanel({ label: w.label, lat: w.lat, lng: w.lng }); } catch (e) { flash('记录面板打开失败，请重试'); }
+  }
+  function doRemove(i) {
+    var w = window.Wish.list()[i]; if (!w) return;
+    window.Wish.remove(w.id);
+    render();
+  }
+  function flash(msg) {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.textContent = msg; document.body.appendChild(d);
+    setTimeout(function () { d.remove(); }, 2400);
+  }
+  window.TravelNotes._onReady = function () { render(); };
+  TravelNotes.init({});
+  window.TravelNotes._afterSave = function () { render(); };
+  render();
+})();
+</script>
+</body>
+</html>
