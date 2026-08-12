@@ -325,7 +325,7 @@
         return '<div class="rl-item" data-i="' + idxOf(h.s) + '">' +
           '<span class="d">' + h.d.toFixed(0) + 'km</span>' +
           '<span class="dot" style="background:' + colorOf(h.s) + '"></span>' +
-          '<div class="m"><b>' + esc(h.s.label) + '</b><small>' + esc(provShort(h.s.province) + ' · ' + h.s.city) + (h.s.theme ? ' · ' + esc(h.s.theme) : '') + '</small></div></div>';
+          '<div class="m"><b>' + esc(h.s.label) + '</b><small>' + esc(h.s.province + ' · ' + h.s.city) + (h.s.theme ? ' · ' + esc(h.s.theme) : '') + '</small></div></div>';
       }).join('')
       : '<div class="rl-item"><div class="m"><b>该半径内暂无收录景点</b><small>换个半径或放大地图看看</small></div></div>';
     document.getElementById('rlTitle').textContent = '附近景点 · ' + curR + 'km · ' + hits.length + ' 处';
@@ -357,7 +357,7 @@
     }
     sdrop.style.display = 'block';
     sdrop.innerHTML = hits.length
-      ? hits.map(function (i) { var s = SITES[i]; return '<div class="sd" data-i="' + i + '"><span class="dot" style="background:' + colorOf(s) + '"></span><div><b>' + esc(s.label) + '</b><small>' + esc(provShort(s.province) + ' · ' + s.city + (s.county ? ' · ' + s.county : '')) + '</small></div></div>'; }).join('')
+      ? hits.map(function (i) { var s = SITES[i]; return '<div class="sd" data-i="' + i + '"><span class="dot" style="background:' + colorOf(s) + '"></span><div><b>' + esc(s.label) + '</b><small>' + esc(s.province + ' · ' + s.city + (s.county ? ' · ' + s.county : '')) + '</small></div></div>'; }).join('')
       : '<div class="sd-empty">没有匹配的景点，换个关键词试试</div>';
     sdrop.querySelectorAll('.sd[data-i]').forEach(function (el) {
       el.onclick = function () { sdrop.style.display = 'none'; qEl.value = ''; flyTo(+el.dataset.i); };
@@ -379,7 +379,7 @@
   REGIONS.forEach(function (g) {
     var gps = g.ps.filter(function (p) { return META.provinces.indexOf(p) >= 0; });
     if (!gps.length) return;
-    pHtml += '<span class="pgroup">' + g.r + '</span>' + gps.map(function (p) { return '<span class="pchip" data-p="' + p + '">' + provShort(p) + '</span>'; }).join('');
+    pHtml += '<span class="pgroup">' + g.r + '</span>' + gps.map(function (p) { return '<span class="pchip" data-p="' + p + '">' + p + '</span>'; }).join('');
   });
   pEl.innerHTML = pHtml;
   pEl.querySelectorAll('.pchip').forEach(function (c) {
@@ -440,7 +440,6 @@
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2600);
   }
-  function provShort(p) { return p === '内蒙古' ? '蒙' : p; }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   document.getElementById('zTip').addEventListener('click', function () { map.setView([34.5, 103.5], 7); });
   }
