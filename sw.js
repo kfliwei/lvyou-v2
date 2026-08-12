@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v7';
+var CACHE = 'trace-v8';
 var TILE_CACHE = 'trace-tiles';   /* 离线瓦片包（tiles.js 写入） */
 var SHELL = [
   './', './index.html', './explore-map.html', './travel-map.html',
