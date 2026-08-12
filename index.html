@@ -421,6 +421,7 @@
 </nav>
 
 <script src="quotes.js"></script>
+<script src="topic-counts.js"></script>
 <script src="travel-notes.js"></script>
 <script src="results.js"></script>
 <script src="vault.js"></script>
@@ -490,23 +491,24 @@
   };
   // 专题地点数（保留原计数逻辑）
   function fmtN(n){return '凡'+(''+n).replace(/./g,function(c){return '〇一二三四五六七八九'[c]||c})+'处';}
-  var _cz=window.SITES_CZ||[],_gy=window.SITES_GY||[],_qt=window.SITES_QT||[],_sx=window.SITES||[];
+  var TC = window.TOPIC_COUNTS || {};
+  function cntOf(id, def) { return TC[id] ? fmtN(TC[id]) : def; }
   var ce=document.getElementById('cntCz');
-  if(ce) ce.textContent=_cz.length?fmtN(_cz.length):'凡一百六十一处';
+  if(ce) ce.textContent=cntOf('cz','凡一百六十一处');
   ce=document.getElementById('cntGy');
-  if(ce) ce.textContent=_gy.length?fmtN(_gy.length):'凡五百一十一处';
+  if(ce) ce.textContent=cntOf('gy','凡五百一十一处');
   ce=document.getElementById('cntQt');
-  if(ce) ce.textContent=_qt.length?fmtN(_qt.length):'凡二十六日';
+  if(ce) ce.textContent=cntOf('qt','凡一百八十九处');
   ce=document.getElementById('cntSx');
-  if(ce) ce.textContent=_sx.length?fmtN(_sx.length):'凡五百零四处';
+  if(ce) ce.textContent=cntOf('sx','凡五百零四处');
   ce=document.getElementById('cntSc');
-  if(ce) ce.textContent='凡四百一十二处';
+  if(ce) ce.textContent=cntOf('sc','凡四百一十二处');
   ce=document.getElementById('cntGs');
-  if(ce) ce.textContent='凡三百零三处';
+  if(ce) ce.textContent=cntOf('gs','凡三百零三处');
   ce=document.getElementById('cntXj');
-  if(ce) ce.textContent='凡二百八十七处';
+  if(ce) ce.textContent=cntOf('xj','凡二百八十七处');
   ce=document.getElementById('cntGz');
-  if(ce) ce.textContent='凡三百二十一处';
+  if(ce) ce.textContent=cntOf('gz','凡三百二十一处');
 
   // 有人走过：quotes.js 随机一句（条目结构 {k,t,a,s,y}）
   function renderQuote(){

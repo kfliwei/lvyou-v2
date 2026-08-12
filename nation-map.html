@@ -181,9 +181,9 @@
 <script src="tiles.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
-<script src="nation-data.js"></script>
 <script>
 (function () {
+  function boot() {
   var sk = document.getElementById('mapSkeleton'); if (sk) sk.remove();
   var SITES = window.NATION_SITES || [];
   var META = window.NATION_META || { topics: {}, provinces: [] };
@@ -424,6 +424,19 @@
   }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   document.getElementById('zTip').addEventListener('click', function () { map.setView([34.5, 103.5], 7); });
+  }
+  /* 数据动态加载：不阻塞首屏渲染（骨架屏覆盖下载期） */
+  if (window.NATION_SITES) { boot(); }
+  else {
+    var sc = document.createElement('script');
+    sc.src = 'nation-data.js';
+    sc.onload = function () { boot(); };
+    sc.onerror = function () {
+      var sk2 = document.getElementById('mapSkeleton'); if (sk2) sk2.remove();
+      var t = document.getElementById('zTip'); if (t) { t.textContent = '数据加载失败，请检查网络后刷新'; t.classList.add('show'); }
+    };
+    document.head.appendChild(sc);
+  }
 })();
 </script>
 </body>
