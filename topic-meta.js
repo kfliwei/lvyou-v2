@@ -6,8 +6,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 四川 · 天府之国 ---------------- */
   sc: {
     p: 'sc',
-    title: '四川风光人文地图',
-    accent: '#C86D4B',
+    title: '四川风光人文地图',
     dataJs: 'sc-data.js',
     foodJs: 'sc-food.js',
     foodEnabled: true,
@@ -118,8 +117,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 甘肃 · 如意陇原 ---------------- */
   gs: {
     p: 'gs',
-    title: '甘肃丝路人文地图',
-    accent: '#BA7517',
+    title: '甘肃丝路人文地图',
     dataJs: 'gs-data.js',
     foodJs: 'gs-food.js',
     foodEnabled: true,
@@ -217,8 +215,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 新疆 · 大美西域 ---------------- */
   xj: {
     p: 'xj',
-    title: '新疆丝路风光地图',
-    accent: '#3E7CB1',
+    title: '新疆丝路风光地图',
     dataJs: 'xj-data.js',
     foodJs: 'xj-food.js',
     foodEnabled: true,
@@ -317,8 +314,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 贵州 · 多彩黔境 ---------------- */
   gz: {
     p: 'gz',
-    title: '贵州山水人文地图',
-    accent: '#71806C',
+    title: '贵州山水人文地图',
     dataJs: 'gz-data.js',
     foodJs: 'gz-food.js',
     foodEnabled: true,
@@ -410,8 +406,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 青海 · 大美青海 ---------------- */
   qh: {
     p: 'qh',
-    title: '青海大美山河地图',
-    accent: '#5F6D76',
+    title: '青海大美山河地图',
     dataJs: 'qh-data.js',
     foodJs: 'qh-food.js',
     foodEnabled: true,
@@ -468,8 +463,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 西藏 · 天上西藏 ---------------- */
   xz: {
     p: 'xz',
-    title: '西藏圣境之旅地图',
-    accent: '#9C9A92',
+    title: '西藏圣境之旅地图',
     dataJs: 'xz-data.js',
     foodJs: 'xz-food.js',
     foodEnabled: true,
@@ -530,8 +524,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 内蒙古 · 辽阔草原 ---------------- */
   nmg: {
     p: 'nmg',
-    title: '内蒙古草原风情地图',
-    accent: '#639922',
+    title: '内蒙古草原风情地图',
     dataJs: 'nmg-data.js',
     foodJs: 'nmg-food.js',
     foodEnabled: true,
@@ -584,8 +577,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 陕西 · 三秦大地 ---------------- */
   sx2: {
     p: 'sx2',
-    title: '陕西三秦人文地图',
-    accent: '#A9563B',
+    title: '陕西三秦人文地图',
     dataJs: 'sx-data.js',
     foodJs: 'sx-food.js',
     foodEnabled: true,
@@ -637,8 +629,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 湖南 · 锦绣潇湘 ---------------- */
   hn: {
     p: 'hn',
-    title: '湖南山水人文地图',
-    accent: '#6D7D88',
+    title: '湖南山水人文地图',
     dataJs: 'hn-data.js',
     foodJs: 'hn-food.js',
     foodEnabled: true,
@@ -696,8 +687,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 湖北 · 荆楚大地 ---------------- */
   hb: {
     p: 'hb',
-    title: '湖北荆楚山水地图',
-    accent: '#7E7663',
+    title: '湖北荆楚山水地图',
     dataJs: 'hb-data.js',
     foodJs: 'hb-food.js',
     foodEnabled: true,
@@ -750,8 +740,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 重庆 · 8D魔幻 ---------------- */
   cq: {
     p: 'cq',
-    title: '重庆魔幻山水地图',
-    accent: '#8A5A44',
+    title: '重庆魔幻山水地图',
     dataJs: 'cq-data.js',
     foodJs: 'cq-food.js',
     foodEnabled: true,
@@ -799,8 +788,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 宁夏 · 塞上江南 ---------------- */
   nx: {
     p: 'nx',
-    title: '宁夏塞上江南地图',
-    accent: '#AAA08A',
+    title: '宁夏塞上江南地图',
     dataJs: 'nx-data.js',
     foodJs: 'nx-food.js',
     foodEnabled: true,
@@ -848,8 +836,7 @@ window.TOPIC_REGISTRY = {
   /* ---------------- 全国 · 统一地图 ---------------- */
   nation: {
     p: 'nation',
-    title: '全国风光人文地图',
-    accent: '#20201D',
+    title: '全国风光人文地图',
     dataJs: 'nation-data.js',
     foodJs: '',
     foodEnabled: true,

@@ -48,8 +48,6 @@
 
   /* ---------- 地图 ---------- */
   function initMap() {
-    /* 专题差异化：注册表 accent 着色顶栏 */
-    if (M && M.accent) { var _tb = document.querySelector('.topbar'); if (_tb) _tb.style.background = M.accent; }
     map = L.map('mapEl', { zoomControl: false, attributionControl: false }).setView(M.center, M.zoom);
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
     var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' });
