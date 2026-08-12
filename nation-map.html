@@ -379,7 +379,7 @@
   REGIONS.forEach(function (g) {
     var gps = g.ps.filter(function (p) { return META.provinces.indexOf(p) >= 0; });
     if (!gps.length) return;
-    pHtml += '<span class="pgroup">' + g.r + '</span>' + gps.map(function (p) { return '<span class="pchip" data-p="' + p + '">' + (p === '内蒙古' ? '蒙' : p) + '</span>'; }).join('');
+    pHtml += '<span class="pgroup">' + g.r + '</span>' + gps.map(function (p) { return '<span class="pchip" data-p="' + p + '">' + p + '</span>'; }).join('');
   });
   pEl.innerHTML = pHtml;
   pEl.querySelectorAll('.pchip').forEach(function (c) {
