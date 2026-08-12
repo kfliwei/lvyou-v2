@@ -20,23 +20,13 @@
   function $(id) { return document.getElementById(id); }
 
   /* ---------- 坐标 / 距离 ---------- */
-  function haversine(a, b) { var R = 6371, dLat = (b[0] - a[0]) * Math.PI / 180, dLng = (b[1] - a[1]) * Math.PI / 180;
-    var s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * Math.PI / 180) * Math.cos(b[0] * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-    return 2 * R * Math.asin(Math.sqrt(s)); }
-  function havKm(aLat, aLng, bLat, bLng) { var R = 6371, r = Math.PI / 180; var dLa = (bLat - aLat) * r, dLo = (bLng - aLng) * r;
-    var s = Math.sin(dLa / 2) ** 2 + Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(s))); }
+  function haversine(a, b) { return window.Geo.havA(a, b); }
+  function havKm(aLat, aLng, bLat, bLng) { return window.Geo.hav(aLat, aLng, bLat, bLng); }
   function refPoint() { if (state.sort === "me" && userLatLng) return userLatLng; if (state.sort && M.REF[state.sort]) return M.REF[state.sort]; return null; }
-  function _tlat(lng, lat) { var r = -100 + 2 * lng + 3 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng)); r += (20 * Math.sin(6 * lng * Math.PI) + 20 * Math.sin(2 * lng * Math.PI)) * 2 / 3; r += (20 * Math.sin(lat * Math.PI) + 40 * Math.sin(lat / 3 * Math.PI)) * 2 / 3; r += (160 * Math.sin(lat / 12 * Math.PI) + 320 * Math.sin(lat * Math.PI / 30)) * 2 / 3; return r; }
-  function _tlng(lng, lat) { var r = 300 + lng + 2 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng)); r += (20 * Math.sin(6 * lng * Math.PI) + 20 * Math.sin(2 * lng * Math.PI)) * 2 / 3; r += (20 * Math.sin(lng * Math.PI) + 40 * Math.sin(lng / 3 * Math.PI)) * 2 / 3; r += (150 * Math.sin(lng / 12 * Math.PI) + 300 * Math.sin(lng / 30 * Math.PI)) * 2 / 3; return r; }
+  function _tlat(lng, lat) { return window.Geo._tlat(lng, lat); }
+  function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }
   var _A = 6378245.0, _EE = 0.00669342162296594323;
-  function gcj02Of(lat, lng) {
-    if (lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271) return [lat, lng];
-    var dlat = _tlat(lng - 105, lat - 35), dlng = _tlng(lng - 105, lat - 35);
-    var rl = lat / 180 * Math.PI, m = Math.sin(rl), mm = 1 - _EE * m * m, sm = Math.sqrt(mm);
-    dlat = (dlat * 180) / ((_A * (1 - _EE)) / (mm * sm) * Math.PI);
-    dlng = (dlng * 180) / (_A / sm * Math.cos(rl) * Math.PI);
-    return [lat + dlat, lng + dlng];
-  }
+  function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
   function pt(s) { return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function gxy(lat, lng) { return useGCJ ? gcj02Of(lat, lng) : [lat, lng]; }
   function colorOf(s) { return M.themes[s.theme] || "#7D7970"; }

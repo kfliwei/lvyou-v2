@@ -9,6 +9,7 @@ var SHELL = [
   './design.css', './map.css', './theme.js',
   './travel-notes.js', './results.js', './vault.js', './quotes.js',
   './wishlist.js', './wishlist.html',
+  './geo.js',
   './poster.js', './tiles.js',
   './vendor/leaflet/leaflet.css', './vendor/leaflet/leaflet.js',
   './images/icon.svg', './manifest.webmanifest',
