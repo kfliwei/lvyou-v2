@@ -10,7 +10,7 @@ const sw = fs.readFileSync(swPath, 'utf8');
 /* 扫描页面 */
 const pages = fs.readdirSync(dir).filter(f => /\.html$/.test(f)).sort();
 /* 核心 JS（根目录，排除数据文件——数据走 RUNTIME SWR） */
-const CORE_JS = ['theme.js', 'travel-notes.js', 'results.js', 'vault.js', 'quotes.js', 'topic-meta.js', 'topic-common.js', 'wishlist.js', 'geo.js', 'poster.js', 'tiles.js', 'topic-counts.js', 'food.js', 'food-gxyn.js'].filter(f => fs.existsSync(path.join(dir, f)));
+const CORE_JS = ['theme.js', 'travel-notes.js', 'results.js', 'vault.js', 'quotes.js', 'topic-meta.js', 'topic-common.js', 'wishlist.js', 'geo.js', 'poster.js', 'tiles.js', 'topic-counts.js', 'routes-data.js', 'food.js', 'food-gxyn.js'].filter(f => fs.existsSync(path.join(dir, f)));
 /* art 封面 */
 const art = fs.readdirSync(path.join(dir, 'art')).filter(f => /\.svg$/.test(f)).sort().map(f => "'./art/" + f + "'");
 const shell = [

@@ -6,6 +6,7 @@
    ============================================================ */
 (function () {
   var M = null;              // TOPIC_META（init 时读取）
+  var R = null;              // TOPIC_ROUTES（routesKey 时读取）
   var SITES = [], FOOD = [];
   var map, markerLayer, useGCJ = true, lastMarkerList = null, lastRouteRi = null;
   var markers = new Map();
@@ -13,7 +14,7 @@
   var userLatLng = null, userMarker = null, watchId = null, pickMode = false;
   var trip = [], routeOrders = {};
   var nearLayer = null, nearP = null, nearBar = null;
-  var state = { q: "", region: "", theme: "", city: "", sort: "" };
+  var state = { q: "", region: "", theme: "", city: "", elev: "", sort: "" };
   var FOOD_STATE = { q: "", prov: "", city: "", type: "" };
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -29,16 +30,18 @@
   function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
   function pt(s) { return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function gxy(lat, lng) { return useGCJ ? gcj02Of(lat, lng) : [lat, lng]; }
-  function colorOf(s) { return M.themes[s.theme] || "#7D7970"; }
+  function tk(s) { return s[M.themeKey || 'theme']; }
+  function colorOf(s) { return M.themes[tk(s)] || "#7D7970"; }
 
   /* ---------- 筛选 ---------- */
   function getFiltered() {
     var q = state.q.trim().toLowerCase();
     var arr = SITES.filter(function (s) {
       if (state.region && s.region !== state.region) return false;
-      if (state.theme && s.theme !== state.theme) return false;
+      if (state.theme && tk(s) !== state.theme) return false;
+    if (state.elev && M.elevFilter) { var _e = +s.elev || 0; if (state.elev === 'low' && !(_e < 3000)) return false; if (state.elev === 'mid' && !(_e >= 3000 && _e < 4000)) return false; if (state.elev === 'high' && !(_e >= 4000)) return false; }
       if (state.city && s.city !== state.city) return false;
-      if (q) { var hay = (s.name + s.label + s.region + s.city + s.county + s.theme + s.desc + (s.best || "")).toLowerCase(); if (!hay.includes(q)) return false; }
+      if (q) { var hay = (s.name + s.label + s.region + s.city + s.county + tk(s) + s.desc + (s.best || "")).toLowerCase(); if (!hay.includes(q)) return false; }
       return true;
     });
     var rp = refPoint();
@@ -179,7 +182,7 @@
   };
 
   /* ---------- 节点 / Sheet ---------- */
-  function isMajorSite(s) { return (M.majorThemes || []).indexOf(s.theme) >= 0; }
+  function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0; }
   function nodeIcon(s, active) {
     var theme = colorOf(s);
     var inT = inTrip(s.__i);
@@ -265,7 +268,7 @@
     var inT = inTrip(i);
     var img = s.img ? '<div class="ls-img"><img src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
-      '<div class="ls-loc">' + (M.themeIcons[s.theme] || '') + ' ' + esc(s.theme) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
+      '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
@@ -407,7 +410,7 @@
     var dh = detHtml(s);
     card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
       '<img loading="lazy" src="' + s.img + '" alt="' + s.label + '" onerror="this.style.display=\'none\'">' +
-      '<span class="tag">' + (M.themeIcons[s.theme] || '') + ' ' + s.theme + '</span></div>' +
+      '<span class="tag">' + (M.themeIcons[tk(s)] || '') + ' ' + tk(s) + '</span></div>' +
       '<div class="body"><div class="nm">' + s.label + '</div>' +
       '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
       '<div class="ds">' + s.desc + (s.best ? ('　🗓 最佳 ' + s.best) : '') + '</div>' +
@@ -485,7 +488,7 @@
   function renderThemes(list) {
     var tl = $('tl'); tl.innerHTML = '';
     M.themeOrder.forEach(function (th) {
-      var items = list.filter(function (s) { return s.theme === th; }); if (!items.length) return;
+      var items = list.filter(function (s) { return tk(s) === th; }); if (!items.length) return;
       var sec = document.createElement('div'); sec.className = 'tl-era'; sec.dataset.th = th;
       var head = document.createElement('div'); head.className = 'tl-head';
       head.innerHTML = '<span class="d" style="background:' + M.themes[th] + '"></span><h3>' + th + ' ' + (M.themeIcons[th] || '') + '</h3><span class="cnt">' + items.length + ' 处</span><span class="tl-arr">▾</span>';
@@ -701,8 +704,12 @@
   function syncChips() {
     document.querySelectorAll('#dynChips .chip').forEach(function (c) {
       var f = c.dataset.f;
-      if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city); return; }
-      if (f === state.theme || f === state.region || f === state.city) c.classList.add('on'); else c.classList.remove('on');
+      if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city && !state.elev); return; }
+      if (f === state.theme || f === state.region || f === state.city) c.classList.add('on');
+      else if (f === '低海拔 <3000m' && state.elev === 'low') c.classList.add('on');
+      else if (f === '中海拔 3000-4000m' && state.elev === 'mid') c.classList.add('on');
+      else if (f === '高海拔 >4000m' && state.elev === 'high') c.classList.add('on');
+      else c.classList.remove('on');
     });
     /* 图例选中态与顶部 chips 同步（M.legendFilter） */
     document.querySelectorAll('#legBody .lg').forEach(function (el) {
@@ -731,6 +738,13 @@
       };
       dynChips.appendChild(cc);
     });
+    if (M.elevFilter) {
+      [['low', '低海拔 <3000m'], ['mid', '中海拔 3000-4000m'], ['high', '高海拔 >4000m']].forEach(function (ev) {
+        var cc = mkChip(ev[1], false);
+        cc.onclick = function () { state.elev = (state.elev === ev[0] ? '' : ev[0]); syncChips(); renderAll(); };
+        dynChips.appendChild(cc);
+      });
+    }
     if (M.cityChips !== false) {
       [...new Set(SITES.map(function (s) { return s.city; }))].sort().forEach(function (city) {
         var cc = mkChip(city, false);
@@ -749,9 +763,9 @@
     allRow.onclick = function () { state.theme = ''; syncChips(); renderAll(); };
     legBody.appendChild(allRow);
     M.themeOrder.forEach(function (th) {
-      if (!SITES.some(function (s) { return s.theme === th; })) return;
+      if (!SITES.some(function (s) { return tk(s) === th; })) return;
       var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
-      var cnt = SITES.filter(function (s) { return s.theme === th; }).length;
+      var cnt = SITES.filter(function (s) { return tk(s) === th; }).length;
       r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + (M.themeIcons[th] || '') + ' ' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + cnt + '</span>';
       /* 图例即标签：点击切换该主题筛选（与顶部 chips 联动） */
       r.onclick = function () {
@@ -853,6 +867,7 @@
   /* ---------- 启动 ---------- */
   function init() {
     M = window.TOPIC_META;
+    if (M.routesKey && window.TOPIC_ROUTES) M.routes = window.TOPIC_ROUTES[M.routesKey] || M.routes || [];
     SITES = window.SITES || [];
     FOOD = window.FOOD || [];
     try { trip = JSON.parse(localStorage.getItem(M.tripKey) || '[]'); } catch (e) { trip = []; }

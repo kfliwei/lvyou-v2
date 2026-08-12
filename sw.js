@@ -32,6 +32,7 @@ var SHELL = [
   './poster.js',
   './tiles.js',
   './topic-counts.js',
+  './routes-data.js',
   './food.js',
   './food-gxyn.js',
   './design.css',

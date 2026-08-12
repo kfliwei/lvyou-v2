@@ -137,7 +137,11 @@
     window.TopicEngine._closeArrive = function () { var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show'); };
     window.TopicEngine.init();
   }
-  loadScript(cfg.dataJs, function () { if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); });
+  loadScript(cfg.dataJs, function () {
+    if (cfg.routesKey) { loadScript('routes-data.js', function () { R = window.TOPIC_ROUTES || {}; if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); }); }
+    else if (cfg.foodJs) loadScript(cfg.foodJs, boot);
+    else boot();
+  });
 })();
 </script>
 </body>
