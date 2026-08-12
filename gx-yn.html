@@ -1013,8 +1013,14 @@ THEME_ORDER.forEach(th=>{
 });
 // 图例
 const legBody=document.getElementById('legBody');
+/* 全部主题 */
+const allRow=document.createElement('div');allRow.className='lg';allRow.dataset.th='';allRow.style.cursor='pointer';
+allRow.innerHTML=`<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">${SITES.length}</span>`;
+allRow.onclick=()=>{state.theme='';syncChips();renderAll();};
+legBody.appendChild(allRow);
 THEME_ORDER.forEach(th=>{if(!SITES.some(s=>s.theme===th))return;const r=document.createElement('div');r.className='lg';r.dataset.th=th;r.style.cursor='pointer';
-  r.innerHTML=`<span class="dot" style="background:${THEME[th]}"></span>${THEME_ICON[th]||''} ${th}`;
+  const cnt=SITES.filter(s=>s.theme===th).length;
+  r.innerHTML=`<span class="dot" style="background:${THEME[th]}"></span>${THEME_ICON[th]||''} ${th}<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">${cnt}</span>`;
   r.onclick=()=>{state.theme=(state.theme===th?'':th);syncChips();renderAll();};
   legBody.appendChild(r);});
 const legEl=document.getElementById('legend'),legOpen=document.getElementById('legOpen');

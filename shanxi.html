@@ -921,8 +921,14 @@ function syncChips(){
 });
 // 图例
 const legBody=document.getElementById('legBody');
+/* 全部类型 */
+const allRow=document.createElement('div');allRow.className='lg';allRow.dataset.th='';allRow.style.cursor='pointer';
+allRow.innerHTML=`<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部类型<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">${SITES.length}</span>`;
+allRow.onclick=()=>{state.city='';state.type='';state.dyn.clear();syncChips();renderAll();};
+legBody.appendChild(allRow);
 DYN_ORDER.forEach(d=>{if(!SITES.some(s=>s.dy===d))return;const r=document.createElement('div');r.className='lg';r.dataset.th=d;r.style.cursor='pointer';
-  r.innerHTML=`<span class="dot" style="background:${DYN[d]}"></span>${d}`;
+  const cnt=SITES.filter(s=>s.dy===d).length;
+  r.innerHTML=`<span class="dot" style="background:${DYN[d]}"></span>${d}<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">${cnt}</span>`;
   r.onclick=()=>{if(state.dyn.has(d))state.dyn.delete(d);else state.dyn.add(d);syncChips();renderAll();};
   legBody.appendChild(r);});
 const legEl=document.getElementById('legend'),legOpen=document.getElementById('legOpen');
