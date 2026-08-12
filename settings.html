@@ -231,6 +231,21 @@
         <a href="test-data.html" style="font-size:12.5px;color:var(--color-primary-dark);text-decoration:none">载入示例数据（演示用）→</a>
       </div>
     </div>
+
+    <!-- 离线地图 -->
+    <div class="group">
+      <div class="group-title">离线地图</div>
+      <div class="group-sub">把地图瓦片存到本机，断网也能看（网页与 APK 内都生效）。</div>
+      <div class="data-acts">
+        <button class="btn-secondary" id="dlNation">下载全国概览（约 25MB）</button>
+        <button class="btn-secondary" onclick="location.href='nation-map.html?dl=1'">下载当前区域</button>
+        <button class="btn-secondary" id="dlClear">清除离线地图</button>
+      </div>
+      <div class="storage" id="dlInfo" style="margin-top:10px">—</div>
+      <div id="dlBar" style="display:none;margin-top:10px;height:6px;border-radius:99px;background:var(--color-bg-deep);overflow:hidden">
+        <div id="dlFill" style="width:0%;height:100%;background:var(--color-primary);transition:width .2s"></div>
+      </div>
+    </div>
   </div>
 
   <div class="savebar">
@@ -239,6 +254,7 @@
 </div>
 
 <script src="quotes.js"></script>
+<script src="tiles.js"></script>
 <script src="travel-notes.js"></script>
 <script src="vault.js"></script>
 <script>
@@ -373,6 +389,32 @@
     toast('已切换深色模式');
   });
   loadSettings();
+  /* 离线地图 */
+  function tilesSize() {
+    try { Tiles.size(function (n) { document.getElementById('dlInfo').textContent = n ? '已缓存 ' + n + ' 片瓦片' : '未下载离线地图'; }); }
+    catch (e) { document.getElementById('dlInfo').textContent = '需在 http(s) 环境下使用'; }
+  }
+  var dlBusy = false;
+  document.getElementById('dlNation').onclick = function () {
+    if (dlBusy) return; dlBusy = true;
+    if (!('caches' in window)) { toast('当前环境不支持离线缓存'); dlBusy = false; return; }
+    var bar = document.getElementById('dlBar'), fill = document.getElementById('dlFill');
+    bar.style.display = 'block'; fill.style.width = '0%';
+    document.getElementById('dlNation').textContent = '下载中…';
+    Tiles.downloadChina(function (ok, total) {
+      fill.style.width = Math.round(ok / total * 100) + '%';
+    }, function (ok, total, cancelled) {
+      bar.style.display = 'none';
+      document.getElementById('dlNation').textContent = '下载全国概览（约 25MB）';
+      dlBusy = false;
+      toast(cancelled ? '已取消' : '下载完成：' + ok + ' 片瓦片');
+      tilesSize();
+    });
+  };
+  document.getElementById('dlClear').onclick = function () {
+    Tiles.clear(function () { toast('已清除离线地图'); tilesSize(); });
+  };
+  tilesSize();
   /* 初始化游记库（此前未 init 导致 notes 为空，补全地点/篇数都不工作） */
   if (window.TravelNotes) {
     window.TravelNotes._onReady = function () {

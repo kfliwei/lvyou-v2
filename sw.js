@@ -1,5 +1,6 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v6';
+var CACHE = 'trace-v7';
+var TILE_CACHE = 'trace-tiles';   /* 离线瓦片包（tiles.js 写入） */
 var SHELL = [
   './', './index.html', './explore-map.html', './travel-map.html',
   './workshop.html', './settings.html', './md-manager.html', './review.html', './story.html',
@@ -8,6 +9,7 @@ var SHELL = [
   './design.css', './map.css', './theme.js',
   './travel-notes.js', './results.js', './vault.js', './quotes.js',
   './wishlist.js', './wishlist.html',
+  './poster.js', './tiles.js',
   './vendor/leaflet/leaflet.css', './vendor/leaflet/leaflet.js',
   './images/icon.svg', './manifest.webmanifest',
   './art/hero-journey.svg',
@@ -33,6 +35,20 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== location.origin) return;              /* 第三方（瓦片/API）不缓存 */
+  if (/is\.autonavi\.com|tile\.openstreetmap\.org/.test(url.hostname)) {  /* 离线瓦片：缓存优先，子域归一化去重 */
+    e.respondWith(caches.open(TILE_CACHE).then(function (c) {
+      var key = url.hostname.indexOf('is.autonavi.com') >= 0 ? url.href.replace(/wprd0\d/, 'wprd00') : url.href;
+      return c.match(key).then(function (hit) {
+        if (hit) return hit;
+        var f = fetch(req).then(function (res) {
+          if (res && (res.ok || res.type === 'opaque')) c.put(key, res.clone());
+          return res;
+        }).catch(function () { return hit; });
+        return f;
+      });
+    }));
+    return;
+  }
   if (req.mode === 'navigate') {                            /* 导航：网络优先；断网回退到已缓存页/首页 */
     e.respondWith(fetch(req).then(function (res) {
       if (res && res.ok) {

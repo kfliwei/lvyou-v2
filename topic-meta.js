@@ -7,6 +7,7 @@ window.TOPIC_REGISTRY = {
   sc: {
     p: 'sc',
     title: '四川风光人文地图',
+    accent: '#C86D4B',
     dataJs: 'sc-data.js',
     foodJs: 'sc-food.js',
     foodEnabled: true,
@@ -118,6 +119,7 @@ window.TOPIC_REGISTRY = {
   gs: {
     p: 'gs',
     title: '甘肃丝路人文地图',
+    accent: '#BA7517',
     dataJs: 'gs-data.js',
     foodJs: 'gs-food.js',
     foodEnabled: true,
@@ -216,6 +218,7 @@ window.TOPIC_REGISTRY = {
   xj: {
     p: 'xj',
     title: '新疆丝路风光地图',
+    accent: '#3E7CB1',
     dataJs: 'xj-data.js',
     foodJs: 'xj-food.js',
     foodEnabled: true,
@@ -315,6 +318,7 @@ window.TOPIC_REGISTRY = {
   gz: {
     p: 'gz',
     title: '贵州山水人文地图',
+    accent: '#71806C',
     dataJs: 'gz-data.js',
     foodJs: 'gz-food.js',
     foodEnabled: true,
@@ -407,6 +411,7 @@ window.TOPIC_REGISTRY = {
   qh: {
     p: 'qh',
     title: '青海大美山河地图',
+    accent: '#5F6D76',
     dataJs: 'qh-data.js',
     foodJs: 'qh-food.js',
     foodEnabled: true,
@@ -464,6 +469,7 @@ window.TOPIC_REGISTRY = {
   xz: {
     p: 'xz',
     title: '西藏圣境之旅地图',
+    accent: '#9C9A92',
     dataJs: 'xz-data.js',
     foodJs: 'xz-food.js',
     foodEnabled: true,
@@ -525,6 +531,7 @@ window.TOPIC_REGISTRY = {
   nmg: {
     p: 'nmg',
     title: '内蒙古草原风情地图',
+    accent: '#639922',
     dataJs: 'nmg-data.js',
     foodJs: 'nmg-food.js',
     foodEnabled: true,
@@ -578,6 +585,7 @@ window.TOPIC_REGISTRY = {
   sx2: {
     p: 'sx2',
     title: '陕西三秦人文地图',
+    accent: '#A9563B',
     dataJs: 'sx-data.js',
     foodJs: 'sx-food.js',
     foodEnabled: true,
@@ -630,6 +638,7 @@ window.TOPIC_REGISTRY = {
   hn: {
     p: 'hn',
     title: '湖南山水人文地图',
+    accent: '#6D7D88',
     dataJs: 'hn-data.js',
     foodJs: 'hn-food.js',
     foodEnabled: true,
@@ -688,6 +697,7 @@ window.TOPIC_REGISTRY = {
   hb: {
     p: 'hb',
     title: '湖北荆楚山水地图',
+    accent: '#7E7663',
     dataJs: 'hb-data.js',
     foodJs: 'hb-food.js',
     foodEnabled: true,
@@ -741,6 +751,7 @@ window.TOPIC_REGISTRY = {
   cq: {
     p: 'cq',
     title: '重庆魔幻山水地图',
+    accent: '#8A5A44',
     dataJs: 'cq-data.js',
     foodJs: 'cq-food.js',
     foodEnabled: true,
@@ -789,6 +800,7 @@ window.TOPIC_REGISTRY = {
   nx: {
     p: 'nx',
     title: '宁夏塞上江南地图',
+    accent: '#AAA08A',
     dataJs: 'nx-data.js',
     foodJs: 'nx-food.js',
     foodEnabled: true,
@@ -837,6 +849,7 @@ window.TOPIC_REGISTRY = {
   nation: {
     p: 'nation',
     title: '全国风光人文地图',
+    accent: '#20201D',
     dataJs: 'nation-data.js',
     foodJs: '',
     foodEnabled: true,

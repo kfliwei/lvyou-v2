@@ -154,6 +154,8 @@
     <button id="zi" title="放大"><span class="zoomplus">+</span></button>
     <div class="sep"></div>
     <button id="zo" title="缩小"><span class="zoomminus"></span></button>
+    <div class="sep"></div>
+    <button id="dlBtn" title="下载此区域离线地图"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V15 M7 10 L12 15 L17 10"/><path d="M5 19 H19"/></svg></button>
   </div>
   <div class="zTip" id="zTip">放大查看节点 · 点击地图任意位置查附近景点</div>
   <div class="provs" id="provs"></div>
@@ -175,6 +177,7 @@
   </div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="tiles.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
 <script src="nation-data.js"></script>
@@ -210,6 +213,20 @@
   document.getElementById('layBtn').onclick = function () { var cur = layers.filter(function (x) { return map.hasLayer(x.l); })[0] || layers[0]; var i = (layers.indexOf(cur) + 1) % layers.length; layers.forEach(function (x) { map.removeLayer(x.l); }); layers[i].l.addTo(map); useGCJ = (layers[i].n !== 'OSM'); nodeLayer.clearLayers(); renderNodes(); };
   document.getElementById('zi').onclick = function () { map.zoomIn(); };
   document.getElementById('zo').onclick = function () { map.zoomOut(); };
+  var dlBusy = false;
+  document.getElementById('dlBtn').onclick = function () {
+    if (dlBusy) return; dlBusy = true;
+    if (!('caches' in window)) { flash('当前环境不支持离线缓存'); dlBusy = false; return; }
+    var t0 = Date.now();
+    Tiles.downloadView(map, [10, 11, 12], function (ok, total) {
+      document.getElementById('dlBtn').title = '下载中 ' + ok + '/' + total;
+    }, function (ok, total, cancelled) {
+      dlBusy = false;
+      document.getElementById('dlBtn').title = '下载此区域离线地图';
+      flash(cancelled ? '已取消' : '已缓存 ' + ok + ' 片瓦片（' + Math.round((Date.now() - t0) / 1000) + 's），断网可用');
+    });
+  };
+  if (location.search.indexOf('dl=1') >= 0) setTimeout(function () { var b = document.getElementById('dlBtn'); if (b) b.click(); }, 900);
 
   /* ---- 节点动态渲染（视野 + 缩放 + 省份） ---- */
   var nodeLayer = L.layerGroup().addTo(map);
@@ -397,6 +414,12 @@
     var s = SITES[i]; if (!s) return;
     map.flyTo(pt(s), Math.max(map.getZoom(), 10), { duration: .6 });
     setTimeout(function () { openSheet(i); }, 620);
+  }
+  function flash(msg) {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.textContent = msg; document.body.appendChild(d);
+    setTimeout(function () { d.remove(); }, 2600);
   }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   document.getElementById('zTip').addEventListener('click', function () { map.setView([34.5, 103.5], 7); });
