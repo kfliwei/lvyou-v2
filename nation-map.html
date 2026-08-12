@@ -130,6 +130,20 @@
   .map-skeleton .sk-bar{width:180px;height:6px;border-radius:99px;background:var(--color-bg-deep);overflow:hidden;position:relative}
   .map-skeleton .sk-bar::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);animation:skShimmer 1.4s infinite}
   @keyframes skShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  /* 图例（与专题页同款结构：全部主题 + 数量 + 点击筛选） */
+  .legend{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:176px;max-height:40vh;overflow-y:auto;background:rgba(250,248,243,.95);border:1px solid rgba(32,32,29,.07);border-radius:16px;box-shadow:var(--shadow-float);padding:10px 12px;z-index:1050;backdrop-filter:blur(16px);font-size:12px;color:var(--color-ink-soft);display:block}
+  .legend.hidden{display:none}
+  .legend .tg{position:absolute;right:8px;top:6px;border:0;background:none;color:var(--color-muted);font-size:13px;cursor:pointer}
+  .legend h4{font-family:var(--font-serif);font-size:13px;font-weight:600;color:var(--color-ink);margin:2px 0 8px}
+  .legend .lg{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .legend .lg .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .legend .lg .cnt{margin-left:auto;font-size:10.5px;color:var(--color-faint)}
+  .legend .lg.on{background:var(--color-primary-soft);color:var(--color-primary-dark);font-weight:600}
+  .legOpen{display:none;position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:1050;padding:8px 14px;border-radius:999px;border:1px solid rgba(32,32,29,.08);background:rgba(250,248,243,.92);color:var(--color-ink-soft);font-size:12px;cursor:pointer;box-shadow:var(--shadow-medium);backdrop-filter:blur(12px)}
+  .legOpen.show{display:block}
+  .theme-dark .legend{background:rgba(29,28,25,.94);border-color:var(--color-line)}
+  .theme-dark .legend h4{color:var(--color-ink)}
+  .theme-dark .legOpen{background:rgba(29,28,25,.9);color:var(--color-muted);border-color:var(--color-line)}
   /* 聚合气泡（zoom<7 时替代全隐藏） */
   .cl-bubble{display:grid;place-items:center;border-radius:50%;background:var(--color-ink);color:#fff;font-size:12px;font-weight:600;border:2.5px solid rgba(255,255,255,.9);box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;font-family:var(--font-sans)}
   .cl-bubble:active{transform:scale(.92)}
@@ -176,6 +190,12 @@
     <div class="rl-head"><b id="rlTitle">附近景点</b><span id="rlClose" style="cursor:pointer">收起 ✕</span></div>
     <div id="rlBody"></div>
   </div>
+  <div class="legend" id="legend">
+    <button class="tg" id="legTg" title="关闭图例">✕</button>
+    <h4>景观类型色谱</h4>
+    <div class="body" id="legBody"></div>
+  </div>
+  <button id="legOpen" class="legOpen" title="显示图例">🗺️ 图例</button>
   <div class="location-sheet" id="locSheet">
     <div class="sheet__handle" onclick="closeSheet()"></div>
     <div id="lsBody"></div>
@@ -186,6 +206,7 @@
 <script src="tiles.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
+<script src="topic-meta.js"></script>
 <script>
 (function () {
   function boot() {
@@ -206,7 +227,16 @@
   function haversine(lat1, lng1, lat2, lng2) { return window.Geo.hav(lat1, lng1, lat2, lng2); }
 
   /* ---- 主题色（覆盖各省 theme + 山西 ty） ---- */
-  var COLORS = { '高原湖泊': '#5F6D76', '雪山冰川': '#9C9A92', '名山大川': '#71806C', '峡谷天堑': '#8A5A44', '江河瀑布': '#5F6D76', '古建寺院': '#A9563B', '古城古镇': '#8A5A44', '古城遗址': '#7E7663', '红色遗迹': '#C86D4B', '民族风情': '#C86D4B', '城市地标': '#6D7D88', '溶洞奇观': '#8C7B66', '森林草原': '#71806C', '森林山川': '#71806C', '宗教圣地': '#A9563B', '遗址陵墓': '#7E7663', '温泉康养': '#C86D4B', '石窟艺术': '#A9563B', '丹霞地貌': '#BA7517', '雅丹地貌': '#BA7517', '沙漠戈壁': '#BA7517', '草原湿地': '#639922', '石窟寺': '#A9563B', '佛寺': '#A9563B', '古塔': '#7E7663', '楼阁牌坊': '#8A5A44', '名城名镇': '#8A5A44', '壁画彩塑': '#C86D4B', '关隘长城': '#993C1D', '窑洞民居': '#BA7517', '庙宇道观': '#A9563B', '文庙书院': '#A9563B', '陵墓': '#7E7663', '桥梁': '#6D7D88', '教堂会馆': '#6D7D88', '其他': '#B4AFA4' };
+  /* 主题色：单一真相源（TOPIC_REGISTRY 各省 themes 汇总，删除了原内联 40+ 行） */
+  var COLORS = (function () {
+    var c = {};
+    Object.keys(window.TOPIC_REGISTRY || {}).forEach(function (k) {
+      var t = (window.TOPIC_REGISTRY[k].themes || {});
+      Object.keys(t).forEach(function (th) { if (!c[th]) c[th] = t[th]; });
+    });
+    return c;
+  })();
+  var curTheme = '';   /* 图例主题筛选 */
   function colorOf(s) { return COLORS[s.theme] || COLORS[s.ty] || '#B4AFA4'; }
 
   /* ---- 地图 ---- */
@@ -247,7 +277,7 @@
   }
   function visibleNodes() {
     var b = map.getBounds();
-    return SITES.filter(function (s) { return (!prov || s.province === prov) && b.contains(pt(s)); });
+    return SITES.filter(function (s) { return (!prov || s.province === prov) && (!curTheme || (s.theme || s.ty) === curTheme) && b.contains(pt(s)); });
   }
   var renderTimer = null;
   function renderNodes() {
@@ -394,6 +424,26 @@
       }
     };
   });
+
+  /* ---- 图例（主题汇总 + 点击筛选，与专题页同款交互） ---- */
+  var legBody = document.getElementById('legBody');
+  var allRow = document.createElement('div'); allRow.className = 'lg on'; allRow.dataset.th = '';
+  allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt">' + SITES.length + '</span>';
+  allRow.onclick = function () { curTheme = ''; syncLeg(); renderNodes(); };
+  legBody.appendChild(allRow);
+  Object.keys(COLORS).forEach(function (th) {
+    var cnt = SITES.filter(function (s) { return (s.theme || s.ty) === th; }).length;
+    if (!cnt) return;
+    var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
+    r.innerHTML = '<span class="dot" style="background:' + COLORS[th] + '"></span>' + th + '<span class="cnt">' + cnt + '</span>';
+    r.onclick = function () { curTheme = (curTheme === th ? '' : th); syncLeg(); renderNodes(); };
+    legBody.appendChild(r);
+  });
+  function syncLeg() { legBody.querySelectorAll('.lg').forEach(function (el) { el.classList.toggle('on', el.dataset.th === curTheme); }); }
+  var legEl = document.getElementById('legend'), legOpen = document.getElementById('legOpen');
+  function legSet(h) { legEl.classList.toggle('hidden', h); legOpen.classList.toggle('show', h); }
+  document.getElementById('legTg').onclick = function () { legSet(true); };
+  legOpen.onclick = function () { legSet(false); };
 
   /* ---- 详情（专题页同款 ls-* 结构） ---- */
   function openSheet(i) {
