@@ -893,6 +893,7 @@ function syncChips(){
     else if(state.dyn.has(f)) c.classList.add('on');
     else c.classList.remove('on');
   });
+  legBody.querySelectorAll('.lg').forEach(r=>{r.classList.toggle('on',state.dyn.has(r.dataset.th));});
 }
 // 全部重置
 (function(){
@@ -920,8 +921,10 @@ function syncChips(){
 });
 // 图例
 const legBody=document.getElementById('legBody');
-DYN_ORDER.forEach(d=>{if(!SITES.some(s=>s.dy===d))return;const r=document.createElement('div');r.className='lg';
-  r.innerHTML=`<span class="dot" style="background:${DYN[d]}"></span>${d}`;legBody.appendChild(r);});
+DYN_ORDER.forEach(d=>{if(!SITES.some(s=>s.dy===d))return;const r=document.createElement('div');r.className='lg';r.dataset.th=d;r.style.cursor='pointer';
+  r.innerHTML=`<span class="dot" style="background:${DYN[d]}"></span>${d}`;
+  r.onclick=()=>{if(state.dyn.has(d))state.dyn.delete(d);else state.dyn.add(d);syncChips();renderAll();};
+  legBody.appendChild(r);});
 const legEl=document.getElementById('legend'),legOpen=document.getElementById('legOpen');
 function legSet(h){legEl.classList.toggle('hidden',h);legOpen.classList.toggle('show',h);}
 document.getElementById('legTg').onclick=()=>legSet(true);

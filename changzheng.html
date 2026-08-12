@@ -947,6 +947,7 @@ function syncChips(){
     if(c.dataset.f==='全部'){c.classList.toggle('on',!state.theme);return;}
     c.classList.toggle('on',!!state.theme&&c.dataset.v===state.theme);
   });
+  legBody.querySelectorAll('.lg').forEach(r=>{r.classList.toggle('on',r.dataset.th===state.theme);});
 }
 (function(){
   const c=mkChip('全部',true); c.className='chip all on';
@@ -976,8 +977,10 @@ routeSel.onchange=()=>{
 };
 // 图例
 const legBody=document.getElementById('legBody');
-THEME_ORDER.forEach(th=>{if(!SITES.some(s=>s.theme===th))return;const r=document.createElement('div');r.className='lg';
-  r.innerHTML=`<span class="dot" style="background:${THEME[th]}"></span>${THEME_ICON[th]||''} ${th}`;legBody.appendChild(r);});
+THEME_ORDER.forEach(th=>{if(!SITES.some(s=>s.theme===th))return;const r=document.createElement('div');r.className='lg';r.dataset.th=th;r.style.cursor='pointer';
+  r.innerHTML=`<span class="dot" style="background:${THEME[th]}"></span>${THEME_ICON[th]||''} ${th}`;
+  r.onclick=()=>{state.theme=(state.theme===th?'':th);syncChips();renderAll();};
+  legBody.appendChild(r);});
 const legEl=document.getElementById('legend'),legOpen=document.getElementById('legOpen');
 function legSet(h){legEl.classList.toggle('hidden',h);legOpen.classList.toggle('show',h);}
 document.getElementById('legTg').onclick=()=>legSet(true);
