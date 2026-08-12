@@ -113,7 +113,9 @@
   .ls-add{margin-left:auto;font-size:14px;font-weight:600;color:var(--color-primary-dark);padding:12px 6px;cursor:pointer;border-radius:12px;transition:transform var(--duration-fast)}
   .ls-add:active{transform:scale(.95)}
   .ls-add.done{color:var(--color-green)}
-  .ls-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-muted);display:flex;gap:22px}
+  .ls-more{margin-top:14px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-muted);display:flex;gap:22px;align-items:center}
+  .ls-more .ls-wish{margin-left:auto;cursor:pointer;font-weight:600;color:var(--color-primary-dark);font-size:13.5px}
+  .ls-more .ls-wish.done{color:var(--color-green)}
   .ls-more span{cursor:pointer}
   .theme-dark #locSheet{background:rgba(29,28,25,.96)}
   .theme-dark .ls-place,.theme-dark .ls-loc{color:var(--color-ink)}
@@ -410,10 +412,10 @@
         '来源专题 · ' + esc(s.topicName || '') +
       '</div>' +
       '<div class="ls-actions">' +
-      '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="recordHere(' + i + ')">✎ 语音记录</button>' +
       '</div>' +
-      '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span></div>';
+      '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span>' +
+      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</span></div>';
     document.getElementById('locSheet').classList.add('show');
   }
   function closeSheet() { document.getElementById('locSheet').classList.remove('show'); }

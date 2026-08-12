@@ -268,12 +268,12 @@
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
       '<div class="ls-actions">' +
-      '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
-      '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +
+            '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 16px" onclick="window.TravelNotes.openPanel(' + i + ')">🎙 语音记录</button>' +
       '<span class="ls-add' + (inT ? ' done' : '') + '" onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
       '</div>' +
-      '<div class="ls-more"><span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span><span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
+      '<div class="ls-more"><span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span><span onclick="window.TopicEngine.closeSheet()">收起</span>' +
+      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</span></div>';
   }
   function openSheet(i) {
     curSite = i;
