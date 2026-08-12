@@ -107,7 +107,9 @@
   .ls-loc{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.05em}
   .ls-desc{margin-top:12px;font-size:14px;color:var(--color-ink-soft);line-height:1.8}
   .ls-hist{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-ink-soft);line-height:1.8}
-  .ls-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+  .ls-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .ls-actions .btn-primary,.ls-actions .btn-secondary{flex:0 1 auto;min-width:0;white-space:nowrap}
+  .ls-actions .ls-add{margin-left:auto}
   .ls-add{margin-left:auto;font-size:14px;font-weight:600;color:var(--color-primary-dark);padding:12px 6px;cursor:pointer;border-radius:12px;transition:transform var(--duration-fast)}
   .ls-add:active{transform:scale(.95)}
   .ls-add.done{color:var(--color-green)}
@@ -409,7 +411,6 @@
       '</div>' +
       '<div class="ls-actions">' +
       '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
-      '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="navTo(' + i + ')">🚗 导航</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="recordHere(' + i + ')">✎ 语音记录</button>' +
       '</div>' +
       '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span></div>';
@@ -425,12 +426,6 @@
   function recordHere(i) {
     var s = SITES[i]; if (!s) return;
     try { window.TravelNotes.openPanel({ label: s.label, lat: s.lat, lng: s.lng }); } catch (e) {}
-  }
-  /* 高德导航（GCJ-02 坐标） */
-  function navTo(i) {
-    var s = SITES[i]; if (!s) return;
-    var g = window.Geo.gcj02Of(s.lat, s.lng);
-    window.open('https://uri.amap.com/navigation?to=' + g[1] + ',' + g[0] + ',' + encodeURIComponent(s.label) + '&mode=car&src=行迹', '_blank');
   }
   function flyTo(i) {
     var s = SITES[i]; if (!s) return;
