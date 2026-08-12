@@ -269,6 +269,7 @@
       (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
       '<div class="ls-actions">' +
       '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
+      '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="window.TopicEngine.navTo(' + i + ')">🚗 导航</button>' +
       '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 16px" onclick="window.TravelNotes.openPanel(' + i + ')">🎙 语音记录</button>' +
       '<span class="ls-add' + (inT ? ' done' : '') + '" onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
@@ -320,6 +321,12 @@
     var on = window.Wish ? Wish.toggle(s) : false;
     showTripToast(on ? '已加入想去清单' : '已从想去清单移除');
     refreshSheet();
+  }
+  /* 高德导航（GCJ-02 坐标） */
+  function navTo(i) {
+    var s = SITES[i]; if (!s) return;
+    var g = window.Geo.gcj02Of(s.lat, s.lng);
+    window.open('https://uri.amap.com/navigation?to=' + g[1] + ',' + g[0] + ',' + encodeURIComponent(s.label) + '&mode=car&src=行迹', '_blank');
   }
   function renderTripBar() {
     var bar = $('tripBar');
@@ -930,6 +937,7 @@
     init: init,
     toggleTrip: toggleTrip,
     toggleWish: toggleWish,
+    navTo: navTo,
     flyToSite: flyToSite,
     closeSheet: closeSheet,
     openSheet: openSheet

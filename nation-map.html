@@ -48,6 +48,7 @@
   .provs::-webkit-scrollbar{display:none}
   .pchip{flex:none;padding:7px 13px;border-radius:999px;background:rgba(250,248,243,.9);border:1px solid rgba(32,32,29,.08);font-size:11.5px;color:var(--color-muted);cursor:pointer;box-shadow:0 3px 10px rgba(30,30,28,.05);backdrop-filter:blur(10px)}
   .pchip.on{background:var(--color-ink);color:#fff;border-color:var(--color-ink);font-weight:600}
+  .pgroup{flex:none;padding:0 2px 0 10px;font-size:10px;color:var(--color-faint);letter-spacing:.12em;align-self:center}
   .theme-dark .pchip{background:rgba(29,28,25,.85);color:var(--color-muted)}
   .theme-dark .pchip.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
   /* 半径条 */
@@ -185,7 +186,7 @@
 (function () {
   function boot() {
   var sk = document.getElementById('mapSkeleton'); if (sk) sk.remove();
-  var SITES = window.NATION_SITES || [];
+  var SITES = window.SITES || [];
   var META = window.NATION_META || { topics: {}, provinces: [] };
   document.getElementById('cntLabel').textContent = META.count + ' 处';
   var prov = null, curP = null, curR = null, sheetIdx = null;
@@ -360,10 +361,23 @@
   }
   document.addEventListener('click', function (e) { if (!e.target.closest('.search')) sdrop.style.display = 'none'; });
 
-  /* ---- 省份筛选 ---- */
+  /* ---- 省份筛选（按区域分组） ---- */
   var pEl = document.getElementById('provs');
-  var chips = [''].concat(META.provinces);
-  pEl.innerHTML = chips.map(function (p) { return '<span class="pchip' + (p === '' ? ' on' : '') + '" data-p="' + p + '">' + (p === '' ? '全部' : p) + '</span>'; }).join('');
+  var REGIONS = [
+    { r: '华北', ps: ['山西', '内蒙古'] },
+    { r: '华东', ps: ['江西'] },
+    { r: '华中', ps: ['河南', '湖北', '湖南'] },
+    { r: '华南', ps: ['广西'] },
+    { r: '西南', ps: ['四川', '云南', '贵州', '重庆', '西藏'] },
+    { r: '西北', ps: ['陕西', '甘肃', '宁夏', '青海', '新疆'] }
+  ];
+  var pHtml = '<span class="pchip on" data-p="">全部</span>';
+  REGIONS.forEach(function (g) {
+    var gps = g.ps.filter(function (p) { return META.provinces.indexOf(p) >= 0; });
+    if (!gps.length) return;
+    pHtml += '<span class="pgroup">' + g.r + '</span>' + gps.map(function (p) { return '<span class="pchip" data-p="' + p + '">' + p + '</span>'; }).join('');
+  });
+  pEl.innerHTML = pHtml;
   pEl.querySelectorAll('.pchip').forEach(function (c) {
     c.onclick = function () {
       pEl.querySelectorAll('.pchip').forEach(function (x) { x.classList.remove('on'); });
@@ -395,6 +409,7 @@
       '</div>' +
       '<div class="ls-actions">' +
       '<button class="btn-secondary ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</button>' +
+      '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="navTo(' + i + ')">🚗 导航</button>' +
       '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 14px" onclick="recordHere(' + i + ')">✎ 语音记录</button>' +
       '</div>' +
       '<div class="ls-more"><span onclick="flyTo(' + i + ')">在地图查看</span><span onclick="closeSheet()">收起</span></div>';
@@ -411,6 +426,12 @@
     var s = SITES[i]; if (!s) return;
     try { window.TravelNotes.openPanel({ label: s.label, lat: s.lat, lng: s.lng }); } catch (e) {}
   }
+  /* 高德导航（GCJ-02 坐标） */
+  function navTo(i) {
+    var s = SITES[i]; if (!s) return;
+    var g = window.Geo.gcj02Of(s.lat, s.lng);
+    window.open('https://uri.amap.com/navigation?to=' + g[1] + ',' + g[0] + ',' + encodeURIComponent(s.label) + '&mode=car&src=行迹', '_blank');
+  }
   function flyTo(i) {
     var s = SITES[i]; if (!s) return;
     map.flyTo(pt(s), Math.max(map.getZoom(), 10), { duration: .6 });
@@ -426,7 +447,7 @@
   document.getElementById('zTip').addEventListener('click', function () { map.setView([34.5, 103.5], 7); });
   }
   /* 数据动态加载：不阻塞首屏渲染（骨架屏覆盖下载期） */
-  if (window.NATION_SITES) { boot(); }
+  if (window.SITES) { boot(); }
   else {
     var sc = document.createElement('script');
     sc.src = 'nation-data.js';
