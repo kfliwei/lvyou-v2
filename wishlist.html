@@ -13,7 +13,7 @@
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
   .t-row{display:flex;align-items:center;gap:8px;height:42px}
-  .t-row .back{width:34px;height:34px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .t-row .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
   .t-row .back:active{transform:scale(.92)}
   .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
   .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
@@ -35,8 +35,9 @@
   .wl-btn:active{transform:scale(.95)}
   .wl-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
   .wl-btn.done{background:#ECEFEA;border-color:transparent;color:var(--color-green)}
-  .wl-remove{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--color-faint);font-size:14px;cursor:pointer;flex:0 0 auto}
+  .wl-remove{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--color-faint);font-size:14px;cursor:pointer;flex:0 0 auto}
   .wl-remove:active{background:var(--color-bg-soft)}
+  .wl-mv{width:32px;height:32px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:13px;cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
   .theme-dark .topbar{background:rgba(29,28,25,.92)}
   .theme-dark .wl-item{border-bottom-color:var(--color-line)}
   .theme-dark .wl-main b{color:var(--color-ink)}
@@ -46,7 +47,7 @@
 <body>
 <header class="topbar">
   <div class="t-row">
-    <button class="back" onclick="history.back()">←</button>
+    <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
     <div class="title">想去清单 <small id="cntLabel"></small></div>
     <button class="wl-btn" style="min-height:34px" id="wlMapBtn">地图</button>
     <button class="wl-btn" style="min-height:34px;margin-left:6px" id="wlPlanBtn">规划行程</button>
@@ -66,6 +67,7 @@
 
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
+<script src="ui.js"></script>
 <script>
 (function () {
   var body = document.getElementById('wlBody');
@@ -85,7 +87,8 @@
     if (!map) {
       map = L.map('wlMap', { zoomControl: false }).setView([34.5, 105], 5);
       L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '? 高德' }).addTo(map);
+      var wlLayer = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '? 高德' }).addTo(map);
+      UI.tileWarn(wlLayer, '地图');
     }
     map.invalidateSize();
     map.eachLayer(function (l) { if (l instanceof L.Marker) map.removeLayer(l); });
@@ -113,7 +116,9 @@
   function planTrip() {
     var list = window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; });
     var box = document.getElementById('wlPlan');
-    if (list.length < 2) { alert('至少需要 2 个未打卡的心愿节点才能规划行程'); return; }
+    if (list.length < 2) { UI.toast('至少需要 2 个未打卡的心愿节点才能规划行程'); return; }
+    var maxPerDay = parseInt(document.getElementById('planStations') ? document.getElementById('planStations').value : '6', 10) || 6;
+    var maxKm = parseInt(document.getElementById('planKm') ? document.getElementById('planKm').value : '260', 10) || 260;
     /* 最近邻贪心分日 */
     var pts = list.map(function (x) { return x; });
     var days = [], cur = null, dayDist = 0;
@@ -125,29 +130,66 @@
       }
       var next = pts.splice(idx, 1)[0];
       if (!cur) { cur = next; days.push([next]); dayDist = 0; continue; }
-      if (days[days.length - 1].length >= 6 || dayDist + bestD > 260) { days.push([next]); dayDist = 0; }
+      if (days[days.length - 1].length >= maxPerDay || dayDist + bestD > maxKm) { days.push([next]); dayDist = 0; }
       else { days[days.length - 1].push(next); dayDist += bestD; }
       cur = next;
     }
-    /* 渲染计划 */
+    /* 渲染计划（可调） */
+    window.__planDays = days;
+    renderPlan(list.length);
+  }
+  function dayKm(d) { var k = 0; for (var i = 1; i < d.length; i++) k += havKm(d[i - 1].lat, d[i - 1].lng, d[i].lat, d[i].lng); return k; }
+  function renderPlan(total) {
+    var box = document.getElementById('wlPlan');
+    var days = window.__planDays || [];
     var html = '<div style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px">' +
-      '<div style="font-family:var(--font-serif);font-size:17px;margin-bottom:4px">行程计划 · ' + days.length + ' 天 / ' + list.length + ' 站</div>' +
-      '<div style="font-size:12px;color:var(--color-muted);margin-bottom:12px">按地理邻近自动分日（每天 ≤6 站、≤260km），可导出 GPX 到户外工具</div>';
+      '<div style="font-family:var(--font-serif);font-size:17px;margin-bottom:4px">行程计划 · ' + days.length + ' 天 / ' + total + ' 站</div>' +
+      '<div style="font-size:12px;color:var(--color-muted);margin-bottom:10px">按地理邻近自动分日，可上下调整顺序（边界自动跨天），导出 GPX 到户外工具</div>' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:12.5px">' +
+      '<span style="color:var(--color-muted)">每天</span><input id="planStations" type="number" min="1" max="12" value="6" style="width:52px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
+      '<span style="color:var(--color-muted)">站 · ≤</span><input id="planKm" type="number" min="30" max="800" step="10" value="260" style="width:64px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
+      '<span style="color:var(--color-muted)">km/天</span>' +
+      '<button class="wl-btn" style="margin-left:auto" onclick="replan()">重新规划</button></div>';
     days.forEach(function (d, di) {
-      var dayKm = 0;
-      for (var i = 1; i < d.length; i++) dayKm += havKm(d[i - 1].lat, d[i - 1].lng, d[i].lat, d[i].lng);
-      html += '<div style="border-top:1px solid var(--color-line);padding:10px 0 4px"><b style="font-family:var(--font-serif);font-weight:400">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm) + ' km</span></div>';
+      html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px"><b style="font-family:var(--font-serif);font-weight:400">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm(d)) + ' km</span></div>';
       d.forEach(function (s, i) {
-        html += '<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0"><span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i + 1) + '</span><span style="flex:1;font-size:0.8438rem">' + s.label + '</span><span style="font-size:0.6875rem;color:var(--color-muted)">' + (s.region || '') + '</span></div>';
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:5px 0">' +
+          '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i + 1) + '</span>' +
+          '<span style="flex:1;min-width:0;font-size:0.8438rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + '</span>' +
+          '<span style="font-size:0.6875rem;color:var(--color-muted)">' + esc(s.region || '') + '</span>' +
+          '<button class="wl-mv" aria-label="上移" onclick="movePlanSite(' + di + ',' + i + ',-1)">↑</button>' +
+          '<button class="wl-mv" aria-label="下移" onclick="movePlanSite(' + di + ',' + i + ',1)">↓</button></div>';
       });
     });
     html += '<div style="display:flex;gap:10px;margin-top:14px"><button class="wl-btn" style="flex:1;justify-content:center" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center" id="wlPlanClose">收起计划</button></div></div>';
     box.innerHTML = html;
     box.style.display = 'block';
-    window.__planData = days;
+    document.getElementById('planStations').value = window.__planStations || 6;
+    document.getElementById('planKm').value = window.__planKm || 260;
+    document.getElementById('wlPlanClose').onclick = function () { box.style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
   }
+  window.replan = function () {
+    window.__planStations = parseInt(document.getElementById('planStations').value, 10) || 6;
+    window.__planKm = parseInt(document.getElementById('planKm').value, 10) || 260;
+    planTrip();
+  };
+  /* 调整站序：dir=-1 上移、1 下移；边界时自动跨天 */
+  window.movePlanSite = function (di, si, dir) {
+    var days = window.__planDays; if (!days || !days[di]) return;
+    var d = days[di];
+    var to = si + dir;
+    if (to >= 0 && to < d.length) {
+      var t = d[si]; d[si] = d[to]; d[to] = t;
+    } else if (dir < 0 && di > 0) {
+      days[di - 1].push(d.splice(si, 1)[0]);
+    } else if (dir > 0 && di < days.length - 1) {
+      days[di + 1].unshift(d.splice(si, 1)[0]);
+    } else { return; }
+    window.__planDays = days.filter(function (x) { return x.length; });
+    renderPlan(window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; }).length);
+  };
   window.__exportPlan = function () {
-    var days = window.__planData; if (!days || !days.length) return;
+    var days = window.__planDays; if (!days || !days.length) return;
     var pts = [];
     days.forEach(function (d) { d.forEach(function (s) { pts.push(s); }); });
     var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
@@ -201,7 +243,7 @@
             : '<button class="wl-btn primary" onclick="doCheckin(' + i + ')">打卡</button>' +
               '<button class="wl-btn" onclick="doRecord(' + i + ')">记录</button>') +
         '</div>' +
-        '<button class="wl-remove" onclick="doRemove(' + i + ')">✕</button>' +
+        '<button class="wl-remove" aria-label="移除" onclick="doRemove(' + i + ')">✕</button>' +
       '</div>';
     }).join('');
   }
@@ -221,8 +263,12 @@
   var curList = [];
   function doRemove(i) {
     var w = curList[i] || window.Wish.list()[i]; if (!w) return;
-    window.Wish.remove(w.id || String(w.label + '|' + w.lat + '|' + w.lng));
-    render();
+    UI.confirm({ title: '移除心愿', text: '确定从想去清单移除「' + w.label + '」？', okText: '移除', danger: true }, function (ok) {
+      if (!ok) return;
+      window.Wish.remove(w.id || String(w.label + '|' + w.lat + '|' + w.lng));
+      render();
+      UI.toast('已移除「' + w.label + '」');
+    });
   }
   function flash(msg) {
     var d = document.createElement('div');

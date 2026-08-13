@@ -120,7 +120,7 @@
   <!-- ============ 列表视图 ============ -->
   <header class="topbar" id="barList">
     <div class="t-row">
-      <button class="back" onclick="location.href='settings.html'">←</button>
+      <button class="back" aria-label="返回" onclick="location.href='settings.html'">←</button>
       <div class="title">MD 库 <small id="statLabel"></small></div>
     </div>
   </header>
@@ -145,9 +145,9 @@
   <div id="viewDetail" class="hide">
     <div class="detail-bar">
       <div class="t-row">
-        <button class="back" onclick="goList()">←</button>
+        <button class="back" aria-label="返回列表" onclick="goList()">←</button>
         <div class="title" id="dTitle">游记</div>
-        <button class="back" onclick="toggleSrc()" style="font-size:12px;letter-spacing:.05em" id="btnSrc">源码</button>
+        <button class="back" aria-label="切换源码" onclick="toggleSrc()" style="font-size:12px;letter-spacing:.05em" id="btnSrc">源码</button>
       </div>
     </div>
     <div class="article" id="artBox"></div>
@@ -168,6 +168,7 @@
 </div>
 
 <script src="vault.js"></script>
+<script src="ui.js"></script>
 <script>
 (function () {
   'use strict';
@@ -502,12 +503,14 @@
   }
   function delCur() {
     if (!cur) return;
-    if (!confirm('删除这篇游记？\n' + (cur.title || cur.siteName || ''))) return;
-    delNote(cur.id, function () {
-      notes = notes.filter(function (x) { return x.id !== cur.id; });
-      cur = null;
-      refreshStats(); renderChips(); goList();
-      toast('已删除');
+    UI.confirm({ title: '删除游记', text: '确定删除这篇游记？\n' + (cur.title || cur.siteName || ''), okText: '删除', danger: true }, function (ok) {
+      if (!ok) return;
+      delNote(cur.id, function () {
+        notes = notes.filter(function (x) { return x.id !== cur.id; });
+        cur = null;
+        refreshStats(); renderChips(); goList();
+        toast('已删除');
+      });
     });
   }
   function toggleEdit() {

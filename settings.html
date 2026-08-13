@@ -145,7 +145,7 @@
 <div class="page">
   <header class="topbar">
     <div class="t-row">
-      <button class="back" onclick="location.href='index.html'">←</button>
+      <button class="back" aria-label="返回" onclick="location.href='index.html'">←</button>
       <div class="title">我的 <small id="statLabel"></small></div>
     </div>
   </header>
@@ -288,6 +288,7 @@
 <script src="tiles.js"></script>
 <script src="travel-notes.js"></script>
 <script src="vault.js"></script>
+<script src="ui.js"></script>
 <script>
   function fmtSize(mb){ return mb.toFixed(1) + ' MB'; }
   function refreshStorage(){
@@ -399,9 +400,11 @@
     });
   }
   function clearAll(){
-    if (!confirm('确定清除全部游记数据？此操作不可恢复。')) return;
-    if (window.TravelNotes && TravelNotes.clearNotes) TravelNotes.clearNotes();
-    refreshStorage();
+    UI.confirm({ title: '清除全部数据', text: '确定清除全部游记数据？此操作不可恢复。', okText: '清除', danger: true }, function (ok) {
+      if (!ok) return;
+      if (window.TravelNotes && TravelNotes.clearNotes) TravelNotes.clearNotes();
+      refreshStorage();
+    });
   }
   function toast(msg){
     var d = document.createElement('div');

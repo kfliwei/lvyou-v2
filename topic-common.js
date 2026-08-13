@@ -72,6 +72,12 @@
       { id: 'amapSat', name: '高德卫星', sw: 'linear-gradient(#27423f,#101f1b)', layer: amapSat },
       { id: 'amapSatL', name: '高德卫星+注记', sw: 'linear-gradient(#3c5d52,#0f2a24)', layer: amapSatL }
     ];
+    /* 全图层失败时的用户提示（自动降级逻辑保留在上方 amapStreet.on('tileerror')） */
+    if (window.UI) {
+      [osmLayer, satLayer, topoLayer, amapStreet, amapSat, amapLabel].forEach(function (l) {
+        UI.tileWarn(l, '地图');
+      });
+    }
     var layMenu = $('layMenu');
     BASE_LAYERS.forEach(function (b) {
       var li = document.createElement('div'); li.className = 'li' + (b.layer === amapStreet ? ' on' : ''); li.dataset.id = b.id;

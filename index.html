@@ -590,4 +590,34 @@
 })();
 </script>
 </body>
+
+<script>
+/* 首启引导（3 步，一次性，可跳过） */
+(function(){
+  try{
+    if(localStorage.getItem('tn_onboarded')) return;
+    var steps=[
+      {t:'探索全国', d:'7782 处景点 · 31 省专题地图 · 搜索直达，山川湖海一键抵达', i:'🗺️'},
+      {t:'语音随手记', d:'景点详情页点「记录」，语音生成游记，足迹自动落上地图', i:'🎙️'},
+      {t:'想去就打卡', d:'♡ 收藏想去清单，到了现场一键打卡，行程自动规划', i:'⭐'}
+    ];
+    var idx=0;
+    var st=document.createElement('style');
+    st.textContent='.ob-mask{position:fixed;inset:0;z-index:9990;background:var(--color-bg,#f6f3ec);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;transition:opacity .3s ease}.ob-mask.hide{opacity:0;pointer-events:none}.ob-ic{font-size:56px;margin-bottom:20px}.ob-t{font-family:var(--font-serif,serif);font-size:26px;color:var(--color-ink,#26241f);letter-spacing:.08em;margin-bottom:12px}.ob-d{font-size:14px;color:var(--color-muted,#8c877d);line-height:1.9;max-width:300px}.ob-dots{display:flex;gap:8px;margin:28px 0 22px}.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--color-line,#e3ded2)}.ob-dot.on{background:var(--color-primary,#c86d4b)}.ob-acts{display:flex;gap:12px}.ob-btn{min-height:44px;padding:0 26px;border-radius:999px;border:1px solid var(--color-line-strong,#cfc9ba);background:var(--color-surface,#fffdf8);color:var(--color-ink-soft,#55514a);font-size:14px;cursor:pointer}.ob-btn.pri{background:var(--color-primary,#c86d4b);border-color:var(--color-primary,#c86d4b);color:#fff;font-weight:600}.ob-skip{position:absolute;top:calc(env(safe-area-inset-top,0px)+16px);right:18px;border:0;background:none;color:var(--color-muted,#8c877d);font-size:13px;cursor:pointer;padding:10px}';
+    document.head.appendChild(st);
+    var m=document.createElement('div');m.className='ob-mask';
+    document.body.appendChild(m);
+    function render(){
+      var s=steps[idx];
+      m.innerHTML='<button class="ob-skip" id="obSkip" aria-label="跳过引导">跳过 ›</button><div class="ob-ic">'+s.i+'</div><div class="ob-t">'+s.t+'</div><div class="ob-d">'+s.d+'</div><div class="ob-dots">'+steps.map(function(_,i){return '<span class="ob-dot'+(i===idx?' on':'')+'"></span>';}).join('')+'</div><div class="ob-acts">'+(idx>0?'<button class="ob-btn" id="obPrev">上一步</button>':'')+'<button class="ob-btn pri" id="obNext">'+(idx<steps.length-1?'下一步':'开始探索')+'</button></div>';
+      document.getElementById('obSkip').onclick=done;
+      var np=document.getElementById('obPrev');if(np)np.onclick=function(){idx--;render();};
+      document.getElementById('obNext').onclick=function(){if(idx<steps.length-1){idx++;render();}else done();};
+    }
+    function done(){ m.classList.add('hide'); setTimeout(function(){m.remove();},350); localStorage.setItem('tn_onboarded','1'); }
+    render();
+  }catch(e){}
+})();
+</script>
+</body>
 </html>

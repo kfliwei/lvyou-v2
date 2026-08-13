@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -41,12 +41,12 @@
   .leaflet-tile-pane .leaflet-tile{filter:sepia(.32) saturate(.52) brightness(1.07) contrast(.93)}
   /* 右上控制组：图层 + 缩放（毛玻璃） */
   .ctl{
-    position:absolute;right:12px;top:56px;width:40px;
+    position:absolute;right:12px;top:56px;width:44px;
     background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
     border-radius:12px;box-shadow:var(--sh-md);overflow:hidden;z-index:1001;
   }
   .ctl button{
-    width:40px;height:40px;border:0;background:none;
+    width:44px;height:44px;border:0;background:none;
     display:flex;align-items:center;justify-content:center;
     color:var(--ink-700);transition:background .15s;
   }
@@ -247,7 +247,7 @@
 <body>
   <header class="topbar">
     <div class="t-row">
-      <button class="back" onclick="location.href='index.html'" title="返回卷首">←</button>
+      <button class="back" onclick="location.href='index.html'" title="返回卷首" aria-label="返回首页">←</button>
       <div class="title">我的游记地图 <small id="statLabel"></small></div>
       <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录">随手记</button>
       <button class="act sec" onclick="TravelNotes.openList()">游记</button>
@@ -293,6 +293,7 @@
 <script src="travel-notes.js"></script>
 <script src="results.js"></script>
 <script src="vault.js"></script>
+<script src="ui.js"></script>
 <script>
 let useGCJ = true;
 let tlActive = 0;   // 时间线条当前展开的旅程（0=最新）
@@ -310,6 +311,7 @@ const amapLabel = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style
 const amapSatL = L.layerGroup([amapSat,amapLabel]);
 const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'&copy; Esri'});
 const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'&copy; OpenTopoMap'});
+[osmLayer,amapStreet,amapSat,amapLabel,satLayer,topoLayer].forEach(function(l){ UI.tileWarn(l,'地图'); });
 amapStreet.addTo(map);
 // 自定义图层菜单 + 缩放（右上角 .ctl），替代默认控件
 const BASE_LAYERS=[
@@ -579,7 +581,7 @@ const TRACK_THEMES=[
 function renderTrack(themeId){
   const notes=TravelNotes.list();
   const ordered=notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
-  if(ordered.length<2){alert('至少需要 2 个游记节点才能生成轨迹卡');return;}
+  if(ordered.length<2){UI.toast('至少需要 2 个游记节点才能生成轨迹卡');return;}
   const th=TRACK_THEMES.find(t=>t.id===themeId)||TRACK_THEMES[0];
   const cv=document.createElement('canvas');
   cv.width=1080;cv.height=1440;
@@ -619,7 +621,7 @@ function renderTrack(themeId){
   const dataUrl=cv.toDataURL('image/png');
   if(window.AndroidVoice&&window.AndroidVoice.saveImage){
     window.__tnImgSaved=function(r){flash(r==='err'?'保存失败':'轨迹卡已保存：Download/'+r);};
-    try{AndroidVoice.saveImage('我的旅程轨迹-'+th.name+'.png',dataUrl);}catch(err){alert('保存不可用');}
+    try{AndroidVoice.saveImage('我的旅程轨迹-'+th.name+'.png',dataUrl);}catch(err){UI.toast('保存不可用');}
   }else{
     const a=document.createElement('a');a.href=dataUrl;a.download='我的旅程轨迹-'+th.name+'.png';a.click();
   }
@@ -631,7 +633,7 @@ function hideTrackPicker(){ if(trackPickerEl){trackPickerEl.style.display='none'
 function shareTrack(){
   const notes=TravelNotes.list();
   const ordered=notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
-  if(ordered.length<2){alert('至少需要 2 个游记节点才能生成轨迹卡');return;}
+  if(ordered.length<2){UI.toast('至少需要 2 个游记节点才能生成轨迹卡');return;}
   if(!trackPickerEl){
     trackPickerEl=document.createElement('div');
     trackPickerEl.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(38,36,31,.95);border-radius:16px;padding:14px 16px;z-index:1200;box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:center;width:200px';

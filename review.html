@@ -172,7 +172,7 @@
 <div class="page">
   <header class="topbar">
     <div class="t-row">
-      <button class="back" onclick="location.href='settings.html'">←</button>
+      <button class="back" aria-label="返回" onclick="location.href='settings.html'">←</button>
       <div class="title">旅程回顾</div>
     </div>
   </header>
@@ -218,6 +218,7 @@
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="travel-notes.js"></script>
 <script src="poster.js"></script>
+<script src="ui.js"></script>
 <script>
 /* 旅程回顾页：月历热力 + 当日游记 + 年鉴数据 */
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -523,8 +524,8 @@ document.getElementById('aiReport').onclick=function(){
     fallbackLocal('（AI 生成失败：'+String(err&&err.message||err)+'，已为你生成本地版年度回顾。）');
   });
 };
-document.getElementById('posterBtnH').onclick = function () { try { window.FootprintPoster.generate(true); } catch (e) { alert('生成失败'); } };
-document.getElementById('posterBtn').onclick = function () { try { window.FootprintPoster.generate(); } catch (e) { alert('生成失败：' + (e && e.message || e)); } };
+document.getElementById('posterBtnH').onclick = function () { try { window.FootprintPoster.generate(true); } catch (e) { UI.toast('生成失败'); } };
+document.getElementById('posterBtn').onclick = function () { try { window.FootprintPoster.generate(); } catch (e) { UI.toast('生成失败：' + (e && e.message || e)); } };
 window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;
 TravelNotes.init({});
