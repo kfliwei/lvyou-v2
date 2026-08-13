@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE v2 · 架构复审报告（2026-08-13）</title>
+<style>
+:root{
+  --bg:#F7F5EF; --surface:#FFFFFF; --ink:#20201D; --ink-soft:#4C4A45; --muted:#7D7970; --faint:#AAA59B;
+  --line:rgba(32,32,29,.10); --primary:#C86D4B; --primary-dark:#A9563B; --primary-soft:rgba(200,109,75,.10);
+  --green:#71806C; --blue:#6D7D88; --red:#B4543A; --amber:#8A6D3B;
+  --serif:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  --sans:"PingFang SC","HarmonyOS Sans","Noto Sans SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:15px}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 28px 80px}
+.hero{padding:48px 0 36px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:34px;margin-top:10px;line-height:1.3}
+.hero .sub{color:var(--muted);margin-top:10px;font-size:14px}
+.hero .meta{margin-top:18px;font-size:12.5px;color:var(--faint);letter-spacing:.05em}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:30px 0}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 16px}
+.metric .v{font-family:var(--serif);font-size:30px;color:var(--primary-dark)}
+.metric .v small{font-size:15px;color:var(--faint)}
+.metric .k{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.08em}
+h2{font-family:var(--serif);font-weight:400;font-size:24px;margin:52px 0 6px;display:flex;align-items:center;gap:10px}
+h2 .no{color:var(--primary);font-size:14px;letter-spacing:.2em}
+.lead{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:18px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px}
+.card h4{font-family:var(--serif);font-weight:600;font-size:16px;margin-bottom:6px}
+.card p{font-size:13.5px;color:var(--ink-soft)}
+.card .tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;margin-bottom:10px;letter-spacing:.06em}
+.tag.p0{background:#FBE9E3;color:var(--red)} .tag.p1{background:#F3EFE4;color:var(--amber)}
+.tag.p2{background:var(--primary-soft);color:var(--primary-dark)} .tag.ok{background:#ECEFEA;color:var(--green)}
+table{width:100%;border-collapse:collapse;margin:16px 0 8px;background:var(--surface);border-radius:14px;overflow:hidden;font-size:13.5px}
+th{background:#F0EDE5;text-align:left;padding:10px 14px;font-weight:600;font-size:12.5px;letter-spacing:.06em;color:var(--ink-soft)}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+td b{font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+.pill.red{background:#FBE9E3;color:var(--red)} .pill.amber{background:#F3EFE4;color:var(--amber)}
+.pill.green{background:#ECEFEA;color:var(--green)} .pill.blue{background:#EDF0F2;color:var(--blue)}
+.pill.gray{background:#F0EDE5;color:var(--muted)}
+.score-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.score-row .name{width:110px;font-size:13px;color:var(--ink-soft);flex:none}
+.score-row .bar{flex:1;height:8px;background:#E6E1D7;border-radius:99px;overflow:hidden}
+.score-row .fill{height:100%;border-radius:99px;background:var(--primary)}
+.score-row .val{width:110px;font-size:12.5px;color:var(--primary-dark);font-weight:600;flex:none;text-align:right}
+.tl{border-left:2px solid #E0D9CC;margin:20px 0 10px 8px;padding-left:22px}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-item::before{content:"";position:absolute;left:-29px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2.5px solid var(--primary)}
+.tl-item .ph{font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.tl-item h4{font-family:var(--serif);font-size:17px;font-weight:600;margin:2px 0 6px}
+.tl-item p{font-size:13.5px;color:var(--ink-soft)}
+.tl-item ul{margin:6px 0 0 18px;font-size:13px;color:var(--ink-soft)}
+.layer{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:10px 0}
+.layer .lt{font-weight:600;font-size:14px;margin-bottom:4px}
+.layer .lc{font-size:12.5px;color:var(--ink-soft)}
+.layer .badge{float:right;font-size:11px;padding:1px 9px;border-radius:999px;background:#F0EDE5;color:var(--muted)}
+.layer.warn{border-color:rgba(180,84,58,.35);background:#FDF9F6}
+.layer.warn .badge{background:#FBE9E3;color:var(--red)}
+.layer.good{border-color:rgba(113,128,108,.35);background:#F8FAF6}
+.layer.good .badge{background:#ECEFEA;color:var(--green)}
+.note{background:var(--primary-soft);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--primary-dark);margin:16px 0}
+code{background:#F0EDE5;border-radius:6px;padding:1px 6px;font-size:12.5px;font-family:Consolas,Menlo,monospace}
+.footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+.footer .strike{text-decoration:line-through}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Architecture &amp; Code Review · v3 复审</div>
+  <h1>行迹 TRACE v2 · 代码架构复审报告</h1>
+  <div class="sub">基于 8/12 审核报告（master @ 871f6c4）之后 25+ 个提交 + 未提交工作区，逐文件源码核验</div>
+  <div class="meta">审核范围：F:\MyAi\trace\lvyou-v2（master @ 8df493f + 工作区未提交改动）· lvyou-v2-android（WebView 壳）｜审核人：产品设计师｜日期：2026-08-13</div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="v">8.8<small> /10</small></div><div class="k">数据驱动架构</div></div>
+  <div class="metric"><div class="v">7.0<small> /10</small></div><div class="k">离线 / PWA</div></div>
+  <div class="metric"><div class="v">7.5<small> /10</small></div><div class="k">可维护性</div></div>
+  <div class="metric"><div class="v">7.5<small> /10</small></div><div class="k">性能</div></div>
+  <div class="metric"><div class="v">5.0<small> /10</small></div><div class="k">数据安全</div></div>
+  <div class="metric"><div class="v">8.5<small> /10</small></div><div class="k">UI / UX</div></div>
+</div>
+
+<h2><span class="no">01</span> 总体结论</h2>
+<p class="lead">昨天报告里的核心问题基本闭环，架构进入良性循环；当前主要风险从「架构缺失」转移到了「发布工程」——离线清单、缓存版本、未提交工作区这些环节的脱节，正在反复制造同类故障。</p>
+<div class="note">一句话：<b>代码质量高于同类项目平均水平，真正要修的不是架构，而是「版本发布机制」</b>——3 个 P1 全是缓存/清单/提交脱节问题，且都与 8/12 上午 geo.js 崩溃事故同模式。</div>
+
+<h2><span class="no">02</span> 评分对比（vs 8/12 基线）</h2>
+<div class="score-row"><div class="name">数据驱动</div><div class="bar"><div class="fill" style="width:88%"></div></div><div class="val">8.8 → 8.8</div></div>
+<div class="score-row"><div class="name">离线 / PWA</div><div class="bar"><div class="fill" style="width:70%"></div></div><div class="val">7.8 → <b>7.0 ↓</b></div></div>
+<div class="score-row"><div class="name">可维护性</div><div class="bar"><div class="fill" style="width:75%"></div></div><div class="val">5.5 → <b>7.5 ↑</b></div></div>
+<div class="score-row"><div class="name">性能</div><div class="bar"><div class="fill" style="width:75%"></div></div><div class="val">6.5 → <b>7.5 ↑</b></div></div>
+<div class="score-row"><div class="name">数据安全</div><div class="bar"><div class="fill" style="width:50%"></div></div><div class="val">5.0 → 5.0</div></div>
+<div class="score-row"><div class="name">UI / UX</div><div class="bar"><div class="fill" style="width:85%"></div></div><div class="val">8.5 → 8.5</div></div>
+<p class="lead" style="margin-top:14px">可维护性 +2.0（geo.js 收敛、深色单一真相源、计数/清单自动化、测试脚本）；离线能力反降 0.8——瓦片包思路正确但被 activate 清缓存 bug 抵消。</p>
+
+<h2><span class="no">03</span> 现状架构</h2>
+<div class="layer good"><span class="badge">页面层</span><div class="lt">17 HTML 页面</div><div class="lc">index（杂志首页）· explore-map · travel-map · nation-map（全国 3362 节点）· topic.html（8 专题统一引擎）· story / review / workshop / md-manager / settings / wishlist 等</div></div>
+<div class="layer good"><span class="badge">引擎层</span><div class="lt">topic-common.js + node-lod.js + topic-meta.js</div><div class="lc">注册表化专题引擎（TOPIC_REGISTRY 单一真相源 + THEME_ALIAS 71 标准主题）；node-lod.js 自适应行政粒度 LOD（区域→市→县→节点）</div></div>
+<div class="layer"><span class="badge">公共层</span><div class="lt">geo.js（已收敛）</div><div class="lc">GCJ-02 / haversine 单一实现 + 7 页薄封装；8 文件旧实现已删。esc()/flash() 等工具函数仍每文件一份（未收敛）</div></div>
+<div class="layer"><span class="badge">数据层</span><div class="lt">nation-data.js 1.6MB / 17 省 *-data.js / *-food.js</div><div class="lc">nation-data 已改动态注入 + 骨架屏；gen-nation.js 生成器 + test-data.cjs（74 项校验）+ test-geo.js（7 例单测）</div></div>
+<div class="layer warn"><span class="badge">⚠ 运行时层</span><div class="lt">sw.js（trace-v8）+ tiles.js</div><div class="lc">分层缓存思路正确（SHELL 预缓存 / 数据 SWR / 导航网络优先 / 瓦片缓存优先），但 <b>activate 会误删离线瓦片缓存</b>，且 SHELL 清单漏 node-lod.js</div></div>
+<div class="layer good"><span class="badge">存储层</span><div class="lt">IndexedDB（游记）+ localStorage（设置/心愿单）</div><div class="lc">wishlist.js 全局心愿单快照式存储，跨页不依赖 SITES 索引，设计正确</div></div>
+<div class="layer"><span class="badge">外壳</span><div class="lt">Android WebView 壳（lvyou-v2-android）</div><div class="lc">讯飞/Google 语音双引擎 + 录音原声回传 + 崩溃日志 + 文件选择 + 高德深链；Java 侧质量高</div></div>
+
+<h2><span class="no">04</span> 昨天问题清单 · 闭环核验</h2>
+<table>
+<tr><th>昨天问题</th><th>状态</th><th>核验证据</th></tr>
+<tr><td><b>P0</b> 公共工具函数 3~4 份重复</td><td><span class="pill green">✅ 已闭环</span></td><td>geo.js 收敛 8 文件，7 页配对修复，test-geo.js 单测 7 例</td></tr>
+<tr><td><b>P1</b> nation-data.js 1.6MB 阻塞首屏</td><td><span class="pill green">✅ 已闭环</span></td><td>nation-map.html:507 动态注入 + 骨架屏 + 失败提示</td></tr>
+<tr><td><b>P1</b> 深色模式 4 处重复补丁</td><td><span class="pill green">✅ 已闭环</span></td><td>223c45d 收敛进 design.css，两页删内联</td></tr>
+<tr><td><b>P1</b> sw.js 预缓存清单手动维护</td><td><span class="pill amber">⚠ 半闭环</span></td><td>gen-sw-shell.cjs 已自动化，但 CORE_JS 手动列表漏 node-lod.js</td></tr>
+<tr><td><b>P1</b> 专题计数 fallback 硬编码</td><td><span class="pill amber">⚠ 半闭环</span></td><td>topic-counts.js 自动化 ✅；但 index.html fallback 数字仍写死且已过期（cz 161 vs 实际 179）</td></tr>
+<tr><td><b>P2</b> 页面内联 CSS 分散</td><td><span class="pill amber">部分</span></td><td>深色已收敛；map.css 另有 +25 行未提交改动在途</td></tr>
+<tr><td><b>P2</b> 无自动化测试</td><td><span class="pill green">✅ 已闭环</span></td><td>test-data.cjs 74 项 + test-geo.js 7 例 + 全量 node --check 本次核验通过</td></tr>
+<tr><td><b>P2</b> AI key 存 localStorage</td><td><span class="pill gray">保持现状</span></td><td>个人使用可接受，公开部署需后端代理（不变）</td></tr>
+</table>
+
+<h2><span class="no">05</span> 本轮新发现（按优先级）</h2>
+<div class="cards">
+  <div class="card"><span class="tag p1">P1 · 离线瓦片被清空</span><h4>sw.js activate 误删 trace-tiles</h4><p><code>activate</code> 中 <code>ks.filter(k =&gt; k !== CACHE)</code> 删除所有非当前版本缓存，<b>离线瓦片包（trace-tiles）也被一并删除</b>。每次 SW 升级，用户下载的离线瓦片全部丢失，需重新下载。</p></div>
+  <div class="card"><span class="tag p1">P1 · 新引擎三处脱节</span><h4>node-lod.js 未入离线清单</h4><p>6 处页面已引用 <code>node-lod.js?v=14</code> 并调用 NodeLOD.init，但 sw.js SHELL、gen-sw-shell.cjs 的 CORE_JS 列表均无它，且文件未 git add。离线访问专题页 → NodeLOD 未定义 → 地图渲染崩溃（8/12 geo.js 事故同款模式）。</p></div>
+  <div class="card"><span class="tag p1">P1 · 版本号机制脱节</span><h4>手写 ?v=N 与 SHELL 不同步</h4><p>node-lod.js 已 v14、其余文件 v=1/2，各计各的；SHELL 里全是无版本裸路径，<b>URL 精确匹配下预缓存命中不了带 query 的请求</b>。每次改动需人肉同步 3 处，必有遗漏。</p></div>
+  <div class="card"><span class="tag p2">P2 · 进行中工作未提交</span><h4>9 文件 + node-lod.js 游离在 git 外</h4><p>8/12 12:09 之后的改动（4 老专题接入 LOD 等）未提交；CRLF/LF 行尾混乱使 git diff 伪爆 3948 行（真实仅 212+/137-），审查噪音巨大。</p></div>
+  <div class="card"><span class="tag p2">P2 · 兜底数字已过期</span><h4>首页计数 fallback 硬编码</h4><p><code>cntOf('cz','凡一百六十一处')</code> 等 8 处 fallback 与真实数据不符（cz 161→179、sc 412→391、gs 303→305、xj 287→298、gz 321→323）。TC 优先逻辑正确，但兜底反而兜出错误数字。</p></div>
+  <div class="card"><span class="tag p2">P2 · 敏感值掩码残留</span><h4>KEY='***' / AMAP_KEY='9e530e…4149'</h4><p>wishlist.js 的 localStorage key 被掩码成 <code>'***'</code>（注释却写 tn_wishlist）；4 个专题页的 AMAP_KEY 是含省略号的假值（死代码，瓦片/导航均不用 key，无功能影响）。疑似生成工具自动打码痕迹，应清理或补真实值。</p></div>
+  <div class="card"><span class="tag p2">P2 · 数据双份 + 命名误导</span><h4>qz-data.js 实为青藏数据</h4><p>文件名叫 qz（泉州缩写），实际存青藏 189 节点（青海10+西藏164+新疆15）；与全国地图的 qh-data.js / xz-data.js 双份维护，扩数据时易不同步。</p></div>
+  <div class="card"><span class="tag p2">P2 · 收敛不彻底</span><h4>geo.js 收敛残留</h4><p>topic-common.js 仍残留 <code>_A/_EE</code> 常量死代码；esc()/flash() 等工具函数仍每文件一份；sw.js RUNTIME 正则与通用 SWR 分支逻辑重复（冗余分支）。</p></div>
+  <div class="card"><span class="tag p3">P3 · 观察项</span><h4>LOD 全量重建 / 未转义</h4><p>moveend 全量 clear+重建 marker（220ms 防抖缓解）；clusterIcon 的 label 直接拼 HTML（本地静态数据，风险低）；levelCache 需外部调 refresh() 清缓存，筛选联动易漏。</p></div>
+</div>
+
+<h2><span class="no">06</span> 建议清单（按优先级）</h2>
+<table>
+<tr><th>优先级</th><th>动作</th><th>说明</th></tr>
+<tr><td><span class="pill red">P1</span></td><td><b>修 activate 白名单</b></td><td>删除时保留 <code>CACHE</code> + <code>TILE_CACHE</code>：<code>ks.filter(k =&gt; k !== CACHE &amp;&amp; k !== TILE_CACHE)</code>，或改白名单数组</td></tr>
+<tr><td><span class="pill red">P1</span></td><td><b>node-lod.js 补齐三处</b></td><td>加入 gen-sw-shell.cjs CORE_JS → 重跑生成 SHELL → git add 提交（顺带统一行尾）</td></tr>
+<tr><td><span class="pill red">P1</span></td><td><b>统一 cache-bust 机制</b></td><td>方案 A：所有引用改 <code>?v=YYYYMMDD</code> 单一日戳，SHELL 生成时同步带参；方案 B：SHELL 清单改为运行时校验（fetch 时若缓存 404 则网络取）</td></tr>
+<tr><td><span class="pill amber">P2</span></td><td><b>fallback 去硬编码</b></td><td><code>cntOf('cz', '凡若干处')</code> 中性文案；或从 TOPIC_REGISTRY 读取，杜绝数字过期</td></tr>
+<tr><td><span class="pill amber">P2</span></td><td><b>清理掩码残留</b></td><td>wishlist KEY 改回真实值（与注释一致）；删除 4 页 AMAP_KEY 死代码</td></tr>
+<tr><td><span class="pill amber">P2</span></td><td><b>qz-data.js 改名 / 加注释</b></td><td>改 <code>qingzang-data.js</code> 或注册表加醒目注释；评估 qh/xz 与 qz 数据合并单真相源</td></tr>
+<tr><td><span class="pill blue">P3</span></td><td><b>工具函数二次收敛</b></td><td>esc/flash/uid 等抽 util.js；LOD 渲染加「移动中跳过」；cluster label 转义</td></tr>
+</table>
+
+<h2><span class="no">07</span> 下一步（30 天）</h2>
+<div class="tl">
+  <div class="tl-item"><div class="ph">Week 1</div><h4>发布机制闭环</h4><p>修 activate 白名单 → 补 node-lod 清单 → 统一版本号策略 → 提交全部在途改动（统一行尾，恢复干净 diff）。</p></div>
+  <div class="tl-item"><div class="ph">Week 2</div><h4>离线全链路验证</h4><p>飞机模式真机走查：首次安装→离线→专题/全国/心愿单/海报各页；离线瓦片下载→升级 SW→验证瓦片保留。</p></div>
+  <div class="tl-item"><div class="ph">Week 3-4</div><h4>数据层合并 + 卫生清理</h4><p>青藏数据双份合并；fallback 去硬编码；掩码残留清理；util.js 收敛 + 补充单测。</p></div>
+</div>
+
+<div class="footer">
+  行迹 TRACE v2 · 代码架构复审报告（2026-08-13）｜基于 master @ 8df493f + 工作区未提交改动源码逐文件核验<br>
+  与昨日基线对比：<span class="strike">8/12 报告 v2（master @ 871f6c4）</span> · 本次新增 25 提交核验 · 18 项检查
+</div>
+</div>
+</body>
+</html>

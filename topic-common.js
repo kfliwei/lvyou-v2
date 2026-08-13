@@ -41,6 +41,7 @@
       if (state.theme && tk(s) !== state.theme) return false;
     if (state.elev && M.elevFilter) { var _e = +s.elev || 0; if (state.elev === 'low' && !(_e < 3000)) return false; if (state.elev === 'mid' && !(_e >= 3000 && _e < 4000)) return false; if (state.elev === 'high' && !(_e >= 4000)) return false; }
       if (state.city && s.city !== state.city) return false;
+      if (state.flag && (!s.flag || s.flag.indexOf(state.flag) < 0)) return false;
       if (q) { var hay = (s.name + s.label + s.region + s.city + s.county + tk(s) + s.desc + (s.best || "")).toLowerCase(); if (!hay.includes(q)) return false; }
       return true;
     });
@@ -182,16 +183,19 @@
   };
 
   /* ---------- 节点 / Sheet ---------- */
-  function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0; }
+  function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0 || (s.flag && s.flag.indexOf('m') >= 0); }
   function nodeIcon(s, active) {
     var theme = colorOf(s);
     var inT = inTrip(s.__i);
     var num = inT ? (trip.indexOf(s.__i) + 1) : null;
-    var cls = 'tr-node' + (active ? ' tr-active' : '') + (isMajorSite(s) ? ' tr-major' : '');
+    var f = s.flag || '';
+    var cls = 'tr-node' + (active ? ' tr-active' : '') + (isMajorSite(s) ? ' tr-major' : '') +
+      (f.indexOf('m') >= 0 ? ' tr-must' : '') + (f.indexOf('h') >= 0 ? ' tr-hot' : '');
     var html = '<div class="' + cls + '"><span class="tr-ring" style="--tint:' + theme + '"></span><span class="tr-dot"></span>';
+    if (f.indexOf('m') >= 0) html += '<span class="tr-seal">必</span>';
     if (num) html += '<span class="node-num">' + num + '</span>';
     html += '</div>';
-    return L.divIcon({ className: '', html: html, iconSize: [26, 26], iconAnchor: [13, 13] });
+    return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
   }
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
   function renderMarkers(list) {
@@ -363,7 +367,7 @@
     card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
       '<img loading="lazy" src="' + s.img + '" alt="' + s.label + '" onerror="this.style.display=\'none\'">' +
       '<span class="tag">' + (M.themeIcons[tk(s)] || '') + ' ' + tk(s) + '</span></div>' +
-      '<div class="body"><div class="nm">' + s.label + '</div>' +
+      '<div class="body"><div class="nm">' + s.label + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + '</div>' +
       '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
       '<div class="ds">' + s.desc + (s.best ? ('　🗓 最佳 ' + s.best) : '') + '</div>' +
       '<div class="detail">' + dh + '</div>' + km + '</div>' +
@@ -656,7 +660,9 @@
   function syncChips() {
     document.querySelectorAll('#dynChips .chip').forEach(function (c) {
       var f = c.dataset.f;
-      if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city && !state.elev); return; }
+      if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city && !state.elev && !state.flag); return; }
+      if (f === '必去') { c.classList.toggle('on', state.flag === 'm'); return; }
+      if (f === '网红') { c.classList.toggle('on', state.flag === 'h'); return; }
       if (f === state.theme || f === state.region || f === state.city) c.classList.add('on');
       else if (f === '低海拔 <3000m' && state.elev === 'low') c.classList.add('on');
       else if (f === '中海拔 3000-4000m' && state.elev === 'mid') c.classList.add('on');
@@ -672,8 +678,15 @@
   function buildChips() {
     var dynChips = $('dynChips'); dynChips.innerHTML = '';
     var c = mkChip('全部', true); c.className = 'chip all on';
-    c.onclick = function () { state.theme = ''; state.region = ''; state.city = ''; syncChips(); renderAll(); };
+    c.onclick = function () { state.theme = ''; state.region = ''; state.city = ''; state.flag = ''; syncChips(); renderAll(); };
     dynChips.appendChild(c);
+    var mkFlag = function (f, label, dot) {
+      var cc = mkChip(label, false, dot);
+      cc.onclick = function () { state.flag = (state.flag === f ? '' : f); syncChips(); renderAll(); };
+      dynChips.appendChild(cc);
+    };
+    mkFlag('m', '必去', '#C9A227');
+    mkFlag('h', '网红', '#FF7A50');
     if (M.themeChips !== false) {
       M.themeOrder.forEach(function (th) {
         var cc = mkChip((M.themeIcons[th] || '') + ' ' + th, false, M.themes[th]);
