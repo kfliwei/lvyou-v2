@@ -46,7 +46,12 @@ window.FootprintPoster = (function () {
       flash('足迹海报已生成');
     }
   }
-  function generate(landscape) {
+  var THEMES = {
+    ink: { bg: ['#2E3B42', '#20201D', '#14130F'], deco: 'rgba(200,109,75,.07)', title: '#FAF8F3', sub: '#C8C0B2', grid: 'rgba(250,248,243,.05)', track: 'rgba(200,109,75,.85)', dotFill: 'rgba(250,248,243,.95)', dotStroke: '#C86D4B', statBg: 'rgba(250,248,243,.06)', statV: '#FAF8F3', statK: '#C8C0B2', badgeBg: 'rgba(200,109,75,.16)', badgeT: '#E8B49A', foot: '#8F8A80' },
+    carto: { bg: ['#F7F2E7', '#EFE7D4', '#E7DCC4'], deco: 'rgba(169,86,59,.08)', title: '#26241F', sub: '#8C7B66', grid: 'rgba(169,86,59,.12)', track: 'rgba(169,86,59,.9)', dotFill: '#FFFDF8', dotStroke: '#A9563B', statBg: 'rgba(169,86,59,.07)', statV: '#26241F', statK: '#8C7B66', badgeBg: 'rgba(169,86,59,.12)', badgeT: '#A9563B', foot: '#8C7B66' }
+  };
+  function generate(landscape, themeName) {
+    var th = THEMES[themeName] || THEMES.ink;
     var all = (window.TravelNotes ? TravelNotes.list() : []).slice()
       .sort(function (a, b) { return a.ts - b.ts; });
     var pts = all.filter(function (n) { return n.lat != null && n.lng != null; });
@@ -78,22 +83,40 @@ window.FootprintPoster = (function () {
 
     /* 背景：深墨渐变 */
     var g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#2E3B42'); g.addColorStop(.55, '#20201D'); g.addColorStop(1, '#14130F');
+    g.addColorStop(0, th.bg[0]); g.addColorStop(.55, th.bg[1]); g.addColorStop(1, th.bg[2]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
     /* 装饰圆 */
-    ctx.fillStyle = 'rgba(200,109,75,.07)';
+    ctx.fillStyle = th.deco;
     [[140, 380, 110], [900, 980, 150], [520, 1420, 120]].forEach(function (c) {
       ctx.beginPath(); ctx.arc(c[0], c[1], c[2], 0, Math.PI * 2); ctx.fill();
     });
 
+    /* 制图风等高线纹理（carto 主题） */
+    if (themeName === 'carto') {
+      ctx.strokeStyle = 'rgba(169,86,59,.10)'; ctx.lineWidth = 1.2;
+      [[260,500,120],[520,620,90],[700,400,140],[340,900,180],[820,1080,110]].forEach(function (c) {
+        ctx.beginPath(); ctx.arc(c[0], c[1], c[2], 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(c[0], c[1], c[2] + 26, 0, Math.PI * 2); ctx.stroke();
+      });
+    }
+
+    /* 制图风等高线纹理（carto 主题） */
+    if (themeName === 'carto') {
+      ctx.strokeStyle = 'rgba(169,86,59,.10)'; ctx.lineWidth = 1.2;
+      [[260,500,120],[520,620,90],[700,400,140],[340,900,180],[820,1080,110]].forEach(function (c) {
+        ctx.beginPath(); ctx.arc(c[0], c[1], c[2], 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(c[0], c[1], c[2] + 26, 0, Math.PI * 2); ctx.stroke();
+      });
+    }
+
     /* 标题 */
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#FAF8F3';
+    ctx.fillStyle = th.title;
     ctx.font = '600 64px "Songti SC","Noto Serif SC",serif';
     ctx.fillText('我的旅行足迹', W / 2, TY);
     ctx.font = '26px "Noto Serif SC",serif';
-    ctx.globalAlpha = .7; ctx.fillStyle = '#C8C0B2';
+    ctx.globalAlpha = .7; ctx.fillStyle = th.sub;
     ctx.fillText(year + ' · 行迹 TRACE', W / 2, TY2);
     ctx.globalAlpha = 1;
 
@@ -103,7 +126,7 @@ window.FootprintPoster = (function () {
     function py(lat) { return MY + (54 - lat) / (54 - 18) * MH; }
 
     /* 网格参考线（极淡） */
-    ctx.strokeStyle = 'rgba(250,248,243,.05)';
+    ctx.strokeStyle = th.grid;
     ctx.lineWidth = 1;
     for (var gl = 80; gl <= 130; gl += 10) {
       ctx.beginPath(); ctx.moveTo(px(gl), MY); ctx.lineTo(px(gl), MY + MH); ctx.stroke();
@@ -118,7 +141,7 @@ window.FootprintPoster = (function () {
       var X = px(n.lng), Y = py(n.lat);
       if (k === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
     });
-    ctx.strokeStyle = 'rgba(200,109,75,.85)';
+    ctx.strokeStyle = th.track;
     ctx.lineWidth = 3.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.stroke();
 
@@ -133,9 +156,9 @@ window.FootprintPoster = (function () {
       var r = 5 + Math.min(14, freq[k] * 3);
       ctx.beginPath();
       ctx.arc(px(+c[1]), py(+c[0]), r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(250,248,243,.95)';
+      ctx.fillStyle = th.dotFill;
       ctx.fill();
-      ctx.lineWidth = 2.5; ctx.strokeStyle = '#C86D4B';
+      ctx.lineWidth = 2.5; ctx.strokeStyle = th.dotStroke;
       ctx.stroke();
     });
 
@@ -150,16 +173,16 @@ window.FootprintPoster = (function () {
     ctx.textAlign = 'center';
     stats.forEach(function (s, i) {
       var x = 120 + i * boxW + boxW / 2;
-      ctx.fillStyle = 'rgba(250,248,243,.06)';
+      ctx.fillStyle = th.statBg;
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(x - boxW / 2 + 6, statY - 14, boxW - 12, 118, 18);
       else ctx.rect(x - boxW / 2 + 6, statY - 14, boxW - 12, 118);
       ctx.fill();
-      ctx.fillStyle = '#FAF8F3';
+      ctx.fillStyle = th.statV;
       ctx.font = '600 44px "Songti SC",serif';
       ctx.fillText(String(s.v), x, statY + 42);
       ctx.font = '20px "Noto Serif SC",serif';
-      ctx.globalAlpha = .65; ctx.fillStyle = '#C8C0B2';
+      ctx.globalAlpha = .65; ctx.fillStyle = th.statK;
       ctx.fillText(s.k, x, statY + 82);
       ctx.globalAlpha = 1;
     });
@@ -170,18 +193,18 @@ window.FootprintPoster = (function () {
     var by = landscape ? 236 : (H - 250);
     ctx.font = '22px "Noto Serif SC",serif';
     shorts.slice(0, 12).forEach(function (s) {
-      ctx.fillStyle = 'rgba(200,109,75,.16)';
+      ctx.fillStyle = th.badgeBg;
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(bx, by, 40, 40, 10);
       else ctx.rect(bx, by, 40, 40);
       ctx.fill();
-      ctx.fillStyle = '#E8B49A';
+      ctx.fillStyle = th.badgeT;
       ctx.fillText(s, bx + 20, by + 27);
       bx += 46;
     });
 
     /* ---- 落款 + 印章 ---- */
-    ctx.globalAlpha = .5; ctx.fillStyle = '#8F8A80';
+    ctx.globalAlpha = .5; ctx.fillStyle = th.foot;
     ctx.font = '22px "Noto Serif SC",serif';
     ctx.fillText('行迹 TRACE · 走过的路都算数', W / 2, footY);
     ctx.globalAlpha = 1;

@@ -79,7 +79,7 @@
   .season-item{display:flex;align-items:center;gap:14px;padding:15px 2px;border-bottom:1px solid var(--color-line);cursor:pointer;text-decoration:none}
   .season-item:last-child{border-bottom:0}
   .season-item:active{padding-left:8px}
-  .season-item__no{width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:1px solid var(--color-line-strong);display:grid;place-items:center;font-family:var(--font-serif);font-size:15px;color:var(--color-primary-dark)}
+  .season-item__no{width:38px;height:38px;flex:0 0 auto;border-radius:50%;background:linear-gradient(135deg,rgba(200,109,75,.16),rgba(200,109,75,.04));border:1px solid rgba(200,109,75,.28);display:grid;place-items:center;font-family:var(--font-serif);font-size:15px;color:var(--color-primary-dark);box-shadow:inset 0 1px 4px rgba(200,109,75,.1)}
   .season-item__main{flex:1;min-width:0}
   .season-item__name{font-family:var(--font-serif);font-size:17px;color:var(--color-ink)}
   .season-item__loc{font-size:0.7188rem;color:var(--color-muted);margin-top:3px;letter-spacing:.04em}
@@ -143,6 +143,7 @@
 </style>
 </head>
 <body>
+<div id="bootSplash" aria-hidden="true"><div class="bs-seal">迹</div><div class="bs-name">行迹 TRACE</div><div class="bs-sub">My Journey Map</div></div>
 <div class="app-page">
 
   <!-- ============ HERO ============ -->
@@ -618,6 +619,10 @@
     render();
   }catch(e){}
 })();
+</script>
+<script>
+/* 启动遮罩淡出 */
+(function(){var bs=document.getElementById('bootSplash');if(!bs)return;var t=setTimeout(function(){bs.classList.add('hide');setTimeout(function(){bs.remove();},600);clearTimeout(t);},900);})();
 </script>
 </body>
 </html>
