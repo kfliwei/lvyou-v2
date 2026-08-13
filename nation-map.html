@@ -328,6 +328,9 @@
 
   /* ---- 点击地图：选半径查附近 ---- */
   map.on('click', function (e) {
+    /* 点到节点/胶囊：交给节点处理，不触发选半径 */
+    var _t = e.originalEvent && e.originalEvent.target;
+    if (_t && _t.closest && _t.closest('.leaflet-marker-icon')) return;
     if (pointMarker) map.removeLayer(pointMarker);
     if (circle) map.removeLayer(circle);
     pointMarker = L.circleMarker([e.latlng.lat, e.latlng.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#C86D4B', fillOpacity: 1 }).addTo(map);
@@ -352,7 +355,7 @@
       .slice(0, 20);
     resLayer.clearLayers();
     if (circle) map.removeLayer(circle);
-    circle = L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06 }).addTo(map);
+    circle = L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06, interactive: false, bubblingMouseEvents: false }).addTo(map);
     hits.forEach(function (h, i) {
       L.marker(pt(h.s), { icon: nodeIcon(h.s, false, true) }).addTo(resLayer);
     });
