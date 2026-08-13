@@ -228,14 +228,16 @@
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
-      (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
-      '<div class="ls-actions">' +
-            '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +
-      '<button class="btn-secondary" style="min-height:46px;font-size:13.5px;padding:0 16px" onclick="window.TravelNotes.openPanel(' + i + ')">🎙 语音记录</button>' +
-      '<span class="ls-add' + (inT ? ' done' : '') + '" onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
+      (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +      '<div class="ls-actions">' +
+            '<button class="btn-primary" aria-label="听讲解" style="min-height:46px;font-size:13px;padding:0 14px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.explain(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10 V14 M8 7 V17 M12 4 V20 M16 7 V17 M20 10 V14"/></svg>听讲解</button>' +
+      '<button class="btn-secondary" aria-label="语音记录" style="min-height:46px;font-size:13px;padding:0 12px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.openPanel(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
+      '<span class="ls-morebtn" aria-label="更多操作" onclick="window.TopicEngine.toggleMore(this)">更多 <b style="font-size:10px">▾</b></span>' +
       '</div>' +
-      '<div class="ls-more"><span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span><span onclick="window.TopicEngine.closeSheet()">收起</span>' +
-      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '♥ 已想去' : '♡ 想去') + '</span></div>';
+      '<div class="ls-more" id="lsMore">' +
+      '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
+      '<span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span>' +
+      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
+      '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
   }
   function openSheet(i) {
     curSite = i;
@@ -912,9 +914,16 @@
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
-  window.TopicEngine = {
+  function toggleMore(btn) {
+    var box = document.getElementById('lsMore');
+    if (!box) return;
+    var open = box.classList.toggle('open');
+    if (btn) btn.innerHTML = open ? '更多 <b style="font-size:10px">▴</b>' : '更多 <b style="font-size:10px">▾</b>';
+  }
+  window.TopicEngine = { _map: map,
     init: init,
     toggleTrip: toggleTrip,
+    toggleMore: toggleMore,
     toggleWish: toggleWish,
     flyToSite: flyToSite,
     closeSheet: closeSheet,

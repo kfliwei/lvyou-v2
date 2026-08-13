@@ -18,7 +18,7 @@
   .app-page{width:min(100%,520px);margin:0 auto;position:relative;overflow-x:clip;padding-bottom:120px}
 
   /* ---- Hero ---- */
-  .hero{min-height:88dvh;padding:calc(env(safe-area-inset-top,0px)+48px) 24px 40px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
+  .hero{padding:26px 20px 18px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
   /* 呼吸节点（稀疏、缓慢呼吸 — 规范：地图节点稀疏、缓慢呼吸） */
   .hn{position:absolute;border-radius:50%;background:var(--color-ink);border:2.5px solid rgba(255,255,255,.85);animation:hnBreathe 3.4s ease-in-out infinite;pointer-events:none}
   .hn:nth-of-type(1){width:7px;height:7px;left:22%;top:16%}
@@ -335,10 +335,10 @@
     <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12 L12 4 L20 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5 V20 H17.5 V10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>探索
   </a>
   <a class="bottom-nav__item" href="explore-map.html">
-    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>地图
+    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>专题
   </a>
   <a class="bottom-nav__item" href="travel-map.html">
-    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19 C6 15 8 15 10 19 C12 15 14 15 16 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 6 C6 3 8 3 10 6 C12 3 14 3 16 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>旅途
+    <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19 C6 15 8 15 10 19 C12 15 14 15 16 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 6 C6 3 8 3 10 6 C12 3 14 3 16 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>足迹
   </a>
   <a class="bottom-nav__item" href="review.html">
     <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 5 H20 V19 H4 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 9 H20" stroke="currentColor" stroke-width="1.6"/><path d="M8 3 V6 M16 3 V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>回顾
@@ -460,7 +460,7 @@
     5: [{n:'伊犁', loc:'新疆 · 草原初绿', href:'topic.html?p=xj'},{n:'甘南', loc:'甘肃 · 秘境花开', href:'topic.html?p=gs'},{n:'香格里拉', loc:'云南 · 高山杜鹃', href:'topic.html?p=gy'}],
     6: [{n:'青海湖', loc:'青海 · 环湖骑行季', href:'topic.html?p=qt'},{n:'薰衣草河谷', loc:'新疆 · 紫色六月', href:'topic.html?p=xj'},{n:'荔波', loc:'贵州 · 清凉戏水', href:'topic.html?p=gz'}],
     7: [{n:'呼伦贝尔', loc:'内蒙古 · 草原盛夏', href:'topic.html?p=nmg'},{n:'甘南草原', loc:'甘肃 · 避暑胜地', href:'topic.html?p=gs'},{n:'九寨沟', loc:'四川 · 清凉海子', href:'topic.html?p=sc'}],
-    8: [{n:'独库公路', loc:'新疆 · 一日四季', href:'topic.html?p=xj'},{n:'茶卡盐湖', loc:'青海 · 天空之镜', href:'topic.html?p=qt'},{n:'恩施大峡谷', loc:'湖北 · 避暑秘境', href:'nation-map.html'}],
+    8: [{n:'独库公路', loc:'新疆 · 一日四季', href:'topic.html?p=xj'},{n:'茶卡盐湖', loc:'青海 · 天空之镜', href:'topic.html?p=qt'},{n:'恩施大峡谷', loc:'湖北 · 避暑秘境', href:'topic.html?p=nation'}],
     9: [{n:'喀纳斯', loc:'新疆 · 秋色初染', href:'topic.html?p=xj'},{n:'张掖丹霞', loc:'甘肃 · 七彩之秋', href:'topic.html?p=gs'},{n:'稻城亚丁', loc:'四川 · 秋日圣山', href:'topic.html?p=sc'}],
     10:[{n:'九寨沟彩林', loc:'四川 · 层林尽染', href:'topic.html?p=sc'},{n:'额济纳', loc:'内蒙古 · 胡杨金秋', href:'topic.html?p=nmg'},{n:'平遥古城', loc:'山西 · 秋高气爽', href:'topic.html?p=sx'}],
     11:[{n:'腾冲银杏村', loc:'云南 · 满地金黄', href:'topic.html?p=gy'},{n:'阳朔', loc:'广西 · 秋日骑行', href:'topic.html?p=gy'},{n:'梵净山', loc:'贵州 · 云海佛光', href:'topic.html?p=gz'}],

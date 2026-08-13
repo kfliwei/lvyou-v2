@@ -30,7 +30,7 @@
 </header>
 <main>
   <section id="map" class="view active">
-    <div id="mapEl"></div>
+    <div id="mapEl"><div id="mapSkel" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--color-bg,#F7F5EF);z-index:5;font-size:13px;color:var(--color-muted)">景点数据加载中…</div></div>
     <button id="locBtn" class="fab" title="定位我的位置">📍</button>
     <div class="routeBanner" id="routeBanner"></div>
     <div class="legend" id="legend">
@@ -112,6 +112,7 @@
 <script src="vendor/leaflet/leaflet.js?v=20260813"></script>
 <script src="node-lod.js?v=20260813"></script>
 <script src="geo.js"></script>
+<script src="tiles.js?v=20260813"></script>
 <script src="quotes.js?v=20260813"></script>
 <script src="travel-notes.js?v=20260813"></script>
 <script src="results.js?v=20260813"></script>
@@ -133,9 +134,21 @@
   if (!cfg.foodEnabled) { var ft = document.querySelector('.tabbar button[data-tab="food"]'); if (ft) ft.style.display = 'none'; }
   function loadScript(src, cb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = cb; document.head.appendChild(s); }
   function boot() {
+    /* 全国页 dl=1：加载完成后下载当前视野离线瓦片（设置页「下载当前区域」入口） */
+    if (location.search.indexOf('dl=1') >= 0 && window.Tiles && window.Tiles.downloadView) {
+      try {
+        setTimeout(function () {
+          var mp = document.getElementById('mapEl');
+          var toast = function (msg) { var d = document.createElement('div'); d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9800;white-space:nowrap'; d.textContent = msg; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 2600); };
+          Tiles.downloadView(window.TopicEngine._map || null, [10, 11, 12], function (ok, total) { if (ok % 40 === 0 || ok === total) toast('离线瓦片下载中 ' + ok + '/' + total); }, function (ok, total, cancelled) { toast(cancelled ? '已取消' : '当前区域瓦片下载完成 ' + ok + ' 张'); });
+        }, 1800);
+      } catch (e) {}
+    }
+
     // 到 Sheet / 到达卡片的面板关闭钩子
     window.TopicEngine._closeArrive = function () { var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show'); };
     window.TopicEngine.init();
+    var _sk = document.getElementById('mapSkel'); if (_sk) { setTimeout(function () { _sk.style.display = 'none'; }, 300); }
   }
   loadScript(cfg.dataJs, function () {
     if (cfg.routesKey) { loadScript('routes-data.js', function () { R = window.TOPIC_ROUTES || {}; if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); }); }
