@@ -20,7 +20,7 @@
   .wrap{padding:20px 16px 120px;max-width:520px;margin:0 auto}
   .wl-empty{text-align:center;padding:70px 20px;color:var(--color-faint)}
   .wl-empty .em{font-family:var(--font-serif);font-size:22px;color:var(--color-ink-soft);line-height:1.8}
-  .wl-empty p{font-size:13px;margin-top:10px;line-height:1.8}
+  .wl-empty p{font-size:0.8125rem;margin-top:10px;line-height:1.8}
   .wl-empty a{color:var(--color-primary-dark);font-size:14px;font-weight:600}
   .wl-item{display:flex;align-items:center;gap:12px;padding:16px 4px;border-bottom:1px solid var(--color-line)}
   .wl-item:last-child{border-bottom:0}
@@ -138,7 +138,7 @@
       for (var i = 1; i < d.length; i++) dayKm += havKm(d[i - 1].lat, d[i - 1].lng, d[i].lat, d[i].lng);
       html += '<div style="border-top:1px solid var(--color-line);padding:10px 0 4px"><b style="font-family:var(--font-serif);font-weight:400">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm) + ' km</span></div>';
       d.forEach(function (s, i) {
-        html += '<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0"><span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:12px">' + (i + 1) + '</span><span style="flex:1;font-size:13.5px">' + s.label + '</span><span style="font-size:11px;color:var(--color-muted)">' + (s.region || '') + '</span></div>';
+        html += '<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0"><span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i + 1) + '</span><span style="flex:1;font-size:0.8438rem">' + s.label + '</span><span style="font-size:0.6875rem;color:var(--color-muted)">' + (s.region || '') + '</span></div>';
       });
     });
     html += '<div style="display:flex;gap:10px;margin-top:14px"><button class="wl-btn" style="flex:1;justify-content:center" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center" id="wlPlanClose">收起计划</button></div></div>';

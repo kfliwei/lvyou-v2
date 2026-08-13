@@ -47,7 +47,7 @@
   .md-item{display:block;width:100%;text-align:left;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;box-shadow:var(--shadow-soft);padding:14px 16px;margin-bottom:12px;box-sizing:border-box}
   .md-item h3{margin:0;font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-ink)}
   .md-item .meta{font-size:11.5px;color:var(--color-muted);margin-top:4px}
-  .md-item .txt{font-size:13.5px;color:var(--color-ink-soft);line-height:1.8;margin-top:8px;white-space:pre-wrap;max-height:90px;overflow:hidden}
+  .md-item .txt{font-size:0.8438rem;color:var(--color-ink-soft);line-height:1.8;margin-top:8px;white-space:pre-wrap;max-height:90px;overflow:hidden}
   .md-item .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
   .md-item .tags span{font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);padding:2px 9px;border-radius:999px}
   .md-item .thumbs{display:flex;gap:6px;margin-top:10px;overflow:hidden}
@@ -71,7 +71,7 @@
   .empty span{display:block;margin-top:6px;font-size:12.5px;color:var(--color-muted)}
   .report-dlg{position:fixed;left:10px;right:10px;bottom:10px;z-index:9000;max-height:80dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-float);padding:18px 20px 22px}
   .report-dlg h4{font-family:var(--font-serif);font-weight:400;color:var(--color-ink);margin:0 0 10px;font-size:18px}
-  .report-dlg .txt{font-family:var(--font-serif);font-size:14.5px;line-height:1.9;color:var(--color-ink-soft);white-space:pre-wrap}
+  .report-dlg .txt{font-family:var(--font-serif);font-size:0.9063rem;line-height:1.9;color:var(--color-ink-soft);white-space:pre-wrap}
   .report-dlg .acts{display:flex;gap:10px;margin-top:16px}
   .report-dlg .acts button{flex:1;min-height:44px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer}
   .report-dlg .acts button.x{background:var(--color-bg-soft);color:var(--color-muted)}
@@ -318,7 +318,7 @@ function renderAchieve(){
     var provHtml=ALL.map(function(p){ var on=!!provs[p[0]]; return '<span style="display:inline-flex;align-items:center;gap:3px;padding:5px 9px;border-radius:999px;font-size:11px;'+(on?'background:var(--color-primary);color:#fff;font-weight:600':'background:var(--color-bg-soft);color:var(--color-muted);border:1px solid var(--color-line)')+'">'+p[1]+'</span>'; }).join('');
     var metHtml=[
       ['省份', pn+' / 31'], ['城市', cn], ['里程', Math.round(km)+' km'], ['记录日', dn], ['连续', streak+' 天']
-    ].map(function(m){ return '<div style="flex:1;text-align:center;padding:8px 2px;background:var(--color-bg-soft);border-radius:12px"><b style="display:block;font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-ink)">'+m[1]+'</b><span style="font-size:10px;color:var(--color-muted)">'+m[0]+'</span></div>'; }).join('');
+    ].map(function(m){ return '<div style="flex:1;text-align:center;padding:8px 2px;background:var(--color-bg-soft);border-radius:12px"><b style="display:block;font-family:var(--font-serif);font-size:1.125rem;font-weight:400;color:var(--color-ink)">'+m[1]+'</b><span style="font-size:0.625rem;color:var(--color-muted)">'+m[0]+'</span></div>'; }).join('');
     var pct=Math.min(100,Math.round(pn/31*100));
     document.getElementById('achvMetrics').innerHTML=metHtml;
     document.getElementById('achvProvs').innerHTML=provHtml;
@@ -432,7 +432,7 @@ function renderPlaces(){
   var arr=Object.keys(p).sort(function(a,b){return p[b]-p[a];}).slice(0,24);
   document.getElementById('places').innerHTML=arr.map(function(x){return '<span>'+esc(x)+' <b style="color:var(--color-primary-dark)">'+p[x]+'</b></span>';}).join('')||'<span>还没有地点</span>';
 }
-(function(){var hp=document.getElementById('calPrev');if(hp&&!document.getElementById('yrPrev')){var mk=function(id,txt){var b=document.createElement('button');b.id=id;b.textContent=txt;b.title=(id==='yrPrev'?'上一年':'下一年');b.style.cssText='font-size:12px;width:auto;padding:0 11px';return b;};var b1=mk('yrPrev','‹ 年'),b2=mk('yrNext','年 ›');hp.parentNode.insertBefore(b1,hp);hp.parentNode.insertBefore(b2,hp.nextSibling);}})();
+(function(){var hp=document.getElementById('calPrev');if(hp&&!document.getElementById('yrPrev')){var mk=function(id,txt){var b=document.createElement('button');b.id=id;b.textContent=txt;b.title=(id==='yrPrev'?'上一年':'下一年');b.style.cssText='font-size:0.75rem;width:auto;padding:0 11px';return b;};var b1=mk('yrPrev','‹ 年'),b2=mk('yrNext','年 ›');hp.parentNode.insertBefore(b1,hp);hp.parentNode.insertBefore(b2,hp.nextSibling);}})();
 document.getElementById('calPrev').onclick=function(){
   var p=curYm.split('-'),y=+p[0],m=+p[1]-1;
   if(m<1){m=12;y--;}

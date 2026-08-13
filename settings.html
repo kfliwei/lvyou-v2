@@ -21,7 +21,7 @@
   .content{padding:18px 16px 40px}
   .group{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px}
   .group-title{font-family:var(--font-serif);font-size:15px;color:var(--color-ink);margin-bottom:4px}
-  .group-sub{font-size:11.5px;color:var(--color-muted);line-height:1.7;margin-bottom:12px;font-family:var(--font-sans)}
+  .group-sub{font-size:0.7188rem;color:var(--color-muted);line-height:1.7;margin-bottom:12px;font-family:var(--font-sans)}
   .row{margin-bottom:14px}
   .row:last-child{margin-bottom:0}
   .row-label{font-size:12px;color:var(--color-ink-soft);margin-bottom:7px;font-weight:600}
@@ -33,7 +33,7 @@
   /* 开关 */
   .switchrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0}
   .switchrow .sw-label{font-size:13.5px;color:var(--color-ink)}
-  .switchrow .sw-sub{font-size:11px;color:var(--color-muted);margin-top:2px;font-family:var(--font-sans)}
+  .switchrow .sw-sub{font-size:0.6875rem;color:var(--color-muted);margin-top:2px;font-family:var(--font-sans)}
   .sw{width:48px;height:28px;border-radius:999px;background:var(--color-primary);position:relative;flex:0 0 auto;cursor:pointer;transition:background var(--duration-normal)}
   .sw::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:right var(--duration-normal)}
   .sw.off{background:var(--color-line-strong)}
@@ -225,7 +225,7 @@
     <!-- 阅读字号 -->
     <div class="group">
       <div class="group-title">阅读字号</div>
-      <div class="group-sub">调整正文阅读类字号（界面控件保持不变）</div>
+      <div class="group-sub">小字档全局紧凑（阅读/卡片/间距整体缩小），控件与地图不变</div>
       <div class="chips" id="chFont" style="margin-top:8px"></div>
     </div>
         <!-- 深色模式 -->
@@ -346,7 +346,7 @@
 (function(){
   var cur='md'; try{ cur=localStorage.getItem('tn_font')||'md'; }catch(e){}
   var box=document.getElementById('chFont'); if(!box) return;
-  var FONTS=[['sm','小'],['md','标准'],['lg','大']];
+  var FONTS=[['md','标准'],['sm','小字']];
   box.innerHTML=FONTS.map(function(f){ return '<span class="chip'+(f[0]===cur?' on':'')+'" data-f="'+f[0]+'" style="cursor:pointer">'+f[1]+'</span>'; }).join('');
   box.querySelectorAll('.chip').forEach(function(ch){
     ch.onclick=function(){ try{ localStorage.setItem('tn_font', ch.dataset.f); }catch(e){} box.querySelectorAll('.chip').forEach(function(x){ x.classList.toggle('on', x===ch); }); location.reload(); };
