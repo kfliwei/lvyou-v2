@@ -91,6 +91,8 @@
     map.on('click', function () { layMenu.classList.remove('show'); });
     map.on('movestart', function () { layMenu.classList.remove('show'); });
     map.on('click', function (e) {
+      var _t = e.originalEvent && e.originalEvent.target;
+      if (_t && _t.closest && _t.closest('.leaflet-marker-icon')) return;
       if (pickMode) { pickMode = false; hidePickHint(); locateSuccess({ coords: { latitude: e.latlng.lat, longitude: e.latlng.lng } }); return; }
       if (M.nearEnabled) { nearPick(e.latlng); return; }
       spotRec(e.latlng.lat, e.latlng.lng);
@@ -142,7 +144,7 @@
   function nearQuery(lat, lng, km) {
     clearNearLayer();
     nearLayer = L.layerGroup().addTo(map);
-    L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06 }).addTo(nearLayer);
+    L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06, interactive: false, bubblingMouseEvents: false }).addTo(nearLayer);
     var hits = SITES.map(function (s) { return { s: s, d: haversine([lat, lng], [s.lat, s.lng]) }; })
       .filter(function (h) { return h.d <= km; })
       .sort(function (a, b) { return a.d - b.d; });
