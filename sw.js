@@ -6,6 +6,7 @@ var SHELL = [
   './explore-map.html',
   './index.html',
   './md-manager.html',
+  './me.html',
   './review.html',
   './search.html',
   './settings.html',

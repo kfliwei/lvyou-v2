@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>我的 · 行迹</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+  .t-row{display:flex;align-items:center;gap:8px;height:42px}
+  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
+  .t-row .title small{font-family:var(--font-sans);font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
+  .wrap{padding:18px 16px 8px}
+  .hero-card{display:flex;align-items:center;gap:14px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px 16px;margin-bottom:14px}
+  .seal{width:52px;height:52px;border-radius:16px;background:var(--color-primary);color:#fff;display:grid;place-items:center;font-family:var(--font-serif);font-size:26px;flex:0 0 auto;box-shadow:0 4px 14px rgba(200,109,75,.3)}
+  .hero-card .who{flex:1;min-width:0}
+  .hero-card .who b{font-family:var(--font-serif);font-size:19px;font-weight:400;color:var(--color-ink)}
+  .hero-card .who div{font-size:12px;color:var(--color-muted);margin-top:3px}
+  .wish-pill{flex:0 0 auto;font-size:12px;padding:7px 12px;border-radius:999px;background:var(--color-primary-soft);color:var(--color-primary-dark);text-decoration:none}
+  .stats{display:flex;gap:6px;margin-bottom:12px}
+  .stats .st{flex:1;text-align:center;padding:9px 2px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px}
+  .stats .st b{display:block;font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-ink)}
+  .stats .st span{font-size:10px;color:var(--color-muted)}
+  .panel{background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:12px;margin-bottom:12px}
+  .panel .ph{font-size:11px;color:var(--color-muted);letter-spacing:.2em;margin-bottom:8px}
+  .provs{display:flex;flex-wrap:wrap;gap:5px}
+  .prov{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10.5px;background:var(--color-bg-soft);color:var(--color-muted)}
+  .prov.on{background:var(--color-primary);color:#fff;font-weight:600}
+  .rec{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--color-line);font-size:13px}
+  .rec:first-of-type{border-top:0}
+  .rec .dot{width:7px;height:7px;border-radius:50%;background:var(--color-primary);flex:0 0 auto}
+  .rec .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rec .d{font-size:10.5px;color:var(--color-muted)}
+  .entry{display:flex;align-items:center;gap:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:13px 16px;margin-bottom:8px;text-decoration:none;color:var(--color-ink)}
+  .entry .ic{width:34px;height:34px;border-radius:10px;background:var(--color-primary-soft);color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:15px}
+  .entry .nm{flex:1;font-size:13.5px}
+  .entry .nm small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
+  .entry .arr{color:var(--color-faint)}
+  .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:100;width:min(calc(100% - 24px),480px);height:76px;display:grid;grid-template-columns:repeat(5,1fr);padding:8px;background:rgba(250,248,243,.9);border:1px solid rgba(32,32,29,.07);border-radius:28px;box-shadow:var(--shadow-float);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  .bottom-nav__item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:20px;color:var(--color-muted);font-size:11px;letter-spacing:.04em;text-decoration:none;min-height:44px}
+  .bottom-nav__item.active{color:var(--color-ink);background:rgba(255,255,255,.65);font-weight:600}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="t-row">
+      <div class="title">我的 <small>My Journey</small></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="hero-card">
+      <div class="seal">迹</div>
+      <div class="who">
+        <b>我的足迹</b>
+        <div id="meSub">还没有记录，去探索第一处风景</div>
+      </div>
+      <a class="wish-pill" href="wishlist.html">想去 <b id="meWish">0</b></a>
+    </div>
+
+    <div class="stats" id="meStats"></div>
+
+    <div class="panel"><div class="ph">省份足迹</div><div class="provs" id="meProvs"></div></div>
+
+    <div class="panel"><div class="ph">最近记录</div><div id="meRecent"></div></div>
+
+    <div style="margin-top:16px">
+      <a class="entry" href="review.html"><span class="ic">🏅</span><span class="nm">旅程回顾与成就<small>统计 · 日历 · 足迹海报 · 年度报告</small></span><span class="arr">›</span></a>
+      <a class="entry" href="travel-map.html"><span class="ic">🗺️</span><span class="nm">我的足迹地图<small>全部游记与路线轨迹</small></span><span class="arr">›</span></a>
+      <a class="entry" href="story.html"><span class="ic">📖</span><span class="nm">旅程叙事时间线<small>按旅程顺序重走一遍</small></span><span class="arr">›</span></a>
+      <a class="entry" href="wishlist.html"><span class="ic">⭐</span><span class="nm">想去清单<small>收藏 · 打卡 · 行程规划</small></span><span class="arr">›</span></a>
+      <a class="entry" href="search.html"><span class="ic">🔍</span><span class="nm">搜索全部景点<small>3253+ 处全库检索</small></span><span class="arr">›</span></a>
+      <a class="entry" href="settings.html"><span class="ic">⚙️</span><span class="nm">设置<small>AI 模型 · 语音 · 字号 · 存储 · 离线地图</small></span><span class="arr">›</span></a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="bottom-nav__item" href="index.html"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 L12 4 L20 12"/><path d="M6.5 10.5 V20 H17.5 V10.5"/></svg></span>探索</a>
+    <a class="bottom-nav__item" href="explore-map.html"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>专题</a>
+    <a class="bottom-nav__item" href="travel-map.html"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 19 C6 15 8 15 10 19 C12 15 14 15 16 19"/><path d="M4 6 C6 3 8 3 10 6 C12 3 14 3 16 6"/></svg></span>足迹</a>
+    <a class="bottom-nav__item" href="review.html"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5 H20 V19 H4 Z"/><path d="M4 9 H20"/><path d="M8 3 V6 M16 3 V6" stroke-linecap="round"/></svg></span>回顾</a>
+    <a class="bottom-nav__item active" href="me.html"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8.5" opacity=".5"/></svg></span>我的</a>
+  </nav>
+</div>
+
+<script src="travel-notes.js"></script>
+<script src="wishlist.js"></script>
+<script>
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function render(){
+    var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
+    var wish = (window.Wish && Wish.count) ? Wish.count() : 0;
+    var el = document.getElementById('meWish'); if (el) el.textContent = wish;
+    var provs = {}, cities = {}, km = 0, days = {};
+    notes.forEach(function(n){
+      if (n.province) provs[n.province] = 1;
+      if (n.city) cities[n.city] = 1;
+      if (n.dist) km += n.dist;
+      if (n.date) days[n.date.slice(0,10)] = 1;
+    });
+    var pn = Object.keys(provs).length;
+    document.getElementById('meSub').textContent = notes.length ? (pn + ' 个省份 · ' + Object.keys(cities).length + ' 个城市 · ' + Object.keys(days).length + ' 天在路上') : '还没有记录，去探索第一处风景';
+    document.getElementById('meStats').innerHTML = [
+      ['省份', pn + ' / 31'], ['城市', Object.keys(cities).length], ['里程', Math.round(km) + ' km'], ['记录日', Object.keys(days).length]
+    ].map(function(m){ return '<div class="st"><b>' + m[1] + '</b><span>' + m[0] + '</span></div>'; }).join('');
+    var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新']];
+    document.getElementById('meProvs').innerHTML = ALL.map(function(p){ return '<span class="prov' + (provs[p[0]] ? ' on' : '') + '">' + p[1] + '</span>'; }).join('');
+    var recent = notes.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,4);
+    document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){
+      return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc((n.date||'').slice(0,10)) + '</span></div>';
+    }).join('') : '<div style="font-size:12px;color:var(--color-muted);padding:6px 0">还没有游记，去景点点「语音记录」开始</div>';
+  }
+  render();
+})();
+</script>
+</body>
+</html>
