@@ -42,7 +42,17 @@ window.Wish = (function () {
       return (a.visited ? 1 : 0) - (b.visited ? 1 : 0) || b.ts - a.ts;
     });
   }
-  function remove(id) { save(load().filter(function (x) { return x.id !== id; })); }
+  function remove(id) {
+    var list = load();
+    if (find(list, id)) { save(list.filter(function (x) { return x.id !== id; })); return; }
+    /* 兼容旧数据：条目无 id 字段时，按 label|lat|lng 内容匹配删除 */
+    var parts = String(id).split('|');
+    if (parts.length === 3) {
+      save(list.filter(function (x) {
+        return !(String(x.label) === parts[0] && String(x.lat) === parts[1] && String(x.lng) === parts[2]);
+      }));
+    }
+  }
   function count() { return load().length; }
 
   /* 到达提醒：当前位置 3km 内是否有未打卡的心愿节点 */

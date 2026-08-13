@@ -182,6 +182,7 @@
 
   function render() {
     var list = window.Wish.list();
+    curList = list;
     cnt.textContent = list.length ? list.length + ' 处' : '';
     empty.style.display = list.length ? 'none' : 'block';
     body.innerHTML = list.map(function (w, i) {
@@ -217,9 +218,10 @@
     var w = window.Wish.list()[i]; if (!w) return;
     try { window.TravelNotes.openPanel({ label: w.label, lat: w.lat, lng: w.lng }); } catch (e) { flash('记录面板打开失败，请重试'); }
   }
+  var curList = [];
   function doRemove(i) {
-    var w = window.Wish.list()[i]; if (!w) return;
-    window.Wish.remove(w.id);
+    var w = curList[i] || window.Wish.list()[i]; if (!w) return;
+    window.Wish.remove(w.id || String(w.label + '|' + w.lat + '|' + w.lng));
     render();
   }
   function flash(msg) {
