@@ -922,7 +922,7 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .arrive-nav:hover{color:var(--color-primary-dark)}
 
 /* ===== Location Sheet 显隐（通用专题页，对齐 gx-yn 的 #locSheet 规则）===== */
-#locSheet{position:fixed;z-index:900;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);animation:none}
+#locSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;transform:translateY(115%);transition:transform 520ms var(--ease-standard);animation:none}
 #locSheet.show{display:block;transform:translateY(0)}
 #locSheet .sheet__handle{cursor:pointer}
 
