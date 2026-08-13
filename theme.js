@@ -14,6 +14,12 @@
   }
   function apply() { document.documentElement.classList.toggle('theme-dark', isDark()); }
   apply();
+  /* 字号档位：sm/md/lg（localStorage tn_font），控制正文阅读类字号 */
+  (function () {
+    var s = 'md';
+    try { s = localStorage.getItem('tn_font') || 'md'; } catch (e) {}
+    document.documentElement.classList.add('font-' + s);
+  })();
   var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
   if (mq) {
     if (mq.addEventListener) mq.addEventListener('change', apply);

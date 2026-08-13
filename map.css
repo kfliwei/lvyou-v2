@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    专题地图页 · 移动优先（浅色地图优先 · 紧凑 · 克制中式）
    顶栏 3 层：标题行 + 搜索行 + chips 行（约 110px）
    ============================================================ */
@@ -965,3 +965,10 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .bdg-h{background:rgba(255,122,80,.1);color:#C25A38;border:1px solid rgba(255,122,80,.36)}
 
 .lod-cl__m{display:inline-block;font-size:10px;padding:0 7px;border-radius:999px;background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.35);margin-left:6px;font-weight:600}
+
+/* 深色模式地图瓦片降亮（高德/OSM 浅色瓦片适配暗色 UI） */
+.theme-dark .leaflet-tile{filter:brightness(.68) saturate(.8) contrast(1.08)}
+.theme-dark .leaflet-tile-pane{opacity:.92}
+
+.ls-mine{margin-top:12px;padding:11px 14px;border-radius:12px;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+.ls-mine:active{opacity:.8}

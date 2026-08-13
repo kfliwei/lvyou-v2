@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -169,6 +169,7 @@
       <input id="homeSearch" type="search" placeholder="搜我的游记 / 去专题找景点" autocomplete="off">
     </div>
     <div class="search-panel" id="searchPanel" style="display:none">
+      <a href="search.html" style="display:block;margin-bottom:10px;background:var(--color-primary-soft);border:1px solid rgba(200,109,75,.25);border-radius:999px;padding:11px 16px;font-size:13px;color:var(--color-primary-dark);text-align:center;font-weight:600">🔍 搜索全部景点（3253+ 处）</a>
       <div class="sp-group">
         <div class="sp-title">我的游记</div>
         <div id="spNotes"><div class="sp-empty">还没有匹配的游记</div></div>
@@ -511,6 +512,63 @@
     }
   };
   document.addEventListener('click',function(e){if(!e.target.closest('.hero__search'))sp.style.display='none';});
+</script>
+
+<!-- 首启引导 -->
+<div id="tnGuide" style="display:none;position:fixed;inset:0;z-index:9900;background:rgba(32,32,29,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px">
+  <div style="width:min(100%,360px);background:var(--color-surface,#fff);border-radius:26px;padding:30px 26px 24px;box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center">
+    <div id="gDot" style="width:10px;height:10px;border-radius:50%;background:var(--color-primary);margin:0 auto 14px"></div>
+    <div id="gStep" style="font-family:var(--font-serif);font-size:12px;letter-spacing:.3em;color:var(--color-muted)">1 / 3</div>
+    <div id="gTitle" style="font-family:var(--font-serif);font-size:24px;font-weight:400;color:var(--color-ink);margin-top:8px"></div>
+    <div id="gDesc" style="font-size:13.5px;color:var(--color-ink-soft);line-height:1.8;margin-top:10px;min-height:76px"></div>
+    <div id="gActs" style="display:flex;gap:10px;margin-top:22px">
+      <button id="gSkip" style="flex:1;min-height:46px;border:1px solid rgba(32,32,29,.14);border-radius:999px;background:transparent;color:var(--color-muted);font-size:13.5px;cursor:pointer">跳过</button>
+      <button id="gNext" style="flex:2;min-height:46px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer">下一步</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var seen=false; try{seen=localStorage.getItem('tn_guide')==='1';}catch(e){}
+  if(seen) return;
+  var steps=[
+    {t:'边走边记，语音就够了',d:'到景点点「语音记录」，说两句就成一篇游记；AI 会帮你润色成文，照片和原声都留存。',go:''},
+    {t:'离线也能逛',d:'在「我的」页下载离线地图，没信号也能看地图、找景点。',go:''},
+    {t:'数据只在本机，记得备份',d:'「我的」页点「导出备份」保存到本地文件，每月备份一次更安心。',go:''}
+  ],i=0;
+  var box=document.getElementById('tnGuide');
+  function show(){
+    document.getElementById('gTitle').textContent=steps[i].t;
+    document.getElementById('gDesc').textContent=steps[i].d;
+    document.getElementById('gStep').textContent=(i+1)+' / 3';
+    document.getElementById('gNext').textContent=i<2?'下一步':'开始探索';
+  }
+  document.getElementById('gNext').onclick=function(){
+    if(i<2){ i++; show(); }
+    else{ box.style.display='none'; try{localStorage.setItem('tn_guide','1');}catch(e){} }
+  };
+  document.getElementById('gSkip').onclick=function(){
+    box.style.display='none'; try{localStorage.setItem('tn_guide','1');}catch(e){}
+  };
+  box.style.display='flex'; show();
+})();
+</script>
+
+<script>
+(function(){
+  try{
+    if(localStorage.getItem('tn_guide')!=='1') return;
+    var last=+localStorage.getItem('tn_lastBackup')||0;
+    if(Date.now()-last>30*864e5){
+      var d=document.createElement('div');
+      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+      d.innerHTML='<span style="flex:1">距上次备份已超 30 天，数据只在本机，建议备份一次。</span><button id="bkGo" style="flex:0 0 auto;border:0;border-radius:999px;background:#C86D4B;color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去备份</button>';
+      document.body.appendChild(d);
+      document.getElementById('bkGo').onclick=function(){ d.remove(); location.href='settings.html'; };
+      setTimeout(function(){ d.remove(); }, 12000);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

@@ -196,7 +196,16 @@
       <div class="cal-grid" id="calGrid"></div>
     </div>
     <div id="dayBox"></div>
-    <div class="sec"><div class="sec-title">省份足迹</div><div class="provbar" id="provBar"></div>
+    
+<div class="sec" id="achvSec">
+  <div class="sec-title">足迹成就</div>
+  <div id="achvBox" style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px 14px">
+    <div id="achvMetrics" style="display:flex;gap:6px;margin-bottom:14px"></div>
+    <div id="achvProvs" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+    <div id="achvProgress" style="margin-top:14px"></div>
+  </div>
+</div>
+<div class="sec"><div class="sec-title">省份足迹</div><div class="provbar" id="provBar"></div>
       <button class="btn-secondary" id="provBtn" style="width:100%;margin-top:10px;display:none">🗺 展开省份地图</button>
       <div id="provMap" style="display:none;height:340px;border-radius:14px;overflow:hidden;border:1px solid var(--color-line);margin-top:10px"></div>
     </div>
@@ -228,7 +237,7 @@ function render(){
     else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
     selDay=Object.keys(dayMap).sort().pop()||'';
   }
-  renderStats(); renderToday(); renderStats2(); renderProv(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+  renderStats(); renderToday(); renderStats2(); renderProv(); renderAchieve(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
 }
 function maxStreak(){
   var days = Object.keys(dayMap).sort(), best = 0, cur = 0, prev = null;
@@ -288,6 +297,34 @@ function renderToday(){
       '<div class="txt">' + esc((n.text || n.raw || '').slice(0, 160)) + '</div></div>';
   }).join('');
 }
+
+function renderAchieve(){
+  try{
+    var box=document.getElementById('achvBox'); if(!box) return;
+    var provs={}, cities={}, km=0, days={};
+    notes.forEach(function(n){
+      if(n.province) provs[n.province]=(provs[n.province]||0)+1;
+      if(n.city) cities[n.city]=1;
+      if(n.dist) km+=n.dist;
+      if(n.date) days[n.date.slice(0,10)]=1;
+    });
+    var pn=Object.keys(provs).length, cn=Object.keys(cities).length, dn=Object.keys(days).length;
+    /* 连续记录天数 */
+    var dts=Object.keys(days).sort(), streak=0;
+    if(dts.length){ var last=new Date(dts[dts.length-1]+'T00:00:00'); var today=new Date(); today.setHours(0,0,0,0); var gap=Math.round((today-last)/864e5); if(gap<=1){ streak=1; for(var k=dts.length-2;k>=0;k--){ var a=new Date(dts[k]+'T00:00:00'), b=new Date(dts[k+1]+'T00:00:00'); if(Math.round((b-a)/864e5)===1) streak++; else break; } } }
+    /* 省份徽章（31 省级行政区） */
+    var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新']];
+    var provHtml=ALL.map(function(p){ var on=!!provs[p[0]]; return '<span style="display:inline-flex;align-items:center;gap:3px;padding:5px 9px;border-radius:999px;font-size:11px;'+(on?'background:var(--color-primary);color:#fff;font-weight:600':'background:var(--color-bg-soft);color:var(--color-muted);border:1px solid var(--color-line)')+'">'+p[1]+'</span>'; }).join('');
+    var metHtml=[
+      ['省份', pn+' / 31'], ['城市', cn], ['里程', Math.round(km)+' km'], ['记录日', dn], ['连续', streak+' 天']
+    ].map(function(m){ return '<div style="flex:1;text-align:center;padding:8px 2px;background:var(--color-bg-soft);border-radius:12px"><b style="display:block;font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-ink)">'+m[1]+'</b><span style="font-size:10px;color:var(--color-muted)">'+m[0]+'</span></div>'; }).join('');
+    var pct=Math.min(100,Math.round(pn/31*100));
+    document.getElementById('achvMetrics').innerHTML=metHtml;
+    document.getElementById('achvProvs').innerHTML=provHtml;
+    document.getElementById('achvProgress').innerHTML='<div style="font-size:11px;color:var(--color-muted);margin-bottom:6px">足迹进度 · '+pct+'%</div><div style="height:6px;background:var(--color-bg-soft);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--color-primary),#E0A458);border-radius:99px"></div></div>';
+  }catch(e){}
+}
+
 function renderStats(){
   var sites={},days=0,photos=0;
   notes.forEach(function(n){if(n.lat!=null)sites[n.lat.toFixed(4)+','+n.lng.toFixed(4)]=1;if(dayOf(n))days++;photos+=(n.photos||[]).length;});
@@ -394,11 +431,14 @@ function renderPlaces(){
   var arr=Object.keys(p).sort(function(a,b){return p[b]-p[a];}).slice(0,24);
   document.getElementById('places').innerHTML=arr.map(function(x){return '<span>'+esc(x)+' <b style="color:var(--color-primary-dark)">'+p[x]+'</b></span>';}).join('')||'<span>还没有地点</span>';
 }
+(function(){var hp=document.getElementById('calPrev');if(hp&&!document.getElementById('yrPrev')){var mk=function(id,txt){var b=document.createElement('button');b.id=id;b.textContent=txt;b.title=(id==='yrPrev'?'上一年':'下一年');b.style.cssText='font-size:12px;width:auto;padding:0 11px';return b;};var b1=mk('yrPrev','‹ 年'),b2=mk('yrNext','年 ›');hp.parentNode.insertBefore(b1,hp);hp.parentNode.insertBefore(b2,hp.nextSibling);}})();
 document.getElementById('calPrev').onclick=function(){
   var p=curYm.split('-'),y=+p[0],m=+p[1]-1;
   if(m<1){m=12;y--;}
   curYm=y+'-'+pad(m);renderCal();renderDay();
 };
+document.getElementById('yrPrev').onclick=function(){var p=curYm.split('-'),y=+p[0],m=+p[1]-12;if(m<=0){y--;m+=12;}curYm=y+'-'+pad(m);renderCal();renderDay();};
+document.getElementById('yrNext').onclick=function(){var p=curYm.split('-'),y=+p[0],m=+p[1]+12;if(m>12){y++;m-=12;}curYm=y+'-'+pad(m);renderCal();renderDay();};
 document.getElementById('calNext').onclick=function(){
   var p=curYm.split('-'),y=+p[0],m=+p[1]+1;
   if(m>12){m=1;y++;}

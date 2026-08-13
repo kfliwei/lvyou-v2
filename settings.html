@@ -335,6 +335,7 @@
     if (!window.TravelNotes || !TravelNotes.exportNotes) { toast('导出功能暂不可用'); return; }
     toast('正在生成备份…');
     setTimeout(function(){ TravelNotes.exportNotes(); }, 60);
+    try{ localStorage.setItem('tn_lastBackup', String(Date.now())); }catch(e){}
   }
   function impBackup(){
     if (!window.TravelNotes || !TravelNotes.importNotes) { toast('导入功能暂不可用'); return; }

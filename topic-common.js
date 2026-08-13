@@ -227,6 +227,7 @@
       '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
+      (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
       (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +
       '<div class="ls-actions">' +
             '<button class="btn-primary" style="min-height:46px;font-size:13.5px;padding:0 18px" onclick="window.TravelNotes.explain(' + i + ')">🎧 听讲解</button>' +

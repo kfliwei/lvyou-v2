@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>搜索 · 行迹</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:60px}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+  .t-row{display:flex;align-items:center;gap:8px}
+  .t-row .back{width:34px;height:34px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .t-row .back:active{transform:scale(.92)}
+  .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
+  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;color:var(--color-ink);height:34px}
+  .sbar .mic{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:15px;cursor:pointer}
+  .sbar .mic:active{transform:scale(.92)}
+  .sbar .mic.rec{background:var(--color-primary);color:#fff;animation:mic-pulse 1.2s ease-in-out infinite}
+  @keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,.4)}50%{box-shadow:0 0 0 8px rgba(200,109,75,0)}}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;font-size:12px;padding:6px 14px;border-radius:999px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer}
+  .chip.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
+  .result{padding:6px 14px 20px}
+  .sec-t{font-size:11px;color:var(--color-muted);letter-spacing:.24em;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
+  .sec-t b{font-size:13px;color:var(--color-ink);letter-spacing:.02em}
+  .sec-t span{font-size:11px;color:var(--color-faint)}
+  .item{display:flex;align-items:center;gap:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:14px;padding:11px 14px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow-soft)}
+  .item:active{transform:scale(.985)}
+  .item .dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%}
+  .item .main{flex:1;min-width:0}
+  .item .nm{font-size:14px;font-weight:600;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .nm .bdg{display:inline-block;font-size:9.5px;padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600}
+  .bdg-m{background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.38)}
+  .bdg-h{background:rgba(255,122,80,.1);color:#C25A38;border:1px solid rgba(255,122,80,.36)}
+  .item .sub{font-size:11.5px;color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .ds{font-size:12px;color:var(--color-ink-soft);margin-top:3px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item .arr{flex:0 0 auto;color:var(--color-faint);font-size:14px}
+  .empty{padding:60px 20px;text-align:center}
+  .empty .em{font-family:var(--font-serif);font-size:42px;color:var(--color-faint)}
+  .empty b{display:block;margin-top:12px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
+  .empty span{display:block;margin-top:6px;font-size:12.5px;color:var(--color-muted)}
+  .skel{height:56px;border-radius:14px;background:linear-gradient(90deg,var(--color-bg-soft),var(--color-surface),var(--color-bg-soft));background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:8px}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="t-row">
+      <button class="back" onclick="history.length>1?history.back():location.href='index.html'">‹</button>
+      <div class="sbar">
+        <input id="q" type="search" placeholder="搜景点、游记、专题…" autocomplete="off">
+        <button class="mic" id="mic" title="语音搜索">🎙</button>
+      </div>
+    </div>
+  </div>
+  <div class="chips" id="chips"><span class="chip on" data-r="">全部</span></div>
+  <div class="result" id="result">
+    <div id="skel"></div>
+  </div>
+</div>
+
+<script src="topic-meta.js"></script>
+<script src="travel-notes.js"></script>
+<script>
+(function(){
+  var SITES=null, REGS=null, loaded=false, state={q:'', region:''};
+  var $q=document.getElementById('q'), $r=document.getElementById('result'), $c=document.getElementById('chips'), $sk=document.getElementById('skel');
+
+  /* 省全名 → 专题 key 映射（已注册省；未注册省回退全国） */
+  var PROV_KEY={'四川省':'sc','甘肃省':'gs','新疆维吾尔自治区':'xj','贵州省':'gz','青海省':'qh','西藏自治区':'xz','内蒙古自治区':'nmg','湖南省':'hn','湖北省':'hb','重庆市':'cq','宁夏回族自治区':'nx','陕西省':'sx2','广西壮族自治区':'gy','云南省':'gy','江西省':'cz','山西省':'sx'};
+
+  function loadData(cb){
+    if(SITES){cb();return;}
+    var s=document.createElement('script');
+    s.src='nation-data.js?v=20260813';
+    s.onload=function(){
+      SITES=window.NATION_SITES||window.SITES||[];
+      var m={};
+      SITES.forEach(function(x){var r=x.region||'其他';if(!m[r])m[r]=0;m[r]++;});
+      REGS=Object.keys(m).sort(function(a,b){return m[b]-m[a];});
+      buildChips(); loaded=true; cb();
+    };
+    s.onerror=function(){ $r.innerHTML='<div class="empty"><div class="em">⚠️</div><b>景点数据加载失败</b><span>请检查网络后重试</span></div>'; };
+    document.head.appendChild(s);
+  }
+  function buildChips(){
+    var html='<span class="chip on" data-r="">全部</span>';
+    REGS.forEach(function(r){ html+='<span class="chip" data-r="'+r+'">'+r+'</span>'; });
+    $c.innerHTML=html;
+    $c.querySelectorAll('.chip').forEach(function(ch){
+      ch.onclick=function(){ state.region=ch.dataset.r; $c.querySelectorAll('.chip').forEach(function(x){x.classList.toggle('on',x===ch);}); render(); };
+    });
+  }
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function flagHtml(s){var f=s.flag||'';return (f.indexOf('m')>=0?'<span class="bdg bdg-m">必去</span>':'')+(f.indexOf('h')>=0?'<span class="bdg bdg-h">网红</span>':'');}
+
+  function render(){
+    var q=state.q.trim().toLowerCase();
+    if(!loaded){ $sk.style.display=''; $r.innerHTML='<div id="skel"></div>'; return; }
+    $sk.style.display='none';
+    var out='';
+
+    /* 专题组（空关键词时展示） */
+    if(!q){
+      out+='<div class="sec-t"><b>专题地图</b><span>'+(window.TOPIC_REGISTRY?Object.keys(window.TOPIC_REGISTRY).length:0)+' 个</span></div>';
+      Object.keys(window.TOPIC_REGISTRY||{}).forEach(function(k){
+        var t=window.TOPIC_REGISTRY[k]; if(k==='nation') return;
+        var cnt=(window.TOPIC_COUNTS&&window.TOPIC_COUNTS[k])||0;
+        out+='<div class="item" data-go="topic.html?p='+k+'"><span class="dot" style="background:var(--color-primary)"></span><div class="main"><div class="nm">'+esc(t.title)+'</div><div class="sub">'+(cnt?'约 '+cnt+' 处景点':'专题地图')+'</div></div><span class="arr">›</span></div>';
+      });
+    }
+
+    /* 景点组 */
+    var hits=[];
+    if(q){
+      SITES.forEach(function(s){
+        if(state.region && s.region!==state.region) return;
+        var hay=(s.name+' '+s.label+' '+s.region+' '+s.city+' '+s.county+' '+(s.theme||'')+' '+(s.desc||'')).toLowerCase();
+        if(hay.indexOf(q)>=0) hits.push(s);
+      });
+      out+='<div class="sec-t"><b>景点</b><span>'+hits.length+' 个</span></div>';
+      hits.slice(0,60).forEach(function(s){
+        var key=PROV_KEY[s.region];
+        out+='<div class="item" data-go="'+(key?'topic.html?p='+key+'&q='+encodeURIComponent(s.name):'topic.html?p=nation&q='+encodeURIComponent(s.name))+'"><span class="dot" style="background:#8C7B66"></span><div class="main"><div class="nm">'+esc(s.label)+flagHtml(s)+'</div><div class="sub">'+esc(s.region+' · '+(s.city||'')+(s.county?' · '+s.county:'')+(s.theme?' · '+s.theme:''))+'</div><div class="ds">'+esc((s.desc||'').slice(0,60))+'</div></div><span class="arr">›</span></div>';
+      });
+      if(!hits.length) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的景点，试试其他关键词</span></div>';
+    }
+
+    /* 游记组 */
+    var notes=(window.TravelNotes&&TravelNotes.list)?TravelNotes.list():[];
+    var nh=q?notes.filter(function(n){return ((n.title||'')+' '+(n.siteName||'')+' '+(n.text||'')+' '+(n.raw||'')+' '+(n.tags||[]).join(' ')).toLowerCase().indexOf(q)>=0;}):notes.slice(0,5);
+    out+='<div class="sec-t"><b>游记</b><span>'+nh.length+' 篇</span></div>';
+    nh.slice(0,15).forEach(function(n){
+      out+='<div class="item" data-go="travel-map.html"><span class="dot" style="background:#71806C"></span><div class="main"><div class="nm">'+esc(n.title||n.siteName||'未命名')+'</div><div class="sub">'+esc((n.date||'')+(n.province?' · '+n.province:'')+(n.siteName?' · '+n.siteName:''))+'</div></div><span class="arr">›</span></div>';
+    });
+    if(!nh.length && q) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的游记</span></div>';
+
+    $r.innerHTML=out;
+    $r.querySelectorAll('.item').forEach(function(it){
+      it.onclick=function(){ location.href=it.dataset.go; };
+    });
+  }
+
+  $q.oninput=function(){ state.q=$q.value; render(); };
+  $q.onkeydown=function(e){ if(e.key==='Enter') render(); };
+
+  /* 语音搜索：AndroidVoice（壳内）/ Web Speech（浏览器） */
+  var mic=document.getElementById('mic');
+  mic.onclick=function(){
+    if(window.AndroidVoice && typeof AndroidVoice.startVoice==='function'){
+      window.__tnOnVoiceResult=function(t){ $q.value=t; state.q=t; render(); mic.classList.remove('rec'); };
+      window.__tnOnVoiceError=function(){ mic.classList.remove('rec'); };
+      AndroidVoice.startVoice(); mic.classList.add('rec'); return;
+    }
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(SR){
+      try{
+        var rec=new SR(); rec.lang='zh-CN';
+        rec.onresult=function(e){ $q.value=e.results[0][0].transcript; state.q=$q.value; render(); mic.classList.remove('rec'); };
+        rec.onend=function(){ mic.classList.remove('rec'); };
+        mic.classList.add('rec'); rec.start();
+      }catch(e){ mic.classList.remove('rec'); alert('语音识别不可用'); }
+    }else{ alert('当前环境不支持语音识别'); }
+  };
+
+  /* 骨架屏 */
+  var sk=''; for(var i=0;i<4;i++) sk+='<div class="skel"></div>';
+  $sk.innerHTML=sk;
+  $sk.style.display='';
+  loadData(function(){ render(); });
+})();
+</script>
+</body>
+</html>
