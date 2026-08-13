@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>行迹TRACE v2.0 · 用户友好性评估报告</title>
+<style>
+  :root{
+    --bg:#F6F3EC; --surface:#FFFDF8; --ink:#26241F; --ink-soft:#55514A; --muted:#8C877D;
+    --line:#E3DED2; --primary:#C86D4B; --primary-dark:#A9563B; --green:#5F7A4E; --blue:#4A6B7A;
+    --warn:#BA7517; --danger:#B34A3F; --shadow:0 2px 10px rgba(40,38,32,.06);
+    --serif:"Songti SC","Noto Serif SC",serif; --sans:"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 60px}
+  header.hero{padding:48px 0 30px;border-bottom:1px solid var(--line);margin-bottom:28px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:400;font-size:34px;margin:10px 0 6px;letter-spacing:.02em}
+  .sub{color:var(--muted);font-size:14px}
+  h2{font-family:var(--serif);font-weight:400;font-size:24px;margin:44px 0 14px;padding-left:12px;border-left:3px solid var(--primary)}
+  h3{font-size:16px;margin:24px 0 10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card h3{margin-top:0;font-size:15px}
+  .card .n{font-size:11px;color:var(--muted);letter-spacing:.14em}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+  .metric{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center}
+  .metric b{display:block;font-family:var(--serif);font-size:28px;font-weight:400;color:var(--primary-dark)}
+  .metric span{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600;white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px;white-space:nowrap}
+  .tag.p0{background:#B34A3F;color:#fff}.tag.p1{background:#BA7517;color:#fff}.tag.p2{background:#6B7D6B;color:#fff}
+  .tag.good{background:#5F7A4E;color:#fff}
+  .issue{margin:0 0 12px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:10px;font-size:14px}
+  .issue.good{border-left-color:var(--green)}
+  .issue .t{font-weight:600;margin-bottom:4px}
+  .issue .ev{font-size:12.5px;color:var(--muted);margin-top:4px;font-family:ui-monospace,Consolas,monospace;background:rgba(38,36,31,.04);padding:6px 10px;border-radius:8px;white-space:pre-wrap}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .cmp .side{border-radius:14px;padding:16px 18px;border:1px solid var(--line)}
+  .cmp .side.dev{background:rgba(74,107,122,.07)}
+  .cmp .side.user{background:rgba(200,109,75,.06)}
+  .cmp h3{margin-top:0;display:flex;align-items:center;gap:8px}
+  .cmp ul{margin:8px 0 0;padding-left:20px;font-size:13.5px}
+  .cmp li{margin-bottom:8px}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .flow .step{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px}
+  .flow .step b{display:block;color:var(--primary-dark);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Usability Review · 2026-08-13</div>
+  <h1>行迹TRACE v2.0 用户友好性评估</h1>
+  <div class="sub">视角：技术大佬（架构与质量）＋ 普通用户（上手与使用）｜对象：F:\MyAi\Trace Web 前端（7782 节点 / 50+ 页面 / 2.8MB 数据集）</div>
+</header>
+
+<div class="metrics">
+  <div class="metric"><b>24</b><span>处整页 location.href 跳转</span></div>
+  <div class="metric"><b>10</b><span>处原生 alert/confirm（8 alert + 2 confirm）</span></div>
+  <div class="metric"><b>0</b><span>处 aria 无障碍属性</span></div>
+  <div class="metric"><b>2.8MB</b><span>nation-data.js 单文件全量加载</span></div>
+  <div class="metric"><b>5MB</b><span>localStorage 容量天花板（录音 base64 存储）</span></div>
+</div>
+
+<h2>一、总体判断</h2>
+<p>设计底子与功能厚度都是优秀的：宣纸/墨/朱砂的中式语言统一、毛玻璃胶囊导航、安全区适配、骨架屏、空态文案、打卡→语音记录闭环、语音双引擎容错——这些在同类个人项目里非常少见。但"用户友好性"的短板恰好集中在 <b>危险操作保护、系统级弹窗、反馈一致性、性能体感</b> 四类，全部是"差最后一公里"的问题：功能都有了，但普通用户在关键时刻得不到温柔对待。</p>
+
+<h2>二、两个视角看同一批问题</h2>
+<div class="cmp">
+  <div class="side dev">
+    <h3>🧠 技术大佬视角</h3>
+    <ul>
+      <li><b>2.8MB 单 JS 全量加载</b>：nation-data.js 压缩成 8 行，首页/地图/搜索都要解析，低端机首屏明显卡顿</li>
+      <li><b>localStorage 5MB 天花板</b>：录音 base64 膨胀 33%，游记一多静默写入失败 = 数据丢失（原生 files 桥已存在未用）</li>
+      <li><b>搜索无防抖</b>：oninput 直接全量遍历 7782 节点拼 HTML</li>
+      <li><b>无 SPA 路由</b>：24 处整页跳转 + 冷启 clearCache，每次导航全量重载</li>
+      <li><b>无障碍为零</b>：aria- 0 处、emoji 当图标、无 focus-visible 管理</li>
+      <li><b>一致性技术债</b>：topbar/bottom-nav 每页复制内联样式；深色模式逐页手工覆盖</li>
+    </ul>
+  </div>
+  <div class="side user">
+    <h3>👤 普通用户视角</h3>
+    <ul>
+      <li><b>删除没有第二次机会</b>：想去清单 ✕ 一点即删，无确认无撤销（md-manager/settings 有 confirm，这里却没有）</li>
+      <li><b>系统弹窗跳戏</b>：规划行程不够 2 个、语音不可用，弹出浏览器原生 alert，与整个设计语言割裂</li>
+      <li><b>数字对不上</b>：我的页写着"3253+ 处全库检索"，实际数据已 7782 节点</li>
+      <li><b>搜索截断无下文</b>：最多 60 条结果，没有"加载更多"；游记结果只能跳地图页，到不了那篇游记</li>
+      <li><b>弱网白屏</b>：山区/高原瓦片加载失败无任何提示</li>
+      <li><b>首次上手无引导</b>：核心玩法（景点→语音记录→足迹）全靠自己摸索</li>
+    </ul>
+  </div>
+</div>
+
+<h2>三、按用户伤害程度排序的问题清单</h2>
+
+<h3>🔴 P0 — 低成本高感知，建议立即做</h3>
+<div class="issue">
+  <div class="t">1. 想去清单删除无确认、无撤销（误触即丢）</div>
+  同一应用里 md-manager 删游记、settings 清数据都有 confirm 保护，唯独 wishlist 的 ✕ 直接 remove。用户误触一次就丢一个心愿节点，且无恢复路径。
+  <div class="ev">wishlist.html: doRemove(i) — 无 confirm、无 undo、无 toast 可撤销</div>
+</div>
+<div class="issue">
+  <div class="t">2. 原生 alert 与设计系统割裂（8 处）</div>
+  语音不可用、节点不足、保存失败全部走浏览器原生弹窗——宣纸毛玻璃里突然蹦出一个系统灰框。且 alert 阻塞式打断操作流。
+  <div class="ev">search.html:167/168 · travel-map.html:582/622/634 · wishlist.html:116</div>
+</div>
+<div class="issue">
+  <div class="t">3. 首页/我的页数据口径过时</div>
+  数据已扩到 7782 节点，me.html 还写"3253+ 处全库检索"；用户会怀疑应用没更新。
+  <div class="ev">me.html: 搜索全部景点 &lt;small&gt;3253+ 处全库检索&lt;/small&gt;（应为 7782）</div>
+</div>
+<div class="issue">
+  <div class="t">4. 搜索性能：无防抖 + 全量遍历 + 结果截断无提示</div>
+  每敲一个键全量遍历 7782 节点并拼接 HTML；命中 60 条封顶，用户不知道还有更多。
+  <div class="ev">search.html: $q.oninput=function(){…render();} 无防抖；hits.slice(0,60) 无"加载更多"</div>
+</div>
+
+<h3>🟠 P1 — 重要，涉及架构或体验主线</h3>
+<div class="issue">
+  <div class="t">5. 返回行为三套逻辑并存</div>
+  search 带 fallback（history.length>1?back:首页），wishlist 裸 history.back()（深链进入可能直接退不出/退出应用），专题页返回按钮回首页而非回退栈。系统返回键与页面按钮行为不一致，用户会"迷路"。
+  <div class="ev">search.html: history.length&gt;1?history.back():… ｜ wishlist.html: history.back() ｜ 专题页: location.href='index.html'</div>
+</div>
+<div class="issue">
+  <div class="t">6. 数据架构：2.8MB 单文件 + localStorage 天花板</div>
+  nation-data.js 2.8MB 压缩 8 行全量解析；录音/照片 base64 塞 localStorage（5MB 上限）→ 写入静默失败即丢数据。原生 savePhotoFile/saveAudioFile 桥已存在却没用于媒体。
+  <div class="ev">nation-data.js = 2,809,372 B ｜ settings.html refreshStorage() 仅统计 localStorage 两项</div>
+</div>
+<div class="issue">
+  <div class="t">7. 弱网/离线无降级</div>
+  瓦片请求失败无提示无重试；山区自驾正是这个应用的核心场景，白屏最伤信任。冷启 clearCache 还每次都清掉 HTTP 瓦片缓存。
+  <div class="ev">explore-map/travel-map: L.tileLayer 无 error 监听 ｜ MainActivity: clearCache(true)</div>
+</div>
+<div class="issue">
+  <div class="t">8. 触控目标偏小（多处 &lt; 44px）</div>
+  删除按钮 30px、麦克风 34px、返回键 34px、地图控件簇 40px。单手驾驶间隙操作时极易点错。
+  <div class="ev">wishlist .wl-remove 30px ｜ search .mic/.back 34px ｜ travel-map .ctl 40px</div>
+</div>
+
+<h3>🟢 P2 — 打磨项</h3>
+<div class="issue">
+  <div class="t">9. 无障碍为零：aria- 0 处，emoji 当图标</div>
+  全站 0 个 aria 属性；🎙🏅🗺️📖⭐⚙️🔍 直接当图标，读屏会念出 emoji 名称；无 :focus-visible 焦点样式。个人自用可缓，但分享给亲友或长辈时就是门槛。
+</div>
+<div class="issue">
+  <div class="t">10. 行程规划结果不可调整</div>
+  贪心算法按"每天 ≤6 站、≤260km"硬编码自动分日，用户不能换天、拖拽排序、指定出发地；结果无地图可视化，只能看文字列表。
+  <div class="ev">wishlist.html planTrip(): 6站/260km 常量写死；days 渲染为纯文本列表</div>
+</div>
+<div class="issue">
+  <div class="t">11. 首次启动无引导</div>
+  "景点详情 → ♡ 想去 → 打卡 → 语音记录"这条核心链路完全靠用户摸索；空态文案虽好，但首页没有一次性的 3 步引导或功能提示。
+</div>
+
+<h2>四、做得好的地方（不用动）</h2>
+<div class="grid">
+  <div class="card"><span class="tag good">保留</span><h3>空态与文案</h3>“还没有记录，去探索第一处风景”“想去的地方，先记在这里”——有人味的引导，不是干巴巴的"暂无数据"。</div>
+  <div class="card"><span class="tag good">保留</span><h3>骨架屏</h3>search.html 加载 2.8MB 数据期间有骨架动画，等待不焦虑（但要注意骨架屏遮不住全量解析卡顿）。</div>
+  <div class="card"><span class="tag good">保留</span><h3>打卡→记录闭环</h3>想去清单打卡后直接弹语音记录面板，链路短、意图清晰。</div>
+  <div class="card"><span class="tag good">保留</span><h3>危险操作保护</h3>md-manager 删游记、settings 清数据都有 confirm——把这份保护补到 wishlist 即可。</div>
+  <div class="card"><span class="tag good">保留</span><h3>语音双引擎容错</h3>讯飞主 + Web Speech 兜底，语音搜索/记录失败不致命。</div>
+  <div class="card"><span class="tag good">保留</span><h3>深浅主题与动效降级</h3>prefers-reduced-motion、安全区适配、搜索直达景点定位（topic.html?p=&q=）都是专业级细节。</div>
+</div>
+
+<h2>五、建议落地顺序</h2>
+<div class="flow">
+  <div class="step"><b>第 1 批（0.5 天）</b>wishlist 删除加确认/撤销 · alert 全换设计内 Toast/对话框 · 修 me.html 过时数字 · 搜索加防抖</div>
+  <div class="step"><b>第 2 批（1-2 天）</b>返回逻辑统一 · 触控目标补到 44px · 瓦片失败提示 · 媒体移出 localStorage</div>
+  <div class="step"><b>第 3 批（2-3 天）</b>nation-data 拆省按需加载 · 行程规划可拖拽调整 · 首启引导</div>
+  <div class="step"><b>第 4 批（可选）</b>SPA 路由 · 无障碍补齐（aria/焦点/读屏）</div>
+</div>
+
+<h2>六、关键证据对照表</h2>
+<table>
+  <tr><th>问题</th><th>证据位置</th><th>用户可感知影响</th><th>优先级</th></tr>
+  <tr><td>删除无确认</td><td>wishlist.html doRemove()</td><td>误触即丢心愿，无法恢复</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>原生 alert ×8</td><td>search/travel-map/wishlist</td><td>弹窗跳戏、打断操作</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>数据口径过时</td><td>me.html "3253+"</td><td>怀疑应用未更新</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>搜索无防抖/截断</td><td>search.html oninput/slice(0,60)</td><td>逐键卡顿、结果不完整</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>返回三套逻辑</td><td>search/wishlist/专题页</td><td>导航迷路、深链退出异常</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>2.8MB 单文件 + localStorage</td><td>nation-data.js / settings refreshStorage</td><td>首屏卡、数据丢失风险</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>弱网无降级</td><td>L.tileLayer 无 error 处理</td><td>山区白屏无提示</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>触控目标 30-40px</td><td>wl-remove/mic/back/ctl</td><td>易点错</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>无障碍 0</td><td>全站 aria- 计数 = 0</td><td>读屏/长辈不可用</td><td><span class="tag p2">P2</span></td></tr>
+  <tr><td>行程规划不可调</td><td>wishlist planTrip() 硬编码</td><td>计划只能看不能改</td><td><span class="tag p2">P2</span></td></tr>
+  <tr><td>无首启引导</td><td>index.html 无 onboarding</td><td>核心玩法靠摸索</td><td><span class="tag p2">P2</span></td></tr>
+</table>
+
+<footer>
+  评估方式：静态代码审查（index/me/search/wishlist/travel-map/settings/review/md-manager 等）+ 全项目模式统计（alert/confirm/aria/location.href/history.back）｜ 未真机运行，P1 中"瓦片失败提示"与 P0"触控"建议真机复核 ｜ 基线参考：docs/ 下 2026-08-11 两份审核报告
+</footer>
+
+</div>
+</body>
+</html>
