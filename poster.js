@@ -46,7 +46,7 @@ window.FootprintPoster = (function () {
       flash('足迹海报已生成');
     }
   }
-  function generate() {
+  function generate(landscape) {
     var all = (window.TravelNotes ? TravelNotes.list() : []).slice()
       .sort(function (a, b) { return a.ts - b.ts; });
     var pts = all.filter(function (n) { return n.lat != null && n.lng != null; });
@@ -65,7 +65,14 @@ window.FootprintPoster = (function () {
     var year = new Date().getFullYear();
 
     /* ---- 画布 ---- */
-    var W = 1080, H = 1620;
+    var W = landscape ? 1920 : 1080, H = landscape ? 1080 : 1620;
+    /* 布局参数（竖版 2:3 / 横版 16:9） */
+    var TY = landscape ? 96 : 130, TY2 = landscape ? 148 : 186;   /* 标题/副标题 y */
+    var MX = landscape ? 90 : 110, MY = landscape ? 225 : 250;    /* 地图区起点 */
+    var MW = W - (landscape ? 180 : 220), MH = H - (landscape ? 480 : 900);  /* 地图区宽高 */
+    var statY = landscape ? H - 165 : H - 400, boxW = (W - (landscape ? 220 : 240)) / 4;
+    var sealX = W - (landscape ? 120 : 150), sealY = landscape ? H - 300 : H - 290;
+    var footY = landscape ? H - 88 : H - 120;
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var ctx = cv.getContext('2d');
 
@@ -84,14 +91,14 @@ window.FootprintPoster = (function () {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#FAF8F3';
     ctx.font = '600 64px "Songti SC","Noto Serif SC",serif';
-    ctx.fillText('我的旅行足迹', W / 2, 130);
+    ctx.fillText('我的旅行足迹', W / 2, TY);
     ctx.font = '26px "Noto Serif SC",serif';
     ctx.globalAlpha = .7; ctx.fillStyle = '#C8C0B2';
-    ctx.fillText(year + ' · 行迹 TRACE', W / 2, 186);
+    ctx.fillText(year + ' · 行迹 TRACE', W / 2, TY2);
     ctx.globalAlpha = 1;
 
     /* ---- 足迹地图区（投影：中国范围 lng 73-135, lat 18-54） ---- */
-    var MX = 110, MY = 250, MW = W - 220, MH = H - 900;
+    /* 地图区：MX/MY/MW/MH 见布局参数 */
     function px(lng) { return MX + (lng - 73) / (135 - 73) * MW; }
     function py(lat) { return MY + (54 - lat) / (54 - 18) * MH; }
 
@@ -133,7 +140,7 @@ window.FootprintPoster = (function () {
     });
 
     /* ---- 统计四格 ---- */
-    var statY = H - 400, boxW = (W - 240) / 4;
+    /* statY/boxW 见布局参数 */
     var stats = [
       { v: tripCnt, k: '段旅程' },
       { v: days.size, k: '天在路上' },
@@ -159,28 +166,29 @@ window.FootprintPoster = (function () {
 
     /* ---- 省份徽章 ---- */
     var shorts = Object.keys(provs).map(shortProv).filter(Boolean);
-    var bx = W / 2 - (Math.min(shorts.length, 12) * 46 - 12) / 2;
+    var bx = landscape ? (W - Math.min(shorts.length, 12) * 46 - 60) : (W / 2 - (Math.min(shorts.length, 12) * 46 - 12) / 2);
+    var by = landscape ? 236 : (H - 250);
     ctx.font = '22px "Noto Serif SC",serif';
     shorts.slice(0, 12).forEach(function (s) {
       ctx.fillStyle = 'rgba(200,109,75,.16)';
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(bx, H - 250, 40, 40, 10);
-      else ctx.rect(bx, H - 250, 40, 40);
+      if (ctx.roundRect) ctx.roundRect(bx, by, 40, 40, 10);
+      else ctx.rect(bx, by, 40, 40);
       ctx.fill();
       ctx.fillStyle = '#E8B49A';
-      ctx.fillText(s, bx + 20, H - 223);
+      ctx.fillText(s, bx + 20, by + 27);
       bx += 46;
     });
 
     /* ---- 落款 + 印章 ---- */
     ctx.globalAlpha = .5; ctx.fillStyle = '#8F8A80';
     ctx.font = '22px "Noto Serif SC",serif';
-    ctx.fillText('行迹 TRACE · 走过的路都算数', W / 2, H - 120);
+    ctx.fillText('行迹 TRACE · 走过的路都算数', W / 2, footY);
     ctx.globalAlpha = 1;
 
     /* 印章 */
     ctx.save();
-    ctx.translate(W - 150, H - 290); ctx.rotate(-0.08);
+    ctx.translate(sealX, sealY); ctx.rotate(-0.08);
     ctx.strokeStyle = '#C86D4B'; ctx.lineWidth = 3;
     ctx.strokeRect(-34, -34, 68, 68);
     ctx.fillStyle = '#C86D4B';
@@ -189,7 +197,7 @@ window.FootprintPoster = (function () {
     ctx.restore();
 
     var dataUrl = cv.toDataURL('image/png');
-    savePng('足迹海报 ' + year, dataUrl);
+    savePng((landscape ? '足迹海报横版 ' : '足迹海报 ') + year, dataUrl);
   }
   return { generate: generate };
 })();

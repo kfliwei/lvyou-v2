@@ -181,7 +181,8 @@
     <div class="stats" id="stats2"></div>
     <div style="display:flex;gap:10px;margin:0 0 14px">
     <button class="btn-secondary" id="aiReport" style="flex:1">📖 生成年度报告</button>
-    <button class="btn-primary" id="posterBtn" style="flex:1">🗺️ 足迹海报</button>
+    <button class="btn-secondary" id="posterBtnH" style="flex:1">横版海报</button>
+<button class="btn-primary" id="posterBtn" style="flex:1">🗺️ 足迹海报</button>
     </div>
     <div id="todayBox" style="display:none"></div>
     <div class="cal-card">
@@ -526,6 +527,7 @@ document.getElementById('aiReport').onclick=function(){
     fallbackLocal('（AI 生成失败：'+String(err&&err.message||err)+'，已为你生成本地版年度回顾。）');
   });
 };
+document.getElementById('posterBtnH').onclick = function () { try { window.FootprintPoster.generate(true); } catch (e) { alert('生成失败'); } };
 document.getElementById('posterBtn').onclick = function () { try { window.FootprintPoster.generate(); } catch (e) { alert('生成失败：' + (e && e.message || e)); } };
 window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;

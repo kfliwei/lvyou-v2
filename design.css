@@ -1057,3 +1057,8 @@ html.font-sm body{font-size:14.5px}
 html.font-lg body{font-size:17px}
 html.font-lg .txt,html.font-lg .ds,html.font-lg .sc-txt,html.font-lg .ls-desc,html.font-lg .md-item .txt,html.font-lg .report-dlg .txt{font-size:16.5px;line-height:1.95}
 html.font-sm .txt,html.font-sm .ds,html.font-sm .sc-txt{font-size:13px}
+
+/* 页面进入转场（轻量 fade-up） */
+.page,.app-page{animation:page-in .34s var(--ease-standard)}
+@keyframes page-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.page,.app-page{animation:none}}

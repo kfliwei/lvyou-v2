@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="design.css">
 <link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="map.css">
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
@@ -46,10 +48,14 @@
   <div class="t-row">
     <button class="back" onclick="history.back()">←</button>
     <div class="title">想去清单 <small id="cntLabel"></small></div>
-    <button class="wl-btn" style="min-height:34px" onclick="location.href='explore-map.html'">去探索</button>
+    <button class="wl-btn" style="min-height:34px" id="wlMapBtn">地图</button>
+    <button class="wl-btn" style="min-height:34px;margin-left:6px" id="wlPlanBtn">规划行程</button>
+    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="location.href='explore-map.html'">去探索</button>
   </div>
 </header>
 <div class="wrap">
+  <div id="wlMap" style="display:none;height:60dvh;border-radius:18px;overflow:hidden;border:1px solid var(--color-line)"></div>
+  <div id="wlPlan" style="display:none"></div>
   <div id="wlBody"></div>
   <div class="wl-empty" id="wlEmpty" style="display:none">
     <div class="em">想去的地方，<br>先记在这里。</div>
@@ -71,6 +77,109 @@
     return map[t] || '#B4AFA4';
   }
   function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }
+
+  /* ---------- 地图视图 ---------- */
+  var map = null, mapOn = false;
+  function renderMap() {
+    var list = window.Wish.list().filter(function (x) { return x.lat != null; });
+    if (!map) {
+      map = L.map('wlMap', { zoomControl: false }).setView([34.5, 105], 5);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '? 高德' }).addTo(map);
+    }
+    map.invalidateSize();
+    map.eachLayer(function (l) { if (l instanceof L.Marker) map.removeLayer(l); });
+    if (!list.length) return;
+    var bnd = [];
+    list.forEach(function (x) {
+      var m = L.marker([x.lat, x.lng], {
+        icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:' + (x.visited ? '#9C9A92' : '#C86D4B') + ';border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)"></span>' + (x.visited ? '' : '<span style="position:absolute;right:-2px;top:-2px;width:9px;height:9px;border-radius:50%;background:#FF7A50;border:1.5px solid #fff"></span>') + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
+      });
+      m.bindPopup('<b>' + x.label + '</b><br>' + (x.region || '') + (x.city ? ' · ' + x.city : '') + (x.visited ? '<br><span style="color:#9C9A92">已打卡</span>' : ''));
+      map.addLayer(m);
+      bnd.push([x.lat, x.lng]);
+    });
+    if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
+    else if (bnd.length === 1) map.setView(bnd[0], 9);
+  }
+
+  /* ---------- 跨专题行程规划（贪心：每天 ≤6 站、单日 ≤260km）---------- */
+  function havKm(aLat, aLng, bLat, bLng) {
+    var R = 6371, r = Math.PI / 180;
+    var dLa = (bLat - aLat) * r, dLo = (bLng - aLng) * r;
+    var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+  function planTrip() {
+    var list = window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; });
+    var box = document.getElementById('wlPlan');
+    if (list.length < 2) { alert('至少需要 2 个未打卡的心愿节点才能规划行程'); return; }
+    /* 最近邻贪心分日 */
+    var pts = list.map(function (x) { return x; });
+    var days = [], cur = null, dayDist = 0;
+    while (pts.length) {
+      var idx = 0, bestD = 1e12;
+      for (var k = 0; k < pts.length; k++) {
+        var d = cur ? havKm(cur.lat, cur.lng, pts[k].lat, pts[k].lng) : 0;
+        if (d < bestD) { bestD = d; idx = k; }
+      }
+      var next = pts.splice(idx, 1)[0];
+      if (!cur) { cur = next; days.push([next]); dayDist = 0; continue; }
+      if (days[days.length - 1].length >= 6 || dayDist + bestD > 260) { days.push([next]); dayDist = 0; }
+      else { days[days.length - 1].push(next); dayDist += bestD; }
+      cur = next;
+    }
+    /* 渲染计划 */
+    var html = '<div style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px">' +
+      '<div style="font-family:var(--font-serif);font-size:17px;margin-bottom:4px">行程计划 · ' + days.length + ' 天 / ' + list.length + ' 站</div>' +
+      '<div style="font-size:12px;color:var(--color-muted);margin-bottom:12px">按地理邻近自动分日（每天 ≤6 站、≤260km），可导出 GPX 到户外工具</div>';
+    days.forEach(function (d, di) {
+      var dayKm = 0;
+      for (var i = 1; i < d.length; i++) dayKm += havKm(d[i - 1].lat, d[i - 1].lng, d[i].lat, d[i].lng);
+      html += '<div style="border-top:1px solid var(--color-line);padding:10px 0 4px"><b style="font-family:var(--font-serif);font-weight:400">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm) + ' km</span></div>';
+      d.forEach(function (s, i) {
+        html += '<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0"><span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:12px">' + (i + 1) + '</span><span style="flex:1;font-size:13.5px">' + s.label + '</span><span style="font-size:11px;color:var(--color-muted)">' + (s.region || '') + '</span></div>';
+      });
+    });
+    html += '<div style="display:flex;gap:10px;margin-top:14px"><button class="wl-btn" style="flex:1;justify-content:center" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center" id="wlPlanClose">收起计划</button></div></div>';
+    box.innerHTML = html;
+    box.style.display = 'block';
+    window.__planData = days;
+  }
+  window.__exportPlan = function () {
+    var days = window.__planData; if (!days || !days.length) return;
+    var pts = [];
+    days.forEach(function (d) { d.forEach(function (s) { pts.push(s); }); });
+    var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<gpx version="1.1" creator="行迹 TRACE" xmlns="http://www.topografix.com/GPX/1/1">' +
+      '<metadata><name>行迹行程计划</name><time>' + new Date().toISOString() + '</time></metadata><trk><name>行程计划</name><trkseg>' +
+      pts.map(function (s) { return '<trkpt lat="' + s.lat + '" lon="' + s.lng + '"><name>' + s.label + '</name></trkpt>'; }).join('') +
+      '</trkseg></trk>';
+    days.forEach(function (d, di) { d.forEach(function (s) { gpx += '<wpt lat="' + s.lat + '" lon="' + s.lng + '"><name>D' + (di + 1) + ' ' + s.label + '</name></wpt>'; }); });
+    gpx += '</gpx>';
+    var blob = new Blob([gpx], { type: 'application/gpx+xml' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '行迹行程计划_' + new Date().toISOString().slice(0, 10) + '.gpx';
+    a.click();
+  };
+
+  /* 按钮绑定 */
+  document.getElementById('wlMapBtn').onclick = function () {
+    mapOn = !mapOn;
+    document.getElementById('wlMap').style.display = mapOn ? 'block' : 'none';
+    document.getElementById('wlPlan').style.display = 'none';
+    this.textContent = mapOn ? '列表' : '地图';
+    if (mapOn) renderMap();
+  };
+  var pc = document.getElementById('wlPlanClose');
+  if (pc) pc.onclick = function () { document.getElementById('wlPlan').style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
+  document.getElementById('wlPlanBtn').onclick = function () {
+    document.getElementById('wlMap').style.display = 'none';
+    document.getElementById('wlMapBtn').textContent = '地图';
+    planTrip();
+  };
+
   function render() {
     var list = window.Wish.list();
     cnt.textContent = list.length ? list.length + ' 处' : '';
