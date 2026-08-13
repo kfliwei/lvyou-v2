@@ -28,7 +28,7 @@
   function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }
   var _A = 6378245.0, _EE = 0.00669342162296594323;
   function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
-  function pt(s) { return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
+  function pt(s) { if (s && s.gcj) return [+s.lat, +s.lng]; return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function gxy(lat, lng) { return useGCJ ? gcj02Of(lat, lng) : [lat, lng]; }
   function tk(s) { return s[M.themeKey || 'theme']; }
   function colorOf(s) { return M.themes[tk(s)] || "#7D7970"; }
@@ -919,11 +919,26 @@
     typeSel.onchange = function (e) { FOOD_STATE.type = e.target.value; renderFood(); };
   }
 
+  /* ---------- 用户节点（node-manager.html 创建，专题/全国地图显示） ---------- */
+  var USER_KEY = 'tn_userNodes';
+  function loadUserNodes() { try { return JSON.parse(localStorage.getItem(USER_KEY) || '[]'); } catch (e) { return []; } }
+  function mergeUserNodes() {
+    loadUserNodes().forEach(function (u) {
+      SITES.push({
+        id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他',
+        city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '',
+        best: '', lat: +u.lat, lng: +u.lng, flag: '', source: 'user', uid: u.id,
+        tags: u.tags || [], gcj: !!u.gcj
+      });
+    });
+  }
+
   /* ---------- 启动 ---------- */
   function init() {
     M = window.TOPIC_META;
     if (M.routesKey && window.TOPIC_ROUTES) M.routes = window.TOPIC_ROUTES[M.routesKey] || M.routes || [];
     SITES = window.SITES || [];
+    mergeUserNodes();
     FOOD = window.FOOD || [];
     try { trip = JSON.parse(localStorage.getItem(M.tripKey) || '[]'); } catch (e) { trip = []; }
     // 排序下拉
