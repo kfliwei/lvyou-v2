@@ -37,7 +37,7 @@ const TOPICS = [
   { id: 'sx',   file: 'data.js',            name: '山西古建' },
   { id: 'chz',  file: 'changzheng-data.js', name: '红军长征' },
   { id: 'gxyn', file: 'gxyn-data.js',       name: '广西云南' },
-  { id: 'qz',   file: 'qz-data.js',         name: '青藏风光' },
+  { id: 'qz',   file: 'qingzang-data.js',         name: '青藏风光' },
   { id: 'xj',   file: 'xj-data.js',         name: '新疆' },
   { id: 'gz',   file: 'gz-data.js',         name: '贵州' },
   { id: 'sc',   file: 'sc-data.js',         name: '四川' },
@@ -49,10 +49,28 @@ const TOPICS = [
   { id: 'hn',   file: 'hn-data.js',         name: '湖南' },
   { id: 'hb',   file: 'hb-data.js',         name: '湖北' },
   { id: 'cq',   file: 'cq-data.js',         name: '重庆' },
-  { id: 'nx',   file: 'nx-data.js',         name: '宁夏' }
+  { id: 'nx',   file: 'nx-data.js',         name: '宁夏' },
+  { id: 'bj',   file: 'bj-data.js',         name: '北京' },
+  { id: 'tj',   file: 'tj-data.js',         name: '天津' },
+  { id: 'he',   file: 'he-data.js',         name: '河北' },
+  { id: 'ha',   file: 'ha-data.js',         name: '河南' },
+  { id: 'sd',   file: 'sd-data.js',         name: '山东' },
+  { id: 'ln',   file: 'ln-data.js',         name: '辽宁' },
+  { id: 'jl',   file: 'jl-data.js',         name: '吉林' },
+  { id: 'hlj',  file: 'hlj-data.js',        name: '黑龙江' },
+  { id: 'sh',   file: 'sh-data.js',         name: '上海' },
+  { id: 'js',   file: 'js-data.js',         name: '江苏' },
+  { id: 'zj',   file: 'zj-data.js',         name: '浙江' },
+  { id: 'ah',   file: 'ah-data.js',         name: '安徽' },
+  { id: 'fj',   file: 'fj-data.js',         name: '福建' },
+  { id: 'jx',   file: 'jx-data.js',         name: '江西' },
+  { id: 'gd',   file: 'gd-data.js',         name: '广东' },
+  { id: 'hi',   file: 'hi-data.js',         name: '海南' }
 ];
 
 const out = [];
+const seenN = new Set();
+
 for (const t of TOPICS) {
   delete global.window.SITES;
   require(path.join(ROOT, t.file));
@@ -60,6 +78,7 @@ for (const t of TOPICS) {
   for (const s of arr) {
     if (!s || s.lat == null || s.lng == null) continue;
     const prov = provOf(s, t.id);
+    if (seenN.has(s.name)) continue; seenN.add(s.name);
     out.push({
       name: s.name, label: s.label || s.name,
       province: prov,
