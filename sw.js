@@ -1,5 +1,5 @@
-﻿/* sw.js 鈥?琛岃抗 TRACE 绂荤嚎缂撳瓨锛堝簲鐢ㄥ３棰勭紦瀛?+ 鏁版嵁鏂囦欢杩愯鏃剁紦瀛橈級 */
-var CACHE = 'trace-v10';
+/* sw.js 鈥?琛岃抗 TRACE 绂荤嚎缂撳瓨锛堝簲鐢ㄥ３棰勭紦瀛?+ 鏁版嵁鏂囦欢杩愯鏃剁紦瀛橈級 */
+var CACHE = 'trace-v11';
 var TILE_CACHE = 'trace-tiles';   /* 绂荤嚎鐡︾墖鍖咃紙tiles.js 鍐欏叆锛?*/
 var SHELL = [
   './',
