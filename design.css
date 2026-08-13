@@ -1082,3 +1082,37 @@ html.font-sm{font-size:15px}
 .theme-dark .ui-modal-text{color:var(--color-ink-soft,#c9c4b8)}
 .theme-dark .ui-btn{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink-soft,#c9c4b8)}
 :focus-visible{outline:2px solid var(--color-primary,#c86d4b);outline-offset:2px;border-radius:6px}
+
+/* ============================================================
+   规范推进 2026-08-13：筛选双态 + 用户节点 + 区域统计 + 节点管理 UI
+   ============================================================ */
+.tr-dim{opacity:.22}
+.tr-user .tr-dot{background:#5F7A4E;border-color:#5F7A4E}
+.tr-user .tr-ring{--tint:#5F7A4E;opacity:.5}
+.region-stats{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1100;display:flex;align-items:center;gap:6px;background:rgba(32,32,29,.92);color:#fff;border-radius:999px;padding:7px 12px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw;overflow-x:auto;scrollbar-width:none}
+.region-stats .rs-total{white-space:nowrap;color:#D8D2C4}
+.region-stats .rs-total b{color:#fff;font-weight:700}
+.region-stats .rs-chip{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:3px 10px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.region-stats .rs-chip.on{background:var(--color-primary,#c86d4b);border-color:var(--color-primary,#c86d4b);font-weight:600}
+.nm-fab{position:fixed;right:16px;bottom:150px;z-index:1150;width:52px;height:52px;border-radius:50%;border:0;background:var(--color-primary,#c86d4b);color:#fff;font-size:24px;line-height:1;box-shadow:0 10px 26px rgba(200,109,75,.38);cursor:pointer;display:grid;place-items:center}
+.nm-fab:active{transform:scale(.94)}
+.nm-menu .nm-menu-items{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.nm-menu-item{min-height:46px;border:1px solid var(--color-line-strong,#cfc9ba);border-radius:12px;background:var(--color-surface,#fffdf8);color:var(--color-ink,#26241f);font-size:14px;cursor:pointer;text-align:left;padding:0 14px}
+.nm-menu-item:active{background:var(--color-bg-soft,#efe9da)}
+.nm-form .nm-body{text-align:left}
+.nm-coord{font-size:11.5px;color:var(--color-muted,#8c877d);margin-bottom:8px;font-family:ui-monospace,Consolas,monospace}
+.nm-in,.nm-ta{display:block;width:100%;box-sizing:border-box;min-height:40px;border:1px solid var(--color-line-strong,#cfc9ba);border-radius:10px;background:var(--color-surface,#fffdf8);color:var(--color-ink,#26241f);font-size:13.5px;padding:8px 12px;margin-bottom:8px;font-family:var(--font-sans,sans-serif)}
+.nm-ta{resize:none;line-height:1.6}
+.nm-dup{min-height:18px;font-size:12px;margin-bottom:4px}
+.nm-dup-warn{color:var(--color-warn,#ba7517)}
+.nm-list{text-align:left;max-height:46dvh;overflow-y:auto}
+.nm-item{display:flex;align-items:center;gap:8px;padding:10px 2px;border-bottom:1px solid var(--color-line,#e3ded2)}
+.nm-item:last-child{border-bottom:0}
+.nm-item-main{flex:1;min-width:0}
+.nm-item-main b{display:block;font-size:14px;color:var(--color-ink,#26241f);font-weight:600}
+.nm-item-main small{font-size:11.5px;color:var(--color-muted,#8c877d)}
+.nm-item-btn{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--color-line-strong,#cfc9ba);background:var(--color-surface,#fffdf8);color:var(--color-ink-soft,#55514a);font-size:12px;cursor:pointer}
+.nm-item-btn.danger{color:var(--color-danger,#b34a3f);border-color:rgba(179,74,63,.4)}
+.theme-dark .nm-menu-item{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
+.theme-dark .nm-in,.theme-dark .nm-ta{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
+.theme-dark .nm-item{border-bottom-color:var(--color-line,#3a3832)}

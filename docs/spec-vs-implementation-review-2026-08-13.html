@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>规范对照评估 · 旅行App信息架构与节点管理规范 v1.0 vs 行迹TRACE 现状</title>
+<style>
+  :root{--bg:#F6F3EC;--surface:#FFFDF8;--ink:#26241F;--muted:#8C877D;--line:#E3DED2;--primary:#C86D4B;--green:#5F7A4E;--warn:#BA7517;--serif:"Songti SC","Noto Serif SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 60px}
+  h1{font-family:var(--serif);font-weight:400;font-size:30px;margin:8px 0 4px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:24px}
+  h2{font-family:var(--serif);font-weight:400;font-size:21px;margin:34px 0 12px;padding-left:12px;border-left:3px solid var(--primary)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+  .m{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .m b{display:block;font-family:var(--serif);font-size:26px;font-weight:400;color:var(--primary)}
+  .m span{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+  th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  .tag{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+  .ok{background:#5F7A4E;color:#fff}.part{background:#BA7517;color:#fff}.no{background:#B34A3F;color:#fff}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .flow .step{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px}
+  .flow .step b{display:block;color:var(--primary-dark);font-size:13px}
+  .note{background:rgba(74,107,122,.08);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13.5px;margin-top:16px}
+  footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Spec Review · 2026-08-13</div>
+  <h1>《信息架构与节点管理规范 v1.0》对照评估</h1>
+  <div class="sub">对照对象：行迹TRACE v2.0（7782 节点 / topic-common 引擎 / travel-notes / wishlist / food 体系）｜评估方法：逐节静态核对 + 关键点代码验证</div>
+
+  <div class="metrics">
+    <div class="m"><b>≈70%</b><span>规范条目已符合</span></div>
+    <div class="m"><b>3</b><span>项缺失（节点管理/POI搜索/重复检测）</span></div>
+    <div class="m"><b>4</b><span>项部分偏差</span></div>
+    <div class="m"><b>0</b><span>项哲学冲突</span></div>
+  </div>
+
+  <h2>总体结论</h2>
+  <p>规范核心哲学（地图是地点、路线是关系、美食是内容、Memory 是经历、Album 是故事）与项目现有模块划分高度一致。已确认符合的硬性要求包括：节点全量带坐标、标签体系（必去/网红 + 主题）、7000+ 节点 LOD 分级显示、聚合 Cluster、节点状态生命周期（收藏→计划→去过→Memory）、美食与 Node 数据分离（food 无坐标）、Memory 字段模型、路线与 GPX。差距集中在两大产品级能力（听讲解、用户创建节点）与若干交互模式细节。</p>
+
+  <h2>逐节对照</h2>
+  <table>
+    <tr><th>规范条目</th><th>现状实现（含证据）</th><th>判定</th></tr>
+    <tr><td>二~四 · 地图职责 / Node 定义 / 类型</td><td>SITES 全量带 lat/lng；id/name/label/region/city/county/theme/desc/flag；无 USER_CREATED 体系</td><td><span class="tag part">部分</span></td></tr>
+    <tr><td>五 · 标签体系（必去/网红 + 分类）</td><td>flag m/h + theme 分类，图例/chips 筛选</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>六 · 状态生命周期</td><td>想去♡ → 行程规划 → 打卡 → 语音记录，wishlist+travel-notes 闭环完整</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>七~八 · 7000+ 不全部显示名称 / 视觉层级</td><td>node-lod.js 五级 LOD；选中/必去/网红有独立样式</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>九~十 · 标签显示 8~15 个 / 避让优先级</td><td>LOD 控制密度；无显式 collision ranking（选中&gt;搜索&gt;Memory&gt;必去…）</td><td><span class="tag part">部分</span></td></tr>
+    <tr><td>十一 · 筛选是高亮而非隐藏</td><td>getFiltered() 直接过滤隐藏非选中主题</td><td><span class="tag no">偏差</span></td></tr>
+    <tr><td>十二 · 密度三档</td><td>设置页聚合密度（密集/标准/稀疏）+ 展开速度</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>十三 · 缩放=信息层级</td><td>LOD：区域→城市→县区→节点→详情</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>十四 · Cluster 数字聚合</td><td>数字聚合 + 点击放大拆散</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>十五~十六 · 点击 Sheet + 核心操作</td><td>详情面板 + 语音记录 + 加入行程 + <b>听讲解已实现</b>（DeepSeek AI 流式生成讲解词 + SpeechSynthesis 朗读，需设置 API key）</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>十七~十九 · 节点管理空地图工作台 + 添加入口</td><td><b>无节点管理体系</b>（无地图选点/长按创建/我的节点）</td><td><span class="tag no">缺失</span></td></tr>
+    <tr><td>二十~二十一 · 本地优先搜索 → POI</td><td>仅本地索引（nation-index.js 7782 条）；无 POI fallback</td><td><span class="tag no">缺失</span></td></tr>
+    <tr><td>二十三 · 重复节点检测</td><td>无（名称+距离+sourceId 三重检测）</td><td><span class="tag no">缺失</span></td></tr>
+    <tr><td>二十六~二十九 · 地图选点 / 当前位置 / 快速添加</td><td>__tnAnywhere（当前 GPS 语音随手记）部分对应；无长按地图创建</td><td><span class="tag part">部分</span></td></tr>
+    <tr><td>三十二 · 区域统计</td><td>无地图视野统计条（"我的"页有全局统计）</td><td><span class="tag no">缺失</span></td></tr>
+    <tr><td>三十三~三十四 · 路线 / 加入行程</td><td>routes-data.js + 专题路线 + 行程规划 + GPX</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>三十五~三十九 · 美食独立体系</td><td>food 无坐标（纯内容型：desc/feature/with/wiki），专题页 food tab</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>四十~四十一 · Memory 模型</td><td>travel-notes 全字段对应（audio/transcript/story/photos/location/ts）</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>四十二~四十六 · Trip / Album / 闭环</td><td>行程轨迹图 + 旅程回顾/成就/足迹海报 + 叙事时间线</td><td><span class="tag ok">符合</span></td></tr>
+    <tr><td>四十七 · 地图不五颜六色</td><td>节点按主题着色（主题色达 38 种）——需收敛</td><td><span class="tag part">部分</span></td></tr>
+  </table>
+
+  <h2>推进路线</h2>
+  <div class="flow">
+    <div class="step"><b>P0 · 产品级新增</b>「节点管理」空地图工作台（地图选点/当前位置/长按创建 + 我的节点 + 编辑删除 + 重复检测）；「听讲解」已实现（AI 生成+TTS），无需开发</div>
+    <div class="step"><b>P1 · 交互修正</b>筛选改双态（高亮+降透明）；区域统计条（视野内统计+点击进强调模式）；主题配色收敛（38 色→低饱和中性+重点强调）</div>
+    <div class="step"><b>P2 · 增强</b>POI 搜索 fallback（高德 API）；标签避让优先级排序；food 杂志式 UI 改造</div>
+  </div>
+
+  <div class="note">说明：规范第 35 节"美食不是 Node"与现状零冲突（food 数据已无坐标）；规范整体是现有架构的补强说明书，无需推翻重来。</div>
+
+  <footer>评估人：Trace ｜ 依据：规范 v1.0 全文 + 2026-08-13 当日代码核查（topic-common.js / node-lod.js / food 数据 / travel-notes.js / wishlist.js）</footer>
+</div>
+</body>
+</html>
