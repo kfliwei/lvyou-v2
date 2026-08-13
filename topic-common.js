@@ -194,73 +194,25 @@
     return L.divIcon({ className: '', html: html, iconSize: [26, 26], iconAnchor: [13, 13] });
   }
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
-  /* 省级聚合点图标（LOD 最低层，全国视野）：胶囊形 省简称 + 数量 */
-  function provIcon(name, n, tint) {
-    var html = '<div style="display:flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:999px;background:' + tint + ';color:#fff;font-size:12.5px;font-weight:600;font-family:var(--font-sans);box-shadow:0 3px 12px rgba(0,0,0,.3);border:2px solid #fff;white-space:nowrap">' + name + '<b style="font-size:11px;opacity:.85">' + n + '</b></div>';
-    return L.divIcon({ className: '', html: html, iconSize: [54, 34], iconAnchor: [27, 17] });
-  }
-  /* 城市聚合点图标（LOD 中层，省视野）：圆形数字徽标 */
-  function clusterIcon(n, tint) {
-    var html = '<div style="width:32px;height:32px;border-radius:50%;background:' + tint + ';color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.28);font-family:var(--font-sans);letter-spacing:-.02em">' + n + '</div>';
-    return L.divIcon({ className: '', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
-  }
-  /* LOD 三级渲染（M.lodEnabled，全国页）：
-     zoom < 5.5 省级聚合（全国视野）→ 5.5-7.5 城市聚合（省视野）→ >=7.5 具体节点（市视野，含视野裁剪与重要主题过滤） */
-  function renderLOD(list) {
-    var z = map.getZoom(), b = map.getBounds();
-    markerLayer.clearLayers(); markers.clear();
-    if (z < 5.5) {
-      var byProv = {};
-      list.forEach(function (s) {
-        if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
-        (byProv[s.region] = byProv[s.region] || []).push(s);
-      });
-      Object.keys(byProv).forEach(function (prov) {
-        var arr = byProv[prov], s0 = arr[0];
-        var bnd = L.latLngBounds(arr.map(pt));
-        var short = M.regionShort[prov] || prov;
-        var m = L.marker(bnd.getCenter(), { icon: provIcon(short, arr.length, colorOf(s0)), zIndexOffset: -600 });
-        var _mz = arr.length <= 30 ? 9.2 : arr.length <= 80 ? 8.2 : 6.8;  /* 节点少→展开更聚焦，避免视野空荡 */
-        m.on('click', function () { map.flyToBounds(bnd, { padding: [40, 55], maxZoom: _mz }); });
-        markerLayer.addLayer(m); markers.set('p:' + prov, m);
-      });
-      return;
-    }
-    if (z < 7.5) {
-      var byCity = {};
-      list.forEach(function (s) {
-        if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
-        var key = s.region + '|' + (s.city || '其他');
-        (byCity[key] = byCity[key] || []).push(s);
-      });
-      Object.keys(byCity).forEach(function (key) {
-        var arr = byCity[key], s0 = arr[0];
-        var bnd = L.latLngBounds(arr.map(pt));
-        var m = L.marker(bnd.getCenter(), { icon: clusterIcon(arr.length, colorOf(s0)), zIndexOffset: -500 });
-        var _cmz = arr.length <= 12 ? 10.6 : 10;  /* 小聚合展开更聚焦 */
-        m.on('click', function () { map.flyToBounds(bnd, { padding: [40, 55], maxZoom: _cmz }); });
-        markerLayer.addLayer(m); markers.set('c:' + key, m);
-      });
-      return;
-    }
-    list.forEach(function (s) {
-      if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
-      if (z < 9 && !isMajorSite(s)) return; /* 中缩放只显示重要主题 */
-      if (!b.contains(pt(s))) return;       /* 视野裁剪 */
-      var m = L.marker(pt(s), { icon: nodeIcon(s, false) });
-      m.on('click', function () { openSheet(s.__i); });
-      markerLayer.addLayer(m); markers.set(s.__i, m);
-    });
-  }
   function renderMarkers(list) {
     lastMarkerList = list;
-    if (M.lodEnabled) { renderLOD(list); return; }
-    markerLayer.clearLayers(); markers.clear();
-    list.forEach(function (s) {
-      if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
-      var m = L.marker(pt(s), { icon: nodeIcon(s, false) });
-      m.on('click', function () { openSheet(s.__i); });
-      markerLayer.addLayer(m); markers.set(s.__i, m);
+    /* TRACE v2 统一分层分级（node-lod.js 引擎）：
+       region 多 → 区域/省聚合 → 市聚合 → 节点；region 单一 → 市聚合 → 县聚合 → 节点
+       数据量小时引擎自动降级为直接节点 */
+    NodeLOD.init({
+      map: map, layer: markerLayer,
+      list: function () { return list; },
+      pt: pt,
+      icon: function (s) { return nodeIcon(s, s.__i === curSite); },
+      colorOf: colorOf,
+      onNode: function (s) { openSheet(s.__i); },
+      majorOf: isMajorSite,
+      regionOf: function (s) { return s.region; },
+      cityOf: function (s) { return s.city; },
+      countyOf: function (s) { return s.county; },
+      detailZoom: 9,
+      onClear: function () { markers.clear(); },
+      onMarker: function (m, s) { markers.set(s.__i, m); }
     });
   }
   function buildSheet(i) {
@@ -940,6 +892,8 @@
     renderTripBar();
     renderFood();
     renderAll();
+    // 默认展示第一条预设路线（承接老专题页「打开地图即有长征线路」的体验）
+    if (M.routes && M.routes.length) showRouteOnMap(0);
     autoLocate();
     setTimeout(function () { map.invalidateSize(); }, 200);
   }

@@ -507,7 +507,7 @@
     if(e.key==='Enter'){
       var kw=(hs.value||'').trim(); if(!kw) return;
       var notes=(window.TravelNotes&&TravelNotes.list())||[];
-      location.href=notes.length?'travel-map.html':'topic.html?p=nation';
+      location.href=notes.length?'travel-map.html':'topic.html?p=nation&q='+encodeURIComponent(kw);
     }
   };
   document.addEventListener('click',function(e){if(!e.target.closest('.hero__search'))sp.style.display='none';});
