@@ -1813,3 +1813,29 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     backfillGeo: backfillGeo
   };
 })();
+
+/* 足迹统计（review/me 共用，消除重复实现） */
+window.TNStats = function () {
+  var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
+  var provs = {}, cities = {}, km = 0, days = {};
+  notes.forEach(function (n) {
+    if (n.province) provs[n.province] = 1;
+    if (n.city) cities[n.city] = 1;
+    if (n.dist) km += n.dist;
+    if (n.date) days[n.date.slice(0, 10)] = 1;
+  });
+  var dts = Object.keys(days).sort(), streak = 0;
+  if (dts.length) {
+    var last = new Date(dts[dts.length - 1] + 'T00:00:00');
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var gap = Math.round((today - last) / 864e5);
+    if (gap <= 1) {
+      streak = 1;
+      for (var k = dts.length - 2; k >= 0; k--) {
+        var a = new Date(dts[k] + 'T00:00:00'), b = new Date(dts[k + 1] + 'T00:00:00');
+        if (Math.round((b - a) / 864e5) === 1) streak++; else break;
+      }
+    }
+  }
+  return { total: notes.length, provs: Object.keys(provs), cities: Object.keys(cities), km: km, days: Object.keys(days), streak: streak };
+};

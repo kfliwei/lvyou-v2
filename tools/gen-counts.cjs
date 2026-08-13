@@ -8,7 +8,7 @@ const dir = path.join(__dirname, '..');
 const MAP = {
   cz: 'changzheng-data.js',
   gy: 'gxyn-data.js',
-  qt: 'qz-data.js',
+  qt: 'qingzang-data.js',
   sx: 'data.js',
   sc: 'sc-data.js',
   gs: 'gs-data.js',

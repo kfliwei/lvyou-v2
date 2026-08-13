@@ -6,7 +6,7 @@
 window.TOPIC_COUNTS = {
   "cz": 179,
   "gy": 511,
-  "qt": 189,
+  "qt": 345,
   "sx": 504,
   "sc": 391,
   "gs": 305,

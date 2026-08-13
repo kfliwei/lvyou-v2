@@ -60,7 +60,7 @@ function parseArray(file, varName) {
   try { return JSON.parse(clean); } catch (e) { ok(file + ' JSON 可解析', false, e.message.slice(0, 60)); return null; }
 }
 /* ---- 1. 各省 + 专题数据文件 ---- */
-const DATA_FILES = ['data.js', 'changzheng-data.js', 'gxyn-data.js', 'qz-data.js', 'sc-data.js', 'gs-data.js', 'xj-data.js', 'gz-data.js', 'qh-data.js', 'xz-data.js', 'nmg-data.js', 'hn-data.js', 'hb-data.js', 'cq-data.js', 'nx-data.js'];
+const DATA_FILES = ['data.js', 'changzheng-data.js', 'gxyn-data.js', 'qingzang-data.js', 'sc-data.js', 'gs-data.js', 'xj-data.js', 'gz-data.js', 'qh-data.js', 'xz-data.js', 'nmg-data.js', 'hn-data.js', 'hb-data.js', 'cq-data.js', 'nx-data.js'];
 const counts = {};
 DATA_FILES.forEach(f => {
   const sites = parseArray(f, 'SITES');
@@ -81,7 +81,7 @@ if (fs.existsSync(tcPath)) {
   const m = tcSrc.match(/window\.TOPIC_COUNTS = (\{[\s\S]*?\});/);
   if (m) {
     const tc = JSON.parse(m[1]);
-    const map = { cz: 'changzheng-data.js', gy: 'gxyn-data.js', qt: 'qz-data.js', sx: 'data.js', sc: 'sc-data.js', gs: 'gs-data.js', xj: 'xj-data.js', gz: 'gz-data.js' };
+    const map = { cz: 'changzheng-data.js', gy: 'gxyn-data.js', qt: 'qingzang-data.js', sx: 'data.js', sc: 'sc-data.js', gs: 'gs-data.js', xj: 'xj-data.js', gz: 'gz-data.js' };
     Object.keys(map).forEach(k => {
       const f = map[k];
       ok('计数一致 ' + k, tc[k] === counts[f], 'topic-counts=' + tc[k] + ' 实际=' + counts[f]);

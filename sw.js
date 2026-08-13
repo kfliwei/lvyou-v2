@@ -50,7 +50,6 @@ var SHELL = [
   './art/topic-xj.svg',
   './art/topic-yunnan.svg'
 ];
-var RUNTIME = /(data\.js|gxyn-data\.js|qz-data\.js|changzheng-data\.js|sc-data\.js|sc-food\.js|gs-data\.js|gs-food\.js|xj-data\.js|xj-food\.js|gz-data\.js|gz-food\.js|food\.js|food-gxyn\.js)$/;
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
     /* 閫愭潯 add + catch锛氬崟涓枃浠剁己澶变笉褰卞搷鏁翠綋瀹夎 */
@@ -90,18 +89,6 @@ self.addEventListener('fetch', function (e) {
       return res;
     }).catch(function () {
       return caches.match(req).then(function (hit) { return hit || caches.match('./index.html'); });
-    }));
-    return;
-  }
-  if (RUNTIME.test(url.pathname)) {                         /* 鏁版嵁鏂囦欢锛歴tale-while-revalidate */
-    e.respondWith(caches.open(CACHE).then(function (c) {
-      return c.match(req).then(function (hit) {
-        var f = fetch(req).then(function (res) {
-          if (res && res.ok) c.put(req, res.clone());
-          return res;
-        });
-        return hit || f;
-      });
     }));
     return;
   }

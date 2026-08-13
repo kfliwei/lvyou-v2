@@ -302,17 +302,13 @@ function renderToday(){
 function renderAchieve(){
   try{
     var box=document.getElementById('achvBox'); if(!box) return;
-    var provs={}, cities={}, km=0, days={};
-    notes.forEach(function(n){
-      if(n.province) provs[n.province]=(provs[n.province]||0)+1;
-      if(n.city) cities[n.city]=1;
-      if(n.dist) km+=n.dist;
-      if(n.date) days[n.date.slice(0,10)]=1;
-    });
-    var pn=Object.keys(provs).length, cn=Object.keys(cities).length, dn=Object.keys(days).length;
-    /* 连续记录天数 */
-    var dts=Object.keys(days).sort(), streak=0;
-    if(dts.length){ var last=new Date(dts[dts.length-1]+'T00:00:00'); var today=new Date(); today.setHours(0,0,0,0); var gap=Math.round((today-last)/864e5); if(gap<=1){ streak=1; for(var k=dts.length-2;k>=0;k--){ var a=new Date(dts[k]+'T00:00:00'), b=new Date(dts[k+1]+'T00:00:00'); if(Math.round((b-a)/864e5)===1) streak++; else break; } } }
+    var st = window.TNStats ? TNStats() : null;
+    if (!st) return;
+    var provs = {}, cities = {}, km = st.km, days = {}, streak = st.streak;
+    st.provs.forEach(function (p) { provs[p] = 1; });
+    st.cities.forEach(function (c) { cities[c] = 1; });
+    st.days.forEach(function (d) { days[d] = 1; });
+    var pn = st.provs.length, cn = st.cities.length, dn = st.days.length;
     /* 省份徽章（31 省级行政区） */
     var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新']];
     var provHtml=ALL.map(function(p){ var on=!!provs[p[0]]; return '<span style="display:inline-flex;align-items:center;gap:3px;padding:5px 9px;border-radius:999px;font-size:11px;'+(on?'background:var(--color-primary);color:#fff;font-weight:600':'background:var(--color-bg-soft);color:var(--color-muted);border:1px solid var(--color-line)')+'">'+p[1]+'</span>'; }).join('');

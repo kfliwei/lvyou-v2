@@ -97,14 +97,13 @@
     var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
     var wish = (window.Wish && Wish.count) ? Wish.count() : 0;
     var el = document.getElementById('meWish'); if (el) el.textContent = wish;
-    var provs = {}, cities = {}, km = 0, days = {};
-    notes.forEach(function(n){
-      if (n.province) provs[n.province] = 1;
-      if (n.city) cities[n.city] = 1;
-      if (n.dist) km += n.dist;
-      if (n.date) days[n.date.slice(0,10)] = 1;
-    });
-    var pn = Object.keys(provs).length;
+    var st = window.TNStats ? TNStats() : null;
+    if (!st) return;
+    var provs = {}, cities = {}, km = st.km, days = {};
+    st.provs.forEach(function (p) { provs[p] = 1; });
+    st.cities.forEach(function (c) { cities[c] = 1; });
+    st.days.forEach(function (d) { days[d] = 1; });
+    var pn = st.provs.length;
     document.getElementById('meSub').textContent = notes.length ? (pn + ' 个省份 · ' + Object.keys(cities).length + ' 个城市 · ' + Object.keys(days).length + ' 天在路上') : '还没有记录，去探索第一处风景';
     document.getElementById('meStats').innerHTML = [
       ['省份', pn + ' / 31'], ['城市', Object.keys(cities).length], ['里程', Math.round(km) + ' km'], ['记录日', Object.keys(days).length]
