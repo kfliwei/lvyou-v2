@@ -87,6 +87,20 @@
   function tip(msg, ms) { var t = $('nmTip'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('show'); }, ms || 2200); }
   function closeSheets() { $('rsSheet').classList.remove('show'); $('infoSheet').classList.remove('show'); }
 
+  /* ---------- 用户节点地图标记（保存后可见） ---------- */
+  var userMarkers = {};
+  function placeUserMarker(u) {
+    if (userMarkers[u.id]) { userMarkers[u.id].remove(); delete userMarkers[u.id]; }
+    var lat = +u.lat, lng = +u.lng;
+    if (isNaN(lat) || isNaN(lng)) return;
+    var m = L.marker([lat, lng], {
+      icon: L.divIcon({ className: '', html: '<div class="tr-node tr-user"><span class="tr-ring" style="--tint:#5F7A4E"></span><span class="tr-dot"></span><span class="node-num" style="background:#5F7A4E">我</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] })
+    }).addTo(map);
+    m.on('click', function () { var u2 = loadUserNodes().find(function (x) { return x.id === u.id; }); if (u2) openUserInfo(u2); });
+    userMarkers[u.id] = m;
+  }
+  function removeUserMarker(uid) { if (userMarkers[uid]) { userMarkers[uid].remove(); delete userMarkers[uid]; } }
+
   /* ---------- 数据：本地索引（仅搜索用，不渲染地图） ---------- */
   function loadUserNodes() { try { return JSON.parse(localStorage.getItem(USER_KEY) || '[]'); } catch (e) { return []; } }
   function saveUserNodes(arr) { try { localStorage.setItem(USER_KEY, JSON.stringify(arr)); } catch (e) {} }
@@ -373,6 +387,7 @@
         closeInfo();
         tip('已保存「' + rec.name + '」');
         if (pickMarker) { pickMarker.remove(); pickMarker = null; }
+        placeUserMarker(rec);
       }
       if (hits.length) {
         UI.confirm({ title: '重复节点', text: '附近已有相似节点：' + hits.map(function (h) { return h.label || h.name; }).join('、') + '\n仍然添加？', okText: '仍然添加', danger: true }, function (ok) { if (ok) doSave(); });
@@ -402,9 +417,18 @@
     box.innerHTML = arr.map(function (u) {
       return '<div class="nm-item">' +
         '<div class="nm-item-main"><b>' + esc(u.name) + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ')) + '</small></div>' +
+        '<button class="nm-item-btn" onclick="window.NM.locate(\'' + u.id + '\')">定位</button>' +
         '<button class="nm-item-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
         '<button class="nm-item-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button></div>';
     }).join('');
+  }
+  function locate(uid) {
+    var u = loadUserNodes().find(function (x) { return x.id === uid; });
+    if (!u) return;
+    closeModals();
+    placeUserMarker(u);
+    map.flyTo([+u.lat, +u.lng], 14, { duration: 0.9 });
+    setTimeout(function () { openUserInfo(u); }, 950);
   }
   function edit(uid) {
     var u = loadUserNodes().find(function (x) { return x.id === uid; });
@@ -418,6 +442,7 @@
     UI.confirm({ title: '删除节点', text: '确定删除「' + u.name + '」？', okText: '删除', danger: true }, function (ok) {
       if (!ok) return;
       saveUserNodes(loadUserNodes().filter(function (x) { return x.id !== uid; }));
+      removeUserMarker(uid);
       closeModals();
       closeInfo();
       UI.toast('已删除');
@@ -426,7 +451,7 @@
   function closeModals() { document.querySelectorAll('.nm-mask').forEach(function (x) { x.remove(); }); }
 
   /* ---------- 启动 ---------- */
-  window.NM = { edit: edit, remove: remove, closeInfo: closeInfo, flyToSys: flyToSys };
+  window.NM = { edit: edit, remove: remove, closeInfo: closeInfo, flyToSys: flyToSys, locate: locate };
   initMap();
   loadIndex(function () { tip('本地 ' + SITES.length + ' 个节点已就绪 · 搜索添加新地点', 2600); });
 })();
