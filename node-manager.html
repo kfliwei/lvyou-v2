@@ -14,11 +14,31 @@
   #mapEl{position:absolute;inset:0;z-index:1}
   .nm-topbar{position:fixed;left:0;right:0;top:0;z-index:9500;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07)}
   .nm-topbar .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .nm-topbar .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
-  .nm-topbar .title small{font-family:var(--font-sans);font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
-  .nm-topbar .mine{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:13px;cursor:pointer;font-family:var(--font-sans)}
+  .nm-topbar .title{font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em;white-space:nowrap}
+  .nm-topbar .title small{font-family:var(--font-sans);font-size:11px;color:var(--color-muted);margin-left:4px;letter-spacing:.06em}
+  .sbar{flex:1;display:flex;align-items:center;gap:6px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:3px 6px 3px 14px;min-width:0}
+  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14px;color:var(--color-ink);height:36px}
+  .sbar .go{flex:0 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13px;cursor:pointer;font-family:var(--font-sans)}
   .nm-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;z-index:9400;background:rgba(32,32,29,.88);color:#fff;font-size:12px;padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity .25s}
   .nm-tip.show{opacity:1}
+  /* 搜索结果面板 */
+  #rsSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:72dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:16px 16px 12px;transform:translateY(115%);transition:transform 520ms var(--ease-standard)}
+  #rsSheet.show{display:block;transform:translateY(0)}
+  .rs-head{display:flex;align-items:center;margin-bottom:10px}
+  .rs-head b{flex:1;font-family:var(--font-serif);font-weight:400;font-size:16px;color:var(--color-ink)}
+  .rs-head .x{border:0;background:none;color:var(--color-muted);font-size:15px;cursor:pointer;padding:6px}
+  .rs-sec{font-size:11px;color:var(--color-muted);letter-spacing:.16em;margin:12px 2px 6px}
+  .rs-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;cursor:pointer}
+  .rs-item:active{background:var(--color-bg-soft)}
+  .rs-item .ic{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;background:var(--color-primary-soft);color:var(--color-primary-dark)}
+  .rs-item .main{flex:1;min-width:0}
+  .rs-item .nm{font-size:13.5px;color:var(--color-ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rs-item .nm .bdg{display:inline-block;font-size:10px;padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600;background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.38)}
+  .rs-item .nm .bdg.mine{background:rgba(95,122,78,.14);color:#5F7A4E;border-color:rgba(95,122,78,.4)}
+  .rs-item .sub{font-size:11.5px;color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rs-item .act{flex:0 0 auto;font-size:12px;color:var(--color-primary-dark);font-weight:600}
+  .rs-empty{padding:26px 10px;text-align:center;color:var(--color-muted);font-size:13px;line-height:1.8}
+  /* 节点信息面板 */
   #infoSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:70dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:18px 18px 14px;transform:translateY(115%);transition:transform 520ms var(--ease-standard)}
   #infoSheet.show{display:block;transform:translateY(0)}
   #infoSheet .is-place{font-family:var(--font-serif);font-size:21px;color:var(--color-ink);margin-bottom:4px}
@@ -32,40 +52,45 @@
   #infoSheet .is-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
   #infoSheet .is-btn.danger{color:var(--color-danger,#b34a3f);border-color:rgba(179,74,63,.4)}
   .theme-dark .nm-topbar{background:rgba(29,28,25,.92)}
-  .theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
+  .theme-dark #rsSheet,.theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
 </style>
 </head>
 <body>
 <div id="mapEl"></div>
 <header class="nm-topbar">
   <button class="back" aria-label="返回" onclick="history.length>1?history.back():location.href='index.html'">←</button>
-  <div class="title">节点管理 <small>Node Manager</small></div>
-  <button class="mine" id="mineBtn">我的节点</button>
+  <div class="title">节点管理 <small>Node</small></div>
+  <div class="sbar">
+    <input id="q" type="search" placeholder="搜景点 / 茶馆 / 观景台…" autocomplete="off" aria-label="搜索节点">
+    <button class="go" id="qGo">搜索</button>
+  </div>
 </header>
 <div class="nm-tip" id="nmTip"></div>
+<div id="rsSheet">
+  <div class="rs-head"><b>搜索结果</b><button class="x" id="rsClose" aria-label="关闭">✕</button></div>
+  <div id="rsBody"></div>
+</div>
 <div id="infoSheet"><div id="isBody"></div></div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="geo.js"></script>
-<script src="node-lod.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
   'use strict';
   var USER_KEY = 'tn_userNodes';
-  var SITES = [], markers = new Map(), map = null, markerLayer = null;
-  var useGCJ = true, themeFilter = '';
-  var osmLayer = null, amapLayer = null;
+  var AMAP_KEY = 'tn_amap_key';
+  var SITES = [], map = null, pickMarker = null;
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-  function pt(s) { return useGCJ ? window.Geo.gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function tip(msg, ms) { var t = $('nmTip'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('show'); }, ms || 2200); }
+  function closeSheets() { $('rsSheet').classList.remove('show'); $('infoSheet').classList.remove('show'); }
 
-  /* ---------- 数据 ---------- */
+  /* ---------- 数据：本地索引（仅搜索用，不渲染地图） ---------- */
   function loadUserNodes() { try { return JSON.parse(localStorage.getItem(USER_KEY) || '[]'); } catch (e) { return []; } }
   function saveUserNodes(arr) { try { localStorage.setItem(USER_KEY, JSON.stringify(arr)); } catch (e) {} }
-  function loadSites(cb) {
+  function loadIndex(cb) {
     var s = document.createElement('script');
     s.src = 'nation-index.js?v=20260813';
     s.onload = function () {
@@ -73,110 +98,217 @@
         var p = line.split('|');
         return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8], source: '' };
       });
-      var us = loadUserNodes().map(function (u) {
-        return { id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '', flag: '', lat: +u.lat, lng: +u.lng, source: 'user', uid: u.id, tags: u.tags || [], createdAt: u.createdAt };
-      });
-      SITES = sys.concat(us);
-      SITES.forEach(function (x, i) { x.__i = i; });
+      SITES = sys;
+      sys.forEach(function (x, i) { x.__i = i; });
       cb();
     };
-    s.onerror = function () { tip('节点数据加载失败，请检查网络'); };
+    s.onerror = function () { tip('本地节点索引加载失败'); };
     document.head.appendChild(s);
   }
+  function userSites() {
+    return loadUserNodes().map(function (u) {
+      return { id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '', flag: '', lat: +u.lat, lng: +u.lng, gcj: !!u.gcj, source: 'user', uid: u.id, tags: u.tags || [], createdAt: u.createdAt };
+    });
+  }
 
-  /* ---------- 地图 ---------- */
+  /* ---------- 地图（空地图，不显示任何节点） ---------- */
   function initMap() {
     map = L.map('mapEl', { zoomControl: false, attributionControl: false }).setView([34.5, 105], 5);
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
-    amapLayer = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德地图' }).addTo(map);
-    osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-    amapLayer.on('tileerror', function () { if (!map.hasLayer(osmLayer)) { try { amapLayer.remove(); } catch (e) {} osmLayer.addTo(map); tip('高德地图不可用，已切换街景底图'); } });
-    markerLayer = L.layerGroup().addTo(map);
+    var amap = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德地图' }).addTo(map);
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+    amap.on('tileerror', function () { if (!map.hasLayer(osm)) { try { amap.remove(); } catch (e) {} osm.addTo(map); tip('高德地图不可用，已切换街景底图'); } });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    /* 初始视野统计（首次 setView 不触发 moveend） */
-    map.whenReady(function () { setTimeout(regionStats, 600); });
-    /* 区域统计 */
-    var stTimer = null;
-    function regionStats() {
-      if (!map) return;
-      var b = map.getBounds();
-      var inView = SITES.filter(function (s) { return s.lat != null && !isNaN(+s.lat) && b.contains([+s.lat, +s.lng]); });
-      var el = document.querySelector('.region-stats');
-      if (!inView.length) { if (el) el.style.display = 'none'; return; }
-      var cnt = {};
-      inView.forEach(function (s) { var t = s.theme || '其他'; cnt[t] = (cnt[t] || 0) + 1; });
-      var top = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 4);
-      if (!el) { el = document.createElement('div'); el.className = 'region-stats'; document.body.appendChild(el); }
-      var html = '<span class="rs-total">当前区域 <b>' + inView.length + '</b> 处</span>';
-      top.forEach(function (t) {
-        html += '<button class="rs-chip' + (themeFilter === t ? ' on' : '') + '" data-th="' + esc(t) + '">' + esc(t) + ' ' + cnt[t] + '</button>';
-      });
-      el.innerHTML = html;
-      el.style.display = 'flex';
-      el.querySelectorAll('.rs-chip').forEach(function (ch) {
-        ch.onclick = function () {
-          themeFilter = (themeFilter === ch.dataset.th ? '' : ch.dataset.th);
-          NodeLOD.render();
-          regionStats();
-        };
-      });
-    }
-    map.on('moveend', function () { clearTimeout(stTimer); stTimer = setTimeout(regionStats, 350); NodeLOD.render(); });
-    map.on('zoomend', function () { clearTimeout(stTimer); stTimer = setTimeout(regionStats, 350); NodeLOD.render(); });
-    /* LOD 节点渲染 */
-    NodeLOD.init({
-      map: map, layer: markerLayer,
-      list: function () { return SITES; },
-      pt: pt,
-      icon: function (s, active) {
-        var f = s.flag || '';
-        var dim = themeFilter && s.theme !== themeFilter;
-        var tint = s.source === 'user' ? '#5F7A4E' : (f.indexOf('m') >= 0 ? '#C86D4B' : (f.indexOf('h') >= 0 ? '#E0915C' : '#8C7B66'));
-        var cls = 'tr-node' + (active ? ' tr-active' : '') + (dim ? ' tr-dim' : '') + (s.source === 'user' ? ' tr-user' : '') + (f.indexOf('m') >= 0 ? ' tr-must' : '');
-        var html = '<div class="' + cls + '"><span class="tr-ring" style="--tint:' + tint + '"></span><span class="tr-dot"></span>';
-        if (f.indexOf('m') >= 0) html += '<span class="tr-seal">必</span>';
-        if (s.source === 'user') html += '<span class="node-num" style="background:#5F7A4E">我</span>';
-        html += '</div>';
-        return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
-      },
-      colorOf: function (s) { return s.source === 'user' ? '#5F7A4E' : '#8C7B66'; },
-      onNode: function (s) { openInfo(s); },
-      majorOf: function (s) { return s.source === 'user' || (s.flag && s.flag.indexOf('m') >= 0); },
-      regionOf: function (s) { return s.region; },
-      cityOf: function (s) { return s.city; },
-      countyOf: function (s) { return s.county; },
-      detailZoom: 10
-    });
-    NodeLOD.render();
+    map.on('click', function () { closeSheets(); });
   }
 
-  /* ---------- 节点信息面板 ---------- */
-  function openInfo(s) {
-    var box = $('isBody');
-    var loc = [s.region, s.city].filter(Boolean).join(' · ');
-    var isUser = s.source === 'user';
-    var html = '<div class="is-place">' + esc(s.label) + (isUser ? ' <span style="font-size:11px;color:#5F7A4E;vertical-align:2px">我的节点</span>' : '') + '</div>' +
-      '<div class="is-loc">' + esc(s.theme || '其他') + (loc ? ' · ' + esc(loc) : '') + '</div>' +
-      (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
-      (s.tags && s.tags.length ? '<div class="is-tags">' + s.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
-      '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
-      '<div class="is-acts">' +
-      (isUser
-        ? '<button class="is-btn" onclick="window.NM.edit(\'' + s.uid + '\')">编辑</button>' +
-          '<button class="is-btn danger" onclick="window.NM.remove(\'' + s.uid + '\')">删除</button>' +
-          '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button>'
-        : '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button>') +
-      '</div>';
+  /* ---------- 搜索：本地优先，无结果走高德 POI ---------- */
+  function localSearch(q) {
+    var n = q.trim().toLowerCase(); if (!n) return [];
+    var all = SITES.concat(userSites());
+    return all.filter(function (s) {
+      var hay = ((s.name || '') + ' ' + (s.label || '') + ' ' + (s.region || '') + ' ' + (s.city || '') + ' ' + (s.county || '') + ' ' + (s.theme || '')).toLowerCase();
+      return hay.indexOf(n) >= 0;
+    }).slice(0, 10);
+  }
+  function amapSearch(q, cb) {
+    var key = localStorage.getItem(AMAP_KEY);
+    if (!key) { promptKey(function () { amapSearch(q, cb); }); return; }
+    var cbName = 'amapCb' + Date.now().toString(36);
+    window[cbName] = function (data) { delete window[cbName]; cb(data); };
+    var s = document.createElement('script');
+    s.src = 'https://restapi.amap.com/v3/place/text?key=' + encodeURIComponent(key) +
+      '&keywords=' + encodeURIComponent(q) + '&offset=10&page=1&extensions=base&callback=' + cbName;
+    s.onerror = function () { delete window[cbName]; cb(null); };
+    document.head.appendChild(s);
+  }
+  function promptKey(retry) {
+    var m = document.createElement('div');
+    m.className = 'ui-modal-mask nm-mask';
+    m.innerHTML =
+      '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
+      '<div class="ui-modal-title">配置高德搜索 Key</div>' +
+      '<div class="ui-modal-text nm-body">' +
+      '<div style="font-size:12.5px;color:var(--color-muted);line-height:1.7;margin-bottom:10px">本地没有找到该节点，需调用高德地图 POI 搜索。请填入高德开放平台（console.amap.com）申请的 Web 服务 Key（免费），仅保存在本机。</div>' +
+      '<input id="akKey" class="nm-in" placeholder="高德 Web 服务 Key" value="">' +
+      '<div class="nm-dup"></div>' +
+      '</div>' +
+      '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="akCancel">取消</button><button class="ui-btn ui-btn-primary" id="akSave">保存并搜索</button></div></div>';
+    document.body.appendChild(m);
+    requestAnimationFrame(function () { m.classList.add('show'); });
+    m.querySelector('#akCancel').onclick = function () { m.remove(); };
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    m.querySelector('#akSave').onclick = function () {
+      var k = document.getElementById('akKey').value.trim();
+      if (!k) { UI.toast('请填写 Key'); return; }
+      localStorage.setItem(AMAP_KEY, k);
+      m.remove();
+      UI.toast('Key 已保存');
+      if (retry) retry();
+    };
+    document.getElementById('akKey').focus();
+  }
+  function doSearch() {
+    var q = $('q').value.trim();
+    if (!q) return;
+    var local = localSearch(q);
+    if (local.length) {
+      showResults(q, local, null);
+      return;
+    }
+    tip('本地无结果，正在搜索高德地图…', 3000);
+    amapSearch(q, function (data) {
+      if (!data) { tip('高德搜索失败，请检查网络'); return; }
+      if (data.status !== '1' || !data.pois || !data.pois.length) { showResults(q, [], null); tip('高德也没有找到相关地点'); return; }
+      showResults(q, [], data.pois);
+    });
+  }
+
+  /* ---------- 结果展示 ---------- */
+  function showResults(q, local, pois) {
+    var box = $('rsBody');
+    var html = '';
+    if (local && local.length) {
+      html += '<div class="rs-sec">本地节点 · ' + local.length + '</div>';
+      html += local.map(function (s) {
+        var mine = s.source === 'user';
+        var loc = [s.region, s.city].filter(Boolean).join(' · ');
+        return '<div class="rs-item" data-k="local" data-i="' + (mine ? 'u' + s.uid : 's' + s.__i) + '">' +
+          '<span class="ic">' + (mine ? '📌' : '📍') + '</span>' +
+          '<div class="main"><div class="nm">' + esc(s.label || s.name) + (mine ? '<span class="bdg mine">我的节点</span>' : '<span class="bdg">已存在</span>') + '</div>' +
+          '<div class="sub">' + esc(loc + (s.theme ? ' · ' + s.theme : '')) + '</div></div>' +
+          '<span class="act">查看 ›</span></div>';
+      }).join('');
+    }
+    if (pois && pois.length) {
+      html += '<div class="rs-sec">地图发现 · ' + pois.length + '</div>';
+      html += pois.map(function (p) {
+        var nm = p.name || '';
+        var addr = p.address || '';
+        var city = [p.pname, p.cityname || p.adname].filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(' ');
+        return '<div class="rs-item" data-k="poi" data-nm="' + esc(nm) + '" data-loc="' + esc(p.location || '') + '" data-city="' + esc(city) + '" data-addr="' + esc(addr) + '">' +
+          '<span class="ic">🗺️</span>' +
+          '<div class="main"><div class="nm">' + esc(nm) + '</div>' +
+          '<div class="sub">' + esc(city + (addr ? ' · ' + addr : '')) + '</div></div>' +
+          '<span class="act">＋ 添加</span></div>';
+      }).join('');
+    }
+    if (!html) html = '<div class="rs-empty">没有找到「' + esc(q) + '」相关的地点<br>换一个关键词试试</div>';
     box.innerHTML = html;
+    box.querySelectorAll('.rs-item').forEach(function (it) {
+      it.onclick = function () {
+        var k = it.dataset.k;
+        if (k === 'local') {
+          var ref = it.dataset.i;
+          if (ref.charAt(0) === 's') {
+            var sys = SITES[+ref.slice(1)];
+            if (sys) openSysInfo(sys);
+          } else {
+            var u = loadUserNodes().find(function (x) { return x.id === ref.slice(1); });
+            if (u) openUserInfo(u);
+          }
+        } else if (k === 'poi') {
+          var loc = (it.dataset.loc || '').split(',');
+          if (loc.length !== 2) return;
+          pickPoi({
+            name: it.dataset.nm,
+            lng: +loc[0], lat: +loc[1],
+            city: it.dataset.city,
+            addr: it.dataset.addr
+          });
+        }
+      };
+    });
+    $('rsSheet').classList.add('show');
+    $('infoSheet').classList.remove('show');
+  }
+  $('rsClose').onclick = function () { $('rsSheet').classList.remove('show'); };
+  $('qGo').onclick = doSearch;
+  $('q').onkeydown = function (e) { if (e.key === 'Enter') doSearch(); };
+
+  /* ---------- POI 选中：飞至坐标 + 落点 + 编辑窗体 ---------- */
+  function pickPoi(poi) {
+    closeSheets();
+    var lat = poi.lat, lng = poi.lng;
+    map.flyTo([lat, lng], 14, { duration: 0.9 });
+    putMarker(lat, lng);
+    setTimeout(function () {
+      openForm({
+        lat: lat, lng: lng, gcj: true,
+        name: poi.name || '',
+        city: poi.city || '',
+        category: '',
+        desc: poi.addr || '',
+        province: poi.city || ''
+      });
+    }, 950);
+  }
+  function putMarker(lat, lng) {
+    if (pickMarker) pickMarker.remove();
+    pickMarker = L.marker([lat, lng], { icon: L.divIcon({ className: '', html: '<div class="tr-node tr-major" style="--pulse:1"><span class="tr-ring" style="--tint:#C86D4B"></span><span class="tr-dot"></span></div>', iconSize: [34, 34], iconAnchor: [17, 17] }) }).addTo(map);
+    setTimeout(function () { if (pickMarker) { pickMarker.remove(); pickMarker = null; } }, 5000);
+  }
+
+  /* ---------- 节点信息 ---------- */
+  function openSysInfo(s) {
+    var box = $('isBody');
+    box.innerHTML =
+      '<div class="is-place">' + esc(s.label || s.name) + ' <span style="font-size:11px;color:var(--color-muted);vertical-align:2px">系统节点 · 已存在</span></div>' +
+      '<div class="is-loc">' + esc(s.theme + ' · ' + [s.region, s.city].filter(Boolean).join(' · ')) + '</div>' +
+      (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
+      '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
+      '<div class="is-acts"><button class="is-btn" onclick="window.NM.flyToSys(' + s.__i + ')">在地图查看</button><button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
     $('infoSheet').classList.add('show');
+    $('rsSheet').classList.remove('show');
+  }
+  function openUserInfo(u) {
+    var box = $('isBody');
+    box.innerHTML =
+      '<div class="is-place">' + esc(u.name) + ' <span style="font-size:11px;color:#5F7A4E;vertical-align:2px">我的节点</span></div>' +
+      '<div class="is-loc">' + esc([u.category, u.city].filter(Boolean).join(' · ')) + '</div>' +
+      (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
+      (u.tags && u.tags.length ? '<div class="is-tags">' + u.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+      '<div class="is-coord">' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
+      '<div class="is-acts">' +
+      '<button class="is-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
+      '<button class="is-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button>' +
+      '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
+    $('infoSheet').classList.add('show');
+    $('rsSheet').classList.remove('show');
   }
   function closeInfo() { $('infoSheet').classList.remove('show'); }
+  function flyToSys(i) {
+    var s = SITES[i]; if (!s) return;
+    map.flyTo([s.lat, s.lng], 14, { duration: 0.9 });
+    setTimeout(function () { closeInfo(); }, 600);
+  }
 
-  /* ---------- 重复检测 ---------- */
+  /* ---------- 重复检测（编辑时排除自身） ---------- */
   function findDup(name, lat, lng, excludeUid) {
     var n = String(name || '').trim(); if (!n) return [];
-    return SITES.filter(function (s) {
-      if (excludeUid && s.source === 'user' && s.uid === excludeUid) return false; /* 编辑时排除自身 */
+    var all = SITES.concat(userSites());
+    return all.filter(function (s) {
+      if (excludeUid && s.source === 'user' && s.uid === excludeUid) return false;
       var sn = s.name || s.label || '';
       if (!sn) return false;
       var nameHit = sn.indexOf(n) >= 0 || n.indexOf(sn) >= 0;
@@ -194,7 +326,7 @@
       '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
       '<div class="ui-modal-title">' + (preset && preset.uid ? '编辑节点' : '添加节点') + '</div>' +
       '<div class="ui-modal-text nm-body">' +
-      (preset && preset.lat != null ? '<div class="nm-coord">📍 ' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + '</div>' : '') +
+      (preset && preset.lat != null ? '<div class="nm-coord">📍 ' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + '</div>' : '') +
       '<input id="nmName" class="nm-in" placeholder="名称（必填）" value="' + esc((preset && preset.name) || '') + '">' +
       '<input id="nmCity" class="nm-in" placeholder="城市（如 长沙）" value="' + esc((preset && preset.city) || '') + '">' +
       '<input id="nmCat" class="nm-in" placeholder="分类（如 茶馆 / 观景台 / 拍照点）" value="' + esc((preset && preset.category) || '') + '">' +
@@ -218,13 +350,14 @@
     m.querySelector('#nmSave').onclick = function () {
       var name = document.getElementById('nmName').value.trim();
       if (!name) { UI.toast('请填写名称'); return; }
-      if (!preset || preset.lat == null) { UI.toast('请先在地图上选择位置'); return; }
+      if (!preset || preset.lat == null) { UI.toast('请先选择位置'); return; }
       var hits = findDup(name, preset.lat, preset.lng, preset && preset.uid);
       function doSave() {
         var rec = {
           id: (preset && preset.uid) || Date.now().toString(36),
           name: name,
           lat: preset.lat, lng: preset.lng,
+          gcj: !!(preset && preset.gcj),
           province: (preset && preset.province) || '',
           city: document.getElementById('nmCity').value.trim(),
           category: document.getElementById('nmCat').value.trim() || '其他',
@@ -236,40 +369,18 @@
         var idx = arr.findIndex(function (x) { return x.id === rec.id; });
         if (idx >= 0) arr[idx] = rec; else arr.push(rec);
         saveUserNodes(arr);
-        reloadUserSites();
         m.remove();
         closeInfo();
         tip('已保存「' + rec.name + '」');
+        if (pickMarker) { pickMarker.remove(); pickMarker = null; }
       }
       if (hits.length) {
         UI.confirm({ title: '重复节点', text: '附近已有相似节点：' + hits.map(function (h) { return h.label || h.name; }).join('、') + '\n仍然添加？', okText: '仍然添加', danger: true }, function (ok) { if (ok) doSave(); });
       } else doSave();
     };
   }
-  function reloadUserSites() {
-    SITES = SITES.filter(function (x) { return x.source !== 'user'; });
-    loadUserNodes().forEach(function (u) {
-      SITES.push({ id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '', flag: '', lat: +u.lat, lng: +u.lng, source: 'user', uid: u.id, tags: u.tags || [], createdAt: u.createdAt });
-    });
-    SITES.forEach(function (x, i) { x.__i = i; });
-    NodeLOD.render();
-  }
-  function startPick() {
-    tip('在地图上点击选择位置', 3000);
-    map.once('click', function (e) {
-      var lat = e.latlng.lat, lng = e.latlng.lng;
-      var mk = L.marker([lat, lng], { icon: L.divIcon({ className: '', html: '<div style="width:26px;height:26px;border-radius:50%;background:rgba(200,109,75,.9);border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.3)"></div>', iconSize: [26, 26], iconAnchor: [13, 13] }) }).addTo(map);
-      openForm({ lat: lat, lng: lng });
-      setTimeout(function () { mk.remove(); }, 600);
-    });
-  }
-  function addAtCurrent() {
-    if (!navigator.geolocation) { UI.toast('当前环境不支持定位'); return; }
-    tip('定位中…', 4000);
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      openForm({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-    }, function () { UI.toast('定位失败，请检查定位权限'); }, { enableHighAccuracy: true, timeout: 10000 });
-  }
+
+  /* ---------- 我的节点 ---------- */
   function openMine() {
     var arr = loadUserNodes();
     var m = document.createElement('div');
@@ -285,7 +396,7 @@
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     var box = m.querySelector('#nmList');
     if (!arr.length) {
-      box.innerHTML = '<div style="text-align:center;color:var(--color-muted);padding:20px 0">还没有自己添加的节点<br><span style="font-size:12px">地图右下「＋」→ 地图选点 / 使用当前位置</span></div>';
+      box.innerHTML = '<div style="text-align:center;color:var(--color-muted);padding:20px 0">还没有自己添加的节点<br><span style="font-size:12px">顶部搜索 → 高德地点 → 一键添加</span></div>';
       return;
     }
     box.innerHTML = arr.map(function (u) {
@@ -299,7 +410,7 @@
     var u = loadUserNodes().find(function (x) { return x.id === uid; });
     if (!u) return;
     closeModals();
-    openForm({ uid: u.id, name: u.name, lat: u.lat, lng: u.lng, city: u.city, category: u.category, tags: u.tags, desc: u.desc, province: u.province, createdAt: u.createdAt });
+    openForm({ uid: u.id, name: u.name, lat: u.lat, lng: u.lng, gcj: !!u.gcj, city: u.city, category: u.category, tags: u.tags, desc: u.desc, province: u.province, createdAt: u.createdAt });
   }
   function remove(uid) {
     var u = loadUserNodes().find(function (x) { return x.id === uid; });
@@ -307,7 +418,6 @@
     UI.confirm({ title: '删除节点', text: '确定删除「' + u.name + '」？', okText: '删除', danger: true }, function (ok) {
       if (!ok) return;
       saveUserNodes(loadUserNodes().filter(function (x) { return x.id !== uid; }));
-      reloadUserSites();
       closeModals();
       closeInfo();
       UI.toast('已删除');
@@ -315,52 +425,10 @@
   }
   function closeModals() { document.querySelectorAll('.nm-mask').forEach(function (x) { x.remove(); }); }
 
-  /* ---------- FAB ---------- */
-  function initFab() {
-    var fab = document.createElement('button');
-    fab.className = 'nm-fab';
-    fab.textContent = '＋';
-    fab.setAttribute('aria-label', '添加节点');
-    fab.onclick = function () {
-      var m = document.createElement('div');
-      m.className = 'ui-modal-mask nm-mask';
-      m.innerHTML =
-        '<div class="ui-modal nm-menu" role="dialog" aria-modal="true">' +
-        '<div class="ui-modal-title">添加 / 管理节点</div>' +
-        '<div class="ui-modal-text nm-menu-items">' +
-        '<button class="nm-menu-item" data-a="pick">📍 地图选点</button>' +
-        '<button class="nm-menu-item" data-a="cur">⌖ 使用当前位置</button>' +
-        '<button class="nm-menu-item" data-a="search">🔍 搜索地点</button>' +
-        '<button class="nm-menu-item" data-a="mine">📋 我的节点</button>' +
-        '</div>' +
-        '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmMenuClose">取消</button></div></div>';
-      document.body.appendChild(m);
-      requestAnimationFrame(function () { m.classList.add('show'); });
-      m.querySelector('#nmMenuClose').onclick = function () { m.remove(); };
-      m.onclick = function (e) { if (e.target === m) m.remove(); };
-      m.querySelectorAll('.nm-menu-item').forEach(function (b) {
-        b.onclick = function () {
-          var a = b.dataset.a;
-          m.remove();
-          if (a === 'pick') startPick();
-          else if (a === 'cur') addAtCurrent();
-          else if (a === 'search') location.href = 'search.html';
-          else if (a === 'mine') openMine();
-        };
-      });
-    };
-    document.body.appendChild(fab);
-  }
-
   /* ---------- 启动 ---------- */
-  window.NM = { edit: edit, remove: remove, closeInfo: closeInfo, get map() { return map; } };
-  $('mineBtn').onclick = openMine;
-  initFab();
+  window.NM = { edit: edit, remove: remove, closeInfo: closeInfo, flyToSys: flyToSys };
   initMap();
-  loadSites(function () {
-    NodeLOD.render();
-    setTimeout(function () { map.invalidateSize(); }, 200);
-  });
+  loadIndex(function () { tip('本地 ' + SITES.length + ' 个节点已就绪 · 搜索添加新地点', 2600); });
 })();
 </script>
 </body>

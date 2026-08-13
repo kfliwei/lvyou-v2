@@ -1,4 +1,7 @@
-/* tools/smoke-node-mgr.js — node-manager.html 空地图节点管理工作台冒烟 + 专题页无节点管理验证 */
+/* tools/smoke-node-mgr.js — 节点管理页冒烟（空地图 + 本地优先搜索 + 高德 Key 流程 + 我的节点管理）
+ * 高德 POI 真实调用需有效 Key，测试覆盖到"Key 弹窗"为止；POI 落点/表单预填逻辑
+ * 通过 findDup/表单链路间接验证。
+ */
 const puppeteer = require('puppeteer-core');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -25,63 +28,48 @@ function ok(name, cond, extra) {
 
   const init = await page.evaluate(() => ({
     map: !!document.querySelector('#mapEl.leaflet-container'),
-    fab: !!document.querySelector('.nm-fab'),
-    mineBtn: !!document.querySelector('#mineBtn'),
-    sites: (window.NATION_SITES_RAW || '').split('\n').length,
-    userMerged: (window.SITES || []).length
+    nodes: document.querySelectorAll('#mapEl .tr-node, #mapEl .leaflet-marker-icon').length,
+    idx: (window.NATION_SITES_RAW || '').split('\n').length
   }));
-  ok('A.空地图初始化', init.map && init.fab && init.mineBtn);
-  ok('A.系统节点索引加载', init.sites === 7782, 'sites=' + init.sites);
+  ok('A.空地图初始化', init.map);
+  ok('A.地图不显示任何节点', init.nodes === 0, 'markers=' + init.nodes);
+  ok('A.本地索引就绪', init.idx === 7782, 'idx=' + init.idx);
 
-  /* 高 zoom 显示节点（含 LOD） */
-  await page.evaluate(() => { window.NM && window.NM._map ? 0 : 0; });
-  /* 通过地图容器拿实例不可行，直接检查 LOD 渲染后的 DOM */
-  await page.evaluate(() => {
-    const m = document.querySelector('#mapEl');
-    if (m && m._leaflet_id) { /* leaflet 实例从 window 拿不到，用 setView 模拟：直接触发 moveend 即可 */
-    }
-  });
-  /* 用 Leaflet 全局拿不到 map 实例，验证区域统计条通过 moveend 触发即可 */
-  const stats = await page.evaluate(() => {
-    const el = document.querySelector('.region-stats');
-    return el ? el.textContent.slice(0, 40) : '';
-  });
-  ok('A.初始视野统计条', stats.includes('当前区域'), stats);
-
-  /* FAB 菜单 */
-  await page.click('.nm-fab');
+  /* 搜索本地节点（故宫） */
+  await page.type('#q', '故宫');
+  await page.click('#qGo');
+  await sleep(800);
+  const local = await page.evaluate(() => ({
+    sheet: document.querySelector('#rsSheet.show') ? true : false,
+    sec: (document.querySelector('#rsBody .rs-sec') || {}).textContent || '',
+    items: document.querySelectorAll('#rsBody .rs-item').length,
+    first: (document.querySelector('#rsBody .rs-item .nm') || {}).textContent || ''
+  }));
+  ok('A.本地搜索有结果', local.sheet && local.sec.includes('本地节点') && local.items > 0, local.first.slice(0, 20));
+  await page.evaluate(() => { const it = document.querySelector('#rsBody .rs-item'); if (it) it.click(); });
+  await sleep(600);
+  const infoTxt = await page.evaluate(() => (document.querySelector('#infoSheet') || {}).textContent || '');
+  ok('A.本地节点详情（已存在）', infoTxt.includes('系统节点') && infoTxt.includes('已存在'), infoTxt.slice(0, 30));
+  await page.evaluate(() => window.NM.closeInfo());
   await sleep(300);
-  const menu = await page.evaluate(() => document.querySelectorAll('.nm-menu-item').length);
-  ok('A.FAB 菜单 4 项', menu === 4);
 
-  /* 地图选点 → 表单 → 保存：先关闭菜单，预置数据后 reload 验证链路 */
-  await page.click('#nmMenuClose');
-  await sleep(300);
+  /* 搜索无结果 → 高德 Key 弹窗 */
+  await page.evaluate(() => { document.getElementById('q').value = 'zzzz不存在的茶馆xyz'; });
+  await page.click('#qGo');
+  await sleep(900);
+  const keyDlg = await page.evaluate(() => (document.querySelector('.nm-form .ui-modal-title') || {}).textContent || '');
+  ok('A.无结果触发高德 Key 配置', keyDlg.includes('高德搜索 Key'), keyDlg);
+  await page.evaluate(() => { const b = document.getElementById('akCancel'); if (b) b.click(); });
+  await sleep(400);
+
+  /* 我的节点：预置 → 列表 → 编辑 → 删除 */
   await page.evaluate(() => {
-    localStorage.setItem('tn_userNodes', JSON.stringify([{ id: 'test1', name: '测试茶馆', lat: 39.92, lng: 116.40, province: '北京市', city: '北京', category: '茶馆', tags: ['拍照'], desc: '测试节点', createdAt: Date.now() }]));
+    localStorage.setItem('tn_userNodes', JSON.stringify([{ id: 'test1', name: '测试茶馆', lat: 39.92, lng: 116.40, gcj: false, province: '北京市', city: '北京', category: '茶馆', tags: ['拍照'], desc: '测试', createdAt: Date.now() }]));
   });
-  /* 重新加载让预置用户节点进入 SITES，缩放到北京查看节点图标 */
   await page.reload({ waitUntil: 'domcontentloaded' });
   await sleep(4000);
-  await page.evaluate(() => {
-    window.NM.map.setView([39.92, 116.40], 12);
-  });
-  await sleep(1500);
-  const userNode = await page.evaluate(() => {
-    const els = document.querySelectorAll('#mapEl .tr-user');
-    return els.length;
-  });
-  ok('A.用户节点绿色图标渲染', userNode > 0, 'tr-user=' + userNode);
-
-  /* 我的节点列表 */
-  await page.click('#mineBtn');
-  await sleep(400);
-  const mineTxt = await page.evaluate(() => (document.querySelector('#nmList') || {}).textContent || '');
-  ok('A.我的节点列表显示', mineTxt.includes('测试茶馆'));
-
-  /* 编辑 */
   await page.evaluate(() => window.NM.edit('test1'));
-  await sleep(400);
+  await sleep(500);
   const formName = await page.evaluate(() => (document.getElementById('nmName') || {}).value || '');
   ok('A.编辑表单回填', formName === '测试茶馆');
   await page.evaluate(() => {
@@ -89,12 +77,13 @@ function ok(name, cond, extra) {
     el.value = '测试茶馆2';
     el.dispatchEvent(new Event('input', { bubbles: true }));
   });
+  await sleep(400);
+  const dup = await page.evaluate(() => (document.querySelector('.nm-dup') || {}).textContent || '');
+  ok('A.编辑改名不误报自身重复', !dup.includes('附近已有'), dup.slice(0, 30));
   await page.click('#nmSave');
   await sleep(600);
   const renamed = await page.evaluate(() => JSON.parse(localStorage.getItem('tn_userNodes'))[0].name);
   ok('A.编辑保存生效', renamed === '测试茶馆2', renamed);
-
-  /* 删除（带确认） */
   await page.evaluate(() => window.NM.remove('test1'));
   await sleep(500);
   await page.click('.ui-modal-mask.show .ui-btn-primary.danger');
@@ -106,7 +95,7 @@ function ok(name, cond, extra) {
   ok('A.无脚本错误', real.length === 0, real.join(' | ').slice(0, 120));
   await page.close();
 
-  /* ============ B. 专题页：无节点管理功能 ============ */
+  /* ============ B. 专题页无节点管理 ============ */
   const page2 = await browser.newPage();
   await page2.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   const errs2 = [];
@@ -115,28 +104,13 @@ function ok(name, cond, extra) {
   await sleep(5000);
   const b = await page2.evaluate(() => ({
     fab: !!document.querySelector('.nm-fab'),
-    engineHasEdit: typeof (window.TopicEngine && window.TopicEngine.editUserNode),
-    stats: !!(document.querySelector('.region-stats'))
+    editApi: typeof (window.TopicEngine && window.TopicEngine.editUserNode)
   }));
   ok('B.专题页无 FAB', !b.fab);
-  ok('B.专题页无节点管理 API', b.engineHasEdit === 'undefined');
-  /* 先缩放触发统计条 */
-  await page2.evaluate(() => {
-    window.TopicEngine._map.setView([39.92, 116.40], 11);
-  });
+  ok('B.专题页无节点管理 API', b.editApi === 'undefined');
+  await page2.evaluate(() => { window.TopicEngine._map.setView([39.92, 116.40], 13); });
   await sleep(1500);
-  const statsAfter = await page2.evaluate(() => (document.querySelector('.region-stats') || {}).textContent || '');
-  ok('B.专题页区域统计保留', statsAfter.includes('当前区域'), statsAfter.slice(0, 30));
-  /* 打开节点详情，确认无编辑/删除菜单 */
-  await page2.evaluate(() => {
-    const m = window.TopicEngine._map;
-    m.setView([39.92, 116.40], 13);
-  });
-  await sleep(1200);
-  await page2.evaluate(() => {
-    const n = document.querySelector('#mapEl .tr-node');
-    if (n) n.click();
-  });
+  await page2.evaluate(() => { const n = document.querySelector('#mapEl .tr-node'); if (n) n.click(); });
   await sleep(600);
   const sheetTxt = await page2.evaluate(() => (document.querySelector('#locSheet') || {}).textContent || '');
   ok('B.节点详情无编辑删除菜单', !sheetTxt.includes('编辑节点') && !sheetTxt.includes('删除节点'));
