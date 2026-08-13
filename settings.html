@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -196,7 +196,13 @@
       </div>
     </div>
 
-    <!-- 深色模式 -->
+    <!-- 阅读字号 -->
+    <div class="group">
+      <div class="group-title">阅读字号</div>
+      <div class="group-sub">调整正文阅读类字号（界面控件保持不变）</div>
+      <div class="chips" id="chFont" style="margin-top:8px"></div>
+    </div>
+        <!-- 深色模式 -->
     <div class="group">
       <div class="group-title">深色模式</div>
       <div class="group-sub">跟随系统偏好，或手动选择。</div>
@@ -310,6 +316,17 @@
     document.getElementById('swKeep').className = 'sw' + (keep ? '' : ' off');
     var theme = localStorage.getItem('tn_themeNotes') === '1';
     document.getElementById('swTheme').className = 'sw' + (theme ? '' : ' off');
+
+(function(){
+  var cur='md'; try{ cur=localStorage.getItem('tn_font')||'md'; }catch(e){}
+  var box=document.getElementById('chFont'); if(!box) return;
+  var FONTS=[['sm','小'],['md','标准'],['lg','大']];
+  box.innerHTML=FONTS.map(function(f){ return '<span class="chip'+(f[0]===cur?' on':'')+'" data-f="'+f[0]+'" style="cursor:pointer">'+f[1]+'</span>'; }).join('');
+  box.querySelectorAll('.chip').forEach(function(ch){
+    ch.onclick=function(){ try{ localStorage.setItem('tn_font', ch.dataset.f); }catch(e){} box.querySelectorAll('.chip').forEach(function(x){ x.classList.toggle('on', x===ch); }); location.reload(); };
+  });
+})();
+
     refreshStorage();
     refreshVoiceDiag();
     var dark = localStorage.getItem('tn_dark') || 'auto';
