@@ -1163,3 +1163,6 @@ window.TOPIC_REGISTRY = {
     ]
   }
 };
+
+/* 自动补全新增专题的 themeOrder / themeIcons（由 themes 定义顺序生成，2026-08-13 修复：新增专题缺字段导致 topic-common 渲染崩溃） */
+(function(){var ks=Object.keys(window.TOPIC_REGISTRY);ks.forEach(function(k){var t=window.TOPIC_REGISTRY[k];if(!t)return;if(t.themes&&!t.themeOrder)t.themeOrder=Object.keys(t.themes);if(!t.themeIcons)t.themeIcons={};});})();

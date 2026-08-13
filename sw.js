@@ -1,5 +1,5 @@
 /* sw.js 鈥?琛岃抗 TRACE 绂荤嚎缂撳瓨锛堝簲鐢ㄥ３棰勭紦瀛?+ 鏁版嵁鏂囦欢杩愯鏃剁紦瀛橈級 */
-var CACHE = 'trace-v11';
+var CACHE = 'trace-v12';
 var TILE_CACHE = 'trace-tiles';   /* 绂荤嚎鐡︾墖鍖咃紙tiles.js 鍐欏叆锛?*/
 var SHELL = [
   './',
@@ -28,6 +28,27 @@ var SHELL = [
   './tiles.js',
   './topic-counts.js',
   './routes-data.js',
+  './ui.js',
+  './nation-index.js',
+  './bj-data.js',
+  './tj-data.js',
+  './he-data.js',
+  './ha-data.js',
+  './sd-data.js',
+  './ln-data.js',
+  './jl-data.js',
+  './hlj-data.js',
+  './sh-data.js',
+  './js-data.js',
+  './zj-data.js',
+  './ah-data.js',
+  './fj-data.js',
+  './jx-data.js',
+  './gd-data.js',
+  './hi-data.js',
+  './hk-data.js',
+  './mo-data.js',
+  './tw-data.js',
   './food.js',
   './food-gxyn.js',
   './design.css',

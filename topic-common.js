@@ -23,7 +23,7 @@
   /* ---------- 坐标 / 距离 ---------- */
   function haversine(a, b) { return window.Geo.havA(a, b); }
   function havKm(aLat, aLng, bLat, bLng) { return window.Geo.hav(aLat, aLng, bLat, bLng); }
-  function refPoint() { if (state.sort === "me" && userLatLng) return userLatLng; if (state.sort && M.REF[state.sort]) return M.REF[state.sort]; return null; }
+  function refPoint() { if (state.sort === "me" && userLatLng) return userLatLng; if (state.sort && M.REF && M.REF[state.sort]) return M.REF[state.sort]; return null; }
   function _tlat(lng, lat) { return window.Geo._tlat(lng, lat); }
   function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }
   var _A = 6378245.0, _EE = 0.00669342162296594323;
@@ -424,7 +424,7 @@
         var arr = groups[prov];
         var grp = document.createElement('div'); grp.className = 'lv-group'; grp.dataset.prov = prov;
         var head = document.createElement('div'); head.className = 'lv-head';
-        var short = M.regionShort[prov] || prov;
+        var short = (M.regionShort || {})[prov] || prov;
         head.innerHTML = '<span class="lv-badge">' + short + '</span><span class="lv-name">' + prov + '</span><span class="lv-cnt">' + arr.length + ' 处</span><span class="lv-arr">▾</span>';
         var body = document.createElement('div'); body.className = 'lv-body';
         var st = lvState[prov] || (lvState[prov] = { open: false, rendered: false });
@@ -465,7 +465,7 @@
   var thState = {}; /* 主题折叠状态 */
   function renderThemes(list) {
     var tl = $('tl'); tl.innerHTML = '';
-    M.themeOrder.forEach(function (th) {
+    (M.themeOrder || []).forEach(function (th) {
       var items = list.filter(function (s) { return tk(s) === th; }); if (!items.length) return;
       var sec = document.createElement('div'); sec.className = 'tl-era'; sec.dataset.th = th;
       var head = document.createElement('div'); head.className = 'tl-head';
@@ -474,7 +474,7 @@
       items.forEach(function (s) {
         var row = document.createElement('div'); row.className = 'tl-row';
         var elev = s.elev ? ('· ' + s.elev + 'm') : '';
-        var rs = s.region; for (var k in M.regionShort) { rs = rs.replace(k, M.regionShort[k]); }
+        var rs = s.region; for (var k in (M.regionShort || {})) { rs = rs.replace(k, M.regionShort[k]); }
         row.innerHTML = '<div class="t">' + rs + '</div><div><div class="n">' + s.label + '</div><div class="c">' + s.city + (s.county ? ('·' + s.county) : '') + ' ' + elev + '</div></div>';
         row.onclick = function () { flyToSite(s.__i); };
         body.appendChild(row);
@@ -512,7 +512,7 @@
   function renderRoutes() {
     var box = $('routes'); box.innerHTML = '';
     var DAY_COLORS = M.dayColors;
-    M.routes.forEach(function (rt, ri) {
+    (M.routes || []).forEach(function (rt, ri) {
       var total = rt.days.reduce(function (n, d) { return n + d.stops.length; }, 0);
       var el = document.createElement('div'); el.className = 'route';
       var keyHtml = rt.days.map(function (d, di) { return '<span class="dayKey"><span class="dk" style="background:' + DAY_COLORS[di % DAY_COLORS.length] + '"></span>D' + (di + 1) + ' ' + (d.title.split(' · ')[1] || d.title) + '</span>'; }).join('');
@@ -710,7 +710,7 @@
     mkFlag('m', '必去', '#C9A227');
     mkFlag('h', '网红', '#FF7A50');
     if (M.themeChips !== false) {
-      M.themeOrder.forEach(function (th) {
+      (M.themeOrder || []).forEach(function (th) {
         var cc = mkChip((M.themeIcons[th] || '') + ' ' + th, false, M.themes[th]);
         cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); };
         dynChips.appendChild(cc);
@@ -749,7 +749,7 @@
     allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + SITES.length + '</span>';
     allRow.onclick = function () { state.theme = ''; syncChips(); renderAll(); };
     legBody.appendChild(allRow);
-    M.themeOrder.forEach(function (th) {
+    (M.themeOrder || []).forEach(function (th) {
       if (!SITES.some(function (s) { return tk(s) === th; })) return;
       var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
       var cnt = SITES.filter(function (s) { return tk(s) === th; }).length;
@@ -912,7 +912,7 @@
     // 路线
     renderRoutes();
     var routeSel = $('routeSel');
-    M.routes.forEach(function (rt, ri) { var o = document.createElement('option'); o.value = ri; o.textContent = '🧭 ' + rt.name; routeSel.appendChild(o); });
+    (M.routes || []).forEach(function (rt, ri) { var o = document.createElement('option'); o.value = ri; o.textContent = '🧭 ' + rt.name; routeSel.appendChild(o); });
     routeSel.onchange = function () {
       var ri = +routeSel.value;
       if (!isFinite(ri) || ri < 0) return;
