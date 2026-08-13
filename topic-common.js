@@ -928,7 +928,7 @@
         id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他',
         city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '',
         best: '', lat: +u.lat, lng: +u.lng, flag: '', source: 'user', uid: u.id,
-        tags: u.tags || [], gcj: !!u.gcj
+        tags: u.tags || [], gcj: !!u.gcj, elev: u.elev || ''
       });
     });
   }

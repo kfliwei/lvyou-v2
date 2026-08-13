@@ -156,6 +156,77 @@
     s.onerror = function () { delete window[cbName]; cb(null); };
     document.head.appendChild(s);
   }
+  function amapJsonp(url, cb) {
+    var cbName = 'amapCb' + Date.now().toString(36) + Math.floor(Math.random() * 9999);
+    window[cbName] = function (data) { delete window[cbName]; cb(data); };
+    var s = document.createElement('script');
+    s.src = url + '&callback=' + cbName;
+    s.onerror = function () { delete window[cbName]; cb(null); };
+    document.head.appendChild(s);
+  }
+  /* 自动填充：逆地理（省市/地址）+ 海拔（高德 elevation，失败降级 Open-Meteo） */
+  function autoFill(lat, lng) {
+    var key = localStorage.getItem('tn_amap_key');
+    if (key) {
+      amapJsonp('https://restapi.amap.com/v3/geocode/regeo?key=' + encodeURIComponent(key) + '&location=' + lng + ',' + lat + '&extensions=base', function (d) {
+        if (d && d.status === '1' && d.regeocode) {
+          var ac = d.regeocode.addressComponent || {};
+          var prov = ac.province || '', city = ac.city || ac.province || '';
+          var el = document.getElementById('nmCity');
+          if (el && !el.value && city) el.value = city;
+          if (prov) window.__nmProvince = prov;
+          var desc = document.getElementById('nmDesc');
+          if (desc && !desc.value && d.regeocode.formatted_address && d.regeocode.formatted_address !== city) {
+            desc.placeholder = '节点介绍（' + d.regeocode.formatted_address + '）';
+          }
+        }
+      });
+      amapJsonp('https://restapi.amap.com/v3/elevation/rectangle?key=' + encodeURIComponent(key) + '&locations=' + lng + ',' + lat, function (d) {
+        var el = document.getElementById('nmElev');
+        if (el && d && d.status === '1' && d.data && d.data.length) {
+          var e = Math.round(+d.data[0].elevation);
+          if (!isNaN(e) && !el.value) el.value = e;
+        }
+      });
+    }
+    /* 无高德 key 或失败时的海拔兜底：Open-Meteo（无需 key，CORS 开放） */
+    fetch('https://api.open-meteo.com/v1/elevation?latitude=' + lat + '&longitude=' + lng)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var el = document.getElementById('nmElev');
+        if (el && d && d.elevation != null && !el.value) el.value = Math.round(d.elevation);
+      }).catch(function () {});
+  }
+  /* AI 生成节点介绍（DeepSeek，复用设置页的 AI Key） */
+  function genDesc() {
+    var name = document.getElementById('nmName').value.trim();
+    if (!name) { UI.toast('先填写名称再生成介绍'); return; }
+    var key = localStorage.getItem('tn_aiKey');
+    if (!key) { UI.toast('请先在设置页配置 AI Key（DeepSeek）'); return; }
+    var city = document.getElementById('nmCity').value.trim();
+    var cat = document.getElementById('nmCat').value.trim();
+    var btn = document.getElementById('nmGenDesc');
+    btn.textContent = '生成中…';
+    btn.disabled = true;
+    fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: localStorage.getItem('tn_model') || 'deepseek-chat',
+        messages: [
+          { role: 'system', content: '你是旅行地点编辑助手，输出简洁准确的介绍。' },
+          { role: 'user', content: '为旅行地点「' + name + '」' + ([city, cat].filter(Boolean).length ? '（' + [city, cat].filter(Boolean).join('，') + '）' : '') + '写一段 60-100 字的介绍：亮点、适合季节、注意事项。口语化，不要列表编号，不要编造不确定的史实。' }
+        ],
+        temperature: 0.7
+      })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      var t = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+      if (t) { document.getElementById('nmDesc').value = t.trim(); UI.toast('介绍已生成，可再手动微调'); }
+      else { UI.toast('生成失败：' + ((d && d.error && d.error.message) || '未知错误')); }
+    }).catch(function () { UI.toast('生成失败，请检查网络'); })
+      .then(function () { btn.textContent = '✨ 生成介绍'; btn.disabled = false; });
+  }
+
   function promptKey(retry) {
     var m = document.createElement('div');
     m.className = 'ui-modal-mask nm-mask';
@@ -259,6 +330,14 @@
   $('rsClose').onclick = function () { $('rsSheet').classList.remove('show'); };
   $('qGo').onclick = doSearch;
   $('q').onkeydown = function (e) { if (e.key === 'Enter') doSearch(); };
+  /* 实时模糊搜索：边输入边显示结果（防抖 260ms） */
+  var searchTimer = null;
+  $('q').oninput = function () {
+    clearTimeout(searchTimer);
+    var v = this.value.trim();
+    if (!v) { $('rsSheet').classList.remove('show'); return; }
+    searchTimer = setTimeout(doSearch, 260);
+  };
 
   /* ---------- POI 选中：飞至坐标 + 落点 + 编辑窗体 ---------- */
   function pickPoi(poi) {
@@ -299,7 +378,7 @@
     var box = $('isBody');
     box.innerHTML =
       '<div class="is-place">' + esc(u.name) + ' <span style="font-size:11px;color:#5F7A4E;vertical-align:2px">我的节点</span></div>' +
-      '<div class="is-loc">' + esc([u.category, u.city].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="is-loc">' + esc([u.category, u.city].filter(Boolean).join(' · ') + (u.elev ? ' · 海拔 ' + u.elev + 'm' : '')) + '</div>' +
       (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
       (u.tags && u.tags.length ? '<div class="is-tags">' + u.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
       '<div class="is-coord">' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
@@ -345,7 +424,11 @@
       '<input id="nmCity" class="nm-in" placeholder="城市（如 长沙）" value="' + esc((preset && preset.city) || '') + '">' +
       '<input id="nmCat" class="nm-in" placeholder="分类（如 茶馆 / 观景台 / 拍照点）" value="' + esc((preset && preset.category) || '') + '">' +
       '<input id="nmTags" class="nm-in" placeholder="标签（空格分隔，如 拍照 小众）" value="' + esc(((preset && preset.tags) || []).join(' ')) + '">' +
-      '<textarea id="nmDesc" class="nm-ta" placeholder="简介 / 备注（可选）" rows="2">' + esc((preset && preset.desc) || '') + '</textarea>' +
+      '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">' +
+      '<input id="nmElev" class="nm-in" type="number" placeholder="海拔（米，自动获取）" style="flex:1;margin-bottom:0" value="' + esc((preset && preset.elev) || '') + '">' +
+      '<button id="nmElevGo" type="button" class="ui-btn" style="min-height:40px;flex:0 0 auto;padding:0 14px" aria-label="重新获取海拔">⟳</button></div>' +
+      '<textarea id="nmDesc" class="nm-ta" placeholder="节点介绍（可 ✨ 自动生成）" rows="3">' + esc((preset && preset.desc) || '') + '</textarea>' +
+      '<div style="text-align:right;margin:-2px 0 8px"><button id="nmGenDesc" type="button" class="ui-btn" style="min-height:34px;padding:0 12px;font-size:12px">✨ 生成介绍</button></div>' +
       '<div class="nm-dup" id="nmDup"></div>' +
       '</div>' +
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmCancel">取消</button><button class="ui-btn ui-btn-primary" id="nmSave">保存</button></div></div>';
@@ -354,6 +437,14 @@
     m.querySelector('#nmCancel').onclick = function () { m.remove(); };
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     document.getElementById('nmName').focus();
+    if (preset && preset.lat != null) { autoFill(preset.lat, preset.lng); }
+    document.getElementById('nmElevGo').onclick = function () {
+      if (preset && preset.lat != null) {
+        document.getElementById('nmElev').value = '';
+        autoFill(preset.lat, preset.lng);
+      }
+    };
+    document.getElementById('nmGenDesc').onclick = genDesc;
     var dupEl = m.querySelector('#nmDup');
     m.querySelector('#nmName').oninput = function () {
       var v = this.value.trim();
@@ -372,10 +463,11 @@
           name: name,
           lat: preset.lat, lng: preset.lng,
           gcj: !!(preset && preset.gcj),
-          province: (preset && preset.province) || '',
+          province: (preset && preset.province) || window.__nmProvince || '',
           city: document.getElementById('nmCity').value.trim(),
           category: document.getElementById('nmCat').value.trim() || '其他',
           tags: document.getElementById('nmTags').value.trim().split(/\s+/).filter(Boolean),
+          elev: document.getElementById('nmElev').value.trim(),
           desc: document.getElementById('nmDesc').value.trim(),
           createdAt: (preset && preset.createdAt) || Date.now()
         };
@@ -416,7 +508,7 @@
     }
     box.innerHTML = arr.map(function (u) {
       return '<div class="nm-item">' +
-        '<div class="nm-item-main"><b>' + esc(u.name) + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ')) + '</small></div>' +
+        '<div class="nm-item-main"><b>' + esc(u.name) + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ') + (u.elev ? ' · ' + u.elev + 'm' : '')) + '</small></div>' +
         '<button class="nm-item-btn" onclick="window.NM.locate(\'' + u.id + '\')">定位</button>' +
         '<button class="nm-item-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
         '<button class="nm-item-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button></div>';
@@ -434,7 +526,7 @@
     var u = loadUserNodes().find(function (x) { return x.id === uid; });
     if (!u) return;
     closeModals();
-    openForm({ uid: u.id, name: u.name, lat: u.lat, lng: u.lng, gcj: !!u.gcj, city: u.city, category: u.category, tags: u.tags, desc: u.desc, province: u.province, createdAt: u.createdAt });
+    openForm({ uid: u.id, name: u.name, lat: u.lat, lng: u.lng, gcj: !!u.gcj, city: u.city, category: u.category, tags: u.tags, desc: u.desc, elev: u.elev, province: u.province, createdAt: u.createdAt });
   }
   function remove(uid) {
     var u = loadUserNodes().find(function (x) { return x.id === uid; });

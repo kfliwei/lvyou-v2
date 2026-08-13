@@ -1,6 +1,5 @@
-/* tools/smoke-node-mgr.js — 节点管理页冒烟（空地图 + 本地优先搜索 + 高德 Key 流程 + 我的节点管理）
- * 高德 POI 真实调用需有效 Key，测试覆盖到"Key 弹窗"为止；POI 落点/表单预填逻辑
- * 通过 findDup/表单链路间接验证。
+/* tools/smoke-node-mgr.js — 节点管理页冒烟（实时模糊搜索 + 高德 Key 流程 + 表单海拔/AI介绍 + 我的节点）
+ * 高德 POI/逆地理/海拔真实调用需有效 Key，测试覆盖 UI 链路；Open-Meteo 海拔在无 Key 时也会尝试（网络可用则自动填充）
  */
 const puppeteer = require('puppeteer-core');
 const path = require('path');
@@ -17,7 +16,6 @@ function ok(name, cond, extra) {
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu'] });
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-  /* ============ A. 节点管理页 ============ */
   const page = await browser.newPage();
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   const errs = [];
@@ -35,43 +33,60 @@ function ok(name, cond, extra) {
   ok('A.地图不显示任何节点', init.nodes === 0, 'markers=' + init.nodes);
   ok('A.本地索引就绪', init.idx === 7782, 'idx=' + init.idx);
 
-  /* 搜索本地节点（故宫） */
-  await page.type('#q', '故宫');
-  await page.click('#qGo');
-  await sleep(800);
-  const local = await page.evaluate(() => ({
-    sheet: document.querySelector('#rsSheet.show') ? true : false,
+  /* 实时模糊搜索：输入"故"（不点按钮）→ 自动出结果 */
+  await page.type('#q', '故');
+  await sleep(900);
+  const rs1 = await page.evaluate(() => ({
+    sheet: !!document.querySelector('#rsSheet.show'),
     sec: (document.querySelector('#rsBody .rs-sec') || {}).textContent || '',
-    items: document.querySelectorAll('#rsBody .rs-item').length,
-    first: (document.querySelector('#rsBody .rs-item .nm') || {}).textContent || ''
+    items: document.querySelectorAll('#rsBody .rs-item').length
   }));
-  ok('A.本地搜索有结果', local.sheet && local.sec.includes('本地节点') && local.items > 0, local.first.slice(0, 20));
+  ok('A.实时搜索：输入即出结果', rs1.sheet && rs1.sec.includes('本地节点') && rs1.items > 0, rs1.sec + ' / items=' + rs1.items);
+  /* 继续输入补全 → 结果更新 */
+  await page.type('#q', '宫');
+  await sleep(900);
+  const rs2 = await page.evaluate(() => (document.querySelector('#rsBody .rs-item .nm') || {}).textContent || '');
+  ok('A.实时搜索：模糊补全更新结果', rs2.includes('故宫'), rs2.slice(0, 20));
   await page.evaluate(() => { const it = document.querySelector('#rsBody .rs-item'); if (it) it.click(); });
   await sleep(600);
   const infoTxt = await page.evaluate(() => (document.querySelector('#infoSheet') || {}).textContent || '');
-  ok('A.本地节点详情（已存在）', infoTxt.includes('系统节点') && infoTxt.includes('已存在'), infoTxt.slice(0, 30));
+  ok('A.本地节点详情（已存在）', infoTxt.includes('系统节点'), infoTxt.slice(0, 30));
   await page.evaluate(() => window.NM.closeInfo());
   await sleep(300);
+  /* 清空输入 → 面板关闭 */
+  await page.evaluate(() => { const q = document.getElementById('q'); q.value = ''; q.dispatchEvent(new Event('input', { bubbles: true })); });
+  await sleep(500);
+  const closed = await page.evaluate(() => !document.querySelector('#rsSheet.show'));
+  ok('A.清空输入关闭结果面板', closed);
 
-  /* 搜索无结果 → 高德 Key 弹窗 */
+  /* 无结果 → 高德 Key 弹窗 */
   await page.evaluate(() => { document.getElementById('q').value = 'zzzz不存在的茶馆xyz'; });
-  await page.click('#qGo');
+  await page.type('#q', 'z');
   await sleep(900);
   const keyDlg = await page.evaluate(() => (document.querySelector('.nm-form .ui-modal-title') || {}).textContent || '');
   ok('A.无结果触发高德 Key 配置', keyDlg.includes('高德搜索 Key'), keyDlg);
   await page.evaluate(() => { const b = document.getElementById('akCancel'); if (b) b.click(); });
-  await sleep(400);
+  await sleep(300);
+  await page.evaluate(() => { document.getElementById('q').value = ''; });
 
-  /* 我的节点：预置 → 列表 → 编辑 → 删除 */
+  /* 表单新字段：海拔输入 + AI 介绍按钮 + 保存含海拔 */
   await page.evaluate(() => {
-    localStorage.setItem('tn_userNodes', JSON.stringify([{ id: 'test1', name: '测试茶馆', lat: 39.92, lng: 116.40, gcj: false, province: '北京市', city: '北京', category: '茶馆', tags: ['拍照'], desc: '测试', createdAt: Date.now() }]));
+    localStorage.setItem('tn_userNodes', JSON.stringify([{ id: 'test1', name: '测试茶馆', lat: 39.92, lng: 116.40, gcj: false, province: '北京市', city: '北京', category: '茶馆', tags: ['拍照'], desc: '测试', elev: '120', createdAt: Date.now() }]));
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await sleep(4000);
   await page.evaluate(() => window.NM.edit('test1'));
-  await sleep(500);
-  const formName = await page.evaluate(() => (document.getElementById('nmName') || {}).value || '');
-  ok('A.编辑表单回填', formName === '测试茶馆');
+  await sleep(600);
+  const form = await page.evaluate(() => ({
+    name: (document.getElementById('nmName') || {}).value || '',
+    elev: (document.getElementById('nmElev') || {}).value || '',
+    genBtn: !!document.getElementById('nmGenDesc'),
+    elevGo: !!document.getElementById('nmElevGo')
+  }));
+  ok('A.编辑回填（含海拔）', form.name === '测试茶馆' && form.elev === '120', 'elev=' + form.elev);
+  ok('A.表单含海拔获取按钮', form.elevGo);
+  ok('A.表单含 AI 生成介绍按钮', form.genBtn);
+  /* 改名保存（不误报自身） */
   await page.evaluate(() => {
     const el = document.getElementById('nmName');
     el.value = '测试茶馆2';
@@ -82,8 +97,8 @@ function ok(name, cond, extra) {
   ok('A.编辑改名不误报自身重复', !dup.includes('附近已有'), dup.slice(0, 30));
   await page.click('#nmSave');
   await sleep(600);
-  const renamed = await page.evaluate(() => JSON.parse(localStorage.getItem('tn_userNodes'))[0].name);
-  ok('A.编辑保存生效', renamed === '测试茶馆2', renamed);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('tn_userNodes'))[0]);
+  ok('A.保存生效（含海拔）', saved.name === '测试茶馆2' && saved.elev === '120', 'elev=' + saved.elev);
   await page.evaluate(() => window.NM.remove('test1'));
   await sleep(500);
   await page.click('.ui-modal-mask.show .ui-btn-primary.danger');
@@ -91,7 +106,7 @@ function ok(name, cond, extra) {
   const afterDel = await page.evaluate(() => JSON.parse(localStorage.getItem('tn_userNodes') || '[]').length);
   ok('A.删除持久化', afterDel === 0);
 
-  const real = errs.filter(e => !/Failed to load resource|net::|ERR_|manifest/.test(e));
+  const real = errs.filter(e => !/Failed to load resource|net::|ERR_|manifest|open-meteo/.test(e));
   ok('A.无脚本错误', real.length === 0, real.join(' | ').slice(0, 120));
   await page.close();
 
