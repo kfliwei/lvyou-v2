@@ -196,6 +196,32 @@
       </div>
     </div>
 
+    <!-- 节点分层分级 -->
+    <div class="group">
+      <div class="group-title">地图 · 节点分级</div>
+      <div class="group-sub">控制专题地图的聚合展开行为（LOD 分层分级）</div>
+      <div style="margin-top:10px">
+        <div class="row-label">展开速度</div>
+        <div class="chips" id="chLodSpeed">
+          <button data-v="fast">快速展开</button>
+          <button data-v="std">标准</button>
+          <button data-v="slow">延迟聚合</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="row-label">聚合密度</div>
+        <div class="chips" id="chLodCap">
+          <button data-v="dense">更密集</button>
+          <button data-v="std">标准</button>
+          <button data-v="sparse">更稀疏</button>
+        </div>
+      </div>
+      <div class="switchrow" style="margin-top:12px">
+        <div><div class="sw-label">必去优先显示</div><div class="sw-sub">中缩放只显示必去/重要节点，视野更清晰；关闭则全部显示</div></div>
+        <div class="sw" id="swLodMajor" onclick="toggle('swLodMajor','tn_lod_major')"></div>
+      </div>
+    </div>
+
     <!-- 阅读字号 -->
     <div class="group">
       <div class="group-title">阅读字号</div>
@@ -384,6 +410,30 @@
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function(){ d.remove(); }, 2000);
   }
+
+  /* 节点分级参数：读 tn_lod 初始化，点击即保存 */
+  (function(){
+    var lod = {};
+    try { lod = JSON.parse(localStorage.getItem('tn_lod') || '{}'); } catch(e) {}
+    var save = function(){ try { localStorage.setItem('tn_lod', JSON.stringify(lod)); } catch(e){} };
+    var initChips = function(id, key, val){
+      var box = document.getElementById(id); if(!box) return;
+      box.querySelectorAll('button').forEach(function(b){
+        b.classList.toggle('on', (lod[key]||'std') === b.dataset.v);
+        b.onclick = function(){ box.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on'); lod[key] = b.dataset.v; save(); };
+      });
+    };
+    initChips('chLodSpeed', 'speed');
+    initChips('chLodCap', 'cap');
+    var sw = document.getElementById('swLodMajor');
+    if (sw) sw.className = 'sw' + (lod.major === false ? ' off' : '');
+    document.getElementById('swLodMajor').onclick = function(){
+      lod.major = (lod.major === false) ? true : false;
+      this.className = 'sw' + (lod.major === false ? ' off' : '');
+      save();
+    };
+  })();
+
   document.querySelector('#chModel').addEventListener('click', function(e){
     if (e.target.tagName === 'BUTTON') {
       this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });

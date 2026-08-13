@@ -5,6 +5,8 @@
    PWA：http(s) 下注册 service worker（离线缓存应用壳）。
    ============================================================ */
 (function () {
+  /* 节点分层分级参数（设置页 tn_lod）注入，供 node-lod.js 读取 */
+  try { window.TN_LOD = JSON.parse(localStorage.getItem('tn_lod') || '{}'); } catch (e) { window.TN_LOD = {}; }
   function isDark() {
     var m = 'auto';
     try { m = localStorage.getItem('tn_dark') || 'auto'; } catch (e) {}

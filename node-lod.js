@@ -32,6 +32,11 @@
    ============================================================ */
 (function () {
   'use strict';
+  /* 用户 LOD 参数（设置页 tn_lod）：展开速度 / 聚合密度 / 必去优先 */
+  var CFG = window.TN_LOD || {};
+  var SCALE = CFG.speed === 'fast' ? 0.72 : (CFG.speed === 'slow' ? 1.35 : 1);
+  var MAXCAP = CFG.cap === 'dense' ? 20 : (CFG.cap === 'sparse' ? 34 : 26);
+  var MAJOR = CFG.major !== false;
   var C = null;             // 当前配置
   var levelCache = null;    // 缓存层级推导结果
   var renderTimer = null;
@@ -56,22 +61,22 @@
       if (nC > 1) {
         if (nCo > 1 && list.length > 200) {
           return [
-            { zMin: 0,   zMax: 5.2, key: 'region', label: '区域' },
-            { zMin: 5.2, zMax: 7.2, key: 'city',   label: '城市' },
-            { zMin: 7.2, zMax: 10.2, key: 'county', label: '县区' },
+            { zMin: 0,   zMax: 5.2 * SCALE, key: 'region', label: '区域' },
+            { zMin: 5.2, zMax: 7.2 * SCALE, key: 'city',   label: '城市' },
+            { zMin: 7.2, zMax: 10.2 * SCALE, key: 'county', label: '县区' },
             { zMin: 10.2, zMax: Infinity, key: 'node' }
           ];
         }
         return [
-          { zMin: 0,   zMax: 5.5, key: 'region', label: '区域' },
-          { zMin: 5.5, zMax: 7.2, key: 'city',   label: '城市' },
-          { zMin: 7.2, zMax: 10.2, key: 'county', label: '县区' },
+          { zMin: 0,   zMax: 5.5 * SCALE, key: 'region', label: '区域' },
+          { zMin: 5.5, zMax: 7.2 * SCALE, key: 'city',   label: '城市' },
+          { zMin: 7.2, zMax: 10.2 * SCALE, key: 'county', label: '县区' },
           { zMin: 10.2, zMax: Infinity, key: 'node' }
         ];
       }
       return [
-        { zMin: 0,   zMax: 5.5, key: 'region', label: '区域' },
-        { zMin: 5.5, zMax: 7.8, key: 'county', label: '县区' },
+        { zMin: 0,   zMax: 5.5 * SCALE, key: 'region', label: '区域' },
+        { zMin: 5.5, zMax: 7.8 * SCALE, key: 'county', label: '县区' },
         { zMin: 7.8, zMax: Infinity, key: 'node' }
       ];
     }
@@ -79,19 +84,19 @@
       /* 省内页：城市 → 县区 → 节点（大省）或 城市 → 节点（小省） */
       if (nCo > 1 && list.length > 150) {
         return [
-          { zMin: 0,   zMax: 8.0, key: 'city',   label: '城市' },
-          { zMin: 8.0, zMax: 10.2, key: 'county', label: '县区' },
+          { zMin: 0,   zMax: 8.0 * SCALE, key: 'city',   label: '城市' },
+          { zMin: 8.0, zMax: 10.2 * SCALE, key: 'county', label: '县区' },
           { zMin: 10.2, zMax: Infinity, key: 'node' }
         ];
       }
       return [
-        { zMin: 0,   zMax: 8.2, key: 'city',   label: '城市' },
+        { zMin: 0,   zMax: 8.2 * SCALE, key: 'city',   label: '城市' },
         { zMin: 8.2, zMax: Infinity, key: 'node' }
       ];
     }
     if (nCo > 1) {
       return [
-        { zMin: 0,  zMax: 6.2, key: 'county', label: '县区' },
+        { zMin: 0,  zMax: 6.2 * SCALE, key: 'county', label: '县区' },
         { zMin: 6.2, zMax: Infinity, key: 'node' }
       ];
     }
@@ -160,7 +165,7 @@
         if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
         var p = C.pt(s);
         if (!b.contains(p)) return;
-        if (!showAll && C.majorOf && !C.majorOf(s)) return;
+        if (!showAll && MAJOR && C.majorOf && !C.majorOf(s)) return;
         var m = L.marker(p, { icon: C.icon(s, false) });
         m.on('click', function () { C.onNode && C.onNode(s); });
         layer.addLayer(m);
@@ -188,7 +193,7 @@
        若视野内 city/county 组都集中在同一 region/city（即用户已聚焦到该行政区），
        即使组数较多也不回退（密集但可点击），保持聚焦层级让用户能看到县级 */
     if (lv.key !== 'node') {
-      var maxCap = 26;
+      var maxCap = MAXCAP;
       var gi = lvIdx;
       var groups = groupBy(list, levelCache[gi].key);
       var gKeys = Object.keys(groups).filter(function (k) { return k !== '__parent'; });
