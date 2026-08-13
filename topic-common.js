@@ -260,8 +260,19 @@
   function drawTripRoute() {
     if (tripRouteLayer) { tripRouteLayer.remove(); tripRouteLayer = null; }
     if (trip.length < 2) return;
-    var pts = trip.map(function (i) { return pt(SITES[i]); });
+    var pts = trip.map(function (i) { return pt(tripSite(i)); });
     tripRouteLayer = L.polyline(pts, { color: '#C86D4B', weight: 3, opacity: .7, dashArray: '6 6' }).addTo(map);
+  }
+  /* 行程项解析：-1 = 我的位置（临时途经点） */
+  function tripSite(i) {
+    if (i === -1) return { name: '我的位置', label: '我的位置', lat: userLatLng ? userLatLng[0] : 0, lng: userLatLng ? userLatLng[1] : 0, region: '', city: '', theme: '' };
+    return SITES[i];
+  }
+  function addTripPos() {
+    if (!userLatLng) { showTripToast('先定位，才能加入我的位置'); return; }
+    if (trip.indexOf(-1) >= 0) { showTripToast('我的位置已在行程中'); return; }
+    trip.push(-1); saveTrip(); renderTripBar(); drawTripRoute();
+    showTripToast('已加入行程 · 我的位置');
   }
   function showTripToast(msg) {
     var t = $('tripToast');
@@ -293,10 +304,10 @@
     $('tripCnt').textContent = trip.length;
     var row = $('tripRow'); row.innerHTML = '';
     trip.forEach(function (i, n) {
-      var s = SITES[i]; if (!s) return;
+      var s = tripSite(i); if (!s) return;
       var c = document.createElement('div'); c.className = 'chip';
       c.innerHTML = '<span class="no">' + (n + 1) + '</span><span class="nm" style="cursor:pointer">' + s.label + '</span><span class="mv" data-d="up">▲</span><span class="mv" data-d="dn">▼</span><span class="x">✕</span>';
-      c.querySelector('.nm').onclick = function () { flyToSite(i); };
+      c.querySelector('.nm').onclick = function () { if (i === -1) { map.flyTo(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12), { duration: .6 }); } else flyToSite(i); };
       c.querySelector('[data-d="up"]').onclick = function (e) { e.stopPropagation(); if (n > 0) { trip.splice(n, 1); trip.splice(n - 1, 0, i); saveTrip(); renderTripBar(); } };
       c.querySelector('[data-d="dn"]').onclick = function (e) { e.stopPropagation(); if (n < trip.length - 1) { trip.splice(n, 1); trip.splice(n + 1, 0, i); saveTrip(); renderTripBar(); } };
       c.querySelector('.x').onclick = function (e) { e.stopPropagation(); toggleTrip(i); };
@@ -313,15 +324,15 @@
     var rest = trip.slice(), out = [], cur = userLatLng;
     while (rest.length) {
       var bi = 0, bd = 1e12;
-      rest.forEach(function (i, k) { var s = SITES[i]; var d = (s.lat - cur[0]) ** 2 + (s.lng - cur[1]) ** 2; if (d < bd) { bd = d; bi = k; } });
-      var pick = rest.splice(bi, 1)[0]; out.push(pick); cur = [SITES[pick].lat, SITES[pick].lng];
+      rest.forEach(function (i, k) { var s = tripSite(i); var d = (s.lat - cur[0]) ** 2 + (s.lng - cur[1]) ** 2; if (d < bd) { bd = d; bi = k; } });
+      var pick = rest.splice(bi, 1)[0]; out.push(pick); cur = [tripSite(pick).lat, tripSite(pick).lng];
     }
     trip = out; saveTrip(); renderTripBar(); drawTripRoute();
     showTripToast('我帮你重新排了一下顺序');
   }
   function navAmap() {
     if (trip.length === 0) return;
-    var pts = trip.map(function (i) { var s = SITES[i]; var g = gcj02Of(s.lat, s.lng); return { lng: g[1], lat: g[0], name: s.label }; });
+    var pts = trip.map(function (i) { var s = tripSite(i); var g = gcj02Of(s.lat, s.lng); return { lng: g[1], lat: g[0], name: s.label }; });
     var sLng, sLat, sName = '我的位置';
     if (userLatLng) { var g0 = gcj02Of(userLatLng[0], userLatLng[1]); sLng = g0[1]; sLat = g0[0]; }
     else { var f = pts.shift(); sLng = f.lng; sLat = f.lat; sName = f.name; }
@@ -340,7 +351,7 @@
   }
   function openArrive() {
     if (!trip.length) { showTripToast('先加入地点，再开始今天的旅行'); return; }
-    var s = SITES[trip[0]];
+    var s = tripSite(trip[0]);
     $('arPlace').textContent = s ? esc(s.label) : '—';
     $('arSub').textContent = trip.length + ' 站 · ' + (s ? (s.region || '') : '');
     $('arriveDlg').classList.add('show');
@@ -615,7 +626,7 @@
     userLatLng = [pos.coords.latitude, pos.coords.longitude];
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker(gxy(userLatLng[0], userLatLng[1]), { icon: userDotIcon(), zIndexOffset: 1000 }).addTo(map);
-    userMarker.bindPopup('<b>📍 我的位置</b>').openPopup();
+    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">📍 我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:#C86D4B;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
     if (!watchId && navigator.geolocation) watchId = navigator.geolocation.watchPosition(function (p) {
       userLatLng = [p.coords.latitude, p.coords.longitude];
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));
@@ -925,6 +936,7 @@
   window.TopicEngine = { _map: map,
     init: init,
     toggleTrip: toggleTrip,
+    addTripPos: addTripPos,
     toggleMore: toggleMore,
     toggleWish: toggleWish,
     flyToSite: flyToSite,
