@@ -1116,3 +1116,7 @@ html.font-sm{font-size:15px}
 .theme-dark .nm-menu-item{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
 .theme-dark .nm-in,.theme-dark .nm-ta{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
 .theme-dark .nm-item{border-bottom-color:var(--color-line,#3a3832)}
+
+/* 图例/标签节点联动闪烁提示 */
+.lg.flash,.chip.flash{animation:leg-flash 1.2s ease-out}
+@keyframes leg-flash{0%{background:rgba(200,109,75,.25);transform:scale(1.03)}60%{background:rgba(200,109,75,.12)}100%{background:transparent}}

@@ -267,6 +267,26 @@
     setActiveNode(i);
     document.querySelector('.tabbar').classList.add('is-hidden');
     highlightCard(i);
+    /* 节点 → 图例/标签联动：闪烁提示该节点所属主题（不改动筛选状态） */
+    var _s = SITES[i];
+    if (_s) {
+      var _th = tk(_s);
+      document.querySelectorAll('#legBody .lg').forEach(function (el) {
+        var hit = el.dataset.th === _th;
+        el.classList.toggle('flash', hit);
+        if (hit) { el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      });
+      document.querySelectorAll('#dynChips .chip').forEach(function (c) {
+        var f = c.dataset.f || '';
+        if (f && (f === _th || f.indexOf(_th) >= 0)) {
+          c.classList.add('flash');
+          setTimeout(function () { c.classList.remove('flash'); }, 1400);
+        }
+      });
+      setTimeout(function () {
+        document.querySelectorAll('#legBody .lg.flash').forEach(function (el) { el.classList.remove('flash'); });
+      }, 1400);
+    }
     if (map) setTimeout(function () { map.panBy([0, -160], { duration: 420 }); }, 80);
   }
   function closeSheet() {
@@ -903,6 +923,9 @@
     renderList(list);
     renderThemes(list);
     $('totalTag').textContent = '· 共 ' + SITES.length + ' 处' + (M.totalTagSuffix || '');
+    /* 图例"全部"行计数随节点增删动态更新 */
+    var _allCnt = document.querySelector('#legBody .lg[data-th=""] .cnt');
+    if (_allCnt) _allCnt.textContent = SITES.length;
   }
   function attachIndex() { SITES.forEach(function (s, i) { s.__i = i; }); }
   function switchTab(tab) {
@@ -926,7 +949,7 @@
       if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city && !state.elev && !state.flag); return; }
       if (f === '必去') { c.classList.toggle('on', state.flag === 'm'); return; }
       if (f === '网红') { c.classList.toggle('on', state.flag === 'h'); return; }
-      if (f === state.theme || f === state.region || f === state.city) c.classList.add('on');
+      if ((state.theme && (f === state.theme || f.indexOf(state.theme) >= 0)) || f === state.region || f === state.city) c.classList.add('on');
       else if (f === '低海拔 <3000m' && state.elev === 'low') c.classList.add('on');
       else if (f === '中海拔 3000-4000m' && state.elev === 'mid') c.classList.add('on');
       else if (f === '高海拔 >4000m' && state.elev === 'high') c.classList.add('on');
