@@ -462,8 +462,8 @@
 
   /* ---------- 入口：成果面板 ---------- */
   function openResults() {
-    /* TRACE v2：成果工坊已转为独立页面 workshop.html（原全屏弹窗不再使用） */
-    location.href = 'workshop.html';
+    /* TRACE v2：成果工坊已迁移至 review.html（原 workshop.html 页面已移除） */
+    location.href = 'review.html';
   }
 
   window.Results = {

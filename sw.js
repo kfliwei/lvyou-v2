@@ -1,25 +1,19 @@
-/* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v8';
-var TILE_CACHE = 'trace-tiles';   /* 离线瓦片包（tiles.js 写入） */
+﻿/* sw.js 鈥?琛岃抗 TRACE 绂荤嚎缂撳瓨锛堝簲鐢ㄥ３棰勭紦瀛?+ 鏁版嵁鏂囦欢杩愯鏃剁紦瀛橈級 */
+var CACHE = 'trace-v9';
+var TILE_CACHE = 'trace-tiles';   /* 绂荤嚎鐡︾墖鍖咃紙tiles.js 鍐欏叆锛?*/
 var SHELL = [
   './',
-  './changzheng.html',
   './explore-map.html',
-  './gx-yn.html',
   './index.html',
   './md-manager.html',
   './nation-map.html',
-  './qinghai-tibet.html',
   './review.html',
   './settings.html',
-  './shanxi-ancient-architecture.html',
-  './shanxi.html',
   './story.html',
   './test-data.html',
   './topic.html',
   './travel-map.html',
   './wishlist.html',
-  './workshop.html',
   './theme.js',
   './travel-notes.js',
   './results.js',
@@ -58,7 +52,7 @@ var SHELL = [
 var RUNTIME = /(data\.js|gxyn-data\.js|qz-data\.js|changzheng-data\.js|sc-data\.js|sc-food\.js|gs-data\.js|gs-food\.js|xj-data\.js|xj-food\.js|gz-data\.js|gz-food\.js|food\.js|food-gxyn\.js)$/;
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
-    /* 逐条 add + catch：单个文件缺失不影响整体安装 */
+    /* 閫愭潯 add + catch锛氬崟涓枃浠剁己澶变笉褰卞搷鏁翠綋瀹夎 */
     return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); }));
   }).then(function () { return self.skipWaiting(); }));
 });
@@ -71,8 +65,8 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
-  if (url.origin !== location.origin) return;              /* 第三方（瓦片/API）不缓存 */
-  if (/is\.autonavi\.com|tile\.openstreetmap\.org/.test(url.hostname)) {  /* 离线瓦片：缓存优先，子域归一化去重 */
+  if (url.origin !== location.origin) return;              /* 绗笁鏂癸紙鐡︾墖/API锛変笉缂撳瓨 */
+  if (/is\.autonavi\.com|tile\.openstreetmap\.org/.test(url.hostname)) {  /* 绂荤嚎鐡︾墖锛氱紦瀛樹紭鍏堬紝瀛愬煙褰掍竴鍖栧幓閲?*/
     e.respondWith(caches.open(TILE_CACHE).then(function (c) {
       var key = url.hostname.indexOf('is.autonavi.com') >= 0 ? url.href.replace(/wprd0\d/, 'wprd00') : url.href;
       return c.match(key).then(function (hit) {
@@ -86,7 +80,7 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  if (req.mode === 'navigate') {                            /* 导航：网络优先；断网回退到已缓存页/首页 */
+  if (req.mode === 'navigate') {                            /* 瀵艰埅锛氱綉缁滀紭鍏堬紱鏂綉鍥為€€鍒板凡缂撳瓨椤?棣栭〉 */
     e.respondWith(fetch(req).then(function (res) {
       if (res && res.ok) {
         var clone = res.clone();
@@ -98,7 +92,7 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  if (RUNTIME.test(url.pathname)) {                         /* 数据文件：stale-while-revalidate */
+  if (RUNTIME.test(url.pathname)) {                         /* 鏁版嵁鏂囦欢锛歴tale-while-revalidate */
     e.respondWith(caches.open(CACHE).then(function (c) {
       return c.match(req).then(function (hit) {
         var f = fetch(req).then(function (res) {
@@ -110,7 +104,7 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  e.respondWith(caches.open(CACHE).then(function (c) {      /* 其余同源：stale-while-revalidate */
+  e.respondWith(caches.open(CACHE).then(function (c) {      /* 鍏朵綑鍚屾簮锛歴tale-while-revalidate */
     return c.match(req).then(function (hit) {
       var f = fetch(req).then(function (res) {
         if (res && res.ok) c.put(req, res.clone());

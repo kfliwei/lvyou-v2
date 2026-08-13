@@ -2,7 +2,7 @@
  * geo.js — 地理工具公共模块 v1
  * 收敛 8 个文件里重复的 GCJ-02 纠偏 / haversine 实现：
  *   topic-common.js / nation-map.html / travel-map.html /
- *   changzheng.html / gx-yn.html / qinghai-tibet.html / shanxi.html / story.html
+ *   story.html
  * 各页保留同名薄封装（function gcj02Of(...) { return window.Geo.gcj02Of(...); }），
  * 算法只在此文件维护一份，改算法只改这里。
  * 单测：node tools/test-geo.js
