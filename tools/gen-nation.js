@@ -65,7 +65,10 @@ const TOPICS = [
   { id: 'fj',   file: 'fj-data.js',         name: '福建' },
   { id: 'jx',   file: 'jx-data.js',         name: '江西' },
   { id: 'gd',   file: 'gd-data.js',         name: '广东' },
-  { id: 'hi',   file: 'hi-data.js',         name: '海南' }
+  { id: 'hi',   file: 'hi-data.js',         name: '海南' },
+  { id: 'hk',   file: 'hk-data.js',         name: '香港' },
+  { id: 'mo',   file: 'mo-data.js',         name: '澳门' },
+  { id: 'tw',   file: 'tw-data.js',         name: '台湾' }
 ];
 
 const out = [];

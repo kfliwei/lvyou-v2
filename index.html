@@ -487,7 +487,7 @@
   function esc2(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   var hs=document.getElementById('homeSearch'),sp=document.getElementById('searchPanel');
   var spNotes=document.getElementById('spNotes'),spTopics=document.getElementById('spTopics');
-  var TOPICS=[['红军长征','topic.html?p=cz'],['广西云南','topic.html?p=gy'],['青藏风光','topic.html?p=qt'],['山西古建','topic.html?p=sx'],['四川','topic.html?p=sc'],['甘肃','topic.html?p=gs'],['新疆','topic.html?p=xj'],['贵州','topic.html?p=gz']];
+  var TOPICS=[['红军长征','topic.html?p=cz'],['广西云南','topic.html?p=gy'],['青藏风光','topic.html?p=qt'],['山西古建','topic.html?p=sx'],['四川','topic.html?p=sc'],['甘肃','topic.html?p=gs'],['新疆','topic.html?p=xj'],['贵州','topic.html?p=gz'],['香港','topic.html?p=hk'],['澳门','topic.html?p=mo'],['台湾','topic.html?p=tw'],['全国','topic.html?p=nation']];
   function homeSearch(){
     var kw=(hs.value||'').trim();
     if(!kw){sp.style.display='none';return;}
