@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    古建地图 · 移动优先设计系统
    ------------------------------------------------------------
    · 浅色地图优先：暖纸白底 + 墨字 · 黛青/朱砂点缀（克制中式）
@@ -1065,3 +1065,11 @@ html.font-sm .ds,html.font-sm .fdesc,html.font-sm .story-item__desc,html.font-sm
 html.font-sm .txt,html.font-sm .sc-txt,html.font-sm .ls-desc,html.font-sm .md-item .txt,html.font-sm .report-dlg .txt,html.font-sm .tn-note,html.font-sm .tc-txt,html.font-sm .tx{font-size:12.5px}
 html.font-sm .meta,html.font-sm .sub,html.font-sm .sc-meta,html.font-sm .s-sub,html.font-sm .ms-item__meta,html.font-sm .story-item__loc,html.font-sm .mine-sub,html.font-sm .season-item__loc,html.font-sm .sp-empty,html.font-sm .tm,html.font-sm .tt-meta,html.font-sm .sec-t,html.font-sm .km,html.font-sm .pa,html.font-sm .pm,html.font-sm .qa,html.font-sm .fmore,html.font-sm .arrive-sub,html.font-sm .trip-feature__meta,html.font-sm .ls-loc,html.font-sm .ls-hist,html.font-sm .rl-item .m small,html.font-sm .sd{font-size:10.5px}
 html.font-sm .sp-title{font-size:13px}
+
+/* 大档防截断：文字完整显示，卡片随内容自然变高 */
+html.font-lg .item .ds,html.font-lg .card .ds,html.font-lg .result .item .ds,html.font-lg .story-item__desc,html.font-lg .search .sd .sd-sub,html.font-lg .sc-txt,html.font-lg .ls-desc,html.font-lg .ds{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible;max-height:none}
+html.font-lg .md-item .txt,html.font-lg .report-dlg .txt,html.font-lg .tn-note{max-height:none;overflow:visible}
+html.font-lg .nm{white-space:normal;overflow:visible;text-overflow:clip}
+html.font-lg .sub{white-space:normal;overflow:visible}
+html.font-lg .chip,html.font-lg .rchip,html.font-lg .pchip,html.font-lg .story-item__stamp{flex:none}
+html.font-lg .story-item__stamp{width:52px;height:52px}
