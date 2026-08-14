@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE · 代码审核报告（2026-08-14）</title>
+<style>
+:root{--bg:#F7F5EF;--surface:#fff;--ink:#20201D;--ink-soft:#4C4A45;--muted:#7D7970;--line:rgba(32,32,29,.10);--primary:#C86D4B;--primary-dark:#A9563B;--green:#71806C;--red:#B4543A;--amber:#8A6D3B;--serif:"Songti SC","STSong",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:15px}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 28px 80px}
+.hero{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:30px;margin-top:10px;line-height:1.3}
+.hero .sub{color:var(--muted);margin-top:10px;font-size:14px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:26px 0}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.metric .v{font-family:var(--serif);font-size:26px;color:var(--primary-dark)}
+.metric .k{font-size:12px;color:var(--muted);margin-top:4px}
+h2{font-family:var(--serif);font-weight:400;font-size:22px;margin:44px 0 6px}
+h2 .no{color:var(--primary);font-size:13px;letter-spacing:.2em}
+.lead{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;margin:14px 0;background:var(--surface);border-radius:14px;overflow:hidden;font-size:13.5px}
+th{background:#F0EDE5;text-align:left;padding:10px 14px;font-weight:600;font-size:12.5px;color:var(--ink-soft)}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+.pill{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+.pill.red{background:#FBE9E3;color:var(--red)}.pill.amber{background:#F3EFE4;color:var(--amber)}
+.pill.green{background:#ECEFEA;color:var(--green)}.pill.gray{background:#F0EDE5;color:var(--muted)}
+.note{background:var(--primary-soft,#FBF1EA);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--primary-dark);margin:16px 0}
+.footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--faint,#AAA59B)}
+code{background:#F0EDE5;border-radius:6px;padding:1px 6px;font-size:12.5px;font-family:Consolas,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+  <div class="kicker">Code Audit · 打磨前置审核</div>
+  <h1>行迹 TRACE · 代码审核报告</h1>
+  <div class="sub">打磨前体检：23 个核心文件静态扫描 + 疑点逐项甄别 + 运行时回归验证。审核基准：lvyou-v2 master（2026-08-14）</div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="v">23</div><div class="k">扫描文件</div></div>
+  <div class="metric"><div class="v">10</div><div class="k">扫描命中</div></div>
+  <div class="metric"><div class="v">3</div><div class="k">真问题（已清理）</div></div>
+  <div class="metric"><div class="v">7</div><div class="k">误报/设计确认</div></div>
+  <div class="metric"><div class="v">0</div><div class="k">运行期回归</div></div>
+</div>
+
+<h2><span class="no">01</span> 真问题（已清理）</h2>
+<table>
+<tr><th>位置</th><th>问题</th><th>处理</th></tr>
+<tr><td><code>topic-common.js</code></td><td><code>var R = null</code> 死变量——routesKey 时代的残留，现直接读 <code>window.TOPIC_ROUTES</code>，R 从未被使用</td><td><span class="pill green">已删除</span></td></tr>
+<tr><td><code>topic-common.js</code></td><td><code>_A/_EE</code> GCJ 纠偏常量声明但从未使用（geo.js 内部有自己的实现，本文件 gcj02Of 走 <code>window.Geo</code> 薄封装）</td><td><span class="pill green">已删除</span></td></tr>
+<tr><td><code>story.html</code> + <code>topic.html</code></td><td>story.html 同样残留 <code>_A/_EE</code> 死常量；topic.html 启动器的 <code>R = window.TOPIC_ROUTES || {}</code> 赋值目标已不存在（隐式全局，无意义）</td><td><span class="pill green">已删除</span></td></tr>
+</table>
+
+<h2><span class="no">02</span> 误报与设计确认（无需处理）</h2>
+<table>
+<tr><th>扫描命中</th><th>甄别结论</th></tr>
+<tr><td>md-manager.html 13 个"重复函数"</td><td><span class="pill gray">设计</span> 底部全局转发层（detail 内 onclick 走全局 → 转发 <code>window.__mdManager</code>），有意为之</td></tr>
+<tr><td>travel-notes.js 双 pump / p 函数</td><td><span class="pill gray">误报</span> 讲解与 AI 润色各自的流式读取回调，不同作用域互不干扰</td></tr>
+<tr><td>geo.js gcj02Of"重复"</td><td><span class="pill gray">误报</span> 命中头部注释文字</td></tr>
+<tr><td>search.html 重复 id="skel"</td><td><span class="pill gray">误报</span> 一处为 HTML 结构、一处为 JS 模板字符串（骨架屏重建），无冲突</td></tr>
+<tr><td>node-manager.html 重复 id="nmPhotoImg"</td><td><span class="pill gray">设计</span> 预设回显与选照片回显在同一容器内覆盖式渲染，不会并存</td></tr>
+</table>
+
+<h2><span class="no">03</span> 运行时验证</h2>
+<p class="lead">清理后全量回归：smoke（19）、smoke-nodes（8）、verify-cz-fix（8）、smoke-flag-link（7）、check-legend（5）全部通过，无脚本错误。</p>
+<div class="note">结论：核心引擎（topic-common / node-lod / travel-notes）无隐藏逻辑冲突；历史演进遗留的 3 处死代码已清除。可安全进入细节打磨阶段。</div>
+
+<div class="footer">行迹 TRACE · 代码审核报告（2026-08-14）｜audit-code.js 可复用为日常静态扫描工具</div>
+</div>
+</body>
+</html>

@@ -133,7 +133,7 @@
         var key=PROV_KEY[s.region];
         out+='<div class="item" role="button" tabindex="0" aria-label="'+esc(s.label)+'" data-go="'+(key?'topic.html?p='+key+'&q='+encodeURIComponent(s.name):'topic.html?p=nation&q='+encodeURIComponent(s.name))+'"><span class="dot" style="background:#8C7B66"></span><div class="main"><div class="nm">'+esc(s.label)+flagHtml(s)+'</div><div class="sub">'+esc(s.region+' · '+(s.city||'')+(s.county?' · '+s.county:'')+(s.theme?' · '+s.theme:''))+'</div></div><span class="arr">›</span></div>';
       });
-      if(!hits.length) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的景点，试试其他关键词</span></div>';
+      if(!hits.length) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的景点，试试其他关键词</span><a href="topic.html?p=nation" style="display:inline-block;margin-top:12px;color:var(--color-primary-dark);font-weight:600">去全国地图逛逛 →</a></div>';
       else if (hits.length > limit) out+='<div class="sec-t" style="text-align:center;cursor:pointer" id="moreBtn"><span style="color:var(--color-primary-dark);font-size:13px">还有 ' + (hits.length - limit) + ' 处，点击加载更多 ↓</span></div>';
     }
 

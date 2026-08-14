@@ -36,6 +36,12 @@ window.Wish = (function () {
     if (hit) { hit.visited = Date.now(); save(list); }
     return hit;
   }
+  /* 撤销打卡：visited 清零（恢复为未打卡） */
+  function uncheckin(s) {
+    var list = load(), id = uid(s), hit = find(list, id);
+    if (hit) { hit.visited = 0; save(list); }
+    return hit;
+  }
   /* 列表：未打卡在前（按加入时间倒序），已打卡在后 */
   function list() {
     return load().slice().sort(function (a, b) {
@@ -75,5 +81,5 @@ window.Wish = (function () {
       if (near.length && cb) cb(near);
     }, function () {}, { timeout: 8000, maximumAge: 60000 });
   }
-  return { toggle: toggle, isWished: isWished, checkin: checkin, list: list, remove: remove, count: count, uid: uid, checkNearby: checkNearby };
+  return { toggle: toggle, isWished: isWished, checkin: checkin, uncheckin: uncheckin, list: list, remove: remove, count: count, uid: uid, checkNearby: checkNearby };
 })();

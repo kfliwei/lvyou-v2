@@ -1,6 +1,5 @@
-/* sw.js 鈥?琛岃抗 TRACE 绂荤嚎缂撳瓨锛堝簲鐢ㄥ３棰勭紦瀛?+ 鏁版嵁鏂囦欢杩愯鏃剁紦瀛橈級 */
-var CACHE = 'trace-v12';
-var TILE_CACHE = 'trace-tiles';   /* 绂荤嚎鐡︾墖鍖咃紙tiles.js 鍐欏叆锛?*/
+/* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
+var CACHE = 'trace-v13';
 var SHELL = [
   './',
   './explore-map.html',
@@ -25,7 +24,6 @@ var SHELL = [
   './wishlist.js',
   './geo.js',
   './poster.js',
-  './tiles.js',
   './topic-counts.js',
   './routes-data.js',
   './ui.js',
@@ -73,7 +71,7 @@ var SHELL = [
 ];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
-    /* 閫愭潯 add + catch锛氬崟涓枃浠剁己澶变笉褰卞搷鏁翠綋瀹夎 */
+    /* 闁劖娼� add + catch閿涙艾宕熸稉顏呮瀮娴犲墎宸辨径鍙樼瑝瑜板崬鎼烽弫缈犵秼鐎瑰顥� */
     return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); }));
   }).then(function () { return self.skipWaiting(); }));
 });
@@ -86,22 +84,8 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
-  if (url.origin !== location.origin) return;              /* 绗笁鏂癸紙鐡︾墖/API锛変笉缂撳瓨 */
-  if (/is\.autonavi\.com|tile\.openstreetmap\.org/.test(url.hostname)) {  /* 绂荤嚎鐡︾墖锛氱紦瀛樹紭鍏堬紝瀛愬煙褰掍竴鍖栧幓閲?*/
-    e.respondWith(caches.open(TILE_CACHE).then(function (c) {
-      var key = url.hostname.indexOf('is.autonavi.com') >= 0 ? url.href.replace(/wprd0\d/, 'wprd00') : url.href;
-      return c.match(key).then(function (hit) {
-        if (hit) return hit;
-        var f = fetch(req).then(function (res) {
-          if (res && (res.ok || res.type === 'opaque')) c.put(key, res.clone());
-          return res;
-        }).catch(function () { return hit; });
-        return f;
-      });
-    }));
-    return;
-  }
-  if (req.mode === 'navigate') {                            /* 瀵艰埅锛氱綉缁滀紭鍏堬紱鏂綉鍥為€€鍒板凡缂撳瓨椤?棣栭〉 */
+  if (url.origin !== location.origin) return;              /* 缁楊兛绗侀弬鐧哥礄閻★妇澧�/API閿涘绗夌紓鎾崇摠 */
+    if (req.mode === 'navigate') {                            /* 鐎佃壈鍩呴敍姘辩秹缂佹粈绱崗鍫幢閺傤厾缍夐崶鐐衡偓鈧崚鏉垮嚒缂傛挸鐡ㄦい?妫ｆ牠銆� */
     e.respondWith(fetch(req).then(function (res) {
       if (res && res.ok) {
         var clone = res.clone();
@@ -113,7 +97,7 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  e.respondWith(caches.open(CACHE).then(function (c) {      /* 鍏朵綑鍚屾簮锛歴tale-while-revalidate */
+  e.respondWith(caches.open(CACHE).then(function (c) {      /* 閸忔湹缍戦崥灞剧爱閿涙tale-while-revalidate */
     return c.match(req).then(function (hit) {
       var f = fetch(req).then(function (res) {
         if (res && res.ok) c.put(req, res.clone());

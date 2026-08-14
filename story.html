@@ -125,7 +125,7 @@
 <div id="storyMap"></div>
 <div id="storyWrap">
   <div class="story-bar">
-    <button class="back" aria-label="返回" onclick="location.href='settings.html'">←</button>
+    <button class="back" aria-label="返回" onclick="history.length>1?history.back():location.href='settings.html'">←</button>
     <div class="title">旅程叙事</div>
     <select id="tripSel"></select>
   </div>
@@ -140,7 +140,6 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 /* GCJ-02 纠偏：与全站一致——默认高德街道瓦片（国内可达、无需代理），数据坐标经 GCJ 纠偏后对齐 */
 function _tlat(lng, lat) { return window.Geo._tlat(lng, lat); }
 function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }
-var _A=6378245.0,_EE=0.00669342162296594323;
 function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
 function gxy(lat,lng){ return gcj02Of(lat,lng); }
 var GAP=3*24*3600*1000;

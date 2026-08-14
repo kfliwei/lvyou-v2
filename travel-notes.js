@@ -587,7 +587,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       var site = typeof iOrSite === 'object' ? iOrSite : (GETSITE ? GETSITE(iOrSite) : null);
       if (!site) { flash('未找到该景点'); return; }
       var key = localStorage.getItem(AI_KEY);
-      if (!key) { guide.style.display = 'none'; openSettings(); flash('请先设置 DeepSeek API key，即可 AI 讲解'); return; }
+      if (!key) { guide.style.display = 'none'; openSettings(); flash('配置 DeepSeek API Key 即可 AI 讲解（platform.deepseek.com 免费申请）'); return; }
       stopGuideSpeech();
       gLoad.style.display = 'block';
       gBody.style.display = 'none';
@@ -960,7 +960,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       return;
     }
     var key = localStorage.getItem(AI_KEY);
-    if (!key) { openSettings(); flash('请先设置 DeepSeek API key'); return; }
+    if (!key) { openSettings(); flash('请先在设置页配置 DeepSeek API Key（platform.deepseek.com 免费申请，粘贴 sk- 开头密钥）'); return; }
     load.style.display = 'block';
     ai.style.display = 'none';
     var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
@@ -1509,7 +1509,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         else if (r === 'need_perm') flash('需要存储权限（请在设置中允许）');
         else flash('已保存到手机，请在下载目录或 App 文件列表查找');
       };
-      try { AndroidVoice.saveTextFile('我的游记.html', html); } catch (e) { flash('保存不可用，请用复制'); }
+      try { AndroidVoice.saveTextFile('我的游记-' + new Date().toISOString().slice(0, 10) + '.html', html); } catch (e) { flash('保存不可用，请用复制'); }
     };
   }
 
@@ -1517,7 +1517,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   function exportNotes() {
     var d = el('div', 'tn-dlg');
     var json = JSON.stringify(notes, null, 2);
-    var fname = '古建游记备份-' + fmtDay(Date.now()) + '.json';
+    var fname = '行迹TRACE备份-' + fmtDay(Date.now()) + '.json';
     d.innerHTML = '<h4>导出备份 <button class="tn-x" id="tnExpX" style="font-size:14px">✕</button></h4>'
       + '<div style="font-size:12px;color:var(--i5);margin:8px 0">共 ' + notes.length + ' 篇 · 建议用「保存到手机」导出 .json 文件，日后导入更方便。</div>'
       + '<textarea id="tnExpTxt" readonly>' + esc(json) + '</textarea>'

@@ -247,7 +247,7 @@
 <body>
   <header class="topbar">
     <div class="t-row">
-      <button class="back" onclick="location.href='index.html'" title="返回卷首" aria-label="返回首页">←</button>
+      <button class="back" onclick="history.length>1?history.back():location.href='index.html'" title="返回卷首" aria-label="返回首页">←</button>
       <div class="title">我的游记地图 <small id="statLabel"></small></div>
       <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录">随手记</button>
       <button class="act sec" onclick="TravelNotes.openList()">游记</button>

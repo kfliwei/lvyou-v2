@@ -16,11 +16,12 @@
   }
   function apply() { document.documentElement.classList.toggle('theme-dark', isDark()); }
   apply();
-  /* 字号档位：md 标准 / sm 小字（localStorage tn_font）。rem 体系由根字号驱动整体缩放 */
+  /* 字号档位：md 标准 / sm 小字 / lg 大字（localStorage tn_font）。rem 体系由根字号驱动整体缩放 */
   (function () {
     var s = 'md';
     try { s = localStorage.getItem('tn_font') || 'md'; } catch (e) {}
     document.documentElement.classList.toggle('font-sm', s === 'sm');
+    document.documentElement.classList.toggle('font-lg', s === 'lg');
   })();
   var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
   if (mq) {

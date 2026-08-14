@@ -172,7 +172,7 @@
 <div class="page">
   <header class="topbar">
     <div class="t-row">
-      <button class="back" aria-label="返回" onclick="location.href='settings.html'">←</button>
+      <button class="back" aria-label="返回" onclick="history.length>1?history.back():location.href='settings.html'">←</button>
       <div class="title">旅程回顾</div>
     </div>
   </header>
@@ -182,7 +182,7 @@
     <div style="display:flex;gap:10px;margin:0 0 14px">
     <button class="btn-secondary" id="aiReport" style="flex:1">📖 生成年度报告</button>
     <button class="btn-secondary" id="posterBtnH" style="flex:1">横版海报</button>
-<button class="btn-primary" id="posterBtn" style="flex:1">🗺️ 足迹海报</button> <button class="is-btn" id="posterCarto" style="min-height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:13px;cursor:pointer;padding:0 16px">制图海报</button> <button class="is-btn" id="posterCarto" style="min-height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:13px;cursor:pointer;padding:0 16px">制图海报</button>
+<button class="btn-primary" id="posterBtn" style="flex:1">🗺️ 足迹海报</button> <button class="is-btn" id="posterCarto" style="min-height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:13px;cursor:pointer;padding:0 16px">制图海报</button>
     </div>
     <div id="todayBox" style="display:none"></div>
     <div class="cal-card">
@@ -415,7 +415,7 @@ function renderMonthBar(){
   keys.forEach(function(k){if(yms[k]>max)max=yms[k];});
   document.getElementById('monthBar').innerHTML=keys.map(function(k){
     return '<div class="mb"><i style="height:'+Math.max(4,Math.round(yms[k]/max*100))+'px"></i><span>'+k.slice(5)+'</span></div>';
-  }).join('')||'<div class="empty" style="padding:20px"><span>还没有记录</span></div>';
+  }).join('')||'<div class="empty" style="padding:20px"><span>还没有记录</span><a href="travel-map.html" style="display:block;margin-top:10px;color:var(--color-primary-dark);font-weight:600">去留下第一篇记录 →</a></div>';
 }
 function renderTags(){
   var t={};
@@ -526,7 +526,6 @@ document.getElementById('aiReport').onclick=function(){
 };
 document.getElementById('posterBtnH').onclick = function () { try { window.FootprintPoster.generate(true); } catch (e) { UI.toast('生成失败'); } };
 document.getElementById('posterBtn').onclick = function () { try { window.FootprintPoster.generate(); } catch (e) { UI.toast('生成失败：' + (e && e.message || e)); } };
-    document.getElementById('posterCarto').onclick = function () { try { window.FootprintPoster.generate(false, 'carto'); } catch (e) { UI.toast('生成失败：' + (e && e.message || e)); } };
     document.getElementById('posterCarto').onclick = function () { try { window.FootprintPoster.generate(false, 'carto'); } catch (e) { UI.toast('生成失败：' + (e && e.message || e)); } };
 window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;

@@ -26,7 +26,6 @@
   function refPoint() { if (state.sort === "me" && userLatLng) return userLatLng; if (state.sort && M.REF && M.REF[state.sort]) return M.REF[state.sort]; return null; }
   function _tlat(lng, lat) { return window.Geo._tlat(lng, lat); }
   function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }
-  var _A = 6378245.0, _EE = 0.00669342162296594323;
   function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
   function pt(s) { if (s && s.gcj) return [+s.lat, +s.lng]; return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function gxy(lat, lng) { return useGCJ ? gcj02Of(lat, lng) : [lat, lng]; }
@@ -85,18 +84,31 @@
       });
     }
     var layMenu = $('layMenu');
+    /* 图层选择记忆：用户切到卫星/OSM 等后保存，下次打开保持（全专题共用） */
+    var savedLayer = 'amapStreet';
+    try { savedLayer = localStorage.getItem('tn_layer') || 'amapStreet'; } catch (e) {}
+    var initialLayer = null;
     BASE_LAYERS.forEach(function (b) {
-      var li = document.createElement('div'); li.className = 'li' + (b.layer === amapStreet ? ' on' : ''); li.dataset.id = b.id;
-      li.innerHTML = '<span class="sw" style="background:' + b.sw + '"></span>' + b.name + '<span class="ck" style="display:' + (b.layer === amapStreet ? '' : 'none') + '">✓</span>';
+      var isOn = b.id === savedLayer;
+      if (isOn) initialLayer = b;
+      var li = document.createElement('div'); li.className = 'li' + (isOn ? ' on' : ''); li.dataset.id = b.id;
+      li.innerHTML = '<span class="sw" style="background:' + b.sw + '"></span>' + b.name + '<span class="ck" style="display:' + (isOn ? '' : 'none') + '">✓</span>';
       li.onclick = function () {
         BASE_LAYERS.forEach(function (x) { if (map.hasLayer(x.layer)) map.removeLayer(x.layer); });
         b.layer.addTo(map);
         layMenu.querySelectorAll('.li').forEach(function (x) { var on = x.dataset.id === b.id; x.classList.toggle('on', on); x.querySelector('.ck').style.display = on ? '' : 'none'; });
         var isGCJ = (b.id === 'amapStreet' || b.id === 'amapSat' || b.id === 'amapSatL');
         if (isGCJ !== useGCJ) { useGCJ = isGCJ; if (lastMarkerList) renderMarkers(lastMarkerList); if (lastRouteRi != null) showRouteOnMap(lastRouteRi); if (userLatLng && userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1])); }
+        try { localStorage.setItem('tn_layer', b.id); } catch (e) {}
       };
       layMenu.appendChild(li);
     });
+    /* 应用记忆图层 */
+    if (initialLayer && initialLayer.layer !== amapStreet) {
+      try { map.removeLayer(amapStreet); } catch (e) {}
+      initialLayer.layer.addTo(map);
+      useGCJ = (initialLayer.id === 'amapStreet' || initialLayer.id === 'amapSat' || initialLayer.id === 'amapSatL');
+    }
     $('layBtn').onclick = function (e) { e.stopPropagation(); layMenu.classList.toggle('show'); };
     $('zoomIn').onclick = function () { map.zoomIn(); };
     $('zoomOut').onclick = function () { map.zoomOut(); };
@@ -647,12 +659,13 @@
     dl.innerHTML = '<b>每日轨迹色</b><br>' + rt.days.map(function (d, di) { return '<span class="dl"><span class="dd" style="background:' + DAY_COLORS[di % DAY_COLORS.length] + '"></span>D' + (di + 1) + ' ' + (d.title.split(' · ')[1] || d.title) + '</span>'; }).join('');
     dl.style.display = 'none';
     var dlBtn = $('dayLegendBtn');
-    dlBtn.textContent = '🎨 每日色';
+    var DL_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4 C16 8 16 16 12 20 C8 16 8 8 12 4 Z"/></svg>';
+    dlBtn.innerHTML = DL_ICON + ' 每日色';
     dlBtn.style.display = 'block';
     dlBtn.onclick = function () {
       var open = dl.style.display === 'block';
       dl.style.display = open ? 'none' : 'block';
-      dlBtn.textContent = open ? '🎨 每日色' : '🎨 收起每日色';
+      dlBtn.innerHTML = open ? DL_ICON + ' 每日色' : DL_ICON + ' 收起每日色';
     };
   }
   function clearRoute() {
@@ -714,6 +727,21 @@
     if (emptyHintTimer) clearTimeout(emptyHintTimer);
     emptyHintTimer = setTimeout(updateEmptyHint, 450);
   }
+  /* 弱网提示：断网时顶部轻提示（瓦片/数据可能加载失败） */
+  var netHintEl = null;
+  function showNetHint(on) {
+    if (!netHintEl) {
+      netHintEl = document.createElement('div');
+      netHintEl.id = 'netHint';
+      netHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px)+64px);transform:translateX(-50%);z-index:9400;background:rgba(180,84,58,.92);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      document.body.appendChild(netHintEl);
+    }
+    netHintEl.textContent = on ? '网络已断开 · 地图瓦片可能无法加载' : '';
+    netHintEl.style.opacity = on ? '1' : '0';
+  }
+  window.addEventListener('offline', function () { showNetHint(true); });
+  window.addEventListener('online', function () { showNetHint(false); });
+  if (navigator.onLine === false) showNetHint(true);
   function updateEmptyHint() {
     if (!map || !SITES.length) return;
     if (!emptyHintEl) {
@@ -877,6 +905,8 @@
     function legSet(h) { legEl.classList.toggle('hidden', h); legOpen.classList.toggle('show', h); }
     $('legTg').onclick = function () { legSet(true); };
     legOpen.onclick = function () { legSet(false); };
+    /* 图例默认收起：不遮挡地图视野，需要时点「图例」按钮展开 */
+    legSet(true);
   }
 
   /* ---------- 美食 ---------- */

@@ -155,7 +155,7 @@
 <div class="page">
   <header class="topbar">
     <div class="t-row">
-      <button class="back" aria-label="返回" onclick="location.href='index.html'">←</button>
+      <button class="back" aria-label="返回" onclick="history.length>1?history.back():location.href='index.html'">←</button>
       <div class="title">我的 <small id="statLabel"></small></div>
     </div>
   </header>
@@ -296,21 +296,6 @@
       </div>
       <div style="margin-top:10px;font-size:0.7188rem;color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
     </div>
-
-    <!-- 离线地图 -->
-    <div class="group" id="offlineGroup">
-      <div class="group-title">离线地图</div>
-      <div class="group-sub">把地图瓦片存到本机，断网也能看（网页与 APK 内都生效）。</div>
-      <div class="data-acts">
-        <button class="btn-secondary" id="dlNation">下载全国概览（约 25MB）</button>
-        <button class="btn-secondary" onclick="location.href='topic.html?p=nation&dl=1'">下载当前区域</button>
-        <button class="btn-secondary" id="dlClear">清除离线地图</button>
-      </div>
-      <div class="storage" id="dlInfo" style="margin-top:10px">—</div>
-      <div id="dlBar" style="display:none;margin-top:10px;height:6px;border-radius:99px;background:var(--color-bg-deep);overflow:hidden">
-        <div id="dlFill" style="width:0%;height:100%;background:var(--color-primary);transition:width .2s"></div>
-      </div>
-    </div>
   </div>
 
   <div class="savebar">
@@ -319,7 +304,6 @@
 </div>
 
 <script src="quotes.js"></script>
-<script src="tiles.js"></script>
 <script src="travel-notes.js"></script>
 <script src="vault.js"></script>
 <script src="ui.js"></script>
@@ -380,7 +364,7 @@
 (function(){
   var cur='md'; try{ cur=localStorage.getItem('tn_font')||'md'; }catch(e){}
   var box=document.getElementById('chFont'); if(!box) return;
-  var FONTS=[['md','标准'],['sm','小字']];
+  var FONTS=[['sm','小字'],['md','标准'],['lg','大字']];
   box.innerHTML=FONTS.map(function(f){ return '<span class="chip'+(f[0]===cur?' on':'')+'" data-f="'+f[0]+'" style="cursor:pointer">'+f[1]+'</span>'; }).join('');
   box.querySelectorAll('.chip').forEach(function(ch){
     ch.onclick=function(){ try{ localStorage.setItem('tn_font', ch.dataset.f); }catch(e){} box.querySelectorAll('.chip').forEach(function(x){ x.classList.toggle('on', x===ch); }); location.reload(); };
@@ -493,45 +477,6 @@
     toast('已切换深色模式');
   });
   loadSettings();
-  /* 离线地图：瓦片数 + 估算容量（每片约 25KB）+ 剩余空间 */
-  function tilesSize() {
-    try {
-      Tiles.size(function (n) {
-        var mb = n ? Math.round(n * 0.025 * 10) / 10 : 0;
-        var s = n ? '已缓存 ' + n + ' 片瓦片（约 ' + mb + ' MB）' : '未下载离线地图';
-        if (navigator.storage && navigator.storage.estimate) {
-          navigator.storage.estimate().then(function (est) {
-            var free = (est.quota - est.usage) / 1048576;
-            document.getElementById('dlInfo').textContent = s + ' · 本机剩余空间约 ' + Math.round(free) + ' MB';
-          }).catch(function () { document.getElementById('dlInfo').textContent = s; });
-        } else {
-          document.getElementById('dlInfo').textContent = s;
-        }
-      });
-    }
-    catch (e) { document.getElementById('dlInfo').textContent = '需在 http(s) 环境下使用'; }
-  }
-  var dlBusy = false;
-  document.getElementById('dlNation').onclick = function () {
-    if (dlBusy) return; dlBusy = true;
-    if (!('caches' in window)) { toast('当前环境不支持离线缓存'); dlBusy = false; return; }
-    var bar = document.getElementById('dlBar'), fill = document.getElementById('dlFill');
-    bar.style.display = 'block'; fill.style.width = '0%';
-    document.getElementById('dlNation').textContent = '下载中…';
-    Tiles.downloadChina(function (ok, total) {
-      fill.style.width = Math.round(ok / total * 100) + '%';
-    }, function (ok, total, cancelled) {
-      bar.style.display = 'none';
-      document.getElementById('dlNation').textContent = '下载全国概览（约 25MB）';
-      dlBusy = false;
-      toast(cancelled ? '已取消' : '下载完成：' + ok + ' 片瓦片（约 ' + Math.round(ok * 0.025) + ' MB）');
-      tilesSize();
-    });
-  };
-  document.getElementById('dlClear').onclick = function () {
-    Tiles.clear(function () { toast('已清除离线地图'); tilesSize(); });
-  };
-  tilesSize();
   /* 初始化游记库（此前未 init 导致 notes 为空，补全地点/篇数都不工作） */
   if (window.TravelNotes) {
     window.TravelNotes._onReady = function () {
@@ -542,12 +487,6 @@
     /* 提前注入 UI（CSS+弹窗/闪屏 DOM），保证导出备份/导入等弹窗样式可用 */
     try { TravelNotes.ensureUI(); } catch (e) {}
   }
-  /* 支持 #offline 锚点：首页「离线地图」入口直达本组 */
-  (function () {
-    if (location.hash !== '#offline') return;
-    var el = document.getElementById('offlineGroup');
-    if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 350);
-  })();
 </script>
 
 <script>

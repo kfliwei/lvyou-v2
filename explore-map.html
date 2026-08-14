@@ -53,7 +53,7 @@
 <body>
   <header class="topbar">
     <div class="t-row">
-      <button class="back" onclick="location.href='index.html'" aria-label="返回首页">←</button>
+      <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回首页">←</button>
       <div class="title">探索地图 <small>Pick a Map</small></div>
     </div>
   </header>

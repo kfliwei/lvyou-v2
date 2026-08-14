@@ -1060,6 +1060,7 @@ body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var
    ============================================================ */
 html{font-size:16px}
 html.font-sm{font-size:15px}
+html.font-lg{font-size:17.5px}
 
 /* ============================================================
    ui.js global components: toast + confirm dialog + focus

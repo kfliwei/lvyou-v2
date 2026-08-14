@@ -220,7 +220,8 @@ window.FootprintPoster = (function () {
     ctx.restore();
 
     var dataUrl = cv.toDataURL('image/png');
-    savePng((landscape ? '足迹海报横版 ' : '足迹海报 ') + year, dataUrl);
+    var styleName = { carto: '制图', paper: '纸感' }[themeName] || '';
+    savePng((landscape ? '足迹海报横版 ' : '足迹海报' + (styleName ? '·' + styleName + ' ' : ' ')) + year, dataUrl);
   }
   return { generate: generate };
 })();
