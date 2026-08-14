@@ -41,13 +41,24 @@
   var levelCache = null;    // 缓存层级推导结果
   var renderTimer = null;
 
+  /* 行政区名称归一化：全称/简称混用合并为同一分组（如
+     "黔东南苗族侗族自治州" ≡ "黔东南州"、"新疆维吾尔自治区" ≡ "新疆"） */
+  var ADMIN_NORM = (function () {
+    var RE_SUFFIX = /维吾尔自治区|壮族自治区|回族自治区|特别行政区|自治区/g;
+    var RE_ETHNIC = /苗族侗族|布依族苗族|藏族羌族|土家族苗族|哈尼族彝族|傈僳族|朝鲜族|蒙古族|回族|白族|彝族|傣族|藏族|苗族|侗族/g;
+    return function (s) {
+      if (!s) return s || '';
+      return String(s).replace(RE_SUFFIX, '').replace(RE_ETHNIC, '').replace(/自治州/g, '州');
+    };
+  })();
+
   /* ---------- 层级推导（自适应行政粒度） ----------
      返回 [{zMin, zMax, key, label}, ...]，key: 'region'|'city'|'county'|'node'|'detail' */
   function deriveLevels(list) {
     var hasR = {}, hasC = {}, hasCo = {};
     list.forEach(function (s) {
       if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
-      var r = C.regionOf(s), ci = C.cityOf(s), co = C.countyOf(s);
+      var r = ADMIN_NORM(C.regionOf(s)), ci = ADMIN_NORM(C.cityOf(s)), co = ADMIN_NORM(C.countyOf(s));
       if (r) hasR[r] = 1;
       if (ci) hasC[ci] = 1;
       if (co) hasCo[co] = 1;
@@ -119,10 +130,13 @@
       if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
       var p = C.pt(s);
       if (!b.contains(p)) return;
-      var k, par = C.regionOf(s) || '';
-      if (key === 'region') { k = C.regionOf(s) || '其他'; par = ''; }
-      else if (key === 'city') { k = C.cityOf(s) || (C.regionOf(s) ? C.regionOf(s) + '·其他' : '其他'); par = C.regionOf(s) || ''; }
-      else if (key === 'county') { k = C.countyOf(s) || (C.cityOf(s) || '其他'); par = C.cityOf(s) || ''; }
+      var r = ADMIN_NORM(C.regionOf(s) || '');
+      var ci = ADMIN_NORM(C.cityOf(s) || '');
+      var co = ADMIN_NORM(C.countyOf(s) || '');
+      var k, par = r;
+      if (key === 'region') { k = r || '其他'; par = ''; }
+      else if (key === 'city') { k = ci || (r ? r + '·其他' : '其他'); par = r; }
+      else if (key === 'county') { k = co || (ci || '其他'); par = ci; }
       else { k = 'node'; par = ''; }
       (g[k] = g[k] || []).push(s);
       if (par && !parent[k]) parent[k] = par;
@@ -132,9 +146,10 @@
   }
 
   /* ---------- 规范 Cluster 胶囊（米白 + 细边框 + 轻阴影，非彩色圆球）
-     数字徽标固定墨色（--color-ink），不随主题变色，避免"彩色数字+白胶囊"割裂 */
-  function clusterIcon(label, n, tint, mustN) {
-    var html = '<div class="lod-cl"><span class="lod-cl__n">' + n + '</span>' +
+     数字徽标固定墨色（--color-ink），不随主题变色，避免"彩色数字+白胶囊"割裂
+     dim=true 时降透明：筛选下 0 匹配组 */
+  function clusterIcon(label, n, tint, mustN, dim) {
+    var html = '<div class="lod-cl' + (dim ? ' lod-dim' : '') + '"><span class="lod-cl__n">' + n + '</span>' +
       '<span class="lod-cl__t">' + label + '</span>' +
       (mustN > 0 ? '<span class="lod-cl__m">必去' + mustN + '</span>' : '') + '</div>';
     return L.divIcon({ className: '', html: html, iconSize: [0, 0], iconAnchor: [0, 0] });
@@ -159,26 +174,47 @@
     function renderNodes() {
       var b = C.map.getBounds();
       var showAll = z >= (C.detailZoom || 11);
+      /* 视野内节点稀疏时不做"必去优先"过滤：避免放大后普通节点全部消失 */
+      var sparse = false;
+      if (!showAll && MAJOR && C.majorOf) {
+        var cnt = 0;
+        for (var j = 0; j < list.length; j++) {
+          var sj = list[j];
+          if (!sj || sj.lat == null || sj.lng == null || isNaN(+sj.lat) || isNaN(+sj.lng)) continue;
+          if (b.contains(C.pt(sj))) { cnt++; if (cnt > 40) break; }
+        }
+        sparse = cnt <= 40;
+      }
       var i = 0;
+      var drawn = {};   /* 已画节点防重（补全循环不再重复渲染） */
+      var posUsed = {}; /* 同坐标避让：重复收录的同一景点相邻偏移，避免完全重叠 */
       layer.clearLayers();
       list.forEach(function (s) {
         if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
         var p = C.pt(s);
         if (!b.contains(p)) return;
-        if (!showAll && MAJOR && C.majorOf && !C.majorOf(s)) return;
+        if (!showAll && MAJOR && C.majorOf && !C.majorOf(s) && !sparse) return;
+        var key = s.__i != null ? s.__i : (s.lat + '|' + s.lng);
+        if (drawn[key]) return;
+        drawn[key] = 1;
+        p = avoidOverlap(p, posUsed, z);
         var m = L.marker(p, { icon: C.icon(s, false) });
         m.on('click', function () { C.onNode && C.onNode(s); });
         layer.addLayer(m);
         if (C.onMarker) C.onMarker(m, s);
         i++;
       });
-      /* 视野内节点很少时自动补全重要节点，避免地图空荡（小数据集） */
+      /* 视野内节点很少时自动补全重要节点，避免地图空荡（小数据集）；已画节点不再重复 */
       if (i < 3 && C.majorOf) {
         list.forEach(function (s) {
           if (!s || s.lat == null || s.lng == null || isNaN(+s.lat) || isNaN(+s.lng)) return;
           if (i >= 12) return;
           var p = C.pt(s);
           if (!b.contains(p)) return;
+          var key = s.__i != null ? s.__i : (s.lat + '|' + s.lng);
+          if (drawn[key]) return;
+          drawn[key] = 1;
+          p = avoidOverlap(p, posUsed, z);
           var m = L.marker(p, { icon: C.icon(s, false) });
           m.on('click', function () { C.onNode && C.onNode(s); });
           layer.addLayer(m);
@@ -186,6 +222,21 @@
           i++;
         });
       }
+    }
+    /* 同坐标避让：同一坐标第 n 个节点向相邻方向偏移（恒定约 8px，视觉分开可点击） */
+    function avoidOverlap(p, posUsed, zoom) {
+      var pk = p[0].toFixed(5) + ',' + p[1].toFixed(5);
+      var n = posUsed[pk] || 0;
+      posUsed[pk] = n + 1;
+      if (n === 0) return p;
+      var mpp = 156543.03392 * Math.cos(p[0] * Math.PI / 180) / Math.pow(2, zoom); /* 米/像素 */
+      var d = 8 * mpp / 111320; /* 8px 对应的纬度差 */
+      var ring = Math.ceil(n / 4);
+      var dir = n % 4;
+      var dd = d * ring;
+      var dx = dir === 0 ? dd : (dir === 2 ? -dd : 0);
+      var dy = dir === 1 ? dd : (dir === 3 ? -dd : 0);
+      return [p[0] + dy, p[1] + dx];
     }
 
     /* 聚合层：按行政粒度分组 → 胶囊。
@@ -206,8 +257,8 @@
         groups = groupBy(list, levelCache[gi].key);
         gKeys = Object.keys(groups).filter(function (k) { return k !== '__parent'; });
       }
-      /* 最粗层仍过密且跨多父级 → 兜底节点层 */
-      if (gKeys.length > maxCap) {
+      /* 最粗层仍过密且跨多父级 → 兜底节点层（region 层除外：省胶囊最多几十个，是正确展示，不兜底） */
+      if (gKeys.length > maxCap && lv.key !== 'region') {
         renderNodes();
         return;
       }
@@ -220,7 +271,11 @@
         var tint = C.colorOf(s0);
         var lbl = k.replace('市', '');
         var mcnt = arr.filter(function (x) { return x.flag && x.flag.indexOf('m') >= 0; }).length;
-        var m = L.marker(bnd.getCenter(), { icon: clusterIcon(lbl, arr.length, tint, mcnt), zIndexOffset: -600 });
+        /* 筛选联动：聚合胶囊数字显示匹配数，0 匹配组降透明（规范 §11 双态在聚合层的体现） */
+        var matched = (C.filterActive && C.isMatch) ? arr.filter(C.isMatch) : null;
+        var n = matched ? matched.length : arr.length;
+        var dim = matched ? matched.length === 0 : false;
+        var m = L.marker(bnd.getCenter(), { icon: clusterIcon(lbl, n, tint, mcnt, dim), zIndexOffset: -600 });
         m.on('click', function () {
           /* 点击聚合 → 聚焦该行政区。
              region（省）直接 flyTo(中心, 8) 跳过市级直达 county 层，

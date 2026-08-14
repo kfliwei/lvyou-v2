@@ -63,7 +63,10 @@
     markerLayer = L.layerGroup().addTo(map);
     var amapStreet = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德地图' });
     amapStreet.addTo(map);
-    amapStreet.on('tileerror', function () { if (!map.hasLayer(osmLayer)) { try { amapStreet.remove(); } catch (e) {} osmLayer.addTo(map); } });
+    /* 瓦片容错：高德连续失败 ≥5 片才降级 OSM（个别瓦片失败/限流不切换，避免地图风格突变） */
+    var amapFail = 0;
+    amapStreet.on('tileerror', function () { amapFail++; if (amapFail >= 5 && !map.hasLayer(osmLayer)) { try { amapStreet.remove(); } catch (e) {} osmLayer.addTo(map); } });
+    amapStreet.on('tileload', function () { amapFail = 0; });
     var amapSat = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德地图' });
     var amapLabel = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '' });
     var amapSatL = L.layerGroup([amapSat, amapLabel]);
@@ -114,11 +117,15 @@
     /* 区域统计：全专题生效（规范 §32） */
     map.on('moveend', scheduleRegionStats);
     map.on('zoomend', scheduleRegionStats);
+    /* 空白区域提示 */
+    map.on('moveend', scheduleEmptyHint);
+    map.on('zoomend', scheduleEmptyHint);
   }
 
   /* ---------- 全国页：点击查附近（M.nearEnabled） ---------- */
   var nearHits = [];
-  function clearNearLayer() { if (nearLayer) { map.removeLayer(nearLayer); nearLayer = null; } }
+  var nearNodeLayer = null;   /* 圈内未渲染节点的补画层（LOD 重渲染时清理，避免残留拦截点击） */
+  function clearNearLayer() { if (nearLayer) { map.removeLayer(nearLayer); nearLayer = null; } if (nearNodeLayer) { map.removeLayer(nearNodeLayer); nearNodeLayer = null; } }
   function hideNearBar() { if (nearBar) nearBar.style.display = 'none'; }
   function restoreMarkers() {
     /* 恢复被「查附近」高亮的节点为普通图标 */
@@ -161,13 +168,18 @@
       .filter(function (h) { return h.d <= km; })
       .sort(function (a, b) { return a.d - b.d; });
     /* 圈内节点高亮：nearIcon（主题色圆点+光环+放大），
-       LOD 聚合下未单独渲染的补画高亮图标到 nearLayer —— 不切列表视图 */
+       LOD 聚合下未单独渲染的补画高亮图标（绑定点击，LOD 重渲染时清理） —— 不切列表视图 */
     restoreMarkers();
     nearHits = hits.map(function (h) { return h.s.__i; });
+    if (!nearNodeLayer) nearNodeLayer = L.layerGroup().addTo(map);
     hits.forEach(function (h) {
       var m = markers.get(h.s.__i);
       if (m) m.setIcon(nearIcon(h.s));
-      else L.marker(pt(h.s), { icon: nearIcon(h.s), zIndexOffset: 800 }).addTo(nearLayer);
+      else {
+        var nm = L.marker(pt(h.s), { icon: nearIcon(h.s), zIndexOffset: 800 });
+        nm.on('click', function () { openSheet(h.s.__i); });
+        nm.addTo(nearNodeLayer);
+      }
     });
     showTripToast('📍 附近 ' + km + 'km · ' + hits.length + ' 处（高亮显示，点击地图其他位置恢复）');
   }
@@ -216,6 +228,8 @@
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
   function renderMarkers(list) {
     lastMarkerList = list;
+    /* LOD 重渲染：清理「查附近」补画节点层（残留高亮 marker 会盖住重画节点并拦截点击） */
+    if (nearNodeLayer) { try { nearNodeLayer.clearLayers(); } catch (e) {} }
     /* TRACE v2 统一分层分级（node-lod.js 引擎）：
        region 多 → 区域/省聚合 → 市聚合 → 节点；region 单一 → 市聚合 → 县聚合 → 节点
        数据量小时引擎自动降级为直接节点 */
@@ -234,6 +248,8 @@
       cityOf: function (s) { return s.city; },
       countyOf: function (s) { return s.county; },
       detailZoom: 9,
+      filterActive: hasFilter,
+      isMatch: fn,
       onClear: function () { markers.clear(); },
       onMarker: function (m, s) { markers.set(s.__i, m); }
     });
@@ -691,6 +707,34 @@
   function scheduleRegionStats() {
     if (statTimer) clearTimeout(statTimer);
     statTimer = setTimeout(updateRegionStats, 400);
+  }
+  /* 空白区域提示：放大到没有收录景点的区域时轻提示，避免"节点消失"困惑 */
+  var emptyHintEl = null, emptyHintTimer = null;
+  function scheduleEmptyHint() {
+    if (emptyHintTimer) clearTimeout(emptyHintTimer);
+    emptyHintTimer = setTimeout(updateEmptyHint, 450);
+  }
+  function updateEmptyHint() {
+    if (!map || !SITES.length) return;
+    if (!emptyHintEl) {
+      emptyHintEl = document.createElement('div');
+      emptyHintEl.id = 'emptyHint';
+      emptyHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px)+64px);transform:translateX(-50%);z-index:9400;background:rgba(32,32,29,.85);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      document.body.appendChild(emptyHintEl);
+    }
+    var b = map.getBounds();
+    var n = 0;
+    for (var i = 0; i < SITES.length; i++) {
+      var s = SITES[i];
+      if (s && s.lat != null && !isNaN(+s.lat) && b.contains(pt(s))) { n++; if (n > 5) break; }
+    }
+    var z = map.getZoom();
+    if (n === 0 && z >= 8) {
+      emptyHintEl.textContent = '这一带还没有收录的景点，缩小或拖动试试';
+      emptyHintEl.style.opacity = '1';
+    } else {
+      emptyHintEl.style.opacity = '0';
+    }
   }
   function updateRegionStats() {
     if (!map || !SITES.length) return;
