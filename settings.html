@@ -240,6 +240,14 @@
           </div>
         </div>
         <div class="adv-item">
+          <div class="row-label">高德地图 Key</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <input id="amapKeyInput" type="text" autocomplete="off" placeholder="Web 服务 Key（console.amap.com 免费申请）" style="flex:1;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:13px;padding:0 16px">
+            <button class="btn-secondary" style="flex:0 0 auto;min-height:44px;border-radius:999px;font-size:13px;padding:0 18px" onclick="saveAmapKey()">保存</button>
+          </div>
+          <div class="adv-sub">用于「随手记」地点识别与「我的地点」搜索，仅保存在本机。</div>
+        </div>
+        <div class="adv-item">
           <div class="row-label">管理 MD 库</div>
           <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="location.href='md-manager.html'">管理 MD 库</button>
           <div class="adv-sub">管理内置的景点讲解文稿（Markdown 格式），一般不用动。</div>
@@ -477,6 +485,16 @@
     toast('已切换深色模式');
   });
   loadSettings();
+  /* 高德 Web Key（随手记地点识别 / 我的地点搜索） */
+  var akEl = document.getElementById('amapKeyInput');
+  if (akEl) {
+    try { akEl.value = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+    window.saveAmapKey = function () {
+      var v = (akEl.value || '').trim();
+      try { if (v) localStorage.setItem('tn_amap_key', v); else localStorage.removeItem('tn_amap_key'); } catch (e) {}
+      toast(v ? '高德 Key 已保存' : '已清除高德 Key');
+    };
+  }
   /* 初始化游记库（此前未 init 导致 notes 为空，补全地点/篇数都不工作） */
   if (window.TravelNotes) {
     window.TravelNotes._onReady = function () {

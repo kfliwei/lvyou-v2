@@ -195,6 +195,38 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-listbar b{font-family:var(--fd);font-size:17px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em}\
 .tn-pill{background:rgba(255,255,255,.12);color:#efe9dc;border:1px solid rgba(255,255,255,.18);border-radius:2px;font-size:11.5px;font-weight:700;padding:8px 12px;cursor:pointer;transition:var(--tf)}\
 .tn-pill:active{transform:scale(.95)}\
+/* ---- v3 精修（2026-08-14）：整体质感升级 ---- */\
+.tn-panel{background:linear-gradient(175deg,#FAF6EC 0%,#F3EDDE 60%,#ECE4D1 100%)}\
+.tn-panel::before{background:radial-gradient(circle at 78% 6%,rgba(200,109,75,.10),transparent 46%),radial-gradient(circle at 12% 90%,rgba(113,128,108,.08),transparent 52%)}\
+.tn-head{background:linear-gradient(135deg,rgba(250,246,236,.92),rgba(243,237,222,.9));border-bottom:1px solid rgba(200,109,75,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}\
+.tn-head .tn-x{background:rgba(38,36,31,.06);color:#6b665c;border-radius:50%;width:34px;height:34px}\
+.tn-title{color:#26241f;font-weight:600;font-size:16px}\
+.tn-title small{color:#8f8a7d;font-family:var(--fb)}\
+.tn-pause{background:rgba(200,109,75,.08);color:var(--color-primary);border:1px solid rgba(200,109,75,.22);border-radius:999px}\
+.tn-now{width:100%;display:flex;flex-direction:column;align-items:center;margin-top:6px}\
+.tn-now__place{font-family:var(--fd);font-size:24px;font-weight:600;color:#26241f;letter-spacing:.04em;text-align:center;position:relative;padding-left:32px}\
+.tn-now__place::before{content:"记";position:absolute;left:0;top:4px;width:24px;height:24px;border:1.5px solid var(--color-primary);border-radius:6px;color:var(--color-primary);font-family:var(--fd);font-size:13px;line-height:21px;text-align:center;transform:rotate(-4deg)}\
+.tn-now__time{font-size:12px;color:#9c958a;margin-top:4px;letter-spacing:.12em}\
+.tn-prompt{width:100%;text-align:center;font-family:var(--fd);font-size:14px;color:#7d7a6e;line-height:1.9;margin-top:10px}\
+.tn-ring{position:relative;width:172px;height:172px;margin-top:14px}\
+.tn-ring::before{content:"";position:absolute;inset:-14px;border-radius:50%;border:1px solid rgba(200,109,75,.14)}\
+.tn-ring.live::before{animation:tnRingPulse 1.6s ease-out infinite}\
+@keyframes tnRingPulse{0%{transform:scale(.92);opacity:.9}100%{transform:scale(1.16);opacity:0}}\
+.tn-mic{background:linear-gradient(145deg,#D97E58,#B4543A);border:2px solid rgba(255,255,255,.5);box-shadow:0 12px 30px rgba(200,109,75,.35),inset 0 2px 8px rgba(255,255,255,.25),inset 0 -4px 10px rgba(120,50,30,.25)}\
+.tn-mic.live{background:linear-gradient(145deg,#C45540,#8F2D1F);box-shadow:0 12px 34px rgba(168,50,42,.45),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 10px rgba(200,109,75,.08),0 0 0 20px rgba(200,109,75,.05);animation:tnMicBreath 1.8s ease-in-out infinite}\
+@keyframes tnMicBreath{0%,100%{box-shadow:0 12px 34px rgba(168,50,42,.45),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 8px rgba(200,109,75,.07)}50%{box-shadow:0 12px 34px rgba(168,50,42,.5),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 18px rgba(200,109,75,.04)}}\
+.tn-miclabel{font-size:12.5px;color:#8f8a7d;letter-spacing:.04em}\
+.tn-recbox{background:rgba(255,255,255,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(200,109,75,.14);border-radius:16px;box-shadow:0 6px 24px rgba(84,66,32,.07),inset 0 1px 0 rgba(255,255,255,.7)}\
+.tn-tags{border-radius:999px;border:1px solid rgba(32,32,29,.1);padding:12px 16px}\
+.tn-acts button{border-radius:999px;font-weight:600}\
+.tn-save{background:linear-gradient(135deg,#D97E58,#B4543A);box-shadow:0 6px 18px rgba(200,109,75,.32)}\
+.tn-save:disabled{background:linear-gradient(135deg,#D9C9B8,#C9B9A8);box-shadow:none}\
+.tn-repolish{background:rgba(255,255,255,.6);border:1px solid rgba(32,32,29,.12);color:#4c4a45}\
+.tn-style button{border-radius:12px}\
+.tn-style button.on{box-shadow:0 6px 16px rgba(168,50,42,.3)}\
+.tn-note{color:#9c958a}\
+@keyframes tnPanelIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}\
+.tn-panel{animation:tnPanelIn .32s cubic-bezier(.22,.9,.32,1)}\
 .tn-searchrow{background:var(--bg);padding:8px 16px 0}\
 .tn-listbar input{flex:1;min-height:42px;padding:0 14px;border:1px solid var(--ln);border-radius:var(--r-sm,8px);font-size:14px;background:var(--sf);box-shadow:var(--sm);outline:0;color:var(--i9)}\
 .tn-listbar input:focus{border-color:var(--a3);box-shadow:0 0 0 3px rgba(184,134,11,.14)}\
@@ -1838,4 +1870,114 @@ window.TNStats = function () {
     }
   }
   return { total: notes.length, provs: Object.keys(provs), cities: Object.keys(cities), km: km, days: Object.keys(days), streak: streak };
+};
+
+window.__tnPickPlace = function (lat, lng, onPick, onCancel) {
+  var key = '';
+  try { key = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+  var fallback = function () { if (onPick) onPick({ label: '当前位置（GPS）', lat: lat, lng: lng }); };
+  if (!key) { fallback(); return; }
+  /* JSONP 请求高德逆地理（file:// 页面 fetch 跨域会被 CORS 拦截，script 标签不受限） */
+  var cb = 'amapRegeo' + Date.now().toString(36);
+  var script = document.createElement('script');
+  script.src = 'https://restapi.amap.com/v3/geocode/regeo?location=' + lng + ',' + lat +
+    '&extensions=all&radius=1000&key=' + encodeURIComponent(key) + '&callback=' + cb;
+  var done = false;
+  window[cb] = function (j) {
+    done = true;
+    try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+    if (script.parentNode) script.parentNode.removeChild(script);
+    if (j && j.status === '1' && j.regeocode) {
+      var rg = j.regeocode;
+      var addr = rg.formatted_address || '';
+      var pois = (rg.pois || []).slice(0, 8).map(function (p) {
+        var c = (p.location || '').split(',');
+        return { label: p.name, lat: +c[1], lng: +c[0], dist: +(p.distance || 0), addr: p.address || '' };
+      });
+      __tnShowPlacePicker(addr, pois, lat, lng, onPick, onCancel);
+    } else fallback();
+  };
+  script.onerror = function () {
+    if (done) return;
+    try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+    if (script.parentNode) script.parentNode.removeChild(script);
+    fallback();
+  };
+  setTimeout(function () { if (!done) { try { delete window[cb]; } catch (e) {} if (script.parentNode) script.parentNode.removeChild(script); fallback(); } }, 8000);
+  document.head.appendChild(script);
+};
+
+/* 底部地点选择面板 */
+window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
+  var old = document.getElementById('placePicker');
+  if (old) old.remove();
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  /* 动画 keyframes（全局注入一次） */
+  if (!document.getElementById('tnPickKeys')) {
+    var st = document.createElement('style');
+    st.id = 'tnPickKeys';
+    st.textContent = '@keyframes tnPickFade{from{opacity:0}to{opacity:1}}@keyframes tnPickUp{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(st);
+  }
+  var pinSvg = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-11a6 6 0 1 1 12 0c0 5.7-6 11-6 11z"/><circle cx="12" cy="10" r="2.3"/></svg>';
+  var navSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg>';
+  var mask = document.createElement('div');
+  mask.id = 'placePicker';
+  mask.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(20,19,15,.5);display:flex;align-items:flex-end;justify-content:center;animation:tnPickFade .18s ease';
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'width:100%;max-width:560px;background:linear-gradient(175deg,#FAF6EC 0%,#F1EAD9 100%);border-radius:26px 26px 0 0;padding:4px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -12px 44px rgba(20,19,15,.22);animation:tnPickUp .3s cubic-bezier(.22,.9,.32,1)';
+  /* ---- 头部：印章 + 标题 ---- */
+  var head = document.createElement('div');
+  head.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 2px 10px';
+  head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid #C86D4B;border-radius:8px;color:#C86D4B;font-family:&quot;Songti SC&quot;,serif;font-size:14px;transform:rotate(-4deg);flex:0 0 auto">记</span>' +
+    '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:17px;font-weight:600;color:#26241F;letter-spacing:.03em">记录地点</b>' +
+    '<small style="color:#8F8A7D;font-size:11px;letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
+    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6B665C;font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">✕</button>';
+  /* ---- 当前位置卡片 ---- */
+  var cur = document.createElement('div');
+  cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';
+  cur.innerHTML = '<span style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#D97E58,#B4543A);color:#fff;flex:0 0 auto;box-shadow:0 6px 14px rgba(200,109,75,.3)">' + pinSvg + '</span>' +
+    '<span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:600;color:#26241F">当前位置</b>' +
+    '<small style="color:#8F8A7D;font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +
+    '<span style="font-size:11px;font-weight:600;color:#C86D4B;border:1px solid rgba(200,109,75,.3);border-radius:999px;padding:5px 12px;flex:0 0 auto">使用</span>';
+  cur.onclick = function () { mask.remove(); if (onPick) onPick({ label: '当前位置（GPS）', lat: lat, lng: lng }); };
+  /* ---- POI 列表 ---- */
+  var list = document.createElement('div');
+  list.style.cssText = 'overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch';
+  var opt = function (p) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid rgba(38,36,31,.05);cursor:pointer';
+    row.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#C86D4B;flex:0 0 auto;box-shadow:0 0 0 3px rgba(200,109,75,.12)"></span>' +
+      '<span style="flex:1;min-width:0"><b style="display:block;font-size:14.5px;font-weight:600;color:#26241F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.label) + '</b>' +
+      (p.addr ? '<small style="color:#8F8A7D;font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">' + esc(p.addr) + '</small>' : '') + '</span>' +
+      (p.dist > 0 ? '<span style="flex:0 0 auto;font-size:10.5px;color:#B4543A;background:rgba(200,109,75,.08);border:1px solid rgba(200,109,75,.16);border-radius:999px;padding:2px 9px">约 ' + Math.round(p.dist) + ' 米</span>' : '') +
+      '<span style="color:#C9C2B4;font-size:13px;flex:0 0 auto">' + navSvg + '</span>';
+    row.onclick = function () { mask.remove(); if (onPick) onPick({ label: p.label, lat: p.lat, lng: p.lng }); };
+    return row;
+  };
+  if (pois.length) {
+    var sec = document.createElement('div');
+    sec.style.cssText = 'font-size:10.5px;color:#AAA59B;letter-spacing:.14em;padding:10px 4px 6px;font-weight:600';
+    sec.textContent = '附近地点 · 按距离';
+    list.appendChild(sec);
+    pois.forEach(function (p) { list.appendChild(opt(p)); });
+  } else {
+    var empty = document.createElement('div');
+    empty.style.cssText = 'padding:22px 4px;font-size:12.5px;color:#8F8A7D;text-align:center';
+    empty.textContent = '附近没有找到地点，用当前位置记录吧';
+    list.appendChild(empty);
+  }
+  /* ---- 底部取消 ---- */
+  var cancel = document.createElement('button');
+  cancel.style.cssText = 'width:100%;min-height:46px;margin-top:12px;border:1px solid rgba(38,36,31,.1);border-radius:999px;background:rgba(255,255,255,.5);color:#6B665C;font-size:14px;cursor:pointer;font-weight:600';
+  cancel.textContent = '取消';
+  cancel.onclick = function () { mask.remove(); if (onCancel) onCancel(); };
+  sheet.appendChild(head);
+  sheet.appendChild(cur);
+  sheet.appendChild(list);
+  sheet.appendChild(cancel);
+  mask.appendChild(sheet);
+  document.body.appendChild(mask);
+  document.getElementById('placePickerClose').onclick = function () { mask.remove(); if (onCancel) onCancel(); };
+  mask.addEventListener('click', function (e) { if (e.target === mask) { mask.remove(); if (onCancel) onCancel(); } });
 };

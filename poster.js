@@ -46,6 +46,30 @@ window.FootprintPoster = (function () {
       flash('足迹海报已生成');
     }
   }
+  /* 全屏预览弹层：生成后先预览，点「保存」才保存（避免点击无反馈） */
+  function previewPoster(title, dataUrl) {
+    var old = document.getElementById('posterPreview');
+    if (old) old.remove();
+    var mask = document.createElement('div');
+    mask.id = 'posterPreview';
+    mask.style.cssText = 'position:fixed;inset:0;z-index:9900;background:rgba(20,19,15,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px';
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    img.style.cssText = 'max-width:100%;max-height:66vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)';
+    var bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;gap:12px;margin-top:18px';
+    var save = document.createElement('button');
+    save.textContent = '保存到手机';
+    save.style.cssText = 'min-height:46px;padding:0 26px;border:0;border-radius:999px;background:#C86D4B;color:#fff;font-size:14px;cursor:pointer';
+    var close = document.createElement('button');
+    close.textContent = '关闭';
+    close.style.cssText = 'min-height:46px;padding:0 26px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:transparent;color:#fff;font-size:14px;cursor:pointer';
+    save.onclick = function () { try { savePng(title, dataUrl); } catch (e) { flash('保存失败，请重试'); } };
+    close.onclick = function () { mask.remove(); };
+    bar.appendChild(save); bar.appendChild(close);
+    mask.appendChild(img); mask.appendChild(bar);
+    document.body.appendChild(mask);
+  }
   var THEMES = {
     ink: { bg: ['#2E3B42', '#20201D', '#14130F'], deco: 'rgba(200,109,75,.07)', title: '#FAF8F3', sub: '#C8C0B2', grid: 'rgba(250,248,243,.05)', track: 'rgba(200,109,75,.85)', dotFill: 'rgba(250,248,243,.95)', dotStroke: '#C86D4B', statBg: 'rgba(250,248,243,.06)', statV: '#FAF8F3', statK: '#C8C0B2', badgeBg: 'rgba(200,109,75,.16)', badgeT: '#E8B49A', foot: '#8F8A80' },
     carto: { bg: ['#F7F2E7', '#EFE7D4', '#E7DCC4'], deco: 'rgba(169,86,59,.08)', title: '#26241F', sub: '#8C7B66', grid: 'rgba(169,86,59,.12)', track: 'rgba(169,86,59,.9)', dotFill: '#FFFDF8', dotStroke: '#A9563B', statBg: 'rgba(169,86,59,.07)', statV: '#26241F', statK: '#8C7B66', badgeBg: 'rgba(169,86,59,.12)', badgeT: '#A9563B', foot: '#8C7B66' }
@@ -221,7 +245,8 @@ window.FootprintPoster = (function () {
 
     var dataUrl = cv.toDataURL('image/png');
     var styleName = { carto: '制图', paper: '纸感' }[themeName] || '';
-    savePng((landscape ? '足迹海报横版 ' : '足迹海报' + (styleName ? '·' + styleName + ' ' : ' ')) + year, dataUrl);
+    var title = (landscape ? '足迹海报横版 ' : '足迹海报' + (styleName ? '·' + styleName + ' ' : ' ')) + year;
+    previewPoster(title, dataUrl);
   }
   return { generate: generate };
 })();

@@ -678,7 +678,10 @@ function stopPlay(){
 }
 
 window.__tnAnywhere=function(){
-  const open=p=>TravelNotes.openPanel({label:'当前位置（GPS）',lat:p.lat,lng:p.lng});
+  const open=p=>{
+    /* 定位成功后：高德逆地理给出地点，多地点供选择（无 Key/失败回退当前位置） */
+    __tnPickPlace(p.lat,p.lng,function(pick){TravelNotes.openPanel({label:pick.label,lat:pick.lat,lng:pick.lng});},function(){});
+  };
   const tip=msg=>{
     const d=document.createElement('div');
     d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(168,50,42,.95);color:#fff;padding:11px 20px;border-radius:4px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';

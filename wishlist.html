@@ -125,7 +125,18 @@
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);
   }
-  /* 行程计划地图：每日同色标记 + 路线连线 */
+  /* 真实导航线路：OSRM 免费路由（无需 Key，返回道路折线）；失败回退直线 */
+  var OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var routeGen = 0;
+  function fetchRoute(a, b, cb) {
+    var url = OSRM + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + '?overview=full&geometries=geojson';
+    fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.code === 'Ok' && j.routes && j.routes[0]) {
+        cb(j.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; }));
+      } else cb(null);
+    }).catch(function () { cb(null); });
+  }
+  /* 行程计划地图：每日同色标记 + 路线连线（真实道路线渐进替换直线） */
   function renderPlanMap() {
     var days = window.__planDays || [];
     if (!days.length) return;
@@ -137,24 +148,54 @@
     planLayer.clearLayers();
     mapOn = true;
     document.getElementById('wlMapBtn').textContent = '列表';
+    routeGen++;
+    var gen = routeGen;
     var bnd = [];
+    var segments = [];
     days.forEach(function (d, di) {
+      var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : null;
       var col = DAY_COLORS[di % DAY_COLORS.length];
-      var pts = [];
+      var seq = [];
+      if (prevEnd) seq.push({ s: prevEnd, dash: '4 6', col: col });
+      d.forEach(function (s) { seq.push({ s: s, dash: null, col: col }); });
+      seq.forEach(function (it, i) {
+        if (i === 0) return;
+        var a = [seq[i - 1].s.lat, seq[i - 1].s.lng];
+        var b = [it.s.lat, it.s.lng];
+        if (a[0] == null || b[0] == null) return;
+        bnd.push(a, b);
+        /* 先画直线即时反馈，随后逐个替换为真实道路线 */
+        var line = L.polyline([a, b], { color: it.col, weight: 4, opacity: .85, dashArray: it.dash, lineCap: 'round' }).addTo(planLayer);
+        segments.push({ a: a, b: b, line: line, dash: it.dash, col: it.col });
+      });
       d.forEach(function (s, i) {
         if (s.lat == null) return;
+        var num = s.isStart ? '起' : (i - (d[0] && d[0].isStart ? 1 : 0));
         var m = L.marker([s.lat, s.lng], {
-          icon: L.divIcon({ className: '', html: '<div style="position:relative;width:28px;height:28px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:10px;background:' + col + ';color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + (i + 1) + '</span></div>', iconSize: [28, 28], iconAnchor: [14, 14] })
+          icon: L.divIcon({ className: '', html: '<div style="position:relative;width:28px;height:28px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:10px;background:' + col + ';color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + num + '</span></div>', iconSize: [28, 28], iconAnchor: [14, 14] })
         });
         m.bindPopup('<b>D' + (di + 1) + ' · ' + esc(s.label) + '</b><br>' + esc(s.region || ''));
         planLayer.addLayer(m);
-        pts.push([s.lat, s.lng]);
-        bnd.push([s.lat, s.lng]);
       });
-      if (pts.length > 1) planLayer.addLayer(L.polyline(pts, { color: col, weight: 3, opacity: .85 }));
     });
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);
+    /* 渐进替换：串行请求真实路线（并发 1，避免限流；重新规划后丢弃旧回调） */
+    var idx = 0;
+    function nextRoute() {
+      if (gen !== routeGen) return;
+      if (idx >= segments.length) return;
+      var seg = segments[idx++];
+      fetchRoute(seg.a, seg.b, function (coords) {
+        if (gen !== routeGen) return;
+        if (coords && coords.length > 1) {
+          try { planLayer.removeLayer(seg.line); } catch (e) {}
+          L.polyline(coords, { color: seg.col, weight: 4, opacity: .9, dashArray: seg.dash, lineCap: 'round' }).addTo(planLayer);
+        }
+        nextRoute();
+      });
+    }
+    nextRoute();
   }
 
   /* ---------- 跨专题行程规划（贪心：每天 ≤6 站、单日 ≤260km）---------- */
@@ -181,7 +222,11 @@
       }
       var next = pts.splice(idx, 1)[0];
       if (!cur) { cur = next; days.push([next]); dayDist = 0; continue; }
-      if (days[days.length - 1].length >= maxPerDay || dayDist + bestD > maxKm) { days.push([next]); dayDist = 0; }
+      if (days[days.length - 1].length >= maxPerDay || dayDist + bestD > maxKm) {
+        /* 开新天：以上一天结束地点作为本天起点站（isStart），保证多天导航衔接 */
+        var start = { label: cur.label, lat: cur.lat, lng: cur.lng, region: cur.region, theme: cur.theme, isStart: true };
+        days.push([start, next]); dayDist = 0;
+      }
       else { days[days.length - 1].push(next); dayDist += bestD; }
       cur = next;
     }
@@ -203,30 +248,33 @@
     var html = '<div style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px">' +
       '<div style="font-family:var(--font-serif);font-size:17px;margin-bottom:4px">行程计划 · ' + days.length + ' 天 / ' + total + ' 站 · 约 ' + Math.round(totalKm) + ' km</div>' +
       '<div style="font-size:12px;color:var(--color-muted);margin-bottom:10px">按地理邻近自动分日，跨天从上一天终点继续；每天可一键导航，可上下调整顺序</div>' +
-      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:12.5px">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;font-size:12.5px">' +
       '<span style="color:var(--color-muted)">每天</span><input id="planStations" type="number" min="1" max="12" value="6" style="width:52px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
       '<span style="color:var(--color-muted)">站 · ≤</span><input id="planKm" type="number" min="30" max="800" step="10" value="260" style="width:64px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
       '<span style="color:var(--color-muted)">km/天</span>' +
-      '<button class="wl-btn" style="margin-left:auto" onclick="replan()">重新规划</button></div>';
+      '<button class="wl-btn" style="margin-left:auto;flex:0 0 auto;white-space:nowrap" onclick="replan()">重新规划</button></div>';
     days.forEach(function (d, di) {
       var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : null;
       var km = dayKm(d, prevEnd);
+      var visitN = d.length - (d[0] && d[0].isStart ? 1 : 0);
       html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px;display:flex;align-items:center;gap:8px">' +
         '<b style="font-family:var(--font-serif);font-weight:400;color:' + DAY_COLORS[di % DAY_COLORS.length] + '">D' + (di + 1) + '</b>' +
-        '<span style="font-size:11.5px;color:var(--color-muted);flex:1">' + d.length + ' 站 · 约 ' + Math.round(km) + ' km' + (prevEnd ? '（含衔接段）' : '') + '</span>' +
+        '<span style="font-size:11.5px;color:var(--color-muted);flex:1">' + visitN + ' 站 · 约 ' + Math.round(km) + ' km' + (prevEnd ? '（含衔接段）' : '') + '</span>' +
         '<button class="wl-btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="navDay(' + di + ')">🚗 导航</button></div>';
       d.forEach(function (s, i) {
-        var from = i === 0 ? prevEnd : d[i - 1];
+        var isStart = s.isStart;
+        var from = i > 0 ? d[i - 1] : null;
         var seg = from ? Math.round(havKm(from.lat, from.lng, s.lat, s.lng)) : null;
-        if (i === 0 && prevEnd) {
-          /* 跨天衔接：起点行 = 上一天终点（本天从此出发） */
+        if (isStart) {
+          /* 跨天起点站：上一天终点，本天从此出发（不可移动） */
           html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
             '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">起</span>' +
-            '<span style="flex:1;min-width:0;font-size:0.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(prevEnd.label) + '（D' + di + ' 终点 · 本天出发地）</span>' +
+            '<span style="flex:1;min-width:0;font-size:0.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + '（D' + di + ' 终点 · 本天出发地）</span>' +
             '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">0km</span></div>';
+          return;
         }
         html += '<div style="display:flex;gap:8px;align-items:center;padding:5px 0">' +
-          '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i + 1) + '</span>' +
+          '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i - (d[0] && d[0].isStart ? 1 : 0)) + '</span>' +
           '<span style="flex:1;min-width:0;font-size:0.8438rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + '</span>' +
           '<span style="font-size:0.6875rem;color:var(--color-muted);flex:0 0 auto">' + esc(s.region || '') + '</span>' +
           (seg != null ? '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">' + seg + 'km</span>' : '') +
@@ -259,13 +307,13 @@
     var startP = prevEnd || d[0];
     var start = gcj(startP), dest = gcj(d[d.length - 1]);
     if (!start || !dest) { UI.toast('站点缺少坐标，无法导航'); return; }
-    var ways = (prevEnd ? d.slice(0, -1) : d.slice(1, -1)).map(gcj).filter(Boolean);
+    var ways = d.slice(1, -1).map(gcj).filter(Boolean);   /* 途经中间站（跳过起点站） */
     var sName = (prevEnd ? '昨日终点·' : '') + startP.label;
     var dName = d[d.length - 1].label;
     var deep = 'amapuri://route/plan/?sourceApplication=' + encodeURIComponent('行迹') +
       '&slat=' + start[1] + '&slon=' + start[0] + '&sname=' + encodeURIComponent(sName) +
       '&dlat=' + dest[1] + '&dlon=' + dest[0] + '&dname=' + encodeURIComponent(dName) + '&dev=0&t=0';
-    if (ways.length) deep += '&vian=' + ways.length + '&vialons=' + ways.map(function (w) { return w[0]; }).join('|') + '&vialats=' + ways.map(function (w) { return w[1]; }).join('|') + '&vianames=' + ways.map(function (w) { return ''; }).join('|');
+    if (ways.length) deep += '&vian=' + ways.length + '&vialons=' + ways.map(function (w) { return w[0]; }).join('|') + '&vialats=' + ways.map(function (w) { return w[1]; }).join('|');
     var web = 'https://uri.amap.com/navigation?from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(sName) +
       '&to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(dName) + '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
     if (ways.length) web += '&waypoints=' + ways.map(function (w) { return w[0] + ',' + w[1]; }).join(';');
@@ -273,10 +321,11 @@
     var t0 = Date.now(); window.location.href = deep;
     setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
   };
-  /* 调整站序：dir=-1 上移、1 下移；边界时自动跨天 */
+  /* 调整站序：dir=-1 上移、1 下移；边界时自动跨天。起点站锁定；跨天后同步衔接（后一天起点=前一天终点） */
   window.movePlanSite = function (di, si, dir) {
     var days = window.__planDays; if (!days || !days[di]) return;
     var d = days[di];
+    if (d[si] && d[si].isStart) return;   /* 起点站不可移动 */
     var to = si + dir;
     if (to >= 0 && to < d.length) {
       var t = d[si]; d[si] = d[to]; d[to] = t;
@@ -285,11 +334,36 @@
     } else if (dir > 0 && di < days.length - 1) {
       days[di + 1].unshift(d.splice(si, 1)[0]);
     } else { return; }
+    /* 同步起点站：保证「后一天起点 = 前一天终点」始终成立 */
+    days.forEach(function (dd, ddi) {
+      if (ddi === 0 || !(dd[0] && dd[0].isStart)) return;
+      var pe = days[ddi - 1][days[ddi - 1].length - 1];
+      if (pe) { dd[0].label = pe.label; dd[0].lat = pe.lat; dd[0].lng = pe.lng; dd[0].region = pe.region; }
+    });
     window.__planDays = days.filter(function (x) { return x.length; });
     renderPlan(window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; }).length);
   };
+  /* 面板内提示条（在计划面板顶部显示导出结果，必定可见） */
+  function planMsg(msg, ok) {
+    var bar = document.getElementById('planMsg');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'planMsg';
+      bar.style.cssText = 'margin:8px 0 4px;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.6;text-align:center';
+      var plan = document.getElementById('wlPlan');
+      if (plan) plan.insertBefore(bar, plan.firstChild);
+    }
+    bar.style.background = ok === false ? 'rgba(180,84,58,.12)' : 'rgba(113,128,108,.14)';
+    bar.style.color = ok === false ? '#B4543A' : '#5F7A4E';
+    bar.textContent = msg;
+    bar.style.display = 'block';
+    clearTimeout(planMsg._t);
+    planMsg._t = setTimeout(function () { bar.style.display = 'none'; }, 6000);
+  }
   window.__exportPlan = function () {
-    var days = window.__planDays; if (!days || !days.length) { flash('请先规划行程'); return; }
+    var days = window.__planDays; if (!days || !days.length) { planMsg('请先规划行程', false); flash('请先规划行程'); return; }
+    planMsg('正在导出 GPX…');
+    flash('正在导出 GPX…');
     var pts = [];
     days.forEach(function (d) { d.forEach(function (s) { pts.push(s); }); });
     var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
@@ -297,20 +371,20 @@
       '<metadata><name>行迹行程计划</name><time>' + new Date().toISOString() + '</time></metadata><trk><name>行程计划</name><trkseg>' +
       pts.map(function (s) { return '<trkpt lat="' + s.lat + '" lon="' + s.lng + '"><name>' + s.label + '</name></trkpt>'; }).join('') +
       '</trkseg></trk>';
-    days.forEach(function (d, di) { d.forEach(function (s) { gpx += '<wpt lat="' + s.lat + '" lon="' + s.lng + '"><name>D' + (di + 1) + ' ' + s.label + '</name></wpt>'; }); });
+    days.forEach(function (d, di) { d.forEach(function (s) { gpx += '<wpt lat="' + s.lat + '" lon="' + s.lng + '"><name>D' + (di + 1) + (s.isStart ? ' 起点' : '') + ' ' + s.label + '</name></wpt>'; }); });
     gpx += '</gpx>';
     var fname = '行迹行程计划_' + new Date().toISOString().slice(0, 10) + '.gpx';
     /* App 壳：保存到系统下载目录（MediaStore，免权限）；回调确认保存结果 */
     if (window.AndroidVoice && AndroidVoice.saveTextFile) {
       try {
         window.__tnSaveDone = function (st) {
-          if (st === 'need_perm') flash('需要存储权限，请在系统设置中允许后重试');
-          else flash('GPX 已保存到下载目录 ✓');
+          if (st === 'need_perm') { planMsg('需要存储权限，请在系统设置中允许后重试', false); flash('需要存储权限'); }
+          else { planMsg('已保存到下载目录：' + fname + ' ✓'); flash('GPX 已保存到下载目录 ✓'); }
         };
         AndroidVoice.saveTextFile(fname, gpx);
-        setTimeout(function () { flash('GPX 已保存到下载目录 ✓'); }, 1500);
+        setTimeout(function () { planMsg('已保存到下载目录：' + fname + ' ✓'); flash('GPX 已保存到下载目录 ✓'); }, 1500);
         return;
-      } catch (e) { flash('导出失败，请重试'); return; }
+      } catch (e) { planMsg('导出失败，请重试', false); flash('导出失败，请重试'); return; }
     }
     try {
       var blob = new Blob([gpx], { type: 'application/gpx+xml' });
@@ -318,8 +392,9 @@
       a.href = URL.createObjectURL(blob);
       a.download = fname;
       document.body.appendChild(a); a.click(); a.remove();
+      planMsg('GPX 已导出：' + fname + ' ✓');
       flash('GPX 已导出 ✓');
-    } catch (e) { flash('导出失败，请用其他方式'); }
+    } catch (e) { planMsg('导出失败，请用其他方式', false); flash('导出失败，请用其他方式'); }
   };
 
   /* 按钮绑定 */

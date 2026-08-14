@@ -73,24 +73,15 @@ function ok(name, cond, extra) { console.log((cond ? 'PASS' : 'FAIL') + '  ' + n
   });
   ok('D2+ 独立起点行（上一天终点为出发地）', hasStartRow, '');
 
-  // 5. 跨天衔接正确性：D2 首站 == D1 末站（navDay 起点逻辑）
+  // 5. 跨天衔接正确性：D2 首站（起点站）== D1 末站，衔接 0km（起点即上一天终点）
   const link = await page.evaluate(() => {
     const days = window.__planDays || [];
     if (days.length < 2) return null;
     const lastOfD1 = days[0][days[0].length - 1];
     const firstOfD2 = days[1][0];
-    return { d1End: lastOfD1.label, d2Start: firstOfD2.label, same: lastOfD1.label === firstOfD2.label };
+    return { d1End: lastOfD1.label, d2Start: firstOfD2.label, same: lastOfD1.label === firstOfD2.label, isStart: !!(firstOfD2 && firstOfD2.isStart) };
   });
-  // 贪心算法下 D2 首站是离 D1 末站最近点，不一定是同一点；但衔接段里程应计入 D2
-  const segKm = await page.evaluate(() => {
-    const days = window.__planDays || [];
-    if (days.length < 2) return null;
-    const d1End = days[0][days[0].length - 1], d2Start = days[1][0];
-    const hav = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lng - a.lng) * r; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.min(1, Math.sqrt(x))); };
-    return Math.round(hav(d1End, d2Start));
-  });
-  ok('规划存在跨天衔接（D2 起点显示自 D1 终点）', link && link.hasLink !== false, JSON.stringify(link));
-  if (link) ok('D2 首站衔接里程已计入', segKm > 0, '衔接段 ' + segKm + 'km');
+  ok('跨天起点站 = 上一天终点（导航衔接）', link && link.same && link.isStart, JSON.stringify(link));
 
   const real = errs.filter(e => !/Failed to load resource|net::|ERR_|manifest/.test(e));
   ok('无脚本错误', real.length === 0, real[0] || '');

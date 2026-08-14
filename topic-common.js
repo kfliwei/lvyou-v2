@@ -204,7 +204,10 @@
   }
   window.__tnSpot = function (lat, lng) { window.TravelNotes.openPanel({ label: '途经点', lat: lat, lng: lng }); };
   window.__tnAnywhere = function () {
-    var open = function (p) { window.TravelNotes.openPanel({ label: '当前位置（GPS）', lat: p.lat, lng: p.lng }); };
+    var open = function (p) {
+      /* 定位成功后：高德逆地理给出地点，多地点供选择（无 Key/失败回退当前位置） */
+      __tnPickPlace(p.lat, p.lng, function (pick) { window.TravelNotes.openPanel({ label: pick.label, lat: pick.lat, lng: pick.lng }); }, function () {});
+    };
     var tip = function (msg) {
       var d = document.createElement('div');
       d.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(31,122,90,.95);color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';

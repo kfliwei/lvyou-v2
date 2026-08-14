@@ -67,6 +67,10 @@
   .hero__cta{position:relative;z-index:2;margin-top:28px;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;cursor:pointer;padding:8px 0}
   .hero__cta::after{content:"";position:absolute;left:0;bottom:2px;height:1.5px;width:100%;background:var(--color-ink);transform-origin:left;transition:transform var(--duration-normal) var(--ease-standard)}
   .hero__cta:hover::after{transform:scaleX(1.3)}
+  /* 随手记：与「探索地图」并列的文字入口（非按钮形态，印章点缀） */
+  .hero-note{cursor:pointer;color:var(--color-muted);font-size:14px;letter-spacing:.08em;display:inline-flex;align-items:center;gap:7px;padding:8px 0;transition:color .25s}
+  .hero-note:active{color:var(--color-primary)}
+  .hero-note__seal{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid var(--color-primary);border-radius:6px;color:var(--color-primary);font-family:var(--font-serif);font-size:12px;line-height:1;flex:0 0 auto}
   .hero__cta .arr{transition:transform var(--duration-normal) var(--ease-standard)}
   .hero__cta:hover .arr{transform:translateX(4px)}
 
@@ -170,8 +174,11 @@
       <input id="homeSearch" type="search" placeholder="搜索全部景点（7782 处）" autocomplete="off" readonly onfocus="goFullSearch()">
     </div>
 
-    <div class="hero__cta fade-up" style="animation-delay:360ms" onclick="location.href='explore-map.html'">
-      探索地图 <span class="arr">→</span>
+    <div class="hero__cta fade-up" style="animation-delay:360ms;gap:30px">
+      <span onclick="location.href='explore-map.html'" role="button" tabindex="0" style="cursor:pointer">探索地图 <span class="arr">→</span></span>
+      <span class="hero-note" onclick="__tnAnywhere()" role="button" tabindex="0" aria-label="随手记语音记录">
+        <span class="hero-note__seal">记</span> 随手记
+      </span>
     </div>
   </section>
 
@@ -391,9 +398,28 @@
     document.getElementById('dotEnd').setAttribute('cx', X(e[1]).toFixed(1)); document.getElementById('dotEnd').setAttribute('cy', Y(e[0]).toFixed(1));
     document.getElementById('dotMid').setAttribute('cx', X(pts[Math.floor(pts.length / 2)][1]).toFixed(1)); document.getElementById('dotMid').setAttribute('cy', Y(pts[Math.floor(pts.length / 2)][0]).toFixed(1));
   }
+  /* 桌面长按快捷菜单入口：anywhere=随手记 / explore=去探索 */
+  window.__tnShortcut = function (a) {
+    try {
+      if (a === 'anywhere') { window.__tnAnywhere(); }
+      else if (a === 'explore') { location.href = 'explore-map.html'; }
+    } catch (e) {}
+  };
+  (function () {
+    try {
+      var sc = new URLSearchParams(location.search).get('shortcut');
+      if (sc && window.__tnShortcut) setTimeout(function () { window.__tnShortcut(sc); }, 600);
+    } catch (e) {}
+  })();
   window.__tnAnywhere = function () {
     if (__tnAnywhere._busy) return; __tnAnywhere._busy = true;
-    var open = function (p) { __tnAnywhere._busy = false; TravelNotes.openPanel({ label: '当前位置（GPS）', lat: p.lat, lng: p.lng }); };
+    var open = function (p) {
+      /* 定位成功后：高德逆地理给出地点，多地点供选择（无 Key/失败回退当前位置） */
+      __tnPickPlace(p.lat, p.lng, function (pick) {
+        __tnAnywhere._busy = false;
+        TravelNotes.openPanel({ label: pick.label, lat: pick.lat, lng: pick.lng });
+      }, function () { __tnAnywhere._busy = false; });
+    };
     var tip = function (msg) {
       __tnAnywhere._busy = false;
       var d = document.createElement('div');
