@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE · 普通用户视角体验推演（2026-08-14）</title>
+<style>
+:root{
+  --bg:#F7F5EF; --surface:#FFFFFF; --ink:#20201D; --ink-soft:#4C4A45; --muted:#7D7970; --faint:#AAA59B;
+  --line:rgba(32,32,29,.10); --primary:#C86D4B; --primary-dark:#A9563B; --primary-soft:rgba(200,109,75,.10);
+  --green:#71806C; --blue:#6D7D88; --red:#B4543A; --amber:#8A6D3B;
+  --serif:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  --sans:"PingFang SC","HarmonyOS Sans","Noto Sans SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:15px}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 28px 80px}
+.hero{padding:46px 0 34px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted);text-transform:uppercase}
+.hero h1{font-family:var(--serif);font-weight:400;font-size:32px;margin-top:10px;line-height:1.3}
+.hero .sub{color:var(--muted);margin-top:10px;font-size:14px}
+.hero .meta{margin-top:16px;font-size:12.5px;color:var(--faint)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:28px 0}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.metric .v{font-family:var(--serif);font-size:28px;color:var(--primary-dark)}
+.metric .k{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.06em}
+h2{font-family:var(--serif);font-weight:400;font-size:23px;margin:48px 0 6px}
+h2 .no{color:var(--primary);font-size:13px;letter-spacing:.2em}
+.lead{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;margin:14px 0;background:var(--surface);border-radius:14px;overflow:hidden;font-size:13.5px}
+th{background:#F0EDE5;text-align:left;padding:10px 14px;font-weight:600;font-size:12.5px;color:var(--ink-soft)}
+td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+td b{font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+.pill.red{background:#FBE9E3;color:var(--red)} .pill.amber{background:#F3EFE4;color:var(--amber)}
+.pill.green{background:#ECEFEA;color:var(--green)} .pill.blue{background:#EDF0F2;color:var(--blue)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card h4{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card .tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;margin-bottom:10px;letter-spacing:.06em}
+.tag.good{background:#ECEFEA;color:var(--green)} .tag.bad{background:#FBE9E3;color:var(--red)}
+.tag.mid{background:#F3EFE4;color:var(--amber)}
+.tl{border-left:2px solid #E0D9CC;margin:20px 0 10px 8px;padding-left:22px}
+.tl-item{position:relative;margin-bottom:26px}
+.tl-item::before{content:"";position:absolute;left:-29px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2.5px solid var(--primary)}
+.tl-item .ph{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.tl-item h4{font-family:var(--serif);font-size:17px;font-weight:600;margin:2px 0 6px}
+.tl-item p{font-size:13.5px;color:var(--ink-soft)}
+.tl-item .block{font-size:12.5px;margin-top:6px;padding:8px 12px;border-radius:10px}
+.tl-item .block.ok{background:#ECEFEA;color:var(--green)}
+.tl-item .block.warn{background:#FBE9E3;color:var(--red)}
+.note{background:var(--primary-soft);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--primary-dark);margin:16px 0}
+.score-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.score-row .name{width:120px;font-size:13px;color:var(--ink-soft);flex:none}
+.score-row .bar{flex:1;height:8px;background:#E6E1D7;border-radius:99px;overflow:hidden}
+.score-row .fill{height:100%;border-radius:99px;background:var(--primary)}
+.score-row .val{width:44px;font-size:13px;color:var(--primary-dark);font-weight:600}
+.footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">User-Perspective Walkthrough · 普通用户视角</div>
+  <h1>行迹 TRACE · 普通用户视角功能与体验推演</h1>
+  <div class="sub">不预设"会用工具的人"——以只会用微信/地图导航的普通游客身份，走一遍完整使用旅程，推演实用性、可用性、可操作性与 UI/UX 友好性</div>
+  <div class="meta">评估基准：lvyou-v2 master @ 0772fac（2026-08-14 拉取）｜与 8/13 专家评审（架构/IA/功能建议）互补，视角不同：专家看结构，本篇看"用户能不能用起来"</div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="v">7.2</div><div class="k">实用性 · 用户真需要吗</div></div>
+  <div class="metric"><div class="v">6.8</div><div class="k">可用性 · 用得起吗</div></div>
+  <div class="metric"><div class="v">7.0</div><div class="k">可操作性 · 操作得动吗</div></div>
+  <div class="metric"><div class="v">8.5</div><div class="k">UI/UX 友好性</div></div>
+</div>
+
+<h2><span class="no">01</span> 一句话结论</h2>
+<p class="lead">这是一款"内容与审美远超平均、但把用户当成了开发者"的产品：3362+ 节点、7782 索引、心愿单闭环、足迹海报都做得扎实；然而<b>录音核心功能网页版不可用、AI 功能要用户自备 API Key、设置页一半是开发黑话</b>——普通用户会在"记录"这一步流失。给普通用户打分，比专家评审低 1~1.5 分，差距全在"门槛"上。</p>
+
+<h2><span class="no">02</span> 四维评估总览</h2>
+<div class="score-row"><div class="name">实用性</div><div class="bar"><div class="fill" style="width:72%"></div></div><div class="val">7.2</div></div>
+<div class="score-row"><div class="name">可用性</div><div class="bar"><div class="fill" style="width:68%"></div></div><div class="val">6.8</div></div>
+<div class="score-row"><div class="name">可操作性</div><div class="bar"><div class="fill" style="width:70%"></div></div><div class="val">7.0</div></div>
+<div class="score-row"><div class="name">UI/UX 友好性</div><div class="bar"><div class="fill" style="width:85%"></div></div><div class="val">8.5</div></div>
+
+<table>
+<tr><th>维度</th><th>得分</th><th>核心判断</th></tr>
+<tr><td><b>实用性</b></td><td><span class="pill green">7.2</span></td><td>景点库覆盖（34 省 / 7782 条）与「想去→打卡→记录→回顾→分享」闭环真实有用；但 AI 润色/讲解被 Key 门槛锁死，GPX 导出、Obsidian 导出、节点管理对普通用户是"用不上的功能"</td></tr>
+<tr><td><b>可用性</b></td><td><span class="pill amber">6.8</span></td><td>语音记录分环境可用：APK 完整（讯飞引擎+音频留存），网页版 https 部署有 Web Speech 转写降级（文字保存正常，音频留存暂缺）；本地 file:// 打开不可用。搜索双轨、入口分散进一步拉低上手率</td></tr>
+<tr><td><b>可操作性</b></td><td><span class="pill amber">7.0</span></td><td>主链路（浏览→收藏→打卡→记录→回顾）操作路径短、反馈好；但行程规划导出 GPX、离线地图、数据备份等次级链路术语黑话化，普通用户到不了终点</td></tr>
+<tr><td><b>UI/UX 友好性</b></td><td><span class="pill green">8.5</span></td><td>米白纸感+陶土橙+宋体+印章的视觉体系完成度高，触控规范（44px/76px 导航）、空状态引导、深色模式、三态反馈齐全；短板是首页首屏密度与 emoji/图标混用</td></tr>
+</table>
+
+<h2><span class="no">03</span> 用户旅程推演：7 个真实场景</h2>
+<p class="lead">以下按普通用户真实行为走一遍，标注每步"能不能走通、卡在哪"。</p>
+
+<div class="tl">
+  <div class="tl-item">
+    <div class="ph">Step 1 · 发现</div>
+    <h4>打开 App，找地方玩</h4>
+    <p>首屏是品牌 hero + 大标题"今天，去哪里？" + 搜索框 + 时令推荐 + 8 个专题故事。专题故事化包装（红军长征/青藏风光/山西古建）有情感吸引力。</p>
+    <div class="block warn">⚠ 卡点：首屏一半是品牌美学，功能入口在折叠线下；新用户要滚动 2~3 屏才见到「最近的旅行」和专题列表。首页搜索只搜"我的游记 + 专题"，全库搜索藏在面板里一个小链接——用户输"九寨沟"若自己的游记里没有，会以为产品没这个景点。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 2 · 规划</div>
+    <h4>把想去的地方存起来</h4>
+    <p>专题地图/全国地图点开景点详情 → 点「♡ 想去」→ 进心愿单。心愿单支持列表/地图双视图、跨省行程规划（按地理邻近自动分日、可调每天站数与公里上限）、一键导出 GPX。</p>
+    <div class="block ok">✓ 走通：收藏入口在三个决策点都有（详情/首页/探索页），空状态有引导文案，闭环完整。</div>
+    <div class="block warn">⚠ 卡点："导出 GPX"——普通用户不知道 GPX 是什么、导出给谁用（这是户外导航软件的格式，普通游客用不上）；规划结果只有文字列表，没有路线地图预览，用户无法直观判断"这计划顺不顺路"。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 3 · 到达</div>
+    <h4>到了现场，打开看看</h4>
+    <p>景点详情支持听讲解、高德导航衔接、离线地图（下载后断网可用，全国概览约 25MB）。</p>
+    <div class="block warn">⚠ 卡点：讲解依赖 AI（需 API Key，无 Key 时行为不明确）；离线地图入口埋在设置页最底部，普通用户不会主动去下载，旅行途中才想起时往往已无网。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 4 · 记录 ⭐ 最大卡点</div>
+    <h4>"到了，说两句"——产品的主卖点</h4>
+    <p>首页底部「🎙 随手记」、详情页「语音记录」、心愿单「打卡后记录」，三条路径都通向语音游记。识别后可用 AI「整理一下」润色成文。</p>
+    <div class="block ok">✓ 有降级：网页版 https 部署时走 Web Speech API（SpeechRecognition），实时转写、可编辑、文字随游记保存——不是完全不可用。</div>
+    <div class="block warn">⚠ 剩余卡点：① 网页版无音频留存（录音文件回放依赖 APK 壳内引擎回调，浏览器环境拿不到音频流）；本地 file:// 打开时 Web Speech 不可用，会提示装 App；② AI 整理/讲解需要用户自备 DeepSeek API Key，普通用户不知道 sk- 是什么、去哪申请、要充值，无 Key 时按钮行为无引导。</div>
+    <div class="block warn">⚠ 诊断文案误导：设置页语音诊断写「网页版不支持录音」，与代码实际能力（Web Speech 降级可用）不符，文案应改为「网页版仅支持浏览器语音转写，录音留存需 App」。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 5 · 回顾</div>
+    <h4>回家后，看看自己走过哪</h4>
+    <p>足迹地图（轨迹连线）、旅程叙事时间线（地图+卡片联动）、回顾页（月历热力、省份徽章、统计、AI 年度报告）。</p>
+    <div class="block ok">✓ 走通：这是情感峰值环节，成就徽章（31 省）、热力日历、时间线重走旅程，收集感和仪式感都到位。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 6 · 分享</div>
+    <h4>发朋友圈</h4>
+    <p>足迹海报三款：竖版 / 横版（微信友好）/ 制图风（Stamen 主题），另有 AI 年报。</p>
+    <div class="block ok">✓ 走通：横版 16:9 是刚需，制图风海报有差异化卖相。小卡点：入口叫「成果工坊」，普通用户不知道这词指什么（以为是成就兑换）。</div>
+  </div>
+  <div class="tl-item">
+    <div class="ph">Step 7 · 数据安全</div>
+    <h4>换手机了，我的游记呢？</h4>
+    <p>全部数据在本地（localStorage/IndexedDB），无账号无云同步；设置页有导出/导入备份、导出 Obsidian 库。</p>
+    <div class="block warn">⚠ 卡点：普通用户没有备份习惯，换机/清缓存=全部游记丢失；「导出 Obsidian 库」对不知道 Obsidian 的用户是纯黑话。数据安全底线缺失。</div>
+  </div>
+</div>
+
+<h2><span class="no">04</span> 实用性：真需求 vs 开发自嗨</h2>
+<div class="cards">
+  <div class="card"><span class="tag good">真需求 · 强</span><h4>全国景点库</h4><p>34 省数据、7782 条索引、必去/网红分级——旅行决策刚需，覆盖度远超同类个人项目。</p></div>
+  <div class="card"><span class="tag good">真需求 · 强</span><h4>心愿单打卡闭环</h4><p>想去→到达→打卡→记录，把"收藏"变成"去过"，情感链路完整。</p></div>
+  <div class="card"><span class="tag good">真需求 · 强</span><h4>足迹海报/年报</h4><p>分享是旅行产品的增长引擎，三款海报已就位。</p></div>
+  <div class="card"><span class="tag mid">需求真 · 门槛高</span><h4>语音记录 + AI 整理</h4><p>场景真实（旅途口述比打字自然），但网页版不可录音 + 需自备 Key，普通用户触达不到。</p></div>
+  <div class="card"><span class="tag mid">需求真 · 门槛高</span><h4>离线地图</h4><p>旅行刚需，但入口太深、下载时机无法提前教育，实际使用率会很低。</p></div>
+  <div class="card"><span class="tag bad">开发自嗨</span><h4>GPX 导出 / Obsidian 导出 / 节点管理</h4><p>面向户外玩家和笔记工具党的功能，普通游客不认识 GPX、Obsidian、节点。占用了设置页一半空间。</p></div>
+  <div class="card"><span class="tag bad">开发自嗨</span><h4>LOD 分层分级设置</h4><p>"展开速度/聚合密度/必去优先"对普通用户是不可理解的工程参数，误触会得到"地图为什么变少了"的困惑。</p></div>
+  <div class="card"><span class="tag mid">潜力 · 未闭环</span><h4>AI 讲解 / AI 生成节点介绍</h4><p>概念好，但同样被 Key 卡住；且讲解无进度条/语速控制，长内容体验粗糙。</p></div>
+</div>
+
+<h2><span class="no">05</span> 可用性与可操作性：问题清单</h2>
+<table>
+<tr><th>级别</th><th>问题</th><th>普通用户视角的影响</th><th>建议</th></tr>
+<tr><td><span class="pill amber">P1</span></td><td><b>语音能力分环境，且诊断文案误导</b></td><td>APK 完整；网页版 https 有 Web Speech 转写降级但无音频留存；file:// 不可用。设置页诊断文案「网页版不支持录音」与事实不符</td><td>补网页版音频留存（MediaRecorder 录制 + 本地存储）；诊断文案改为准确描述；file:// 不可用时按钮处直接引导装 App</td></tr>
+<tr><td><span class="pill red">P0</span></td><td><b>AI 功能强制自备 API Key</b></td><td>普通用户没有 Key 概念；无 Key 时"整理一下/讲解"不可用，且无引导</td><td>提供图文教程页（如何申请 Key）；无 Key 时功能置灰并说明；考虑内置免费额度模式</td></tr>
+<tr><td><span class="pill red">P1</span></td><td><b>数据无账号无云同步</b></td><td>换机/清缓存即全部丢失，普通用户无手动备份习惯</td><td>首次记录后弹"备份提醒"；一键导出文件；至少做 WebDAV/文件备份的傻瓜化</td></tr>
+<tr><td><span class="pill amber">P1</span></td><td><b>搜索双轨</b></td><td>首页搜索只覆盖游记+8 专题，用户搜"青海湖"没结果会误判产品内容少</td><td>首页搜索框聚焦即进全库搜索页（search.html），一套逻辑</td></tr>
+<tr><td><span class="pill amber">P1</span></td><td><b>设置页黑话过半</b></td><td>LOD/节点/Obsidian/GPX/示例数据，普通用户看不懂也不会用</td><td>"高级设置"分组收拢；每个黑话项加一行人话说明</td></tr>
+<tr><td><span class="pill amber">P2</span></td><td><b>离线地图入口太深</b></td><td>旅行场景才需要的功能，用户不会提前想到去设置里下载</td><td>首次启动引导或首页/足迹页加"离线地图"入口；下载后提示剩余空间</td></tr>
+<tr><td><span class="pill blue">P2</span></td><td><b>行程规划无地图预览</b></td><td>文字列表无法判断顺路与否，规划可信度低</td><td>规划结果叠加到地图（高德/OSM），展示每日路线</td></tr>
+<tr><td><span class="pill blue">P2</span></td><td><b>「成果工坊」「节点管理」命名</b></td><td>功能名非用户语言，发现率低</td><td>改名"海报与年报""我的地点"</td></tr>
+</table>
+
+<h2><span class="no">06</span> UI/UX 友好性：强项与短板</h2>
+<table>
+<tr><th>维度</th><th>评价</th></tr>
+<tr><td><b>视觉体系</b></td><td>米白纸感 + 陶土橙 + 宋体标题 + 印章元素，全站一致，情感浓度高——普通用户第一眼"高级感"过关</td></tr>
+<tr><td><b>触控规范</b></td><td>底部导航 76px、按钮 ≥44px、8pt 间距体系，符合移动端标准，误触率低</td></tr>
+<tr><td><b>空状态引导</b></td><td>"世界还很大。你的第一段旅程，还没有开始。" + 插画 + 入口按钮——文案有温度且给了下一步</td></tr>
+<tr><td><b>状态设计</b></td><td>骨架屏/加载失败/空态三态齐全；深色模式跨页覆盖完整</td></tr>
+<tr><td><b>首页首屏密度</b></td><td>品牌区占首屏过大，功能入口在折叠线以下；普通用户"不知道该点哪"</td></tr>
+<tr><td><b>图标一致性</b></td><td>导航已 SVG 线性化，但动作按钮仍有 emoji（🎙 随手记、🔍、⚠️ 错误态）与体系有落差</td></tr>
+<tr><td><b>动效转场</b></td><td>页面间无转场动画，切换生硬；卡片内部动画（fade-up/stagger/Sheet 弹性）倒是很足</td></tr>
+<tr><td><b>可访问性</b></td><td>focus-visible 已有，但部分图标按钮缺 aria-label；字号只有"标准/小字"两档，长辈场景不足</td></tr>
+</table>
+
+<h2><span class="no">07</span> 改进优先级（普通用户视角）</h2>
+<table>
+<tr><th>优先级</th><th>动作</th><th>预期收益</th></tr>
+<tr><td><span class="pill red">P0</span></td><td>AI Key 教程化/无 Key 置灰；录音补 MediaRecorder 音频留存 + 修正诊断文案</td><td>把"记录"主链路对普通用户打开，是流失率最高的环节</td></tr>
+<tr><td><span class="pill red">P0</span></td><td>数据备份傻瓜化（首次记录提醒 + 一键导出）</td><td>数据安全感是留存底线</td></tr>
+<tr><td><span class="pill amber">P1</span></td><td>搜索合一（首页聚焦即全库）</td><td>消除"内容少"的误判，搜索是内容产品第一入口</td></tr>
+<tr><td><span class="pill amber">P1</span></td><td>设置页"高级设置"收拢黑话项 + 人话说明</td><td>普通用户不再被吓退，开发者功能保留但隐身</td></tr>
+<tr><td><span class="pill amber">P1</span></td><td>离线地图入口前置 + 下载引导</td><td>把刚需功能送到用户手边</td></tr>
+<tr><td><span class="pill blue">P2</span></td><td>行程规划地图预览；海报/年报入口改名；字号三档</td><td>体验打磨，提升口碑细节</td></tr>
+</table>
+
+<div class="note">一句话总结：<b>产品内容与审美是 9 分级，但对普通用户的可达性只有 6.5 分</b>——语音和 AI 两大卖点都卡在"用户搞不定"的门槛上。先把 P0 两个门槛拆掉，普通用户评分能立刻拉到 8 分；其余是锦上添花。</div>
+
+<div class="footer">
+  行迹 TRACE · 普通用户视角体验推演（2026-08-14）｜基于 0772fac 源码核验：index / search / wishlist / me / settings / story / review / node-manager + 冒烟测试结果｜与 docs/ 下 8/13 专家评审配套阅读
+</div>
+</div>
+</body>
+</html>

@@ -139,6 +139,16 @@
 </style>
 <style>
   body{padding-bottom:112px}
+  /* 高级设置折叠组 */
+  details.adv{padding:0;overflow:hidden}
+  details.adv .adv-summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-serif);font-size:15px;color:var(--color-ink);padding:16px;user-select:none}
+  details.adv .adv-summary::-webkit-details-marker{display:none}
+  details.adv .adv-arr{color:var(--color-faint);font-size:12px;transition:transform .25s}
+  details.adv[open] .adv-arr{transform:rotate(180deg)}
+  details.adv .adv-body{border-top:1px solid var(--color-line);padding:16px}
+  details.adv .adv-item{margin-bottom:18px}
+  details.adv .adv-item:last-child{margin-bottom:0}
+  details.adv .adv-sub{font-size:0.7188rem;color:var(--color-muted);margin-top:6px;line-height:1.7;font-family:var(--font-sans)}
 </style>
 </head>
 <body>
@@ -197,31 +207,60 @@
       </div>
     </div>
 
-    <!-- 节点分层分级 -->
-    <div class="group">
-      <div class="group-title">地图 · 节点分级</div>
-      <div class="group-sub">控制专题地图的聚合展开行为（LOD 分层分级）</div>
-      <div style="margin-top:10px">
-        <div class="row-label">展开速度</div>
-        <div class="chips" id="chLodSpeed">
-          <button data-v="fast">快速展开</button>
-          <button data-v="std">标准</button>
-          <button data-v="slow">延迟聚合</button>
+    <!-- 高级设置（黑话收拢：节点分级 + 开发者/数据迁移项） -->
+    <details class="group adv" id="advGroup">
+      <summary class="adv-summary">
+        <span style="flex:1">高级设置</span>
+        <span style="font-size:11px;color:var(--color-muted);letter-spacing:.04em">地图调节与数据迁移</span>
+        <span class="adv-arr">▾</span>
+      </summary>
+      <div class="adv-body">
+        <div class="adv-item">
+          <div class="group-title">地图 · 节点分级</div>
+          <div class="group-sub">地图缩放时景点显示的疏密调节，一般用默认即可。</div>
+          <div style="margin-top:10px">
+            <div class="row-label">展开速度</div>
+            <div class="chips" id="chLodSpeed">
+              <button data-v="fast">快速展开</button>
+              <button data-v="std">标准</button>
+              <button data-v="slow">延迟聚合</button>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <div class="row-label">聚合密度</div>
+            <div class="chips" id="chLodCap">
+              <button data-v="dense">更密集</button>
+              <button data-v="std">标准</button>
+              <button data-v="sparse">更稀疏</button>
+            </div>
+          </div>
+          <div class="switchrow" style="margin-top:12px">
+            <div><div class="sw-label">必去优先显示</div><div class="sw-sub">中缩放只显示必去/重要节点，视野更清晰；关闭则全部显示</div></div>
+            <div class="sw" id="swLodMajor" onclick="toggle('swLodMajor','tn_lod_major')"></div>
+          </div>
+        </div>
+        <div class="adv-item">
+          <div class="row-label">管理 MD 库</div>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="location.href='md-manager.html'">管理 MD 库</button>
+          <div class="adv-sub">管理内置的景点讲解文稿（Markdown 格式），一般不用动。</div>
+        </div>
+        <div class="adv-item">
+          <div class="row-label">补全地点信息</div>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="backfillGeoBtn()">补全地点信息</button>
+          <div class="adv-sub">给早期没有位置信息的游记自动补上省市。</div>
+        </div>
+        <div class="adv-item">
+          <div class="row-label">导出 Obsidian 库</div>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="expVault()">导出 Obsidian 库</button>
+          <div class="adv-sub">导出成笔记文件，供 Obsidian 用户整理归档，普通用户可忽略。</div>
+        </div>
+        <div class="adv-item">
+          <div class="row-label">载入示例数据</div>
+          <a href="test-data.html" style="font-size:12.5px;color:var(--color-primary-dark);text-decoration:none">载入示例数据（演示用）→</a>
+          <div class="adv-sub">演示用，会添加一批示例游记，正式使用请勿点。</div>
         </div>
       </div>
-      <div style="margin-top:12px">
-        <div class="row-label">聚合密度</div>
-        <div class="chips" id="chLodCap">
-          <button data-v="dense">更密集</button>
-          <button data-v="std">标准</button>
-          <button data-v="sparse">更稀疏</button>
-        </div>
-      </div>
-      <div class="switchrow" style="margin-top:12px">
-        <div><div class="sw-label">必去优先显示</div><div class="sw-sub">中缩放只显示必去/重要节点，视野更清晰；关闭则全部显示</div></div>
-        <div class="sw" id="swLodMajor" onclick="toggle('swLodMajor','tn_lod_major')"></div>
-      </div>
-    </div>
+    </details>
 
     <!-- 阅读字号 -->
     <div class="group">
@@ -249,22 +288,17 @@
     <!-- 数据管理 -->
     <div class="group">
       <div class="group-title">数据管理</div>
-      <div class="group-sub">数据仅保存在本机，可导出备份带走。</div>
+      <div class="group-sub">数据仅保存在本机，建议定期导出备份。</div>
       <div class="data-acts">
         <button class="btn-secondary" onclick="expBackup()">导出备份</button>
         <button class="btn-secondary" onclick="impBackup()">导入备份</button>
-        <button class="btn-secondary" onclick="location.href='md-manager.html'">管理 MD 库</button>
-        <button class="btn-secondary" onclick="backfillGeoBtn()">补全地点信息</button>
-        <button class="btn-secondary" onclick="expVault()">导出 Obsidian 库</button>
         <button class="data-danger" onclick="clearAll()">清除全部数据</button>
       </div>
-      <div style="margin-top:14px;text-align:center">
-        <a href="test-data.html" style="font-size:12.5px;color:var(--color-primary-dark);text-decoration:none">载入示例数据（演示用）→</a>
-      </div>
+      <div style="margin-top:10px;font-size:0.7188rem;color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
     </div>
 
     <!-- 离线地图 -->
-    <div class="group">
+    <div class="group" id="offlineGroup">
       <div class="group-title">离线地图</div>
       <div class="group-sub">把地图瓦片存到本机，断网也能看（网页与 APK 内都生效）。</div>
       <div class="data-acts">
@@ -459,9 +493,22 @@
     toast('已切换深色模式');
   });
   loadSettings();
-  /* 离线地图 */
+  /* 离线地图：瓦片数 + 估算容量（每片约 25KB）+ 剩余空间 */
   function tilesSize() {
-    try { Tiles.size(function (n) { document.getElementById('dlInfo').textContent = n ? '已缓存 ' + n + ' 片瓦片' : '未下载离线地图'; }); }
+    try {
+      Tiles.size(function (n) {
+        var mb = n ? Math.round(n * 0.025 * 10) / 10 : 0;
+        var s = n ? '已缓存 ' + n + ' 片瓦片（约 ' + mb + ' MB）' : '未下载离线地图';
+        if (navigator.storage && navigator.storage.estimate) {
+          navigator.storage.estimate().then(function (est) {
+            var free = (est.quota - est.usage) / 1048576;
+            document.getElementById('dlInfo').textContent = s + ' · 本机剩余空间约 ' + Math.round(free) + ' MB';
+          }).catch(function () { document.getElementById('dlInfo').textContent = s; });
+        } else {
+          document.getElementById('dlInfo').textContent = s;
+        }
+      });
+    }
     catch (e) { document.getElementById('dlInfo').textContent = '需在 http(s) 环境下使用'; }
   }
   var dlBusy = false;
@@ -477,7 +524,7 @@
       bar.style.display = 'none';
       document.getElementById('dlNation').textContent = '下载全国概览（约 25MB）';
       dlBusy = false;
-      toast(cancelled ? '已取消' : '下载完成：' + ok + ' 片瓦片');
+      toast(cancelled ? '已取消' : '下载完成：' + ok + ' 片瓦片（约 ' + Math.round(ok * 0.025) + ' MB）');
       tilesSize();
     });
   };
@@ -495,6 +542,12 @@
     /* 提前注入 UI（CSS+弹窗/闪屏 DOM），保证导出备份/导入等弹窗样式可用 */
     try { TravelNotes.ensureUI(); } catch (e) {}
   }
+  /* 支持 #offline 锚点：首页「离线地图」入口直达本组 */
+  (function () {
+    if (location.hash !== '#offline') return;
+    var el = document.getElementById('offlineGroup');
+    if (el) setTimeout(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 350);
+  })();
 </script>
 
 <script>

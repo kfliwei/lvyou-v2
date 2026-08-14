@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：豫（生成：tools/gen-topic-covers.js） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F2EDE3"/>
+      <stop offset="1" stop-color="#E0D6C2"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 132 Q50 120.3 120 143.7 Q190 106.3 260 155.4 Q330 120.3 400 167.10000000000002 Q470 106.3 540 178.8 L540 300 L-20 300 Z" fill="#A9764E" opacity=".85"/>
+  <path d="M-20 132 Q50 120.3 120 143.7 Q190 106.3 260 155.4 Q330 120.3 400 167.10000000000002 Q470 106.3 540 178.8" stroke="#A9764E" stroke-width="1.6" fill="none" opacity=".5"/>
+  <!-- 主题元素 -->
+  <path d="M290 196 L290 118 L298 118 L298 196 Z" fill="#A9764E"/>
+<path d="M298 150 L306 150 L306 196 L298 196 Z" fill="#C9A05C"/>
+<path d="M282 196 L306 196" stroke="#A9764E" stroke-width="3"/>
+<path d="M350 196 L350 158 L358 158 L358 196 Z" fill="#8A5A44"/>
+<path d="M344 196 L364 196" stroke="#8A5A44" stroke-width="3"/>
+<path d="M260 200 Q320 172 400 198" stroke="#71806C" stroke-width="2.5" fill="none" opacity=".6"/>
+  <!-- 中景 -->
+  <path d="M-20 262 Q120 222 270 262 T540 254 L540 318 L-20 318 Z" fill="#A9764E" opacity=".9"/>
+  <!-- 近景 -->
+  <path d="M-20 318 Q160 278 270 318 T540 310 L540 374 L-20 374 Z" fill="#20201D" opacity=".9"/>
+  <!-- 印章 -->
+  <g transform="translate(96 214)"><rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+<text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">豫</text></g>
+</svg>

@@ -181,6 +181,9 @@
   var sk=''; for(var i=0;i<4;i++) sk+='<div class="skel"></div>';
   $sk.innerHTML=sk;
   $sk.style.display='';
+  /* 支持 ?q= 直达：从首页搜索框等入口带关键词跳转 */
+  var qp = new URLSearchParams(location.search).get('q');
+  if (qp) { $q.value = qp; state.q = qp; }
   loadData(function(){ render(); });
 })();
 </script>

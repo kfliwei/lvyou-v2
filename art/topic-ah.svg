@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="360" viewBox="0 0 520 360" fill="none">
+  <!-- 专题封面：皖（生成：tools/gen-topic-covers.js） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EFEDE4"/>
+      <stop offset="1" stop-color="#DAD5C4"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="url(#sky)"/>
+  <!-- 远山 -->
+  <path d="M-20 132 Q50 120.3 120 143.7 Q190 106.3 260 155.4 Q330 120.3 400 167.10000000000002 Q470 106.3 540 178.8 L540 300 L-20 300 Z" fill="#8A8F6C" opacity=".85"/>
+  <path d="M-20 132 Q50 120.3 120 143.7 Q190 106.3 260 155.4 Q330 120.3 400 167.10000000000002 Q470 106.3 540 178.8" stroke="#8A8F6C" stroke-width="1.6" fill="none" opacity=".5"/>
+  <!-- 主题元素 -->
+  <path d="M270 200 L300 130 L330 200 Z" fill="#8A8F6C"/>
+<path d="M300 130 Q300 96 320 84 Q318 110 330 130" fill="#5F7A4E"/>
+<path d="M310 118 Q330 100 348 108" stroke="#4C4A45" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<path d="M348 108 Q358 116 356 128" stroke="#4C4A45" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M320 84 L316 70 M316 70 Q320 66 324 70 M316 70 L314 62" stroke="#4C4A45" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 中景 -->
+  <path d="M-20 262 Q120 222 270 262 T540 254 L540 318 L-20 318 Z" fill="#8A8F6C" opacity=".9"/>
+  <!-- 近景 -->
+  <path d="M-20 318 Q160 278 270 318 T540 310 L540 374 L-20 374 Z" fill="#20201D" opacity=".9"/>
+  <!-- 印章 -->
+  <g transform="translate(96 214)"><rect width="64" height="64" rx="8" fill="#C86D4B" opacity=".92"/>
+<text x="32" y="47" font-size="40" text-anchor="middle" fill="#FFF7EC" font-family="'Kaiti SC','KaiTi','STKaiti',serif" font-weight="bold">皖</text></g>
+</svg>

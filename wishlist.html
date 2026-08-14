@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<script src="vendor/leaflet/leaflet.js"></script>
 <link rel="stylesheet" href="map.css">
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
@@ -81,17 +82,25 @@
   function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }
 
   /* ---------- 地图视图 ---------- */
-  var map = null, mapOn = false;
+  var map = null, mapOn = false, planLayer = null;
+  var DAY_COLORS = ['#C86D4B', '#71806C', '#6D7D88', '#8A6D3B', '#7E7663', '#5F6D76'];
+  function initMap() {
+    if (map) return;
+    map = L.map('wlMap', { zoomControl: false }).setView([34.5, 105], 5);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    var wlLayer = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '? 高德' }).addTo(map);
+    UI.tileWarn(wlLayer, '地图');
+    planLayer = L.layerGroup().addTo(map);
+  }
+  function clearMarkers() {
+    map.eachLayer(function (l) { if (l instanceof L.Marker) map.removeLayer(l); });
+  }
   function renderMap() {
     var list = window.Wish.list().filter(function (x) { return x.lat != null; });
-    if (!map) {
-      map = L.map('wlMap', { zoomControl: false }).setView([34.5, 105], 5);
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-      var wlLayer = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '? 高德' }).addTo(map);
-      UI.tileWarn(wlLayer, '地图');
-    }
+    initMap();
     map.invalidateSize();
-    map.eachLayer(function (l) { if (l instanceof L.Marker) map.removeLayer(l); });
+    clearMarkers();
+    planLayer.clearLayers();
     if (!list.length) return;
     var bnd = [];
     list.forEach(function (x) {
@@ -101,6 +110,37 @@
       m.bindPopup('<b>' + x.label + '</b><br>' + (x.region || '') + (x.city ? ' · ' + x.city : '') + (x.visited ? '<br><span style="color:#9C9A92">已打卡</span>' : ''));
       map.addLayer(m);
       bnd.push([x.lat, x.lng]);
+    });
+    if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
+    else if (bnd.length === 1) map.setView(bnd[0], 9);
+  }
+  /* 行程计划地图：每日同色标记 + 路线连线 */
+  function renderPlanMap() {
+    var days = window.__planDays || [];
+    if (!days.length) return;
+    initMap();
+    map.invalidateSize();
+    clearMarkers();
+    planLayer.clearLayers();
+    var box = document.getElementById('wlMap');
+    box.style.display = 'block';
+    mapOn = true;
+    document.getElementById('wlMapBtn').textContent = '列表';
+    var bnd = [];
+    days.forEach(function (d, di) {
+      var col = DAY_COLORS[di % DAY_COLORS.length];
+      var pts = [];
+      d.forEach(function (s, i) {
+        if (s.lat == null) return;
+        var m = L.marker([s.lat, s.lng], {
+          icon: L.divIcon({ className: '', html: '<div style="position:relative;width:28px;height:28px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:10px;background:' + col + ';color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + (i + 1) + '</span></div>', iconSize: [28, 28], iconAnchor: [14, 14] })
+        });
+        m.bindPopup('<b>D' + (di + 1) + ' · ' + esc(s.label) + '</b><br>' + esc(s.region || ''));
+        planLayer.addLayer(m);
+        pts.push([s.lat, s.lng]);
+        bnd.push([s.lat, s.lng]);
+      });
+      if (pts.length > 1) planLayer.addLayer(L.polyline(pts, { color: col, weight: 3, opacity: .85 }));
     });
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);
@@ -137,6 +177,7 @@
     /* 渲染计划（可调） */
     window.__planDays = days;
     renderPlan(list.length);
+    renderPlanMap();
   }
   function dayKm(d) { var k = 0; for (var i = 1; i < d.length; i++) k += havKm(d[i - 1].lat, d[i - 1].lng, d[i].lat, d[i].lng); return k; }
   function renderPlan(total) {
@@ -151,7 +192,7 @@
       '<span style="color:var(--color-muted)">km/天</span>' +
       '<button class="wl-btn" style="margin-left:auto" onclick="replan()">重新规划</button></div>';
     days.forEach(function (d, di) {
-      html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px"><b style="font-family:var(--font-serif);font-weight:400">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm(d)) + ' km</span></div>';
+      html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px"><b style="font-family:var(--font-serif);font-weight:400;color:' + DAY_COLORS[di % DAY_COLORS.length] + '">D' + (di + 1) + '</b> <span style="font-size:11.5px;color:var(--color-muted)">' + d.length + ' 站 · 约 ' + Math.round(dayKm(d)) + ' km</span></div>';
       d.forEach(function (s, i) {
         html += '<div style="display:flex;gap:8px;align-items:center;padding:5px 0">' +
           '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i + 1) + '</span>' +
@@ -166,7 +207,7 @@
     box.style.display = 'block';
     document.getElementById('planStations').value = window.__planStations || 6;
     document.getElementById('planKm').value = window.__planKm || 260;
-    document.getElementById('wlPlanClose').onclick = function () { box.style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
+    document.getElementById('wlPlanClose').onclick = function () { box.style.display = 'none'; document.getElementById('wlMap').style.display = 'none'; mapOn = false; document.getElementById('wlMapBtn').textContent = '地图'; };
   }
   window.replan = function () {
     window.__planStations = parseInt(document.getElementById('planStations').value, 10) || 6;

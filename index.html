@@ -165,20 +165,9 @@
     <h1 class="hero__title fade-up" style="animation-delay:120ms">今天，<br>去哪里？</h1>
     <p class="hero__sub fade-up" style="animation-delay:200ms">Discover somewhere.</p>
 
-    <div class="hero__search fade-up" style="animation-delay:280ms">
+    <div class="hero__search fade-up" style="animation-delay:280ms" onclick="goFullSearch()" role="button" tabindex="0" aria-label="搜索全部景点">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5" stroke-linecap="round"/></svg>
-      <input id="homeSearch" type="search" placeholder="搜我的游记 / 去专题找景点" autocomplete="off">
-    </div>
-    <div class="search-panel" id="searchPanel" style="display:none">
-      <a href="search.html" style="display:block;margin-bottom:10px;background:var(--color-primary-soft);border:1px solid rgba(200,109,75,.25);border-radius:999px;padding:11px 16px;font-size:13px;color:var(--color-primary-dark);text-align:center;font-weight:600">🔍 搜索全部景点（3253+ 处）</a>
-      <div class="sp-group">
-        <div class="sp-title">我的游记</div>
-        <div id="spNotes"><div class="sp-empty">还没有匹配的游记</div></div>
-      </div>
-      <div class="sp-group">
-        <div class="sp-title">去专题里找</div>
-        <div class="sp-topics" id="spTopics"></div>
-      </div>
+      <input id="homeSearch" type="search" placeholder="搜索全部景点（7782 处）" autocomplete="off" readonly onfocus="goFullSearch()">
     </div>
 
     <div class="hero__cta fade-up" style="animation-delay:360ms" onclick="location.href='explore-map.html'">
@@ -325,7 +314,8 @@
   <!-- ============ 底部操作（保留功能） ============ -->
   <div class="home-actions">
     <button class="ha-btn seal" onclick="__tnAnywhere()">🎙 随手记</button>
-    <button class="ha-btn line" onclick="Results.open()">成果工坊</button>
+    <button class="ha-btn line" onclick="location.href='settings.html#offline'">🗺 离线地图</button>
+    <button class="ha-btn line" onclick="Results.open()">海报与年报</button>
   </div>
 
 </div>
@@ -484,36 +474,11 @@
   TravelNotes.init({});
   window.TravelNotes._afterSave = function () { refreshHome(); drawRoute(); };
 
-  // 全站搜索：搜我的游记（下拉即时） + 去专题找（带 ?q= 参数）
-  function esc2(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  var hs=document.getElementById('homeSearch'),sp=document.getElementById('searchPanel');
-  var spNotes=document.getElementById('spNotes'),spTopics=document.getElementById('spTopics');
-  var TOPICS=[['红军长征','topic.html?p=cz'],['广西云南','topic.html?p=gy'],['青藏风光','topic.html?p=qt'],['山西古建','topic.html?p=sx'],['四川','topic.html?p=sc'],['甘肃','topic.html?p=gs'],['新疆','topic.html?p=xj'],['贵州','topic.html?p=gz'],['香港','topic.html?p=hk'],['澳门','topic.html?p=mo'],['台湾','topic.html?p=tw'],['全国','topic.html?p=nation']];
-  function homeSearch(){
-    var kw=(hs.value||'').trim();
-    if(!kw){sp.style.display='none';return;}
-    sp.style.display='block';
-    var notes=(window.TravelNotes&&TravelNotes.list())||[];
-    var hits=notes.filter(function(n){
-      return (((n.title||'')+' '+(n.siteName||'')+' '+(n.text||'')+' '+(n.raw||'')+' '+(n.tags||[]).join(' ')).toLowerCase()).indexOf(kw.toLowerCase())>=0;
-    }).slice(0,4);
-    spNotes.innerHTML=hits.length?hits.map(function(n){
-      return '<div class="sp-note" onclick="location.href=\'travel-map.html?id='+n.id+'\'"><div><b>'+esc2(n.title||n.siteName)+'</b><small>'+esc2(n.date||'')+(n.siteName&&n.siteName!==n.title?' · '+esc2(n.siteName):'')+'</small></div></div>';
-    }).join(''):'<div class="sp-empty">还没有匹配的游记</div>';
-    spTopics.innerHTML=TOPICS.map(function(t){
-      return '<a class="sp-topic" href="'+t[1]+'?q='+encodeURIComponent(kw)+'">去 '+t[0]+' 找「'+esc2(kw)+'」→</a>';
-    }).join('');
+  // 全站搜索：聚焦即进全库搜索页（search.html），一套逻辑
+  function goFullSearch() {
+    var kw = (document.getElementById('homeSearch').value || '').trim();
+    location.href = 'search.html' + (kw ? '?q=' + encodeURIComponent(kw) : '');
   }
-  hs.oninput=homeSearch;
-  hs.onfocus=function(){if((hs.value||'').trim())homeSearch();};
-  hs.onkeydown=function(e){
-    if(e.key==='Enter'){
-      var kw=(hs.value||'').trim(); if(!kw) return;
-      var notes=(window.TravelNotes&&TravelNotes.list())||[];
-      location.href=notes.length?'travel-map.html':'topic.html?p=nation&q='+encodeURIComponent(kw);
-    }
-  };
-  document.addEventListener('click',function(e){if(!e.target.closest('.hero__search'))sp.style.display='none';});
 </script>
 
 <!-- 首启引导 -->
@@ -535,8 +500,8 @@
   if(seen) return;
   var steps=[
     {t:'边走边记，语音就够了',d:'到景点点「语音记录」，说两句就成一篇游记；AI 会帮你润色成文，照片和原声都留存。',go:''},
-    {t:'离线也能逛',d:'在「我的」页下载离线地图，没信号也能看地图、找景点。',go:''},
-    {t:'数据只在本机，记得备份',d:'「我的」页点「导出备份」保存到本地文件，每月备份一次更安心。',go:''}
+    {t:'离线也能逛',d:'首页或「我的」页下载离线地图，没信号也能看地图、找景点。',go:''},
+    {t:'数据只在本机，记得备份',d:'「设置」页点「导出备份」保存到本地文件，每月备份一次更安心。',go:''}
   ],i=0;
   var box=document.getElementById('tnGuide');
   function show(){
