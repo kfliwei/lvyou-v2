@@ -72,6 +72,7 @@ const TOPICS = [
 ];
 
 const out = [];
+/* 去重 key = 名称+省份：跨省同名景点（如云台山/老君山）各自保留 */
 const seenN = new Set();
 
 for (const t of TOPICS) {
@@ -81,7 +82,8 @@ for (const t of TOPICS) {
   for (const s of arr) {
     if (!s || s.lat == null || s.lng == null) continue;
     const prov = provOf(s, t.id);
-    if (seenN.has(s.name)) continue; seenN.add(s.name);
+    const dk = s.name + '|' + prov;
+    if (seenN.has(dk)) continue; seenN.add(dk);
     out.push({
       name: s.name, label: s.label || s.name,
       province: prov,
@@ -92,6 +94,7 @@ for (const t of TOPICS) {
       city: s.city || '', county: s.county || '',
       elev: s.elev, best: s.best, lat: s.lat, lng: s.lng,
       desc: s.desc || '', wiki: s.wiki || '', img: s.img || '',
+      flag: s.flag || '',
       dy: s.dy, ty: s.ty
     });
   }
