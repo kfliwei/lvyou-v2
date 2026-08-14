@@ -1125,7 +1125,6 @@ html.font-lg{font-size:17.5px}
    美化推进 2026-08-13：设计令牌 / 动效节奏 / 玻璃拟态 / 启动遮罩
    ============================================================ */
 :root{
-  --radius-sm:10px;--radius-md:14px;--radius-lg:18px;--radius-xl:24px;
   --dur-fast:.18s;--dur-norm:.3s;--dur-slow:.6s;
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
   --fs-xs:.6875rem;--fs-sm:.8125rem;--fs-md:.9375rem;--fs-lg:1.125rem;--fs-xl:1.5rem;--fs-2xl:2rem
@@ -1141,6 +1140,8 @@ html.font-lg{font-size:17.5px}
 .fade-stagger>*:nth-child(6){animation-delay:.23s}
 .fade-stagger>*:nth-child(7){animation-delay:.27s}
 .fade-stagger>*:nth-child(8){animation-delay:.31s}
+/* 底部悬浮件安全区（iPhone Home 指示条避让） */
+.bottom-nav,.tabbar,.savebar,.tripbar,#locSheet,#infoSheet,#rsSheet,.region-stats{padding-bottom:max(env(safe-area-inset-bottom,0px),8px) !important}
 /* 底部 Sheet 弹性弹出 */
 #locSheet.show,#infoSheet.show,#rsSheet.show{transition:transform .55s var(--ease-spring)}
 /* 地图浮层玻璃拟态（图例/图层菜单/聚合胶囊） */

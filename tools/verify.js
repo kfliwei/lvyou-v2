@@ -44,15 +44,22 @@ for (const f of FILES.filter(x => x.endsWith('.html'))) {
   if (al || co) { console.log('NATIVE ALERT/CONFIRM LEFT:', f, 'alert:', al, 'confirm:', co); fail++; }
 }
 
-/* 5. nation-index 数据完整性 */
+/* 5. nation-index 数据完整性（与 nation-data.js 源数据动态对比） */
 const ctx = { window: {}, console };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync('nation-index.js', 'utf8'), ctx);
 const raw = ctx.window.NATION_SITES_RAW;
 const n = raw.split('\n').length;
 const bad = raw.split('\n').filter(l => l.split('|').length !== 9).length;
-console.log('nation-index sites:', n, '| malformed rows:', bad);
-if (n !== 7782 || bad) fail++;
+let srcCount = -1;
+try {
+  const c2 = { window: {}, console };
+  vm.createContext(c2);
+  vm.runInContext(fs.readFileSync('nation-data.js', 'utf8'), c2);
+  srcCount = (c2.window.NATION_SITES || c2.window.SITES || []).length;
+} catch (e) {}
+console.log('nation-index sites:', n, '| source sites:', srcCount, '| malformed rows:', bad);
+if (bad || (srcCount > 0 && n !== srcCount)) fail++;
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

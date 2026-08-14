@@ -289,11 +289,56 @@
       '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
       '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
   }
+  /* ---------- 全国页按省懒加载详情（审核修复批次 2） ---------- */
+  var PROV_FILE = {
+    '北京':'bj-data.js','天津':'tj-data.js','河北':'he-data.js','山西':'data.js','内蒙古':'nmg-data.js',
+    '辽宁':'ln-data.js','吉林':'jl-data.js','黑龙江':'hlj-data.js','上海':'sh-data.js','江苏':'js-data.js',
+    '浙江':'zj-data.js','安徽':'ah-data.js','福建':'fj-data.js','江西':'changzheng-data.js','山东':'sd-data.js',
+    '河南':'ha-data.js','湖北':'hb-data.js','湖南':'hn-data.js','广东':'gd-data.js','广西':'gxyn-data.js',
+    '海南':'hi-data.js','重庆':'cq-data.js','四川':'sc-data.js','贵州':'gz-data.js','云南':'gxyn-data.js',
+    '西藏':'xz-data.js','陕西':'sx-data.js','甘肃':'gs-data.js','青海':'qh-data.js','宁夏':'nx-data.js',
+    '新疆':'xj-data.js','香港':'hk-data.js','澳门':'mo-data.js','台湾':'tw-data.js'
+  };
+  var provLoaded = {};
+  function loadProvince(file, cb) {
+    if (provLoaded[file]) { cb(); return; }
+    provLoaded[file] = 1; /* loading 中 */
+    var base = window.SITES.slice(); /* 快照（加载前全局，防省文件覆盖） */
+    var s2 = document.createElement('script');
+    s2.src = file;
+    s2.onload = function () {
+      var prov = window.SITES || [];
+      window.SITES = base; /* 恢复全局（省文件会覆盖 window.SITES） */
+      prov.forEach(function (x) {
+        if (!x.desc) return;
+        for (var i = 0; i < SITES.length; i++) {
+          if (SITES[i].name === x.name && !SITES[i].desc) {
+            SITES[i].desc = x.desc; SITES[i].best = x.best; SITES[i].img = x.img;
+            SITES[i].dy = x.dy; SITES[i].ty = x.ty;
+          }
+        }
+      });
+      cb();
+    };
+    s2.onerror = function () { provLoaded[file] = 2; cb(); };
+    document.head.appendChild(s2);
+  }
+  function ensureDetail(s, cb) {
+    if (!s || s.desc || !window.SITES_LAZY) { if (cb) cb(); return; }
+    var k = PROV_FILE[s.region];
+    if (!k || provLoaded[k] === 2) { if (cb) cb(); return; }
+    loadProvince(k, cb);
+  }
   function openSheet(i) {
     curSite = i;
     $('lsBody').innerHTML = buildSheet(i);
     $('locSheet').classList.add('show');
     setActiveNode(i);
+    /* 全国页：按省懒加载详情后刷新面板 */
+    var _s0 = SITES[i];
+    if (_s0 && window.SITES_LAZY && !_s0.desc) {
+      ensureDetail(_s0, function () { refreshSheet(); });
+    }
     document.querySelector('.tabbar').classList.add('is-hidden');
     highlightCard(i);
     /* 节点 → 图例/标签联动：闪烁提示该节点所属主题（不改动筛选状态） */

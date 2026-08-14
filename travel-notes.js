@@ -892,14 +892,14 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     }
     rec = new SR();
     rec.lang = 'zh-CN'; rec.interimResults = true; rec.continuous = false;
-    rec.onstart = function () { onVoiceStart(); };
+    rec.onstart = function () { if (window.__tnOnVoiceStart) window.__tnOnVoiceStart(); };
     rec.onresult = function (e) {
       var txt = '';
       for (var i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
-      if (e.results[e.results.length - 1].isFinal) onVoiceResult(txt);
-      else onVoicePartial(txt);
+      if (e.results[e.results.length - 1].isFinal) { if (window.__tnOnVoiceResult) window.__tnOnVoiceResult(txt); }
+      else if (window.__tnOnVoicePartial) window.__tnOnVoicePartial(txt);
     };
-    rec.onerror = function (e) { onVoiceError(e.error || 'err'); };
+    rec.onerror = function (e) { if (window.__tnOnVoiceError) window.__tnOnVoiceError(e.error || 'err'); };
     rec.onend = function () { rec = null; };
     rec.start();
   }

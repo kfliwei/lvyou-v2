@@ -66,10 +66,11 @@
   /* 缩放按钮：右上（顶栏下方避让）+ 毛玻璃圆角风格 */
   .leaflet-top.leaflet-right{margin-top:64px;margin-right:10px}
   .leaflet-control-zoom{border:0 !important;border-radius:14px !important;box-shadow:0 6px 20px rgba(32,32,29,.14) !important;overflow:hidden}
-  .leaflet-control-zoom a{width:40px !important;height:40px !important;line-height:40px !important;background:rgba(250,248,243,.92) !important;color:var(--color-ink-soft) !important;border:0 !important;font-size:17px !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .leaflet-control-zoom a{width:40px !important;height:40px !important;line-height:40px !important;background:var(--color-surface) !important;color:var(--color-ink) !important;border:0 !important;font-size:17px !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .leaflet-control-zoom a:active{background:var(--color-bg-soft) !important}
   .leaflet-control-zoom a.leaflet-control-zoom-in{border-bottom:1px solid rgba(32,32,29,.08) !important}
   .theme-dark #rsSheet,.theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
+  .theme-dark .leaflet-control-zoom a{background:var(--color-surface) !important;color:var(--color-ink) !important}
 </style>
 </head>
 <body>
@@ -234,7 +235,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
       body: JSON.stringify({
-        model: localStorage.getItem('tn_model') || 'deepseek-chat',
+        model: (function (r) { var A = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' }; return A[r] || r; })(localStorage.getItem('tn_model') || 'deepseek-v4-flash'),
         messages: [
           { role: 'system', content: '你是旅行地点编辑助手，输出简洁准确的介绍。' },
           { role: 'user', content: '为旅行地点「' + name + '」' + ([city, cat].filter(Boolean).length ? '（' + [city, cat].filter(Boolean).join('，') + '）' : '') + '写一段 60-100 字的介绍：亮点、适合季节、注意事项。口语化，不要列表编号，不要编造不确定的史实。' }

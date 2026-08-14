@@ -384,6 +384,20 @@
     var dark = localStorage.getItem('tn_dark') || 'auto';
     document.querySelectorAll('#chDark button').forEach(function(b){ b.classList.toggle('on', b.dataset.d === dark); });
   }
+  (function () {
+    /* 即时保存（审核修复）：Key 输入即存、模型/VAD 点击即存，避免返回丢配置 */
+    var ik = document.getElementById('inKey');
+    if (ik) ik.oninput = function () { var k = this.value.trim(); if (k) localStorage.setItem('tn_aiKey', k); else localStorage.removeItem('tn_aiKey'); };
+    ['#chModel button', '#chVad button'].forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (b) {
+        b.onclick = function () {
+          document.querySelectorAll(sel).forEach(function (x) { x.classList.toggle('on', x === b); });
+          if (b.dataset.m) localStorage.setItem('tn_model', b.dataset.m);
+          if (b.dataset.v) localStorage.setItem('tn_vad', b.dataset.v);
+        };
+      });
+    });
+  })();
   function saveSettings(){
     var key = document.getElementById('inKey').value.trim();
     if (key) localStorage.setItem('tn_aiKey', key); else localStorage.removeItem('tn_aiKey');

@@ -139,7 +139,19 @@
     window.TopicEngine.init();
     var _sk = document.getElementById('mapSkel'); if (_sk) { setTimeout(function () { _sk.style.display = 'none'; }, 300); }
   }
-  loadScript(cfg.dataJs, function () {
+  /* 全国页懒加载（审核修复）：轻量索引渲染 + 节点详情按省按需补充 */
+  function loadNationIndex() {
+    loadScript('nation-index.js?v=20260815', function () {
+      window.SITES = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
+        var p = line.split('|');
+        return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8] };
+      });
+      window.SITES_LAZY = true;
+      boot();
+    });
+  }
+  if (cfg.dataJs === 'nation-data.js') loadNationIndex();
+  else loadScript(cfg.dataJs, function () {
     if (cfg.routesKey) { loadScript('routes-data.js', function () { if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); }); }
     else if (cfg.foodJs) loadScript(cfg.foodJs, boot);
     else boot();

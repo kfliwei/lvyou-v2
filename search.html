@@ -89,7 +89,7 @@
       REGS=Object.keys(m).sort(function(a,b){return m[b]-m[a];});
       buildChips(); loaded=true; cb();
     };
-    s.onerror=function(){ $r.innerHTML='<div class="empty"><div class="em">⚠️</div><b>景点数据加载失败</b><span>请检查网络后重试</span></div>'; };
+    s.onerror=function(){ loaded=true; REGS=[]; $r.innerHTML=''; render(); };
     document.head.appendChild(s);
   }
   function buildChips(){
