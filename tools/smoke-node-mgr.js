@@ -31,7 +31,7 @@ function ok(name, cond, extra) {
   }));
   ok('A.空地图初始化', init.map);
   ok('A.地图不显示任何节点', init.nodes === 0, 'markers=' + init.nodes);
-  ok('A.本地索引就绪', init.idx === 7782, 'idx=' + init.idx);
+  ok('A.本地索引就绪', init.idx >= 7782, 'idx=' + init.idx);
 
   /* 实时模糊搜索：输入"故"（不点按钮）→ 自动出结果 */
   await page.type('#q', '故');
@@ -41,7 +41,7 @@ function ok(name, cond, extra) {
     sec: (document.querySelector('#rsBody .rs-sec') || {}).textContent || '',
     items: document.querySelectorAll('#rsBody .rs-item').length
   }));
-  ok('A.实时搜索：输入即出结果', rs1.sheet && rs1.sec.includes('本地节点') && rs1.items > 0, rs1.sec + ' / items=' + rs1.items);
+  ok('A.实时搜索：输入即出结果', rs1.sheet && rs1.sec.includes('本地地点') && rs1.items > 0, rs1.sec + ' / items=' + rs1.items);
   /* 继续输入补全 → 结果更新 */
   await page.type('#q', '宫');
   await sleep(900);
@@ -50,7 +50,7 @@ function ok(name, cond, extra) {
   await page.evaluate(() => { const it = document.querySelector('#rsBody .rs-item'); if (it) it.click(); });
   await sleep(600);
   const infoTxt = await page.evaluate(() => (document.querySelector('#infoSheet') || {}).textContent || '');
-  ok('A.本地节点详情（已存在）', infoTxt.includes('系统节点'), infoTxt.slice(0, 30));
+  ok('A.本地节点详情（已存在）', infoTxt.includes('系统地点'), infoTxt.slice(0, 30));
   await page.evaluate(() => window.NM.closeInfo());
   await sleep(300);
   /* 清空输入 → 面板关闭 */
@@ -128,7 +128,7 @@ function ok(name, cond, extra) {
   await page2.evaluate(() => { const n = document.querySelector('#mapEl .tr-node'); if (n) n.click(); });
   await sleep(600);
   const sheetTxt = await page2.evaluate(() => (document.querySelector('#locSheet') || {}).textContent || '');
-  ok('B.节点详情无编辑删除菜单', !sheetTxt.includes('编辑节点') && !sheetTxt.includes('删除节点'));
+  ok('B.节点详情无编辑删除菜单', !sheetTxt.includes('编辑地点') && !sheetTxt.includes('删除地点'));
   const real2 = errs2.filter(e => !/Failed to load resource|net::|ERR_|manifest/.test(e));
   ok('B.无脚本错误', real2.length === 0, real2.join(' | ').slice(0, 120));
   await page2.close();

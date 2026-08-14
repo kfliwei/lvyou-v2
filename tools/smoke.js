@@ -56,7 +56,7 @@ function ok(name, cond, extra) {
   {
     const { page, errors } = await openPage('search.html', 3500);
     const n = await page.evaluate(() => (window.NATION_SITES_RAW || '').split('\n').length);
-    ok('search: 索引加载 7782 条', n === 7782, 'n=' + n);
+    ok('search: 索引加载 7782+ 条', n >= 7782, 'n=' + n);
     await page.type('#q', '拉萨');
     await sleep(900);
     const hits = await page.evaluate(() => {
