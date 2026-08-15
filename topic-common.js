@@ -225,6 +225,15 @@
 
   /* ---------- 节点 / Sheet ---------- */
   function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0 || (s.flag && s.flag.indexOf('m') >= 0); }
+  /* 实景照映射（tools/gen-site-images.js 生成，高德 POI 图源） */
+  function imgSrc(s) {
+    try {
+      var m = window.SITE_IMAGES || {};
+      var u = m[s.id] || m[s.name];
+      if (u) return u;
+    } catch (e) {}
+    return s.img || '';
+  }
   function nodeIcon(s, active, dim) {
     var f = s.flag || '';
     /* 配色收敛（规范 §47）：地图节点不再按主题 38 色着色，统一中性色 + 重点强调 */
@@ -282,6 +291,7 @@
     var img = s.img ? '<div class="ls-img"><img src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
+      '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
@@ -330,6 +340,26 @@
     s2.onerror = function () { provLoaded[file] = 2; cb(); };
     document.head.appendChild(s2);
   }
+  /* ---------- 节点天气（Open-Meteo，免 Key，30 分钟缓存） ---------- */
+  var WMO = { 0: '晴', 1: '多云', 2: '多云', 3: '阴', 45: '雾', 48: '雾凇', 51: '毛毛雨', 53: '毛毛雨', 55: '毛毛雨', 56: '冻雨', 57: '冻雨', 61: '小雨', 63: '中雨', 65: '大雨', 66: '冻雨', 67: '冻雨', 71: '小雪', 73: '中雪', 75: '大雪', 77: '雪粒', 80: '阵雨', 81: '阵雨', 82: '强阵雨', 85: '阵雪', 86: '强阵雪', 95: '雷暴', 96: '雷暴冰雹', 99: '雷暴冰雹' };
+  function weatherIcon(code) { var c = +code; if (c === 0) return '☀️'; if (c <= 3) return '⛅'; if (c <= 48) return '🌫️'; if (c <= 67) return '🌧️'; if (c <= 77) return '🌨️'; if (c <= 86) return '🌦️'; return '⛈️'; }
+  function loadWeather(lat, lng, cb) {
+    try {
+      var key = 'tn_weather_' + lat.toFixed(2) + '_' + lng.toFixed(2);
+      var c = JSON.parse(localStorage.getItem(key) || 'null');
+      if (c && Date.now() - c.ts < 30 * 60 * 1000) { cb && cb(c.d); return; }
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng + '&current_weather=true&timezone=auto')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var w = d && d.current_weather;
+          if (!w) { cb && cb(null); return; }
+          var out = { code: w.weathercode, temp: Math.round(w.temperature), wind: Math.round(w.windspeed) };
+          try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), d: out })); } catch (e) {}
+          cb && cb(out);
+        }).catch(function () { cb && cb(null); });
+    } catch (e) { cb && cb(null); }
+  }
+
   function ensureDetail(s, cb) {
     if (!s || s.desc || !window.SITES_LAZY) { if (cb) cb(); return; }
     var k = PROV_FILE[s.region];
@@ -345,6 +375,16 @@
     var _s0 = SITES[i];
     if (_s0 && window.SITES_LAZY && !_s0.desc) {
       ensureDetail(_s0, function () { refreshSheet(); });
+    }
+    /* 节点天气 */
+    if (_s0 && _s0.lat != null) {
+      loadWeather(+_s0.lat, +_s0.lng, function (w) {
+        var el = document.getElementById('lsWeather');
+        if (!el) return;
+        if (!w) { el.style.display = 'none'; return; }
+        el.innerHTML = weatherIcon(w.code) + ' ' + (WMO[w.code] || '未知') + ' · ' + w.temp + '°C · 风 ' + w.wind + 'km/h';
+        el.style.display = 'block';
+      });
     }
     document.querySelector('.tabbar').classList.add('is-hidden');
     highlightCard(i);
@@ -501,7 +541,7 @@
     var alt = (s.elev && +s.elev >= 5000) ? '<span class="tag" style="background:var(--cinnabar-500)">⚠ 极高海拔</span>' : '';
     var dh = detHtml(s);
     card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
-      '<img loading="lazy" src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">' +
+      '<img loading="lazy" src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">' +
       '<span class="tag">' + (M.themeIcons[tk(s)] || '') + ' ' + tk(s) + '</span></div>' +
       '<div class="body"><div class="nm">' + esc(s.label) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + '</div>' +
       '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +

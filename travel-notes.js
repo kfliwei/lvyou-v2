@@ -1343,9 +1343,10 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
     it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:11.5px;color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
-      '<button data-a="edit">编辑</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="doc">文档</button><button data-a="del" class="danger">删除</button></div>';
+      '<button data-a="edit">编辑</button><button data-a="copy">复制</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="doc">文档</button><button data-a="del" class="danger">删除</button></div>';
     it.querySelector('[data-a=edit]').onclick = function () { openEdit(n.id); };
     it.querySelector('[data-a=card]').onclick = function () { genCard(n); };
+    it.querySelector('[data-a=copy]').onclick = function () { copyNoteText(n); };
     it.querySelector('[data-a=md]').onclick = function () { if (window.Vault) Vault.exportOne(n); };
     it.querySelector('[data-a=doc]').onclick = function () { if (window.Vault && Vault.exportOneHtml) Vault.exportOneHtml(n); };
     it.querySelector('.tx').onclick = function () { it.querySelector('.tx').classList.toggle('open'); };
@@ -1690,6 +1691,24 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 图文卡片（canvas） ---------- */
   var _cardCanvas = null, _genBusy = false;
+  function copyNoteText(n) {
+    var txt = (n.title || n.siteName || '游记') + '\n' + (n.date || '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '\n' + (n.text || n.raw || '');
+    function legacy() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        flash('已复制到剪贴板');
+      } catch (e) { flash('复制失败'); }
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(txt).then(function () { flash('已复制到剪贴板'); }, legacy);
+    } else legacy();
+  }
   function genCard(n) {
     if (_genBusy) return;                       // 防连点：1.5s 内只处理一次
     _genBusy = true;
