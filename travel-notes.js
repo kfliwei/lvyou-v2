@@ -123,18 +123,34 @@ window.Ai = (function () {
       }
     });
   }
+  /* 上次持久化快照（id → JSON 字符串），用于增量 diff */
+  var lastSnap = null;
   function persist() {
-    // 内存已更新；异步写回 IDB（失败回退 localStorage 兼容）
+    // 内存已更新；增量写回 IDB（diff：只写变化的记录；删除消失的；首次全量）
     var snap = notes.slice();
+    var curIds = {}, changed = [], removed = [];
+    snap.forEach(function (n) {
+      curIds[n.id] = 1;
+      var j = JSON.stringify(n);
+      if (!lastSnap || lastSnap[n.id] !== j) changed.push(n);
+    });
+    if (lastSnap) {
+      Object.keys(lastSnap).forEach(function (id) { if (!curIds[id]) removed.push(id); });
+    }
     openDB(function (db) {
       if (!db) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) {} return; }
       try {
         var tx = db.transaction('notes', 'readwrite');
         var st = tx.objectStore('notes');
-        st.clear();
-        snap.forEach(function (n) { st.put(n); });
+        if (!lastSnap) st.clear();          // 首次：全量重建
+        removed.forEach(function (id) { st.delete(id); });
+        changed.forEach(function (n) { st.put(n); });
         tx.onerror = function () { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) {} };
       } catch (e) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e2) {} }
+      // 更新快照
+      var ns = {};
+      snap.forEach(function (n) { ns[n.id] = JSON.stringify(n); });
+      lastSnap = ns;
     });
     // 容量预警（估算内存占用）
     var mb = storageMB();

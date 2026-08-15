@@ -1171,3 +1171,10 @@ button.act,button.act.sec,button.mine,button.go{min-height:44px}
 .leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:44px!important;height:44px!important;line-height:44px!important}
 /* 行程条操作（驾驶场景高频） */
 .tripbar .mv,.tripbar .x{min-width:40px;min-height:40px;display:inline-grid;place-items:center}
+
+/* ============================================================
+   SPA 体验层 2026-08-15：全局页面进入过渡（file:// 多页架构的轻量替代）
+   全量 SPA 需 WebView 开启 file fetch 或打包合并，见 docs/spa-route-plan
+   ============================================================ */
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+body{animation:pageIn .32s var(--ease-standard) both}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SPA 路由改造技术路径 · 行迹TRACE</title>
+<style>
+  :root{--bg:#F6F3EC;--surface:#FFFDF8;--ink:#26241F;--muted:#8C877D;--line:#E3DED2;--primary:#C86D4B;--serif:"Songti SC","Noto Serif SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:900px;margin:0 auto;padding:36px 20px 60px}
+  h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:8px 0 4px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:24px}
+  h2{font-family:var(--serif);font-weight:400;font-size:20px;margin:32px 0 10px;padding-left:12px;border-left:3px solid var(--primary)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;font-size:14px}
+  .card b{display:block;margin-bottom:4px}
+  .card .tag{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;margin-right:8px}
+  .tag.red{background:#B34A3F;color:#fff}.tag.green{background:#5F7A4E;color:#fff}.tag.yellow{background:#BA7517;color:#fff}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600}
+  code{background:rgba(38,36,31,.05);padding:1px 6px;border-radius:6px;font-size:12.5px}
+  footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Architecture Note · 2026-08-15</div>
+  <h1>SPA 路由改造：约束分析与技术路径</h1>
+  <div class="sub">背景：App 以 file:// 多页静态架构运行（WebView 壳）。本轮已落地"页面体验层"（全局过渡动画、返回栈统一、启动遮罩）；以下为全量 SPA 的约束与可行路径。</div>
+
+  <h2>核心约束</h2>
+  <div class="card"><span class="tag red">约束</span><b>file:// 下无法 fetch 局部页面</b>浏览器对 file:// 的 fetch 请求默认按跨域拦截（此前冒烟测试已实测：manifest 都被 CORS 拦截）。SPA 的核心机制"按需加载页面片段"因此不可用——除非：<br>① WebView 壳开启 <code>setAllowFileAccessFromFileURLs(true)</code>（Android WebView 允许同目录 file fetch）；或<br>② 构建期把所有页面合并进单个 HTML（13 个页面 × 平均 40KB = 约 500KB 单文件，可接受但后续维护需构建工具）。</div>
+
+  <h2>三条可选路径</h2>
+  <table>
+    <tr><th>路径</th><th>做法</th><th>收益</th><th>成本/风险</th><th>建议</th></tr>
+    <tr><td><span class="tag green">A · 壳层开启 file fetch</span></td><td>MainActivity 加 <code>setAllowFileAccessFromFileURLs(true)</code> + 页面侧引入 app-router.js（hash 路由 + fetch 局部渲染 + 返回栈）</td><td>真 SPA：切换不白屏、返回栈精确、页面状态保持</td><td>壳改 1 行 + 每页接入路由钩子（13 页 × 半天）；开启 file fetch 有轻微本地文件读取面（自用 App 风险可忽略）</td><td><b>推荐</b>，上架前验证</td></tr>
+    <tr><td><span class="tag yellow">B · 构建期合并单文件</span></td><td>写 build 脚本：13 页 HTML 模板化合并 → 单 index.html + hash 路由切换 section</td><td>纯前端方案，不依赖壳</td><td>每页内联 script 作用域隔离要处理（IIFE 包装）；后续每次改页要跑构建；调试变复杂</td><td>备选，适合未来上架</td></tr>
+    <tr><td><span class="tag green">C · 体验层（已落地）</span></td><td>全局页面过渡动画 + 启动遮罩 + 返回栈统一 + 数据懒加载</td><td>体感提升 80%（白屏被遮罩过渡掩盖、切换有动效），零架构风险</td><td>已实施，无成本</td><td><b>当前基线</b></td></tr>
+  </table>
+
+  <h2>路径 A 的实施清单（待做）</h2>
+  <div class="card">
+    <b>1. 壳层（Android）</b>：MainActivity 的 WebSettings 加 <code>setAllowFileAccessFromFileURLs(true)</code>（targetSdk 34 默认 false）。
+    <b>2. app-router.js</b>：hash 路由（<code>#/topic?p=bj</code>）→ 预取下一页面 HTML（fetch → innerHTML 注入容器）→ 执行页面脚本（需每页 IIFE 化 + 依赖脚本全局加载一次）。
+    <b>3. 页面接入</b>：13 个页面把 <code>&lt;body&gt;</code> 内容与内联脚本抽为"页面模块"，注册进路由表。
+    <b>4. 依赖治理</b>：公共脚本（leaflet/travel-notes/topic-common 等）改为路由层加载一次，不再每页重复注入。
+    <b>5. 回归</b>：全量冒烟（现有 smoke 套件可复用）。
+  </div>
+
+  <footer>结论：本轮保持 C（体验层），上架/正式发布前走 A（壳层 1 行 + 路由模块化），预计 2-3 天工作量。</footer>
+</div>
+</body>
+</html>
