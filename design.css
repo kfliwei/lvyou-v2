@@ -1176,5 +1176,5 @@ button.act,button.act.sec,button.mine,button.go{min-height:44px}
    SPA 体验层 2026-08-15：全局页面进入过渡（file:// 多页架构的轻量替代）
    全量 SPA 需 WebView 开启 file fetch 或打包合并，见 docs/spa-route-plan
    ============================================================ */
-@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
 body{animation:pageIn .32s var(--ease-standard) both}
