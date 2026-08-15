@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.application' version '8.5.2'
+}
+
+def keystoreProps = new Properties()
+def keystoreFile = rootProject.file('keystore.properties')
+if (keystoreFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystoreFile))
+}
+
+android {
+    namespace 'com.gujian.guditu'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.gujian.guditu'
+        minSdk 26
+        targetSdk 34
+        versionCode 10
+        versionName '2.0'
+    }
+
+    signingConfigs {
+        release {
+            storeFile rootProject.file(keystoreProps.getProperty('storeFile', 'release.keystore'))
+            storePassword keystoreProps.getProperty('storePassword', '')
+            keyAlias keystoreProps.getProperty('keyAlias', 'trace')
+            keyPassword keystoreProps.getProperty('keyPassword', '')
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        viewBinding false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

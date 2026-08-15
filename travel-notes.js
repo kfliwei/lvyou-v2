@@ -1027,7 +1027,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       return;
     }
     var key = localStorage.getItem(AI_KEY);
-    if (!key) { openSettings(); flash('请先在设置页配置 DeepSeek API Key（platform.deepseek.com 免费申请，粘贴 sk- 开头密钥）'); return; }
+    if (!key) { flash('未配置 AI Key：可直接保存原文；或到设置页配置 DeepSeek Key 后再润色'); return; }
     load.style.display = 'block';
     ai.style.display = 'none';
     var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';

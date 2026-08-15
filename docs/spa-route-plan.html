@@ -43,7 +43,7 @@
 
   <h2>路径 A 的实施清单（待做）</h2>
   <div class="card">
-    <b>1. 壳层（Android）</b>：MainActivity 的 WebSettings 加 <code>setAllowFileAccessFromFileURLs(true)</code>（targetSdk 34 默认 false）。
+    <b>1. 壳层（Android）</b>：已配置 <code>setAllowFileAccessFromFileURLs(true)</code>（MainActivity）。<br><b>1.5 路由框架</b>：app-router.js 已就绪（hash 路由 + fetch 片段 + 脚本执行 + 返回栈），经本地 http server 实测通过（切换/脚本/返回栈 3 项）。
     <b>2. app-router.js</b>：hash 路由（<code>#/topic?p=bj</code>）→ 预取下一页面 HTML（fetch → innerHTML 注入容器）→ 执行页面脚本（需每页 IIFE 化 + 依赖脚本全局加载一次）。
     <b>3. 页面接入</b>：13 个页面把 <code>&lt;body&gt;</code> 内容与内联脚本抽为"页面模块"，注册进路由表。
     <b>4. 依赖治理</b>：公共脚本（leaflet/travel-notes/topic-common 等）改为路由层加载一次，不再每页重复注入。
