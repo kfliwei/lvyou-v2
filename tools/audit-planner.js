@@ -62,8 +62,8 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
 
   /* 4. 勾选候选 → 排期 → 结果 */
   await p.evaluate(() => {
-    const c = document.querySelector('.cand, [class*="cand"]');
-    if (c) c.click();
+    const cs = document.querySelectorAll('.cand, [class*="cand"]');
+    for (let i = 0; i < Math.min(2, cs.length); i++) cs[i].click();
   });
   await sleep(800);
   const afterPick = await p.evaluate(() => ({
