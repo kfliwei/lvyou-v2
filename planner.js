@@ -334,7 +334,7 @@
     $id('seedWishSub').textContent = wl.length ? ('已收藏 ' + wl.length + ' 处，一键串起来') : '先去地图收藏几处想去的地方';
   }
   window.plannerPickRegion = function (r) {
-    state.regions = r ? [r] : []; state.prefs = []; state.days = state.days || 0; state.fromWish = false;
+    state.regions = r ? [r] : []; state.prefs = []; state.autoPrefs = []; state.days = state.days || 0; state.fromWish = false;
     renderIntent(); doRecall();
   };
 
@@ -361,8 +361,8 @@
     renderProvThemes();
   };
   window.plannerToggleCustomPref = function (t) {
-    var i = state.prefs.indexOf(t);
-    if (i >= 0) state.prefs.splice(i, 1); else state.prefs.push(t);
+    if (state.prefs.length === 1 && state.prefs[0] === t) state.prefs = []; else state.prefs = [t];
+    state.autoPrefs = [];
     renderIntent();
     renderProvThemes();
     doRecall();
@@ -416,8 +416,7 @@
     state.__bound = true;
   }
   window.plannerToggleRegion = function (r) {
-    var i = state.regions.indexOf(r);
-    if (i >= 0) state.regions.splice(i, 1); else state.regions.push(r);
+    if (state.regions.length === 1 && state.regions[0] === r) state.regions = []; else state.regions = [r];
     renderIntent(); doRecall();
     window.plannerPickProv(r); /* 联动：重建后展开该省主题（再点收起） */
   };
@@ -441,10 +440,9 @@
     return regionSet[b] ? b : null;
   }
   function doRecall() {
-    var intent = { regions: state.regions, days: state.days, prefs: state.prefs };
+    var intent = { regions: state.regions, days: state.days, prefs: state.prefs.length ? state.prefs : (state.autoPrefs || []) };
     state.widenMsg = null;
     state.candidates = state.fromWish ? state.candidates : recall(intent);
-    state.selected = state.selected.filter(function (s) { return state.candidates.some(function (c) { return nodeUid(c) === nodeUid(s); }); });
     renderCandidates();
     maybeAmapSupplement(intent);
   }
@@ -795,7 +793,7 @@
     var text = $id('promptInput').value.trim();
     if (!text) { toast('先告诉我你想去哪、玩几天'); return; }
     var intent = parseIntent(text);
-    state.regions = intent.regions; state.days = intent.days; state.prefs = intent.prefs; state.fromWish = false; state.selected = [];
+    state.regions = intent.regions; state.days = intent.days; state.prefs = []; state.autoPrefs = intent.prefs || []; state.fromWish = false; state.selected = [];
     state.startDate = '';
     var proceed = function () {
       renderIntent(); doRecall(); showStage('stagePick');
