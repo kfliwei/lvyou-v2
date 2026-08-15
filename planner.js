@@ -357,7 +357,7 @@
   }
   window.plannerPickRegion = function (r) {
     state.regions = r ? [r] : []; state.prefs = []; state.autoPrefs = []; state.days = state.days || 0; state.fromWish = false; state.amapSorted = false; state.wishPool = null;
-    renderIntent(); doRecall();
+    renderIntent(); doRecall(); showStage('stagePick');
   };
 
   /* ---------- 偏好增强：省主题 + 我的节点（2026-08-15） ---------- */
