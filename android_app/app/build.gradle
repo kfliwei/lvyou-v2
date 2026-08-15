@@ -16,7 +16,7 @@ android {
         applicationId 'com.gujian.guditu'
         minSdk 26
         targetSdk 34
-        versionCode 10
+        versionCode 26
         versionName '2.0'
     }
 

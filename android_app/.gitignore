@@ -1,0 +1,11 @@
+# Android 模块忽略：前端快照/构建产物/密钥（前端由 tools/sync-assets.js 同步）
+app/src/main/assets/
+app/libs/
+build/
+app/build/
+*.keystore
+keystore.properties
+local.properties
+.gradle/
+.idea/
+*.iml
