@@ -1,3 +1,46 @@
+/* ===== Ai 统一调用模块（审核收口 ③）：DeepSeek chat/stream，全站唯一入口 ===== */
+window.Ai = (function () {
+  var ALIAS = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' };
+  function key() { try { return localStorage.getItem('tn_aiKey') || ''; } catch (e) { return ''; } }
+  function model() { var r = localStorage.getItem('tn_model') || 'deepseek-v4-flash'; return ALIAS[r] || r; }
+  function head() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key() }; }
+  function chat(messages) {
+    var body = { model: model(), messages: messages, temperature: 0.7 };
+    if (model() === 'deepseek-v4-pro') body.reasoning_effort = 'high';
+    return fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: head(), body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (d) {
+        var t = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+        if (!t) throw new Error((d && d.error && d.error.message) || 'empty');
+        return t;
+      });
+  }
+  function stream(messages, onDelta) {
+    var body = { model: model(), messages: messages, temperature: 0.7, stream: true };
+    if (model() === 'deepseek-v4-pro') body.reasoning_effort = 'high';
+    return fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: head(), body: JSON.stringify(body) })
+      .then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        var reader = r.body.getReader(), decoder = new TextDecoder(), buf = '', text = '';
+        function pump() {
+          return reader.read().then(function (res) {
+            if (res.done) return text;
+            buf += decoder.decode(res.value, { stream: true });
+            var lines = buf.split('\n'); buf = lines.pop();
+            lines.forEach(function (line) {
+              if (!line.startsWith('data: ')) return;
+              var json = line.slice(6).trim(); if (json === '[DONE]') return;
+              try { var c = JSON.parse(json).choices[0].delta; if (c && c.content) { text += c.content; if (onDelta) onDelta(c.content); } } catch (e) {}
+            });
+            return pump();
+          });
+        }
+        return pump();
+      });
+  }
+  return { chat: chat, stream: stream, hasKey: function () { return !!key(); } };
+})();
+
 ﻿/* =========================================================
  * travel-notes.js —— 语音游记模块 v2（UI/UX 重构版）
  * 设计：途记 Design System v2（霞鹜文楷×思源黑体 / 深色沉浸录音 / 藤蔓时间线 / 毛玻璃）
@@ -513,17 +556,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         temperature: 0.8
       };
       if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-      fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify(body)
-      }).then(function(r){
-        if(!r.ok) throw new Error('http');
-        return r.json();
-      }).then(function(data){
-        var txt = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
+      Ai.chat(body.messages).then(function (txt) {
         var list = [];
-        try { list = JSON.parse(txt.replace(/```json|```/g,'').trim()); }
+        try { list = JSON.parse(txt.replace(/\`\`\`json|\`\`\`/g,'').trim()); }
         catch(e){ list = []; }
         if(!list.length){
           qlist.innerHTML = '<div class="empty">AI 未能生成有效结果，可换个关键词重试。</div>';
@@ -639,31 +674,15 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       ], temperature: 0.7 };
       if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
       body.stream = true;
-      fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify(body)
-      }).then(function(r){
-        if(!r.ok) throw new Error('http');
-        var reader = r.body.getReader(), decoder = new TextDecoder(), buf = '', text = '';
-        gBody.style.display = 'block';
-        function pump(){
-          return reader.read().then(function(res){
-            if (res.done){ gLoad.style.display='none'; showGuide(site.label||site.name||'', text); return; }
-            buf += decoder.decode(res.value, { stream: true });
-            var lines = buf.split('\n'); buf = lines.pop();
-            lines.forEach(function(line){
-              if (!line.startsWith('data: ')) return;
-              var json = line.slice(6).trim(); if (json === '[DONE]') return;
-              try { var c = JSON.parse(json).choices[0].delta; if (c && c.content) text += c.content; } catch(e){}
-            });
-            gBody.textContent = text;
-            gBody.scrollTop = gBody.scrollHeight;
-            return pump();
-          });
-        }
-        return pump();
-      }).catch(function(err){
+      var text = '';
+      Ai.stream(body.messages, function (delta) {
+        text += delta;
+        gBody.textContent = text;
+        gBody.scrollTop = gBody.scrollHeight;
+      }).then(function (full) {
+        gLoad.style.display = 'none';
+        showGuide(site.label || site.name || '', full);
+      }).catch(function (err) {
         gLoad.style.display = 'none';
         gBody.style.display = 'block';
         gBody.textContent = '讲解生成失败：' + String(err && err.message || err) + '。请检查网络后重试。';
@@ -1007,48 +1026,16 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     };
     if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
     body.stream = true;
-    fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify(body)
-    }).then(function (r) {
-      if (!r.ok) throw new Error('http');
-      var reader = r.body.getReader();
-      var decoder = new TextDecoder();
-      var buf = '';
-      ai.style.display = 'block';
-      ai.textContent = '';
-      function pump() {
-        return reader.read().then(function (result) {
-          if (result.done) {
-            load.style.display = 'none';
-            $X(ui.panel, '#tnSave').disabled = false;
-            var p = $X(ui.panel, '#tnPolish');
-            p.style.display = 'block';
-            p.textContent = '↻ 换风格重润';
-            $X(ui.panel, '#tnNote').textContent = '润色完成：' + st.icon + st.name + '（不满意可换风格重润）';
-            return;
-          }
-          buf += decoder.decode(result.value, { stream: true });
-          var lines = buf.split('\n');
-          buf = lines.pop();
-          lines.forEach(function (line) {
-            if (!line.startsWith('data: ')) return;
-            var json = line.slice(6).trim();
-            if (json === '[DONE]') return;
-            try {
-              var chunk = JSON.parse(json);
-              var delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
-              if (delta && delta.content) {
-                ai.textContent += delta.content;
-                ai.scrollTop = ai.scrollHeight;
-              }
-            } catch (e) {}
-          });
-          return pump();
-        });
-      }
-      return pump();
+    Ai.stream(body.messages, function (delta) {
+      ai.textContent += delta;
+      ai.scrollTop = ai.scrollHeight;
+    }).then(function () {
+      load.style.display = 'none';
+      $X(ui.panel, '#tnSave').disabled = false;
+      var p = $X(ui.panel, '#tnPolish');
+      p.style.display = 'block';
+      p.textContent = '↻ 换风格重润';
+      $X(ui.panel, '#tnNote').textContent = '润色完成：' + st.icon + st.name + '（不满意可换风格重润）';
     }).catch(function () {
       load.style.display = 'none';
       flash('润色失败（网络或 key 无效），可保存原文');

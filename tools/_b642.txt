@@ -1,0 +1,29 @@
+      fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify(body)
+      }).then(function(r){
+        if(!r.ok) throw new Error('http');
+        var reader = r.body.getReader(), decoder = new TextDecoder(), buf = '', text = '';
+        gBody.style.display = 'block';
+        function pump(){
+          return reader.read().then(function(res){
+            if (res.done){ gLoad.style.display='none'; showGuide(site.label||site.name||'', text); return; }
+            buf += decoder.decode(res.value, { stream: true });
+            var lines = buf.split('\n'); buf = lines.pop();
+            lines.forEach(function(line){
+              if (!line.startsWith('data: ')) return;
+              var json = line.slice(6).trim(); if (json === '[DONE]') return;
+              try { var c = JSON.parse(json).choices[0].delta; if (c && c.content) text += c.content; } catch(e){}
+            });
+            gBody.textContent = text;
+            gBody.scrollTop = gBody.scrollHeight;
+            return pump();
+          });
+        }
+        return pump();
+      }).catch(function(err){
+        gLoad.style.display = 'none';
+        gBody.style.display = 'block';
+        gBody.textContent = '讲解生成失败：' + String(err && err.message || err) + '。请检查网络后重试。';
+      });

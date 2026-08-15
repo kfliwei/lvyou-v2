@@ -1,0 +1,47 @@
+    fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('http');
+      var reader = r.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      ai.style.display = 'block';
+      ai.textContent = '';
+      function pump() {
+        return reader.read().then(function (result) {
+          if (result.done) {
+            load.style.display = 'none';
+            $X(ui.panel, '#tnSave').disabled = false;
+            var p = $X(ui.panel, '#tnPolish');
+            p.style.display = 'block';
+            p.textContent = '↻ 换风格重润';
+            $X(ui.panel, '#tnNote').textContent = '润色完成：' + st.icon + st.name + '（不满意可换风格重润）';
+            return;
+          }
+          buf += decoder.decode(result.value, { stream: true });
+          var lines = buf.split('\n');
+          buf = lines.pop();
+          lines.forEach(function (line) {
+            if (!line.startsWith('data: ')) return;
+            var json = line.slice(6).trim();
+            if (json === '[DONE]') return;
+            try {
+              var chunk = JSON.parse(json);
+              var delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+              if (delta && delta.content) {
+                ai.textContent += delta.content;
+                ai.scrollTop = ai.scrollHeight;
+              }
+            } catch (e) {}
+          });
+          return pump();
+        });
+      }
+      return pump();
+    }).catch(function () {
+      load.style.display = 'none';
+      flash('润色失败（网络或 key 无效），可保存原文');
+      $X(ui.panel, '#tnSave').disabled = false;
+    });

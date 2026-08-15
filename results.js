@@ -20,34 +20,12 @@
   function aiKey() { try { return localStorage.getItem('tn_aiKey'); } catch (e) { return ''; } }
   function aiModel() { var m = localStorage.getItem('tn_model') || 'deepseek-v4-flash'; var a = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' }; return a[m] || m; }
   function aiCall(messages, cb, stream) {
-    var key = aiKey();
-    if (!key) { if (cb) cb(null, '未配置 AI key，请到 设置 → AI 润色 填入 DeepSeek key 后重试'); return; }
-    var body = { model: aiModel(), messages: messages, temperature: 0.7 };
-    if (aiModel() === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-    if (stream !== false) body.stream = true;
-    fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify(body)
-    }).then(function (r) {
-      if (!r.ok) throw new Error('http ' + r.status);
-      if (stream === false) return r.json().then(function (d) { cb(d.choices[0].message.content); });
-      var reader = r.body.getReader(), decoder = new TextDecoder(), buf = '', text = '';
-      function pump() {
-        return reader.read().then(function (res) {
-          if (res.done) { cb(text); return; }
-          buf += decoder.decode(res.value, { stream: true });
-          var lines = buf.split('\n'); buf = lines.pop();
-          lines.forEach(function (line) {
-            if (!line.startsWith('data: ')) return;
-            var json = line.slice(6).trim(); if (json === '[DONE]') return;
-            try { var c = JSON.parse(json).choices[0].delta; if (c && c.content) text += c.content; } catch (e) {}
-          });
-          return pump();
-        });
-      }
-      return pump();
-    }).catch(function (e) { cb(null, String(e && e.message || e)); });
+    if (!(window.Ai && Ai.hasKey())) { if (cb) cb(null, '未配置 AI key，请到 设置 → AI 润色 填入 DeepSeek key 后重试'); return; }
+    if (stream === false) {
+      Ai.chat(messages).then(function (t) { cb(t); }).catch(function (e) { cb(null, String(e && e.message || e)); });
+      return;
+    }
+    Ai.stream(messages).then(function (t) { cb(t); }).catch(function (e) { cb(null, String(e && e.message || e)); });
   }
   /* 保存 HTML 文档（App 下载 / 浏览器下载 / 复制） */
   function saveDoc(name, html) {

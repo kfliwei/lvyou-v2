@@ -496,33 +496,13 @@ document.getElementById('aiReport').onclick=function(){
   ],temperature:0.7};
   if(model==='deepseek-v4-pro') body.reasoning_effort='high';
   body.stream=true;
-  fetch('https://api.deepseek.com/chat/completions',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-    body:JSON.stringify(body)
-  }).then(function(r){
-    if(!r.ok) throw new Error('http');
-    var reader=r.body.getReader(),dec=new TextDecoder(),buf='',text='';
-    function pump(){
-      return reader.read().then(function(res){
-        if(res.done){
-          dlg.querySelector('.txt').textContent=text;
-          return;
-        }
-        buf+=dec.decode(res.value,{stream:true});
-        var lines=buf.split('\n'); buf=lines.pop();
-        lines.forEach(function(line){
-          if(line.indexOf('data: ')!==0) return;
-          var json=line.slice(6).trim(); if(json==='[DONE]') return;
-          try{ var c=JSON.parse(json).choices[0].delta; if(c&&c.content) text+=c.content; }catch(e){}
-        });
-        dlg.querySelector('.txt').textContent=text;
-        return pump();
-      });
-    }
-    return pump();
-  }).catch(function(err){
-    fallbackLocal('（AI 生成失败：'+String(err&&err.message||err)+'，已为你生成本地版年度回顾。）');
+  Ai.stream(body.messages, function (delta) {
+    var el = dlg.querySelector('.txt');
+    el.textContent += delta;
+  }).then(function (full) {
+    dlg.querySelector('.txt').textContent = full;
+  }).catch(function (err) {
+    fallbackLocal('（AI 生成失败：' + String(err && err.message || err) + '，已为你生成本地版年度回顾。）');
   });
 };
 document.getElementById('posterBtnH').onclick = function () { try { window.FootprintPoster.generate(true); } catch (e) { UI.toast('生成失败'); } };

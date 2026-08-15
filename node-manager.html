@@ -231,22 +231,13 @@
     var btn = document.getElementById('nmGenDesc');
     btn.textContent = '生成中…';
     btn.disabled = true;
-    fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: (function (r) { var A = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' }; return A[r] || r; })(localStorage.getItem('tn_model') || 'deepseek-v4-flash'),
-        messages: [
-          { role: 'system', content: '你是旅行地点编辑助手，输出简洁准确的介绍。' },
-          { role: 'user', content: '为旅行地点「' + name + '」' + ([city, cat].filter(Boolean).length ? '（' + [city, cat].filter(Boolean).join('，') + '）' : '') + '写一段 60-100 字的介绍：亮点、适合季节、注意事项。口语化，不要列表编号，不要编造不确定的史实。' }
-        ],
-        temperature: 0.7
-      })
-    }).then(function (r) { return r.json(); }).then(function (d) {
-      var t = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
-      if (t) { document.getElementById('nmDesc').value = t.trim(); UI.toast('介绍已生成，可再手动微调'); }
-      else { UI.toast('生成失败：' + ((d && d.error && d.error.message) || '未知错误')); }
-    }).catch(function () { UI.toast('生成失败，请检查网络'); })
+    Ai.chat([
+      { role: 'system', content: '你是旅行地点编辑助手，输出简洁准确的介绍。' },
+      { role: 'user', content: '为旅行地点「' + name + '」' + ([city, cat].filter(Boolean).length ? '（' + [city, cat].filter(Boolean).join('，') + '）' : '') + '写一段 60-100 字的介绍：亮点、适合季节、注意事项。口语化，不要列表编号，不要编造不确定的史实。' }
+    ]).then(function (t) {
+      document.getElementById('nmDesc').value = t.trim();
+      UI.toast('介绍已生成，可再手动微调');
+    }).catch(function () { UI.toast('生成失败，请检查网络或 Key'); })
       .then(function () { btn.textContent = '✨ 生成介绍'; btn.disabled = false; });
   }
 
