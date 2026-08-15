@@ -343,6 +343,32 @@
   /* ---------- 节点天气（Open-Meteo，免 Key，30 分钟缓存） ---------- */
   var WMO = { 0: '晴', 1: '多云', 2: '多云', 3: '阴', 45: '雾', 48: '雾凇', 51: '毛毛雨', 53: '毛毛雨', 55: '毛毛雨', 56: '冻雨', 57: '冻雨', 61: '小雨', 63: '中雨', 65: '大雨', 66: '冻雨', 67: '冻雨', 71: '小雪', 73: '中雪', 75: '大雪', 77: '雪粒', 80: '阵雨', 81: '阵雨', 82: '强阵雨', 85: '阵雪', 86: '强阵雪', 95: '雷暴', 96: '雷暴冰雹', 99: '雷暴冰雹' };
   function weatherIcon(code) { var c = +code; if (c === 0) return '☀️'; if (c <= 3) return '⛅'; if (c <= 48) return '🌫️'; if (c <= 67) return '🌧️'; if (c <= 77) return '🌨️'; if (c <= 86) return '🌦️'; return '⛈️'; }
+  /* 实景照三级获取：静态映射(SITE_IMAGES) → localStorage 7天缓存 → 高德实时拉取 */
+  function loadSitePhoto(s, cb) {
+    if (!s) { cb && cb(null); return; }
+    var u = imgSrc(s);
+    if (u && u.indexOf('http') === 0 && u.indexOf('autonavi') >= 0) { cb && cb(u); return; }
+    try {
+      var c = JSON.parse(localStorage.getItem('tn_photo_' + s.name) || 'null');
+      if (c && c.u && Date.now() - c.ts < 7 * 24 * 3600 * 1000) { cb && cb(c.u); return; }
+    } catch (e) {}
+    var key = '';
+    try { key = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+    if (!key) { cb && cb(null); return; }
+    fetch('https://restapi.amap.com/v3/place/text?key=' + encodeURIComponent(key) +
+      '&keywords=' + encodeURIComponent(s.name) +
+      '&city=' + encodeURIComponent(s.city || '') +
+      '&offset=1&page=1&extensions=all')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var ph = '';
+        try { if (d && d.status === '1' && d.pois && d.pois[0] && d.pois[0].photos && d.pois[0].photos[0]) ph = d.pois[0].photos[0].url; } catch (e) {}
+        if (ph) { try { localStorage.setItem('tn_photo_' + s.name, JSON.stringify({ ts: Date.now(), u: ph })); } catch (e) {} cb && cb(ph); }
+        else cb && cb(null);
+      })
+      .catch(function () { cb && cb(null); });
+  }
+
   function loadWeather(lat, lng, cb) {
     try {
       var key = 'tn_weather_' + lat.toFixed(2) + '_' + lng.toFixed(2);
@@ -384,6 +410,17 @@
         if (!w) { el.style.display = 'none'; return; }
         el.innerHTML = weatherIcon(w.code) + ' ' + (WMO[w.code] || '未知') + ' · ' + w.temp + '°C · 风 ' + w.wind + 'km/h';
         el.style.display = 'block';
+      });
+    }
+    /* 实景照按需拉取（静态映射未命中时） */
+    if (_s0) {
+      loadSitePhoto(_s0, function (u) {
+        var img = document.querySelector('#locSheet .ls-img img');
+        if (!img || !u) return;
+        if (img.getAttribute('src') !== u) {
+          img.src = u;
+          img.onerror = function () { img.style.display = 'none'; };
+        }
       });
     }
     document.querySelector('.tabbar').classList.add('is-hidden');
