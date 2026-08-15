@@ -1049,3 +1049,5 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .tr-active .node-label{opacity:.9;font-weight:600}
 .tr-user .node-label{opacity:.8;color:#5F7A4E}
 .theme-dark .node-label{color:var(--color-ink,#e9e4d8);text-shadow:0 1px 3px rgba(0,0,0,.7)}
+
+.node-label.hidden{display:none}

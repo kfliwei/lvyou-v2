@@ -247,6 +247,9 @@
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
   function renderMarkers(list) {
     lastMarkerList = list;
+    /* 标签避让（2026-08-15）：重叠隐藏低优先级 */
+    clearTimeout(renderMarkers._av);
+    renderMarkers._av = setTimeout(function () { if (window.labelAvoid) labelAvoid('#mapEl'); }, 120);
     /* LOD 重渲染：清理「查附近」补画节点层（残留高亮 marker 会盖住重画节点并拦截点击） */
     if (nearNodeLayer) { try { nearNodeLayer.clearLayers(); } catch (e) {} }
     /* TRACE v2 统一分层分级（node-lod.js 引擎）：

@@ -1178,3 +1178,23 @@ button.act,button.act.sec,button.mine,button.go{min-height:44px}
    ============================================================ */
 @keyframes pageIn{from{opacity:0}to{opacity:1}}
 body{animation:pageIn .32s var(--ease-standard) both}
+
+/* 深色收敛 2026-08-15：review/settings/story 公共深色规则（原三页内联重复） */
+.theme-dark .cal-card{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .cal-head .nav button{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-muted)}
+.theme-dark .cal-cell{color:var(--color-ink-soft)}
+.theme-dark .cal-cell.has{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .moodrow button{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
+.theme-dark .story-card{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .story-card .sc-date,.theme-dark .story-card .sc-place{color:var(--color-ink)}
+.theme-dark .story-card .sc-meta,.theme-dark .story-card .sc-txt{color:var(--color-ink-soft)}
+.theme-dark .story-card .sc-tags span{background:var(--color-primary-soft);color:var(--color-primary-dark)}
+.theme-dark .provcard,.theme-dark .review-card{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink-soft)}
+.theme-dark .provbtn{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-primary-dark)}
+.theme-dark .provbtn:active{background:var(--color-primary-soft)}
+
+/* story-bar 深色（2026-08-15 补漏） */
+.theme-dark .story-bar{background:rgba(29,28,25,.92);border-bottom-color:var(--color-line)}
+.theme-dark .story-bar .back{background:var(--color-bg-soft);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .story-bar .title{color:var(--color-ink)}
+.theme-dark .story-bar select{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink)}
