@@ -1931,20 +1931,20 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
   mask.id = 'placePicker';
   mask.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(20,19,15,.5);display:flex;align-items:flex-end;justify-content:center;animation:tnPickFade .18s ease';
   var sheet = document.createElement('div');
-  sheet.style.cssText = 'width:100%;max-width:560px;background:linear-gradient(175deg,#FAF6EC 0%,#F1EAD9 100%);border-radius:26px 26px 0 0;padding:4px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -12px 44px rgba(20,19,15,.22);animation:tnPickUp .3s cubic-bezier(.22,.9,.32,1)';
+  sheet.style.cssText = 'width:100%;max-width:560px;background:var(--color-surface);border-radius:26px 26px 0 0;padding:4px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -12px 44px rgba(20,19,15,.22);animation:tnPickUp .3s cubic-bezier(.22,.9,.32,1)';
   /* ---- 头部：印章 + 标题 ---- */
   var head = document.createElement('div');
   head.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 2px 10px';
   head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid #C86D4B;border-radius:8px;color:#C86D4B;font-family:&quot;Songti SC&quot;,serif;font-size:14px;transform:rotate(-4deg);flex:0 0 auto">记</span>' +
-    '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:17px;font-weight:600;color:#26241F;letter-spacing:.03em">记录地点</b>' +
-    '<small style="color:#8F8A7D;font-size:11px;letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
-    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6B665C;font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">✕</button>';
+    '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:17px;font-weight:600;color:var(--color-ink);letter-spacing:.03em">记录地点</b>' +
+    '<small style="color:var(--color-muted);font-size:11px;letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
+    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">✕</button>';
   /* ---- 当前位置卡片 ---- */
   var cur = document.createElement('div');
-  cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.78);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';
+  cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';
   cur.innerHTML = '<span style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#D97E58,#B4543A);color:#fff;flex:0 0 auto;box-shadow:0 6px 14px rgba(200,109,75,.3)">' + pinSvg + '</span>' +
-    '<span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:600;color:#26241F">当前位置</b>' +
-    '<small style="color:#8F8A7D;font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +
+    '<span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:600;color:var(--color-ink)">当前位置</b>' +
+    '<small style="color:var(--color-muted);font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +
     '<span style="font-size:11px;font-weight:600;color:#C86D4B;border:1px solid rgba(200,109,75,.3);border-radius:999px;padding:5px 12px;flex:0 0 auto">使用</span>';
   cur.onclick = function () { mask.remove(); if (onPick) onPick({ label: '当前位置（GPS）', lat: lat, lng: lng }); };
   /* ---- POI 列表 ---- */
