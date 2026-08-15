@@ -749,15 +749,10 @@
       if (failed && !Object.keys(dist).length) { toast('高德路线获取失败，已改用本地直线距离排序'); }
       var ordered = orderByMatrix(state.selected, state.start, dist);
       state.selected = ordered;
-      state.days = parseInt(($id('intentDays') && $id('intentDays').value) || state.days || 0, 10) || 0;
-      state.startDate = $id('intentDate') ? $id('intentDate').value : '';
-      state.start = $id('intentStart') && $id('intentStart').value ? (matchStart($id('intentStart').value) || state.start) : state.start;
-      var days = schedule(ordered, state.start, state.days, true);
-      var name = (state.regions.join('/') || '旅行') + ' ' + days.length + ' 日' + (state.prefs.length ? state.prefs.join('·') : '') + '之旅';
-      state.trip = { name: name, createdAt: Date.now(), start: state.start, startDate: state.startDate, aiLevel: getAILevel(), days: days, narrative: null };
-      showStage('stageResult'); renderResult();
+      renderCandidates(); renderSumm();
       if (mk) mk.remove();
-      toast(failed && !Object.keys(dist).length ? '已按高德真实道路距离重新规划' : '已按高德真实道路距离重新规划' + (failed ? '（部分路段缺失，已兜底）' : ''));
+      window.plannerOpenBrowse();
+      toast(failed && !Object.keys(dist).length ? '已按高德真实道路距离排序（部分缺失已直线兜底），点「开始排期」出行程' : '已按高德真实道路距离排序，点「开始排期」出行程');
     });
   };
 

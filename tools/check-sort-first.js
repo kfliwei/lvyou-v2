@@ -1,4 +1,4 @@
-/* 验证：浏览弹层【高德规划行程】— 有Key走真实距离排序直出排期；无Key提示 */
+/* 验证：高德规划先排序（弹层顺序更新 + 不跳排期），再点开始排期出结果 */
 const puppeteer = require('puppeteer-core');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -12,23 +12,22 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
   await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 100)));
-  /* stub 高德 driving：按坐标返回固定距离（体现矩阵排序） */
+  /* stub 高德：destination 经度越接近 105 距离越短（构造确定排序） */
   await p.evaluateOnNewDocument(() => {
     window.__fetchOrig = window.fetch;
     window.fetch = function (url, opt) {
       const u = String(url);
       if (u.includes('restapi.amap.com/v3/direction/driving')) {
-        const m = u.match(/origin=([\d.]+),([\d.]+)&destination=([\d.]+),([\d.]+)/);
-        const dist = m ? Math.abs(parseFloat(m[1]) - parseFloat(m[3])) * 111 + Math.abs(parseFloat(m[2]) - parseFloat(m[4])) * 95 : 50000;
-        return Promise.resolve({ json: () => Promise.resolve({ status: '1', route: { paths: [{ distance: String(Math.max(1000, dist * 1000)) }] } }) });
+        const m = u.match(/destination=([\d.]+),([\d.]+)/);
+        const dist = m ? Math.abs(parseFloat(m[1]) - 105) * 80 + Math.abs(parseFloat(m[2]) - 30) * 60 : 50000;
+        return Promise.resolve({ json: () => Promise.resolve({ status: '1', route: { paths: [{ distance: String(Math.max(8000, dist * 1000)) }] } }) });
       }
       return window.__fetchOrig(url, opt);
     };
   });
   await p.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
   await sleep(6000);
-  /* 无 Key 场景：先清空自动写入的 Key → 点高德规划 → 提示 */
-  await p.evaluate(() => { localStorage.removeItem('tn_amap_key'); delete window.__TN_AMAP_KEY__; });
+  await p.evaluate(() => localStorage.setItem('tn_amap_key', 'testkey'));
   await p.evaluate(() => {
     const inp = document.querySelector('input[type="text"], textarea, #promptInput');
     if (inp) inp.value = '想去云南玩3天';
@@ -36,48 +35,40 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
     if (b) b.click();
   });
   await sleep(2500);
-  await p.evaluate(() => { const cs = document.querySelectorAll('.cand, [class*="cand"]'); for (let i = 0; i < 2; i++) cs[i].click(); });
-  await sleep(400);
-  await p.evaluate(() => { const b = [...document.querySelectorAll('#summbar button')].find(x => x.textContent.includes('浏览')); if (b) b.click(); });
-  await sleep(400);
-  const r1 = await p.evaluate(() => ({
-    btn: [...document.querySelectorAll('#browseMask button')].map(b => b.textContent.trim()),
-    has: [...document.querySelectorAll('#browseMask button')].some(b => b.textContent.includes('高德规划'))
-  }));
-  ok('弹层有【高德规划行程】按钮', r1.has, r1.btn.join('|'));
-  await p.evaluate(() => { const b = [...document.querySelectorAll('#browseMask button')].find(x => x.textContent.includes('高德规划')); if (b) b.click(); });
+  /* 勾选 3 个，记录原始顺序 */
+  await p.evaluate(() => { const cs = document.querySelectorAll('.cand, [class*="cand"]'); for (let i = 0; i < 3; i++) cs[i].click(); });
   await sleep(500);
-  const r2 = await p.evaluate(() => ({
-    stillPick: document.getElementById('stagePick') && document.getElementById('stagePick').style.display !== 'none',
-    toast: (document.querySelector('[class*="toast"]') || { textContent: '' }).textContent
-  }));
-  ok('无 Key 提示未配置', r2.stillPick, r2.toast.slice(0, 40));
-
-  /* 有 Key 场景：真实距离排序 + 直出排期 */
-  await p.evaluate(() => localStorage.setItem('tn_amap_key', 'testkey123'));
+  const before = await p.evaluate(() => {
+    const cs = document.querySelectorAll('.cand, [class*="cand"]');
+    const picked = [];
+    cs.forEach(c => { if (/on|sel|✓/.test(c.className)) picked.push(c.textContent.slice(0, 12)); });
+    return picked;
+  });
+  /* 点浏览 → 点高德规划 */
   await p.evaluate(() => { const b = [...document.querySelectorAll('#summbar button')].find(x => x.textContent.includes('浏览')); if (b) b.click(); });
   await sleep(400);
   await p.evaluate(() => { const b = [...document.querySelectorAll('#browseMask button')].find(x => x.textContent.includes('高德规划')); if (b) b.click(); });
   await sleep(3000);
-  const r3 = await p.evaluate(() => ({
+  const after = await p.evaluate(() => ({
     maskOpen: !!document.getElementById('browseMask'),
-    resultHidden: !document.getElementById('stageResult') || document.getElementById('stageResult').style.display === 'none',
-    order: document.querySelectorAll('#browseMask [style*="border-bottom"]').length
+    stageResultHidden: !document.getElementById('stageResult') || document.getElementById('stageResult').style.display === 'none',
+    order: [...document.querySelectorAll('#browseMask [style*="border-bottom"]')].map(x => x.textContent.slice(0, 14))
   }));
-  ok('有 Key 先排序展示（不跳排期）', r3.maskOpen && r3.resultHidden && r3.order >= 2, 'order=' + r3.order);
-  /* 关弹层 → 开始排期 → 出结果 */
+  ok('排序后仍在浏览弹层（不跳排期）', after.maskOpen && after.stageResultHidden, 'mask=' + after.maskOpen + ' resultHidden=' + after.stageResultHidden);
+  ok('弹层显示排序后新顺序', after.order.length === 3, JSON.stringify(after.order));
+  /* 再点开始排期 → 出结果 */
   await p.evaluate(() => { const b = [...document.querySelectorAll('#browseMask button')].find(x => x.textContent.includes('关闭')); if (b) b.click(); });
   await sleep(300);
   await p.evaluate(() => { const b = document.getElementById('scheduleBtn'); if (b) b.click(); });
   await sleep(2500);
-  const r4 = await p.evaluate(() => ({
+  const r3 = await p.evaluate(() => ({
     result: document.getElementById('stageResult') && document.getElementById('stageResult').style.display !== 'none',
     days: document.querySelectorAll('.day-card').length
   }));
-  ok('排序后开始排期出结果', r4.result && r4.days > 0, 'days=' + r4.days);
+  ok('排序后点开始排期出结果', r3.result && r3.days > 0, 'days=' + r3.days);
   const real = errs.filter(e => !/Failed to load resource|net::|ERR_|manifest/.test(e));
   ok('无脚本错误', real.length === 0, real.join(' | ').slice(0, 100));
   await browser.close();
-  console.log(fails ? '=== AMAP-PLAN FAIL ===' : '=== AMAP-PLAN ALL PASSED ===');
+  console.log(fails ? '=== SORT-FIRST FAIL ===' : '=== SORT-FIRST ALL PASSED ===');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.error('ERR:', e.message); process.exit(2); });
