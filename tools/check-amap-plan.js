@@ -27,7 +27,8 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
   });
   await p.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
   await sleep(6000);
-  /* 无 Key 场景：点高德规划 → 提示 */
+  /* 无 Key 场景：先清空自动写入的 Key → 点高德规划 → 提示 */
+  await p.evaluate(() => { localStorage.removeItem('tn_amap_key'); delete window.__TN_AMAP_KEY__; });
   await p.evaluate(() => {
     const inp = document.querySelector('input[type="text"], textarea, #promptInput');
     if (inp) inp.value = '想去云南玩3天';

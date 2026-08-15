@@ -636,7 +636,7 @@
 
   /* ---------- 高德真实导航路线（按段拉取，缓存，失败降级直线） ---------- */
   function amapRoutePolyline(a, b, cb) {
-    var key = ''; try { key = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+    var key = getAmapKey();
     if (!key) { cb(null); return; }
     var ck = 'tn_rt_' + a.lat.toFixed(3) + ',' + a.lng.toFixed(3) + '_' + b.lat.toFixed(3) + ',' + b.lng.toFixed(3);
     try { var hit = localStorage.getItem(ck); if (hit) { cb(JSON.parse(hit)); return; } } catch (e) {}
@@ -654,9 +654,16 @@
       })
       .catch(function () { cb(null); });
   }
+  /* 高德 Key：localStorage 优先，本地文件后备并自动写入 */
+  function getAmapKey() {
+    try { var k = localStorage.getItem('tn_amap_key'); if (k) return k; } catch (e) {}
+    if (window.__TN_AMAP_KEY__) { try { localStorage.setItem('tn_amap_key', window.__TN_AMAP_KEY__); } catch (e) {} return window.__TN_AMAP_KEY__; }
+    return '';
+  }
+
   /* 高德真实驾车距离（米→km，缓存） */
   function amapDriveDist(a, b, cb) {
-    var key = ''; try { key = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+    var key = getAmapKey();
     if (!key) { cb(null); return; }
     var ck = 'tn_d_' + a.lat.toFixed(3) + ',' + a.lng.toFixed(3) + '_' + b.lat.toFixed(3) + ',' + b.lng.toFixed(3);
     try { var hit = localStorage.getItem(ck); if (hit) { cb(parseFloat(hit)); return; } } catch (e) {}
@@ -733,7 +740,7 @@
   /* 浏览弹层：【高德规划行程】— 真实道路距离排序 + 直出排期 */
   window.plannerAmapPlan = function () {
     if (state.selected.length < 2) { toast('至少选 2 个景点才能规划'); return; }
-    var key = ''; try { key = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+    var key = getAmapKey();
     if (!key) { toast('未配置高德 Key，无法用高德规划行程（设置页可配置）'); return; }
     var btn = null;
     var mk = $id('browseMask');
@@ -780,7 +787,7 @@
             sg.clearLayers();
             L.polyline(pts, { color: '#C86D4B', weight: 4, opacity: .9 }).addTo(sg);
             routeReal++;
-          } else if (!localStorage.getItem('tn_amap_key') && !routeHintShown) {
+          } else if (!getAmapKey() && !routeHintShown) {
             routeHintShown = true;
             try { toast('未配置高德 Key，地图显示直线示意；配置后可显示真实导航路线'); } catch (e) {}
           }
@@ -1050,6 +1057,8 @@
 
   /* ---------- 初始化 ---------- */
   function init() {
+    try { var pi = $id('promptInput'); if (pi && pi.value && !pi.value.trim()) pi.value = ''; } catch (e) {}
+    try { getAmapKey(); } catch (e) {}
     renderAISwitch();
     renderDestChips();
     $id('genBtn').onclick = doGenerate;
