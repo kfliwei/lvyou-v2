@@ -1733,6 +1733,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 设置 ---------- */
   function openSettings() {
+    /* 2026-08-15：参数卡框移除，直接打开设置页（Key/模型/VAD/保留录音/主题开关/存储均在设置页） */
+    location.href = 'settings.html';
+    return;
     buildUI();
     $X(ui.set, '#tnKeyInput').value = localStorage.getItem(AI_KEY) || '';
     var cur = (MODEL_ALIAS && MODEL_ALIAS[localStorage.getItem('tn_model')]) || localStorage.getItem('tn_model') || 'deepseek-v4-flash';
