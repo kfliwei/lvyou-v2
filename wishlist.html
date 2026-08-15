@@ -441,11 +441,7 @@
   };
   var pc = document.getElementById('wlPlanClose');
   if (pc) pc.onclick = function () { document.getElementById('wlPlan').style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
-  document.getElementById('wlPlanBtn').onclick = function () {
-    document.getElementById('wlMap').style.display = 'none';
-    document.getElementById('wlMapBtn').textContent = '地图';
-    planTrip();
-  };
+  document.getElementById('wlPlanBtn').onclick = function () { location.href = 'planner.html'; };
 
   function itemHtml(w, i) {
     var done = !!w.visited;

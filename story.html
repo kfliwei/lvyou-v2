@@ -31,6 +31,13 @@
   .story-empty img{width:200px;height:auto;max-width:70vw;display:block;margin:0 auto 18px}
   .story-empty b{display:block;font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-ink);margin-bottom:8px}
   .story-empty span{font-size:13px;line-height:1.8}
+  .story-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:80;display:flex;align-items:center;gap:10px;width:min(calc(100% - 24px),440px);background:rgba(250,248,243,.92);border:1px solid rgba(32,32,29,.07);border-radius:999px;padding:8px 14px;box-shadow:var(--shadow-float);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  .story-nav .sn-btn{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+  .story-nav .sn-btn:disabled{opacity:.35;cursor:not-allowed}
+  .story-nav .sn-info{flex:1;text-align:center;min-width:0}
+  .story-nav .sn-info b{font-family:var(--font-serif);font-weight:400;font-size:14px;color:var(--color-ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .story-nav .sn-info span{display:block;font-size:10.5px;color:var(--color-muted);margin-top:1px}
+  .theme-dark .story-nav{background:rgba(29,28,25,.92);border-color:var(--color-line)}
 
 /* ============================================================
    TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
@@ -46,6 +53,11 @@
     <select id="tripSel"></select>
   </div>
   <div id="cards"></div>
+</div>
+<div class="story-nav" id="storyNav">
+  <button class="sn-btn" id="snPrev" aria-label="上一站">‹</button>
+  <div class="sn-info"><b id="snTitle"></b><span id="snSub"></span></div>
+  <button class="sn-btn" id="snNext" aria-label="下一站">›</button>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="geo.js"></script>
@@ -68,7 +80,7 @@ var osmLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{m
 amapStreet.on('tileerror',function(){
   if(!map.hasLayer(osmLayer)){ try{ amapStreet.remove(); }catch(e){} osmLayer.addTo(map); }
 });
-var curMarker=null;
+var routeLayer=L.layerGroup().addTo(map);
 
 function groupTrips(list){
   var sorted=list.slice().sort(function(a,b){return a.ts-b.ts;});
@@ -110,15 +122,41 @@ function fitBounds(){
   var pts=cards.map(function(n){var p=gxy(n.lat,n.lng);return [p[0],p[1]];});
   if(pts.length) map.fitBounds(pts,{padding:[30,30]});
 }
+/* 分镜：累计路线 + 途经点 + 当前高亮，逐站展开旅程 */
+function drawRoute(upto){
+  routeLayer.clearLayers();
+  var pts=[];
+  for(var k=0;k<=upto&&k<cards.length;k++){ pts.push(gxy(cards[k].lat,cards[k].lng)); }
+  if(pts.length>1) L.polyline(pts,{color:'#C86D4B',weight:3,opacity:.5,dashArray:'6 6',lineCap:'round'}).addTo(routeLayer);
+  for(var k=0;k<=upto&&k<cards.length;k++){
+    var p=gxy(cards[k].lat,cards[k].lng), cur=(k===upto);
+    L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+(cur?'16':'8')+'px;height:'+(cur?'16':'8')+'px;border-radius:50%;background:'+(cur?'#C86D4B':'#9C9A92')+';border:'+(cur?'3px':'2px')+' solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[cur?16:8,cur?16:8],iconAnchor:[cur?8:4,cur?8:4]})}).addTo(routeLayer);
+  }
+}
+function updateNav(i){
+  var n=cards[i]; if(!n) return;
+  document.getElementById('snTitle').textContent=(n.title||n.siteName||'未命名');
+  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+((n.date||'').slice(0,10));
+  document.getElementById('snPrev').disabled=(i<=0);
+  document.getElementById('snNext').disabled=(i>=cards.length-1);
+}
 function setActive(i){
   var els=document.querySelectorAll('.story-card');
   els.forEach(function(e){e.classList.remove('active');});
   if(els[i]) els[i].classList.add('active');
   var n=cards[i]; if(!n) return;
-  if(curMarker) map.removeLayer(curMarker);
   var _p=gxy(n.lat,n.lng);
-  curMarker=L.marker(_p,{icon:L.divIcon({className:'',html:'<div style="width:16px;height:16px;border-radius:50%;background:#C86D4B;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);
+  drawRoute(i);
   map.flyTo(_p,Math.max(map.getZoom(),10),{duration:.7});
+  updateNav(i);
+}
+function goStep(dir){
+  var i=lastActive<0?0:lastActive;
+  var j=i+dir;
+  if(j<0||j>=cards.length) return;
+  lastActive=j; setActive(j);
+  var el=document.querySelectorAll('.story-card')[j];
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 /* scroll-spy：以卡片相对视口中位判断激活 */
 var _spyTimer=null;
@@ -140,6 +178,8 @@ function onScroll(){
 var lastActive=-1;
 window.addEventListener('scroll',onScroll,{passive:true});
 document.getElementById('tripSel').onchange=function(){ curTrip=this.value; lastActive=-1; render(); };
+document.getElementById('snPrev').onclick=function(){ goStep(-1); };
+document.getElementById('snNext').onclick=function(){ goStep(1); };
 window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;
 TravelNotes.init({});

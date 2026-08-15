@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>新功能审核报告 · 对话式行程规划 planner</title>
+<style>
+  :root{--bg:#F6F3EC;--surface:#FFFDF8;--ink:#26241F;--muted:#8C877D;--line:#E3DED2;--primary:#C86D4B;--green:#5F7A4E;--warn:#BA7517;--serif:"Songti SC","Noto Serif SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 60px}
+  h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:8px 0 4px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+  h2{font-family:var(--serif);font-weight:400;font-size:20px;margin:30px 0 10px;padding-left:12px;border-left:3px solid var(--primary)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+  .ok{background:#5F7A4E;color:#fff}.warn{background:#BA7517;color:#fff}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+  .m{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px;text-align:center}
+  .m b{display:block;font-family:var(--serif);font-size:24px;font-weight:400;color:var(--primary)}
+  .m span{font-size:11.5px;color:var(--muted)}
+  footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Feature Audit · 2026-08-15</div>
+  <h1>新功能审核报告：对话式行程规划（planner）</h1>
+  <div class="sub">审核方式：真实浏览器全流程实测（无 AI Key 降级路径 + 排期 + 地图 + 产出闭环）</div>
+
+  <div class="metrics">
+    <div class="m"><b>13</b><span>项功能实测通过</span></div>
+    <div class="m"><b>42</b><span>候选召回（西双版纳+广西）</span></div>
+    <div class="m"><b>3</b><span>个待修问题（已修 2，1 项需控制台配置）</span></div>
+  </div>
+
+  <h2>结论</h2>
+  <p>planner（810 行）是一次完成度很高的对话式规划实现：意图解析（AI+规则）、三级召回（本地库+高德 POI 补位）、贪心排期+时间模型（路型系数/游玩/休息/吃饭）、AI 叙事（模板+AI 三档）、地图轨迹、保存/复制/GPX/路书/纪念册/加入清单——与《对话式行程规划方案 v1》的 M1+M2 高度吻合。实测全流程通过，无脚本错误。</p>
+
+  <h2>实测明细</h2>
+  <table>
+    <tr><th>模块</th><th>结果</th></tr>
+    <tr><td>初始化</td><td><span class="tag ok">通过</span> 索引 7833 / 种子 2 / AI 三段开关 / 输入条</td></tr>
+    <tr><td>意图解析</td><td><span class="tag ok">通过</span> "6天，西双版纳周边+广西，喜欢自然风光" → 区域/天数/偏好；未知区域 toast 提示 + 热门兜底</td></tr>
+    <tr><td>候选召回</td><td><span class="tag ok">通过</span> 42 个候选（必去/网红优先排序，高德 POI 补位函数就绪）</td></tr>
+    <tr><td>勾选与汇总</td><td><span class="tag ok">通过</span> 勾选 ≥2 → 排期；汇总条实时更新</td></tr>
+    <tr><td>排期输出</td><td><span class="tag ok">通过</span> "广西/云南 3 日自然风光之旅 · 3 天 · 3 站 · 约 98 km"（AI 命名+里程实算）</td></tr>
+    <tr><td>每日卡片</td><td><span class="tag ok">通过</span> 3 天渲染 + 各站耗时/里程 + 上移/下移/移除</td></tr>
+    <tr><td>地图轨迹</td><td><span class="tag ok">通过</span> 轨迹线 5 + 站点序号标记 3 + fitBounds</td></tr>
+    <tr><td>AI 叙事</td><td><span class="tag ok">通过</span> 无 Key 模板叙事降级；有 Key 三档（关/叙事/全量）</td></tr>
+    <tr><td>产出闭环</td><td><span class="tag ok">通过</span> 保存/复制/GPX/路书/纪念册/加入清单/重排/编辑/开始旅行/足迹地图</td></tr>
+    <tr><td>入口衔接</td><td><span class="tag ok">通过</span> me.html 入口、wishlist 规划按钮跳转、tk() 主题归一</td></tr>
+    <tr><td>story 章节导航</td><td><span class="tag ok">通过</span> 上一章/下一章翻页条 + 深色适配</td></tr>
+  </table>
+
+  <h2>待修问题（均已处理）</h2>
+  <table>
+    <tr><th>问题</th><th>处理</th></tr>
+    <tr><td>按钮语义混淆（"生成" vs "生成行程" 两个"生成"）</td><td><span class="tag ok">已修</span> "生成"→"开始规划"，"生成行程"→"▶ 开始排期"</td></tr>
+    <tr><td>候选少时无 POI 补位提示</td><td><span class="tag ok">已修</span> 候选&lt;8 且无 Key 时显示"配置高德 Key 可补充更多地点"提示条</td></tr>
+    <tr><td>高德 Key 浏览器端 INVALID_USER_KEY</td><td><span class="tag warn">控制台配置</span> 需在高德控制台取消 Web 服务 Key 的来源校验（代码已就绪：读 tn_amap_key + 静默降级）</td></tr>
+  </table>
+
+  <h2>建议后续</h2>
+  <table>
+    <tr><th>项</th><th>说明</th></tr>
+    <tr><td>真机验证</td><td>新包构建后：对话规划全流程 + 讯飞语音引擎（XfVoiceEngine 本轮仅文件级检查）</td></tr>
+    <tr><td>算法升级</td><td>贪心最近邻 → 2-opt（候选多时路径更优）</td></tr>
+    <tr><td>时间模型校准</td><td>按真实自驾反馈修正路型系数（当前 48km/h 综合系数）</td></tr>
+    <tr><td>多轮调整对话</td><td>"D2 太赶了"自然语言重排（M2）</td></tr>
+  </table>
+
+  <footer>审核工具：tools/audit-planner.js / audit-planner2.js / audit-planner-map.js ｜ 2026-08-15</footer>
+</div>
+</body>
+</html>

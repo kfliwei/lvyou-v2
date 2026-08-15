@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="Theme.GuJianMap" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#7a241a</item>
+        <item name="android:navigationBarColor">#7a241a</item>
+        <item name="android:colorBackground">#f6f1e7</item>
+    </style>
+</resources>

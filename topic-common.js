@@ -30,7 +30,9 @@
   function gcj02Of(lat, lng) { return window.Geo.gcj02Of(lat, lng); }
   function pt(s) { if (s && s.gcj) return [+s.lat, +s.lng]; return useGCJ ? gcj02Of(s.lat, s.lng) : [s.lat, s.lng]; }
   function gxy(lat, lng) { return useGCJ ? gcj02Of(lat, lng) : [lat, lng]; }
-  function tk(s) { return s[M.themeKey || 'theme']; }
+  function normTheme(t) { return (window.THEME_ALIAS && window.THEME_ALIAS[t]) || t; }
+  /* tk 统一返回归一后主题：筛选/配色/图例/计数/图标/isMajorSite 全部在此收口 */
+  function tk(s) { return normTheme(s[M.themeKey || 'theme']); }
   function colorOf(s) { return M.themes[tk(s)] || "#7D7970"; }
 
   /* ---------- 筛选 ---------- */
