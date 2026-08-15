@@ -41,7 +41,7 @@
   };
   var PREF_KEYS = Object.keys(PREF);
   function prefThemes(p) { return PREF[p] ? PREF[p].themes : []; }
-  function prefHit(p, t) { var n = normTheme(t); return PREF[p].themes.indexOf(n) >= 0; }
+  function prefHit(p, t) { var def = PREF[p]; var n = normTheme(t); return !!(def && def.themes && def.themes.indexOf(n) >= 0); }
 
   /* ---------- 主题 → 颜色 / 时长 ---------- */
   var THEME_COLOR = { '高原湖泊': '#5F6D76', '雪山冰川': '#9C9A92', '名山大川': '#71806C', '峡谷天堑': '#8A5A44', '江河瀑布': '#5F6D76', '古建寺院': '#A9563B', '古城古镇': '#8A5A44', '古城遗址': '#7E7663', '红色遗迹': '#C86D4B', '民族风情': '#C86D4B', '城市地标': '#6D7D88', '溶洞奇观': '#8C7B66', '森林草原': '#71806C', '森林山川': '#71806C', '宗教圣地': '#A9563B', '遗址陵墓': '#7E7663', '温泉康养': '#C86D4B', '石窟艺术': '#A9563B', '丹霞地貌': '#BA7517', '雅丹地貌': '#BA7517', '沙漠戈壁': '#BA7517', '草原湿地': '#639922', '寺庙': '#A9563B', '古塔': '#7E7663', '草原': '#639922', '冰川': '#9C9A92' };
@@ -352,7 +352,7 @@
     if (!provSel) { box.style.display = 'none'; box.innerHTML = ''; return; }
     var ts = provThemes(provSel);
     box.style.display = 'block';
-    box.innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:4px">' + esc(provSel) + ' 的主题（多选，并入偏好过滤）</div>' +
+    box.innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:4px">' + esc(provSel) + ' 的主题（多选，下方景点实时联动）</div>' +
       (ts.length ? ts.map(function (t) { return '<span class="chip' + (state.prefs.indexOf(t) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleCustomPref(\'' + esc(t) + '\')">' + esc(t) + '</span>'; }).join('') : '<span style="font-size:12px;color:var(--color-muted)">该省暂无主题数据</span>');
   }
   /* 点省：toggle 展开/收起 */
@@ -365,6 +365,7 @@
     if (i >= 0) state.prefs.splice(i, 1); else state.prefs.push(t);
     renderIntent();
     renderProvThemes();
+    doRecall();
   };
   /* 【我的】节点：加入候选 */
   window.plannerAddMine = function () {
@@ -388,8 +389,8 @@
     var h = '';
     h += '<div class="fld"><label>目的地（可增删，留空=不限）</label><div class="chips" id="intentRegions"></div></div>';
     h += '<div class="fld"><label>天数</label><div class="row"><input type="number" id="intentDays" min="1" max="30" value="' + (state.days || 5) + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
-    h += '<div class="fld"><label>偏好</label><div class="chips" id="intentPrefs"></div></div>';
     h += '<div id="intentProvThemes" style="display:none;margin-top:6px"></div>';
+    h += '<div class="chips" style="margin-top:4px"><span class="chip mine" onclick="window.plannerAddMine()">📌 我的节点</span></div>';
     h += '<div class="fld"><label>出发地（缺省当前位置）</label><div class="row"><input type="text" id="intentStart" placeholder="如：成都"><button class="btn ghost" id="useLocBtn">📍 当前位置</button></div></div>';
     h += '<div class="fld"><label>出发日期（用于季节提醒，可空）</label><input type="date" id="intentDate" value="' + esc(state.startDate || '') + '"></div>';
     h += '<div id="aiEnhBar"></div>';
@@ -398,10 +399,6 @@
     var all = Object.keys(regionSet || {});
     var rc = all.map(function (r) { return '<span class="chip' + (state.regions.indexOf(r) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleRegion(\'' + esc(r) + '\')">' + esc(r) + '</span>'; }).join('');
     $id('intentRegions').innerHTML = rc;
-    /* 偏好 chips（6 大类 + 我的节点） */
-    var pc = PREF_KEYS.map(function (p) { return '<span class="chip' + (state.prefs.indexOf(p) >= 0 ? ' on' : '') + '" onclick="window.plannerTogglePref(\'' + esc(p) + '\')">' + p + '</span>'; }).join('');
-    pc += '<span class="chip mine" onclick="window.plannerAddMine()">📌 我的</span>';
-    $id('intentPrefs').innerHTML = pc;
 
     /* 绑定 */
     $id('intentDays').onchange = function () { state.days = parseInt(this.value, 10) || 0; };

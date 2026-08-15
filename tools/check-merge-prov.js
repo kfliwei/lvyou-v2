@@ -41,7 +41,7 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
   ok('目的地选中保留', rgOn.includes('四川'), rgOn);
   /* 5. 📌 我的 */
   await p.evaluate(() => { localStorage.setItem('tn_userNodes', JSON.stringify([{ id: 'm1', name: '我家后山观景台', lat: 30.5, lng: 104.0, gcj: false, province: '四川', city: '成都', category: '观景台', tags: [], desc: '', createdAt: Date.now() }])); });
-  await p.evaluate(() => { const c = [...document.querySelectorAll('#intentPrefs .chip')].find(x => x.textContent.includes('我的')); if (c) c.click(); });
+  await p.evaluate(() => { const c = [...document.querySelectorAll('#intentCard .chip')].find(x => x.textContent.includes('我的节点')); if (c) c.click(); });
   await sleep(600);
   const mine = await p.evaluate(() => [...document.querySelectorAll('.cand')].some(c => c.textContent.includes('我家后山')));
   ok('📌 我的节点加入候选', mine);
