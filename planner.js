@@ -470,6 +470,7 @@
           '<button class="mv" aria-label="下移" onclick="window.plannerMoveStop(' + di + ',' + si + ',1)">↓</button>' +
           '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">✕</button></div>';
       });
+      h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
     $id('resultBody').innerHTML = h;
   }
