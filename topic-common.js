@@ -636,7 +636,7 @@
         daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + c + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">💡 ' + d.tip + '</div>' + stopsHtml +
           '<div class="dayacts"><button class="dbtn" data-sort="' + ri + ':' + di + '">↻ 按距离排序</button><button class="dbtn send" data-send="' + ri + ':' + di + '">🚗 发高德导航</button></div></div>';
       });
-      el.innerHTML = '<div class="rh" style="background:linear-gradient(135deg,' + rt.color + ',' + rt.color + '99)"><h3>' + rt.name + '</h3><p>⏱ ' + rt.days.length + ' 天 ｜ ' + total + ' 站 ｜ ' + rt.desc + '</p><div class="dkey">🎨 每日轨迹色：' + keyHtml + '</div></div><div class="stops">' + daysHtml + '</div>' +
+      el.innerHTML = '<div class="rh" style="border-left-color:' + rt.color + '"><span class="rh-dot" style="background:' + rt.color + '"></span><h3>' + rt.name + '</h3><p>⏱ ' + rt.days.length + ' 天 ｜ ' + total + ' 站 ｜ ' + rt.desc + '</p><div class="dkey"><span class="dkey-label">每日轨迹色</span>' + keyHtml + '</div></div><div class="stops">' + daysHtml + '</div>' +
         '<div class="acts"><button class="btn" data-show="' + ri + '">🗺️ 在地图查看（按天配色）</button><button class="btn alt" data-route="' + ri + '">📋 生成路线清单</button></div>';
       box.appendChild(el);
     });
