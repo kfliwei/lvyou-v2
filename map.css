@@ -1027,3 +1027,14 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .theme-dark .route .rh p{color:var(--color-ink-soft)}
 .theme-dark .trippop .leaflet-popup-content-wrapper{background:var(--color-surface);border-color:var(--color-line)}
 .theme-dark .trippop .leaflet-popup-tip{background:var(--color-surface)}
+
+/* ============================================================
+   Leaflet 弹窗全局统一 2026-08-15（覆盖全部 bindPopup：宣纸卡 + 16px 圆角）
+   ============================================================ */
+.leaflet-popup-content-wrapper{background:var(--color-surface,#fffdf8);border-radius:16px;border:1px solid var(--color-line);box-shadow:0 14px 40px rgba(40,38,32,.18);color:var(--color-ink)}
+.leaflet-popup-tip{background:var(--color-surface,#fffdf8);border:1px solid var(--color-line)}
+.leaflet-popup-content{margin:12px 14px;font-family:var(--font-sans);font-size:13px;line-height:1.7;color:var(--color-ink)}
+.leaflet-popup-content b{color:var(--color-ink)}
+.leaflet-popup-close-button{color:var(--color-muted)!important;font-size:16px!important}
+.theme-dark .leaflet-popup-content-wrapper{background:var(--color-surface);border-color:var(--color-line)}
+.theme-dark .leaflet-popup-tip{background:var(--color-surface)}

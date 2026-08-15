@@ -30,9 +30,9 @@
   /* 保存 HTML 文档（App 下载 / 浏览器下载 / 复制） */
   function saveDoc(name, html) {
     var d = el('div', 'rz-dlg');
-    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px)+20px);background:#FAF8F3;border:1px solid rgba(32,32,29,.09);border-top:1px solid #C86D4B;border-radius:16px 16px 0 0;box-shadow:0 -10px 40px rgba(30,30,28,.18);display:block';
-    d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:17px;color:#20201D">' + esc(name) + ' <button id="rzX" style="border:0;background:#E6E1D7;border-radius:8px;width:34px;height:34px;color:#7D7970;font-size:15px;cursor:pointer">✕</button></div>'
-      + '<div id="rzPrev" style="border:1px solid rgba(32,32,29,.09);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:10.5px;color:#7D7970;padding:12px;white-space:pre-wrap;background:#fff">' + esc(html.slice(0, 2000)) + (html.length > 2000 ? '…（共 ' + html.length + ' 字符）' : '') + '</div>'
+    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px)+20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:0 -10px 40px rgba(30,30,28,.18);display:block';
+    d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:17px;color:var(--color-ink)">' + esc(name) + ' <button id="rzX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer">✕</button></div>'
+      + '<div id="rzPrev" style="border:1px solid var(--color-line);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:10.5px;color:var(--color-muted);padding:12px;white-space:pre-wrap;background:var(--color-surface)">' + esc(html.slice(0, 2000)) + (html.length > 2000 ? '…（共 ' + html.length + ' 字符）' : '') + '</div>'
       + '<button id="rzSave" class="btn-primary" style="width:100%;margin-top:12px">保存文档</button>'
       + '<button id="rzCopy" class="btn-secondary" style="width:100%;margin-top:8px">复制 HTML</button>';
     document.body.appendChild(d);
@@ -401,7 +401,7 @@
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
     d.innerHTML = '<div style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button id="ix" style="border:0;background:#E6E1D7;border-radius:8px;width:34px;height:34px;color:#7D7970;font-size:15px;cursor:pointer">✕</button></div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button id="ix" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer">✕</button></div>'
       + '<div style="font-size:13px;color:#7D7970;margin-bottom:8px">告诉我你想怎么走，基于真实景点生成每日行程：</div>'
       + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
       + '<input id="ipref" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'

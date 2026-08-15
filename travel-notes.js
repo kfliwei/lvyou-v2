@@ -218,10 +218,10 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-mic.ok{background:linear-gradient(145deg,#c9a227,#96700a);border-color:rgba(245,240,228,.6);box-shadow:0 10px 26px rgba(184,134,11,.4),inset 0 2px 6px rgba(255,255,255,.15)}\
 .tn-miclabel{margin-top:6px;font-size:12px;color:#7d7a6e;text-align:center}\
 .tn-miclabel b{color:var(--color-primary)}\
-.tn-recbox{width:100%;margin-top:12px;background:#fff;border:1px solid #e4dbc6;border-radius:12px;padding:14px;font-size:16.5px;line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:240px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
+.tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:16.5px;line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:240px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
 .tn-recbox b{font-family:var(--fb);display:block;font-size:9.5px;color:#9c958a;margin-bottom:7px;font-weight:400;letter-spacing:1px}\
 .tn-recbox textarea{width:100%;background:transparent;border:0;color:#26241f;font-size:16.5px;line-height:1.8;resize:vertical;outline:0;min-height:260px;font-family:var(--fd)}\
-.tn-tags{width:100%;margin-top:10px;padding:11px 14px;border:1px solid #e4dbc6;border-radius:10px;font-size:14px;box-sizing:border-box;background:#fff;color:#26241f;outline:0;transition:var(--tf)}\
+.tn-tags{width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--color-line);border-radius:10px;font-size:14px;box-sizing:border-box;background:#fff;color:#26241f;outline:0;transition:var(--tf)}\
 .tn-tags:focus{border-color:rgba(184,134,11,.6);box-shadow:0 0 0 3px rgba(184,134,11,.15)}\
 .tn-tags::placeholder{color:#9c958a}\
 .tn-style{display:flex;gap:5px;margin-top:12px;width:100%}\
@@ -235,11 +235,11 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-photo{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid #e4dbc6}\
 .tn-photo img{width:100%;height:100%;object-fit:cover;display:block}\
 .tn-photo .rm{position:absolute;top:-4px;right:-4px;background:var(--color-primary);color:#fff;border-radius:2px;width:20px;height:20px;font-size:11px;line-height:20px;text-align:center;cursor:pointer}\
-.tn-addphoto{width:64px;height:64px;border:1.5px dashed #d5cdb9;border-radius:10px;background:#fff;color:#7d7a6e;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer}\
+.tn-addphoto{width:64px;height:64px;border:1.5px dashed var(--color-line-strong);border-radius:10px;background:#fff;color:#7d7a6e;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer}\
 .tn-loading{display:none;text-align:center;color:#7d7a6e;font-size:13px;padding:14px 0}\
 .tn-loading::before{content:"";display:inline-block;width:22px;height:22px;border:3px solid rgba(184,134,11,.25);border-top-color:#b8860b;border-radius:50%;animation:tnspin .8s linear infinite;margin-right:8px;vertical-align:-5px}\
 @keyframes tnspin{to{transform:rotate(360deg)}}\
-.tn-ai{margin-top:12px;width:100%;background:#fff;border:1px solid #e4dbc6;border-radius:12px;padding:14px;font-size:14.5px;line-height:1.9;color:#3a3731;white-space:pre-wrap;display:none;max-height:30vh;overflow-y:auto;font-family:var(--fd)}\
+.tn-ai{margin-top:12px;width:100%;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:14.5px;line-height:1.9;color:#3a3731;white-space:pre-wrap;display:none;max-height:30vh;overflow-y:auto;font-family:var(--fd)}\
 .tn-foot{padding:4px 20px calc(env(safe-area-inset-bottom,0px)+18px);position:relative;z-index:2;flex:0 0 auto;background:rgba(239,233,220,.55);border-top:1px solid rgba(38,36,31,.08)}\
 .tn-acts{display:flex;gap:10px;margin-top:12px}\
 .tn-acts button{flex:1;min-height:46px;border:0;border-radius:12px;font-size:14.5px;font-weight:700;cursor:pointer;transition:transform var(--tf),opacity var(--tf)}\
