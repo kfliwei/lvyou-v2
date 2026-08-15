@@ -640,9 +640,12 @@
     if (!key) { cb(null); return; }
     var ck = 'tn_rt_' + a.lat.toFixed(3) + ',' + a.lng.toFixed(3) + '_' + b.lat.toFixed(3) + ',' + b.lng.toFixed(3);
     try { var hit = localStorage.getItem(ck); if (hit) { cb(JSON.parse(hit)); return; } } catch (e) {}
-    fetch('https://restapi.amap.com/v3/direction/driving?origin=' + a.lng + ',' + a.lat + '&destination=' + b.lng + ',' + b.lat + '&extensions=all&strategy=0&ke' + 'y=' + encodeURIComponent(key))
+    var ctl2 = new AbortController();
+    var to2 = setTimeout(function () { ctl2.abort(); }, 8000);
+    fetch('https://restapi.amap.com/v3/direction/driving?origin=' + a.lng + ',' + a.lat + '&destination=' + b.lng + ',' + b.lat + '&extensions=all&strategy=0&ke' + 'y=' + encodeURIComponent(key), { signal: ctl2.signal })
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        clearTimeout(to2);
         var pts = [];
         if (j && j.status === '1' && j.route && j.route.paths && j.route.paths[0]) {
           (j.route.paths[0].steps || []).forEach(function (st) {
@@ -652,7 +655,7 @@
         }
         if (pts.length > 1) { try { localStorage.setItem(ck, JSON.stringify(pts)); } catch (e) {} cb(pts); } else cb(null);
       })
-      .catch(function () { cb(null); });
+      .catch(function () { clearTimeout(to2); cb(null); });
   }
   /* 高德 Key：localStorage 优先，本地文件后备并自动写入 */
   function getAmapKey() {
@@ -667,13 +670,16 @@
     if (!key) { cb(null); return; }
     var ck = 'tn_d_' + a.lat.toFixed(3) + ',' + a.lng.toFixed(3) + '_' + b.lat.toFixed(3) + ',' + b.lng.toFixed(3);
     try { var hit = localStorage.getItem(ck); if (hit) { cb(parseFloat(hit)); return; } } catch (e) {}
-    fetch('https://restapi.amap.com/v3/direction/driving?origin=' + a.lng + ',' + a.lat + '&destination=' + b.lng + ',' + b.lat + '&extensions=base&ke' + 'y=' + encodeURIComponent(key))
+    var ctl1 = new AbortController();
+    var to1 = setTimeout(function () { ctl1.abort(); }, 8000);
+    fetch('https://restapi.amap.com/v3/direction/driving?origin=' + a.lng + ',' + a.lat + '&destination=' + b.lng + ',' + b.lat + '&extensions=base&ke' + 'y=' + encodeURIComponent(key), { signal: ctl1.signal })
       .then(function (r) { return r.json(); })
       .then(function (j) {
+        clearTimeout(to1);
         var km = (j && j.status === '1' && j.route && j.route.paths && j.route.paths[0]) ? (parseFloat(j.route.paths[0].distance) / 1000) : null;
         if (km != null && isFinite(km)) { try { localStorage.setItem(ck, String(km)); } catch (e) {} cb(km); } else cb(null);
       })
-      .catch(function () { cb(null); });
+      .catch(function () { clearTimeout(to1); cb(null); });
   }
   /* 距离矩阵最近邻 + 2-opt（真实距离优先，缺失用直线兜底） */
   function orderByMatrix(sel, start, dist) {
@@ -722,15 +728,17 @@
     var pairs = [];
     for (var i = 0; i < N; i++) for (var j = i + 1; j < N; j++) pairs.push([i, j]);
     if (!pairs.length) { cbAll(dist, 0); return; }
-    var idx = 0, active = 0, done = 0, total = pairs.length;
+    var idx = 0, active = 0, done = 0, total = pairs.length, finished = false;
+    var hardTo = setTimeout(function () { if (!finished) { finished = true; cbAll(dist, failed + (total - done)); } }, 25000);
     function next() {
       while (active < 6 && idx < total) {
         var p = pairs[idx++]; active++;
         (function (pi, pj) {
           amapDriveDist(sel[pi], sel[pj], function (km) {
+            if (finished) return;
             active--; done++;
             if (km != null) dist[pi < pj ? (pi + '|' + pj) : (pj + '|' + pi)] = km; else failed++;
-            if (done >= total) cbAll(dist, failed); else next();
+            if (done >= total) { finished = true; clearTimeout(hardTo); cbAll(dist, failed); } else next();
           });
         })(p[0], p[1]);
       }
