@@ -60,3 +60,8 @@ const p3 = '19 专题 · 6700+ 处 · 34 省 · 561 道风味 · 63 条路线';
 const t3 = topicCount + ' 专题 · ' + siteCount + ' 处 · ' + provCount + ' 省 · ' + foodCount + ' 道风味 · ' + routeCount + ' 条路线';
 if (em.includes(p3)) { em = em.split(p3).join(t3); fs.writeFileSync('explore-map.html', emCrlf ? em.replace(/\n/g, '\r\n') : em, 'utf8'); console.log('explore-map 更新'); }
 else console.log('explore-map 文案未匹配');
+/* 探索页搜索框 placeholder（伪搜索框） */
+const p4 = '🔍 搜索全部景点（7782 处）';
+const t4 = '🔍 搜索全部景点（' + siteCount + ' 处）';
+if (em.includes(p4)) { em = em.split(p4).join(t4); fs.writeFileSync('explore-map.html', emCrlf ? em.replace(/\n/g, '\r\n') : em, 'utf8'); console.log('explore-map 搜索框更新'); }
+else console.log('explore-map 搜索框未匹配');
