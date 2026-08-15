@@ -8,6 +8,7 @@
   var M = null;              // TOPIC_META（init 时读取）
   var R = null;              // TOPIC_ROUTES（routesKey 时读取）
   var SITES = [], FOOD = [];
+  var restorePos = null;
   var map, markerLayer, useGCJ = true, lastMarkerList = null, lastRouteRi = null;
   var markers = new Map();
   var routeLayer = null, curSite = null, tripRouteLayer = null;
@@ -123,7 +124,17 @@
     });
     /* LOD 分级：平移 / 缩放时按当前视野与级别重渲染（仅全国页） */
     if (M.lodEnabled) {
-      map.on('moveend', function () { if (lastMarkerList) renderMarkers(lastMarkerList); });
+      map.on('moveend', function () {
+      if (lastMarkerList) renderMarkers(lastMarkerList);
+      /* 记住上次位置（防抖 500ms，2026-08-15） */
+      clearTimeout(map._savePosT);
+      map._savePosT = setTimeout(function () {
+        try {
+          var c = map.getCenter();
+          localStorage.setItem('tn_mappos_' + (M.key || 't'), JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom(), ts: Date.now() }));
+        } catch (e) {}
+      }, 500);
+    });
       map.on('zoomend', function () { if (lastMarkerList) renderMarkers(lastMarkerList); });
       }
     /* 区域统计：全专题生效（规范 §32） */
@@ -396,6 +407,16 @@
   }
   function openSheet(i) {
     curSite = i;
+    /* 最近浏览记录（2026-08-15）：最近 8 个，搜索页展示 */
+    try {
+      var _s = SITES[i];
+      if (_s && _s.label) {
+        var rec = JSON.parse(localStorage.getItem('tn_recent') || '[]');
+        rec = rec.filter(function (x) { return x.n !== _s.label; });
+        rec.unshift({ n: _s.label, k: M.key || 'nation', ts: Date.now() });
+        localStorage.setItem('tn_recent', JSON.stringify(rec.slice(0, 8)));
+      }
+    } catch (e) {}
     $('lsBody').innerHTML = buildSheet(i);
     $('locSheet').classList.add('show');
     setActiveNode(i);
@@ -786,7 +807,8 @@
       var line = L.polyline(pts, { color: c, weight: 4, opacity: .9, dashArray: "1,9", lineCap: "round" }).addTo(routeLayer);
       line.bindPopup('<b style="color:' + c + '">' + d.title + '</b>');
     });
-    if (all.length) map.fitBounds(all, { padding: [40, 40] });
+    if (restorePos && restorePos.zoom) { map.setView([restorePos.lat, restorePos.lng], restorePos.zoom); }
+  else if (all.length) map.fitBounds(all, { padding: [40, 40] });
     switchTab('map');
     var banner = $('routeBanner');
     banner.style.display = 'block'; banner.textContent = '🗺️ ' + rt.name + '  ✕';
@@ -1154,6 +1176,11 @@
     mergeUserNodes();
     FOOD = window.FOOD || [];
     try { trip = JSON.parse(localStorage.getItem(M.tripKey) || '[]'); } catch (e) { trip = []; }
+    /* 地图记住上次位置（每专题独立，2026-08-15） */
+    try {
+      var _pos = JSON.parse(localStorage.getItem('tn_mappos_' + (M.key || 't')) || 'null');
+      if (_pos && _pos.lat != null && _pos.zoom) restorePos = _pos;
+    } catch (e) {}
     // 排序下拉
     var sortSel = $('sortSel');
     sortSel.innerHTML = '<option value="">默认</option><option value="me">距我</option>';
@@ -1181,7 +1208,8 @@
     try {
       var _b = L.latLngBounds([]);
       SITES.forEach(function (s) { if (s.lat != null && s.lng != null && !isNaN(+s.lat) && !isNaN(+s.lng)) { var _p = pt(s); _b.extend(_p); } });
-      if (_b.isValid()) map.fitBounds(_b, { padding: [46, 70], maxZoom: 7 });
+      if (restorePos && restorePos.zoom) map.setView([restorePos.lat, restorePos.lng], restorePos.zoom);
+    else if (_b.isValid()) map.fitBounds(_b, { padding: [46, 70], maxZoom: 7 });
     } catch (e) {}
     window.TravelNotes.init({ map: map, getSite: function (i) { return SITES[i]; } });
     // chips / 图例
