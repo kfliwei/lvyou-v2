@@ -358,8 +358,8 @@
     bar.style.display = 'block';
     if (!all.length) {
       document.getElementById('tripFull').style.display = 'none';
-      document.getElementById('tripEmpty').style.display = 'none';
-      document.getElementById('tripbarEmpty').style.display = 'block';
+      document.getElementById('tripEmpty').style.display = 'block';
+      document.getElementById('tripbarEmpty').style.display = 'none';
       return;
     }
     document.getElementById('tripbarEmpty').style.display = 'none';
@@ -427,7 +427,12 @@
       d.textContent = msg; document.body.appendChild(d);
       setTimeout(function () { d.remove(); }, 2400);
     };
-    var fb = function () { tip('无法获取位置：请进入专题地图，点地图上的地点记录'); };
+    var fb = function () {
+      tip('无法获取位置');
+      if (window.UI && UI.confirm) {
+        UI.confirm({ title: '定位失败', text: '无法获取当前位置。可到全国地图点选一个地点，开始你的第一段记录。', okText: '去地图选点', cancelText: '取消' }, function (ok) { if (ok) location.href = 'topic.html?p=nation'; });
+      }
+    };
     try {
       if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { open({ lat: p.coords.latitude, lng: p.coords.longitude }); }, fb, { enableHighAccuracy: true, timeout: 6000, maximumAge: 15000 });
       else fb();

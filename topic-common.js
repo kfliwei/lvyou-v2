@@ -17,7 +17,7 @@
   var state = { q: "", region: "", theme: "", city: "", elev: "", sort: "" };
   var FOOD_STATE = { q: "", prov: "", city: "", type: "" };
 
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function $(id) { return document.getElementById(id); }
 
   /* ---------- 坐标 / 距离 ---------- */
@@ -494,11 +494,11 @@
     var alt = (s.elev && +s.elev >= 5000) ? '<span class="tag" style="background:var(--cinnabar-500)">⚠ 极高海拔</span>' : '';
     var dh = detHtml(s);
     card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
-      '<img loading="lazy" src="' + s.img + '" alt="' + s.label + '" onerror="this.style.display=\'none\'">' +
+      '<img loading="lazy" src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">' +
       '<span class="tag">' + (M.themeIcons[tk(s)] || '') + ' ' + tk(s) + '</span></div>' +
-      '<div class="body"><div class="nm">' + s.label + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + '</div>' +
+      '<div class="body"><div class="nm">' + esc(s.label) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + '</div>' +
       '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
-      '<div class="ds">' + s.desc + (s.best ? ('　🗓 最佳 ' + s.best) : '') + '</div>' +
+      '<div class="ds">' + esc(s.desc) + (s.best ? ('　· 最佳 ' + esc(s.best)) : '') + '</div>' +
       '<div class="detail">' + dh + '</div>' + km + '</div>' +
       '<div class="arr">›</div>';
     card.onclick = function () {
@@ -582,7 +582,7 @@
         var row = document.createElement('div'); row.className = 'tl-row';
         var elev = s.elev ? ('· ' + s.elev + 'm') : '';
         var rs = s.region; for (var k in (M.regionShort || {})) { rs = rs.replace(k, M.regionShort[k]); }
-        row.innerHTML = '<div class="t">' + rs + '</div><div><div class="n">' + s.label + '</div><div class="c">' + s.city + (s.county ? ('·' + s.county) : '') + ' ' + elev + '</div></div>';
+        row.innerHTML = '<div class="t">' + esc(rs) + '</div><div><div class="n">' + esc(s.label) + '</div><div class="c">' + s.city + (s.county ? ('·' + s.county) : '') + ' ' + elev + '</div></div>';
         row.onclick = function () { flyToSite(s.__i); };
         body.appendChild(row);
       });
