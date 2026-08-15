@@ -462,7 +462,11 @@
     card.style.display = 'block';
     var q = (state.candFilter || '').trim().toLowerCase();
     var list = q ? c.filter(function (s) { return (s.name + ' ' + s.theme + ' ' + s.city + ' ' + s.region + ' ' + (s.county || '')).toLowerCase().indexOf(q) >= 0; }) : c;
-    $id('candTitle').textContent = '候选景点 · ' + (q ? list.length + ' / ' + c.length : c.length) + ' 处';
+    var cond = [];
+    if (state.regions.length) cond.push(state.regions.join('/'));
+    if (state.prefs.length) cond.push(state.prefs.join('·'));
+    var condTxt = cond.length ? ' · ' + cond.join(' · ') : '';
+    $id('candTitle').textContent = '候选景点' + condTxt + ' · ' + (q ? list.length + ' / ' + c.length : c.length) + ' 处';
     var hint = $id('candHint');
     if (hint) { if (state.widenMsg) { hint.style.display = 'block'; hint.textContent = 'ℹ️ ' + state.widenMsg; } else hint.style.display = 'none'; }
     $id('candList').innerHTML = list.map(function (s) {
