@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>落地真实性审核报告 · 行迹TRACE 2026-08-15</title>
+<style>
+  :root{--bg:#F6F3EC;--surface:#FFFDF8;--ink:#26241F;--muted:#8C877D;--line:#E3DED2;--primary:#C86D4B;--green:#5F7A4E;--serif:"Songti SC","Noto Serif SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:940px;margin:0 auto;padding:32px 20px 60px}
+  h1{font-family:var(--serif);font-weight:400;font-size:28px;margin:8px 0 4px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+  h2{font-family:var(--serif);font-weight:400;font-size:20px;margin:30px 0 10px;padding-left:12px;border-left:3px solid var(--primary)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+  .m{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .m b{display:block;font-family:var(--serif);font-size:26px;font-weight:400;color:var(--primary)}
+  .m span{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+  th,td{padding:8px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+  .ok{background:#5F7A4E;color:#fff}.part{background:#BA7517;color:#fff}.no{background:#B34A3F;color:#fff}
+  .note{background:rgba(74,107,122,.08);border:1px solid var(--line);border-radius:12px;padding:13px 16px;font-size:13px;margin-top:14px}
+  footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Reality Audit · 2026-08-15</div>
+  <h1>落地真实性审核报告</h1>
+  <div class="sub">方法：静态引用完整性（246 处 href/src）+ 真实浏览器逐页实测（12 页面）+ 功能级交互实测（7 组关键链路，含无 Key 降级路径）</div>
+
+  <div class="metrics">
+    <div class="m"><b>0</b><span>真实断链（246 引用）</span></div>
+    <div class="m"><b>12/12</b><span>页面打开零脚本错误</span></div>
+    <div class="m"><b>7/7</b><span>关键交互链路实测通过</span></div>
+    <div class="m"><b>0</b><span>死功能/不可用入口</span></div>
+  </div>
+
+  <h2>结论</h2>
+  <p>此前历轮"声明已实现"的功能经本次实测全部可走通，无死代码、无静默失败、无断链。此前审核报告指出过的功能级问题（语音回调/深色按钮/断网搜索/双引导/模型名/空态/定位兜底）均已修复并有实测支撑。</p>
+
+  <h2>实测矩阵</h2>
+  <table>
+    <tr><th>功能/页面</th><th>验证方式</th><th>结果</th></tr>
+    <tr><td>12 个页面加载</td><td>headless 打开 + pageerror/console 全捕获</td><td><span class="tag ok">0 错误</span></td></tr>
+    <tr><td>静态引用（href/src）</td><td>246 处目标存在性</td><td><span class="tag ok">0 断链</span>（18 条拼接串误报已排除）</td></tr>
+    <tr><td>首页搜索入口</td><td>真实点击 .hero__search → search.html</td><td><span class="tag ok">跳转成功</span></td></tr>
+    <tr><td>季节推荐</td><td>点击卡片 → topic.html?p=xj</td><td><span class="tag ok">跳转成功</span></td></tr>
+    <tr><td>想去清单</td><td>Wish API 添加 → reload 渲染 → 打卡"打卡并记录"→ 状态切换</td><td><span class="tag ok">全链路</span></td></tr>
+    <tr><td>足迹地图</td><td>预置 2 条游记 → Leaflet 初始化 + 无错误</td><td><span class="tag ok">正常</span></td></tr>
+    <tr><td>听讲解（无 Key 降级）</td><td>点讲解按钮 → 引导配置 DeepSeek Key（不崩、可回退）</td><td><span class="tag ok">降级友好</span></td></tr>
+    <tr><td>深色主题</td><td>tn_dark=dark → reload → theme-dark 生效</td><td><span class="tag ok">真实生效</span></td></tr>
+    <tr><td>node-manager 全链路</td><td>（复用 smoke-node-mgr 19 项）</td><td><span class="tag ok">全过</span></td></tr>
+    <tr><td>nation 按省懒加载</td><td>（复用 check-audit：3MB→0.63MB + 点击补详情）</td><td><span class="tag ok">全过</span></td></tr>
+    <tr><td>IDB 增量写</td><td>（复用 check-idb：增/删/改 reload 一致）</td><td><span class="tag ok">全过</span></td></tr>
+  </table>
+
+  <h2>依赖外部条件的功能（非 bug，需配置）</h2>
+  <table>
+    <tr><th>功能</th><th>依赖</th><th>无依赖时表现（已实测）</th></tr>
+    <tr><td>AI 听讲解/润色/生成介绍</td><td>DeepSeek Key（设置页）</td><td>引导配置，不崩</td></tr>
+    <tr><td>高德 POI 搜索/逆地理/海拔</td><td>高德 Web 服务 Key</td><td>弹窗引导配置；海拔自动降级 Open-Meteo</td></tr>
+    <tr><td>语音识别</td><td>App 壳（讯飞/Google）或浏览器 Web Speech</td><td>App 内可用；浏览器显示降级提示</td></tr>
+    <tr><td>地图瓦片</td><td>网络</td><td>高德失败自动降级 OSM + toast</td></tr>
+  </table>
+
+  <div class="note">测试过程发现并澄清的 3 个"疑似问题"均为测试脚本假设错误（主题存储 key 为 tn_dark、wishlist key 为 tn_wishlist、按钮文案为"打卡并记录"），产品侧全部正常；另确认 tiles.js 已无引用（离线瓦片功能随 8-14 重构移除，无残留）。</div>
+
+  <footer>审核工具：tools/audit-reality.js（静态+页面级）· tools/audit-reality2.js（功能级）· 复用 smoke/check 套件 ｜ 2026-08-15</footer>
+</div>
+</body>
+</html>
