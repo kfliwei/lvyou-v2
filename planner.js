@@ -144,7 +144,7 @@
   }
 
   /* ---------- 状态 ---------- */
-  var state = { regions: [], days: 0, prefs: [], start: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '' };
+  var state = { regions: [], days: 0, prefs: [], start: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null };
   function nodeUid(s) { return (window.Wish ? Wish.uid(s) : String((s.name || s.label || '') + '|' + s.lat + '|' + s.lng)); }
   function isSelected(s) { var u = nodeUid(s); return state.selected.some(function (x) { return nodeUid(x) === u; }); }
 
@@ -356,7 +356,7 @@
     $id('seedWishSub').textContent = wl.length ? ('已收藏 ' + wl.length + ' 处，一键串起来') : '先去地图收藏几处想去的地方';
   }
   window.plannerPickRegion = function (r) {
-    state.regions = r ? [r] : []; state.prefs = []; state.autoPrefs = []; state.days = state.days || 0; state.fromWish = false;
+    state.regions = r ? [r] : []; state.prefs = []; state.autoPrefs = []; state.days = state.days || 0; state.fromWish = false; state.amapSorted = false; state.wishPool = null;
     renderIntent(); doRecall();
   };
 
@@ -384,7 +384,7 @@
   };
   window.plannerToggleCustomPref = function (t) {
     if (state.prefs.length === 1 && state.prefs[0] === t) state.prefs = []; else state.prefs = [t];
-    state.autoPrefs = [];
+    state.autoPrefs = []; state.amapSorted = false;
     renderIntent();
     renderProvThemes();
     doRecall();
@@ -439,6 +439,7 @@
   }
   window.plannerToggleRegion = function (r) {
     if (state.regions.length === 1 && state.regions[0] === r) state.regions = []; else state.regions = [r];
+    state.amapSorted = false;
     renderIntent(); doRecall();
     window.plannerPickProv(r); /* 联动：重建后展开该省主题（再点收起） */
   };
@@ -464,7 +465,17 @@
   function doRecall() {
     var intent = { regions: state.regions, days: state.days, prefs: state.prefs.length ? state.prefs : (state.autoPrefs || []) };
     state.widenMsg = null;
-    state.candidates = state.fromWish ? state.candidates : recall(intent);
+    if (state.fromWish) {
+      var wpool = state.wishPool || state.candidates;
+      state.wishPool = wpool;
+      if (intent.regions.length || intent.prefs.length) {
+        state.candidates = wpool.filter(function (x) {
+          if (intent.regions.length && intent.regions.indexOf(x.region) < 0) return false;
+          if (intent.prefs.length && !intent.prefs.some(function (p) { return prefHit(p, x.theme) || normTheme(p) === normTheme(x.theme); })) return false;
+          return true;
+        });
+      } else state.candidates = wpool.slice();
+    } else state.candidates = recall(intent);
     renderCandidates();
     maybeAmapSupplement(intent);
   }
@@ -477,6 +488,7 @@
       }
     } catch (e) {}
     var c = state.candidates;
+    renderSumm();
     var card = $id('candCard'), bar = $id('summbar');
     if (!c.length) { card.style.display = 'none'; bar.style.display = 'none'; return; }
     card.style.display = 'block';
@@ -503,12 +515,13 @@
     var hit = state.selected.filter(function (x) { return nodeUid(x) === uid; });
     if (hit.length) state.selected = state.selected.filter(function (x) { return nodeUid(x) !== uid; });
     else { var s = state.candidates.filter(function (x) { return nodeUid(x) === uid; })[0]; if (s) state.selected.push(s); }
+    state.amapSorted = false;
     renderCandidates();
   };
   function estimateDays() { return Math.max(1, Math.ceil(state.selected.length / 6)); }
   function renderSumm() {
     var bar = $id('summbar');
-    if (!state.selected.length) { bar.style.display = 'none'; return; }
+    if (!state.selected.length) { bar.style.display = 'none'; $id('summInfo').innerHTML = ''; return; }
     bar.style.display = 'flex';
     $id('summInfo').innerHTML = '已选 <b>' + state.selected.length + '</b> 站 · 预计 <b>' + estimateDays() + '</b> 天';
   }
@@ -611,11 +624,12 @@
   };
   window.plannerRemovePick = function (i) {
     if (state.selected[i]) state.selected.splice(i, 1);
+    state.amapSorted = false;
     renderCandidates(); renderSumm();
     window.plannerOpenBrowse();
   };
   window.plannerClearPicks = function () {
-    state.selected = [];
+    state.selected = []; state.amapSorted = false;
     renderCandidates(); renderSumm();
     var mk = $id('browseMask'); if (mk) mk.remove();
     toast('已清空');
@@ -625,6 +639,7 @@
       var dup = state.selected.some(function (x) { return x.__cur; });
       if (dup) { toast('当前位置已在列表中'); return; }
       state.selected.push({ name: '当前位置', label: '当前位置', region: '', city: '', theme: '', flag: '', lat: lat, lng: lng, __cur: true });
+      state.amapSorted = false;
       renderCandidates(); renderSumm();
       window.plannerOpenBrowse();
       toast('已加入当前位置');
@@ -757,6 +772,7 @@
       if (failed && !Object.keys(dist).length) { toast('高德路线获取失败，已改用本地直线距离排序'); }
       var ordered = orderByMatrix(state.selected, state.start, dist);
       state.selected = ordered;
+      state.amapSorted = true;
       renderCandidates(); renderSumm();
       if (mk) mk.remove();
       window.plannerOpenBrowse();
@@ -1011,7 +1027,7 @@
     var text = $id('promptInput').value.trim();
     if (!text) { toast('先告诉我你想去哪、玩几天'); return; }
     var intent = parseIntent(text);
-    state.regions = intent.regions; state.days = intent.days; state.prefs = []; state.autoPrefs = intent.prefs || []; state.fromWish = false; state.selected = [];
+    state.regions = intent.regions; state.days = intent.days; state.prefs = []; state.autoPrefs = intent.prefs || []; state.fromWish = false; state.selected = []; state.amapSorted = false;
     state.startDate = '';
     var proceed = function () {
       renderIntent(); doRecall(); showStage('stagePick');
@@ -1040,7 +1056,7 @@
     state.days = parseInt(($id('intentDays') && $id('intentDays').value) || state.days || 0, 10) || 0;
     state.startDate = $id('intentDate') ? $id('intentDate').value : '';
     state.start = $id('intentStart') && $id('intentStart').value ? (matchStart($id('intentStart').value) || state.start) : state.start;
-    var days = schedule(state.selected, state.start, state.days);
+    var days = schedule(state.selected, state.start, state.days, state.amapSorted);
     var name = (state.regions.join('/') || '旅行') + ' ' + days.length + ' 日' + (state.prefs.length ? state.prefs.join('·') : '') + '之旅';
     state.trip = { name: name, createdAt: Date.now(), start: state.start, startDate: state.startDate, aiLevel: getAILevel(), days: days, narrative: null };
     showStage('stageResult'); renderResult();
@@ -1052,8 +1068,9 @@
     var wl = window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; });
     if (wl.length < 2) { toast('先去地图收藏至少 2 处想去的地方'); return; }
     state.candidates = wl.map(function (w) { return { name: w.label, label: w.label, region: w.region, city: w.city, theme: w.theme, flag: '', lat: w.lat, lng: w.lng }; });
+    state.wishPool = state.candidates.slice();
     state.selected = state.candidates.slice();
-    state.fromWish = true; state.regions = []; state.prefs = []; state.days = 0;
+    state.fromWish = true; state.regions = []; state.prefs = []; state.autoPrefs = []; state.amapSorted = false; state.days = 0;
     renderIntent(); doRecall(); showStage('stagePick');
   }
   window.plannerSeedWish = seedFromWish;
