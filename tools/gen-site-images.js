@@ -28,21 +28,21 @@ function fetchPhoto(s) {
     if (d && d.status === '1' && d.pois && d.pois[0]) {
       const p = d.pois[0];
       const ph = (p.photos && p.photos[0] && p.photos[0].url) || '';
-      return { id: s.id, name: s.name, url: ph };
+      return { name: s.name, url: ph };
     }
-    return { id: s.id, name: s.name, url: '' };
+    return { name: s.name, url: '' };
   }).catch(() => ({ id: s.id, name: s.name, url: '' }));
 }
 
 (async () => {
   const out = {};
   let done = 0, hit = 0;
-  const CONC = 5;
+  const CONC = 3;
   for (let i = 0; i < ordered.length; i += CONC) {
     const batch = ordered.slice(i, i + CONC);
     const results = await Promise.all(batch.map(fetchPhoto));
     results.forEach(r => {
-      if (r.url) { out[r.id] = r.url; hit++; }
+      if (r.url) { out[r.name] = r.url; hit++; }
     });
     done += batch.length;
     if (done % 50 === 0) console.log('进度', done, '/', ordered.length, '命中', hit);

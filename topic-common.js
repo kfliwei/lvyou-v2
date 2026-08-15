@@ -288,7 +288,7 @@
   function buildSheet(i) {
     var s = SITES[i]; if (!s) return '';
     var inT = inTrip(i);
-    var img = s.img ? '<div class="ls-img"><img src="' + s.img + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
+    var img = imgSrc(s) ? '<div class="ls-img"><img src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
       '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
