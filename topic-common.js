@@ -288,7 +288,9 @@
   function buildSheet(i) {
     var s = SITES[i]; if (!s) return '';
     var inT = inTrip(i);
-    var img = imgSrc(s) ? '<div class="ls-img"><img src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'"></div>' : '';
+    var img = '<div class="ls-img" id="lsImgBox">' + (imgSrc(s)
+    ? '<img src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">'
+    : '<div class="ls-img-ph"><span class="ls-img-ph-ch">' + esc((s.label || '景').charAt(0)) + '</span><i>实景照加载中…</i></div>') + '</div>';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
       '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
@@ -415,9 +417,12 @@
     /* 实景照按需拉取（静态映射未命中时） */
     if (_s0) {
       loadSitePhoto(_s0, function (u) {
-        var img = document.querySelector('#locSheet .ls-img img');
-        if (!img || !u) return;
-        if (img.getAttribute('src') !== u) {
+        var box = document.getElementById('lsImgBox');
+        if (!box || !u) return;
+        var img = box.querySelector('img');
+        if (!img) {
+          box.innerHTML = '<img src="' + u + '" alt="' + esc(_s0.label) + '" style="width:100%;height:100%;object-fit:cover">';
+        } else if (img.getAttribute('src') !== u) {
           img.src = u;
           img.onerror = function () { img.style.display = 'none'; };
         }

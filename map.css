@@ -1051,3 +1051,10 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .theme-dark .node-label{color:var(--color-ink,#e9e4d8);text-shadow:0 1px 3px rgba(0,0,0,.7)}
 
 .node-label.hidden{display:none}
+
+/* 详情图占位（2026-08-15：无实景照时统一图片框） */
+.ls-img-ph{display:grid;place-items:center;position:absolute;inset:0;background:linear-gradient(135deg,var(--color-bg-soft),var(--color-surface));text-align:center}
+.ls-img-ph .ls-img-ph-ch{font-family:var(--font-serif);font-size:60px;color:rgba(38,36,31,.1);line-height:1}
+.ls-img-ph i{position:absolute;bottom:10px;font-style:normal;font-size:11px;color:var(--color-muted);background:var(--color-surface);border-radius:999px;padding:3px 12px;box-shadow:0 2px 8px rgba(40,38,32,.08)}
+.theme-dark .ls-img-ph{background:linear-gradient(135deg,var(--color-bg-soft),var(--color-surface))}
+.theme-dark .ls-img-ph .ls-img-ph-ch{color:rgba(239,233,220,.08)}
