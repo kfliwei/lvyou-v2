@@ -860,7 +860,9 @@
     document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
     $(tab).classList.add('active');
     document.querySelectorAll('.tabbar button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
-    if (tab === 'map') { setTimeout(function () { map.invalidateSize(); }, 60); autoLocate(); }
+    /* 「当前区域」统计条仅地图 tab 显示（2026-08-15） */
+    if (statEl) statEl.style.display = (tab === 'map') ? 'flex' : 'none';
+    if (tab === 'map') { setTimeout(function () { map.invalidateSize(); }, 60); autoLocate(); scheduleRegionStats(); }
   }
 
   /* ---------- 筛选 chips ---------- */
