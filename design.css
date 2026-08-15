@@ -1156,3 +1156,18 @@ html.font-lg{font-size:17.5px}
 @keyframes bsBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 /* 主题分类 emoji 图标承载样式 */
 .theme-ic{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;background:var(--color-bg-soft,#efe9da);font-size:13px;line-height:1}
+
+/* ============================================================
+   触控目标高标准 2026-08-15：仅高频/破坏性操作 ≥44px（低频标签/元信息保持原样）
+   ============================================================ */
+.t-row .back,.story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important;min-width:44px;min-height:44px;border-radius:50%}
+button.act,button.act.sec,button.mine,button.go{min-height:44px}
+.sbar .mic{width:44px!important;height:44px!important}
+.wl-btn{min-height:44px!important}
+.wl-remove{width:44px!important;height:44px!important}
+.nm-item-btn{min-height:44px}
+.is-btn{min-height:44px}
+.ctl button{width:44px!important;height:44px!important}
+.leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:44px!important;height:44px!important;line-height:44px!important}
+/* 行程条操作（驾驶场景高频） */
+.tripbar .mv,.tripbar .x{min-width:40px;min-height:40px;display:inline-grid;place-items:center}
