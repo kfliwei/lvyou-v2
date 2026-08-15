@@ -117,7 +117,7 @@
     var lat = +u.lat, lng = +u.lng;
     if (isNaN(lat) || isNaN(lng)) return;
     var m = L.marker([lat, lng], {
-      icon: L.divIcon({ className: '', html: '<div class="tr-node tr-user"><span class="tr-ring" style="--tint:#5F7A4E"></span><span class="tr-dot"></span><span class="node-num" style="background:#5F7A4E">我</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] })
+      icon: L.divIcon({ className: '', html: '<div class="tr-node tr-user"><span class="tr-ring" style="--tint:#5F7A4E"></span><span class="tr-dot"></span><span class="node-num" style="background:#5F7A4E">我</span><span class="node-label" style="opacity:.85">' + esc(u.name) + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] })
     }).addTo(map);
     m.on('click', function () { var u2 = loadUserNodes().find(function (x) { return x.id === u.id; }); if (u2) openUserInfo(u2); });
     userMarkers[u.id] = m;

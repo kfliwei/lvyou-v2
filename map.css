@@ -1038,3 +1038,12 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .leaflet-popup-close-button{color:var(--color-muted)!important;font-size:16px!important}
 .theme-dark .leaflet-popup-content-wrapper{background:var(--color-surface);border-color:var(--color-line)}
 .theme-dark .leaflet-popup-tip{background:var(--color-surface)}
+
+/* ============================================================
+   节点半透明名称标签 2026-08-15（LOD 详细层 zoom≥10）
+   ============================================================ */
+.node-label{position:absolute;left:50%;top:calc(100% + 3px);transform:translateX(-50%);font-size:10px;font-weight:500;color:var(--color-ink,#26241f);opacity:.55;white-space:nowrap;font-family:var(--font-sans);pointer-events:none;letter-spacing:.02em;line-height:1.2;text-shadow:0 1px 3px rgba(255,255,255,.75);max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.node-label.dim{opacity:.25}
+.tr-active .node-label{opacity:.9;font-weight:600}
+.tr-user .node-label{opacity:.8;color:#5F7A4E}
+.theme-dark .node-label{color:var(--color-ink,#e9e4d8);text-shadow:0 1px 3px rgba(0,0,0,.7)}

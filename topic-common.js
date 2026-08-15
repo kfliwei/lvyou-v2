@@ -237,6 +237,10 @@
     var html = '<div class="' + cls + '"><span class="tr-ring" style="--tint:' + tint + '"></span><span class="tr-dot"></span>';
     if (f.indexOf('m') >= 0) html += '<span class="tr-seal">必</span>';
     if (num) html += '<span class="node-num">' + num + '</span>';
+    /* 半透明名称标签（详细层 zoom ≥ 10 显示；筛选降透明时同步淡化） */
+    if (map && map.getZoom() >= 10 && s.label) {
+      html += '<span class="node-label' + (dim ? ' dim' : '') + '">' + esc(s.label) + '</span>';
+    }
     html += '</div>';
     return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
   }
