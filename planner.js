@@ -168,7 +168,7 @@
       var hit = [], miss = [];
       parseIndex().forEach(function (s) {
         if (regions && regions.length && regions.indexOf(s.region) < 0) return;
-        var isHit = !prefs || !prefs.length || prefs.some(function (p) { return prefHit(p, s.theme); });
+        var isHit = !prefs || !prefs.length || prefs.some(function (p) { return prefHit(p, s.theme) || normTheme(p) === normTheme(s.theme); });
         (isHit ? hit : miss).push(s);
       });
       hit.sort(byFlag); miss.sort(byFlag);
@@ -338,6 +338,52 @@
     renderIntent(); doRecall();
   };
 
+  /* ---------- 偏好增强：省主题 + 我的节点（2026-08-15） ---------- */
+  var provSel = '';
+  function provThemes(prov) {
+    var cnt = {};
+    parseIndex().forEach(function (x) { if (x.region === prov) { var t = normTheme(x.theme); if (t) cnt[t] = (cnt[t] || 0) + 1; } });
+    return Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 12);
+  }
+  /* 纯渲染（按当前 provSel） */
+  function renderProvThemes() {
+    var box = $id('intentProvThemes');
+    var bar = $id('intentProvs');
+    if (!box || !bar) return;
+    bar.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', c.dataset.p === provSel); });
+    if (!provSel) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    var ts = provThemes(provSel);
+    box.style.display = 'block';
+    box.innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:4px">' + esc(provSel) + ' 的主题（多选，并入偏好过滤）</div>' +
+      (ts.length ? ts.map(function (t) { return '<span class="chip' + (state.prefs.indexOf(t) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleCustomPref(\'' + esc(t) + '\')">' + esc(t) + '</span>'; }).join('') : '<span style="font-size:12px;color:var(--color-muted)">该省暂无主题数据</span>');
+  }
+  /* 点省：toggle 展开/收起 */
+  window.plannerPickProv = function (prov) {
+    provSel = (provSel === prov ? '' : prov);
+    renderProvThemes();
+  };
+  window.plannerToggleCustomPref = function (t) {
+    var i = state.prefs.indexOf(t);
+    if (i >= 0) state.prefs.splice(i, 1); else state.prefs.push(t);
+    renderIntent();
+    renderProvThemes();
+  };
+  /* 【我的】节点：加入候选 */
+  window.plannerAddMine = function () {
+    var nodes = [];
+    try { nodes = JSON.parse(localStorage.getItem('tn_userNodes') || '[]'); } catch (e) {}
+    if (!nodes.length) { toast('还没有自己添加的节点，可到「节点管理」添加'); return; }
+    var before = state.candidates.length;
+    nodes.forEach(function (u) {
+      if (u.lat == null) return;
+      var k = (+u.lat).toFixed(3) + ',' + (+u.lng).toFixed(3);
+      var dup = state.candidates.some(function (c) { return c.lat != null && (+c.lat).toFixed(3) + ',' + (+c.lng).toFixed(3) === k; });
+      if (!dup) state.candidates.push({ name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', flag: '', lat: +u.lat, lng: +u.lng, __mine: true });
+    });
+    renderCandidates();
+    toast('已加入 ' + (state.candidates.length - before) + ' 个我的节点');
+  };
+
   /* 阶段二：意图卡 + 候选 */
   function renderIntent() {
     buildDicts();
@@ -345,6 +391,7 @@
     h += '<div class="fld"><label>目的地（可增删，留空=不限）</label><div class="chips" id="intentRegions"></div></div>';
     h += '<div class="fld"><label>天数</label><div class="row"><input type="number" id="intentDays" min="1" max="30" value="' + (state.days || 5) + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
     h += '<div class="fld"><label>偏好</label><div class="chips" id="intentPrefs"></div></div>';
+    h += '<div class="fld"><label>省份主题 <span style="font-size:11px;color:var(--color-faint)">（点省 → 选该省标签）</span></label><div class="chips" id="intentProvs"></div><div id="intentProvThemes" style="display:none;margin-top:6px"></div></div>';
     h += '<div class="fld"><label>出发地（缺省当前位置）</label><div class="row"><input type="text" id="intentStart" placeholder="如：成都"><button class="btn ghost" id="useLocBtn">📍 当前位置</button></div></div>';
     h += '<div class="fld"><label>出发日期（用于季节提醒，可空）</label><input type="date" id="intentDate" value="' + esc(state.startDate || '') + '"></div>';
     h += '<div id="aiEnhBar"></div>';
@@ -353,9 +400,13 @@
     var all = Object.keys(regionSet || {});
     var rc = all.map(function (r) { return '<span class="chip' + (state.regions.indexOf(r) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleRegion(\'' + esc(r) + '\')">' + esc(r) + '</span>'; }).join('');
     $id('intentRegions').innerHTML = rc;
-    /* 偏好 chips */
+    /* 偏好 chips（6 大类 + 我的节点） */
     var pc = PREF_KEYS.map(function (p) { return '<span class="chip' + (state.prefs.indexOf(p) >= 0 ? ' on' : '') + '" onclick="window.plannerTogglePref(\'' + esc(p) + '\')">' + p + '</span>'; }).join('');
+    pc += '<span class="chip mine" onclick="window.plannerAddMine()">📌 我的</span>';
     $id('intentPrefs').innerHTML = pc;
+    /* 省份主题行 */
+    var pv = Object.keys(regionSet || {}).map(function (r) { return '<span class="chip' + (provSel === r ? ' on' : '') + '" data-p="' + esc(r) + '" onclick="window.plannerPickProv(\'' + esc(r) + '\')">' + esc(r) + '</span>'; }).join('');
+    $id('intentProvs').innerHTML = pv;
     /* 绑定 */
     $id('intentDays').onchange = function () { state.days = parseInt(this.value, 10) || 0; };
     $id('intentDate').onchange = function () { state.startDate = this.value; };
