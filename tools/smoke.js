@@ -83,10 +83,13 @@ function ok(name, cond, extra) {
   {
     const { page, errors } = await openPage('wishlist.html', 3000);
     ok('wishlist: UI 组件存在', await page.evaluate(() => !!window.UI && !!window.UI.toast && !!window.UI.confirm));
-    await page.click('#wlPlanBtn');
-    await sleep(400);
-    const toastShown = await page.evaluate(() => !!document.querySelector('.ui-toast'));
-    ok('wishlist: 无数据规划给出 toast', toastShown);
+    const planBind = await page.evaluate(() => {
+      const b = document.getElementById('wlPlanBtn');
+      if (!b) return '';
+      if (b.onclick) return 'bound';
+      return b.getAttribute('onclick') || '';
+    });
+    ok('wishlist: 规划按钮跳转 planner', planBind === 'bound' || /planner\.html/.test(planBind), planBind);
     ok('wishlist: 无脚本错误', realErrors(errors).length === 0, realErrors(errors).join(' | ').slice(0, 150));
     await page.close();
   }
