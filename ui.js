@@ -60,7 +60,13 @@
     });
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn };
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc };
 })();
 
 /* 标签避让（2026-08-15）：地图名称标签重叠时保留高优先级，低优先级隐藏 */

@@ -9,6 +9,15 @@
    依赖：travel-notes.js（TravelNotes）、quotes.js（QUOTES）
    ============================================================ */
 (function () {
+  /* 深色适配：成果弹窗内联浅色 → 主题变量（注入一次，覆盖所有 rz-panel） */
+  (function () {
+    var st = document.createElement('style');
+    st.textContent =
+      '.theme-dark .rz-panel{background:var(--color-surface)!important}' +
+      '.theme-dark .rz-panel div,.theme-dark .rz-panel span,.theme-dark .rz-panel h4,.theme-dark .rz-panel p{color:var(--color-ink)!important}' +
+      '.theme-dark .rz-panel select,.theme-dark .rz-panel input,.theme-dark .rz-panel textarea{background:var(--color-surface)!important;color:var(--color-ink)!important;border-color:var(--color-line)!important}';
+    document.head.appendChild(st);
+  })();
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   function flash(msg) {
@@ -26,6 +35,42 @@
       return;
     }
     Ai.stream(messages).then(function (t) { cb(t); }).catch(function (e) { cb(null, String(e && e.message || e)); });
+  }
+  /* ============ 本地兜底（无 AI Key 时也能出结果） ============ */
+  /* 旅程故事：把时间线记录组织成一篇叙事散文 */
+  function localStory(list) {
+    var uniq = {}; list.forEach(function (x) { if (x.siteName) uniq[x.siteName] = 1; });
+    var places = Object.keys(uniq);
+    var head = list[0], tail = list[list.length - 1];
+    var span = (head && tail && head.date && tail.date) ? (head.date + ' 到 ' + tail.date) : '这段时间';
+    var body = list.map(function (x) {
+      var w = x.weather ? '，' + x.weather : '';
+      return '· ' + x.date + '，来到' + (x.siteName || '某处') + w + '。' + (x.text || x.raw || '').replace(/\s+/g, ' ').slice(0, 80);
+    }).join('\n');
+    var close = places.length ? '走过的' + places.length + '个地方，' : '';
+    return '这是一段属于' + span + '的旅程。\n\n' + body + '\n\n' + close + '把风景和心情都收进了行囊。愿下一次出发，仍有热爱。';
+  }
+  /* 定制路书：贪心最近邻 + 按天切分，不依赖 AI */
+  function localItinerary(sites, days) {
+    var hav = (window.Geo && Geo.hav) ? Geo.hav : function () { return 0; };
+    var pool = sites.filter(function (s) { return s && s.lat != null && s.lng != null; });
+    if (pool.length < 2) pool = sites.slice();
+    var ordered = [pool[0]];
+    var rest = pool.slice(1);
+    while (rest.length) {
+      var last = ordered[ordered.length - 1];
+      var bi = 0, bd = Infinity;
+      rest.forEach(function (s, i) { var d = hav(last.lat, last.lng, s.lat, s.lng); if (d < bd) { bd = d; bi = i; } });
+      ordered.push(rest.splice(bi, 1)[0]);
+    }
+    var per = Math.max(1, Math.min(6, Math.ceil(ordered.length / days)));
+    var out = [];
+    for (var i = 0; i < days; i++) {
+      var chunk = ordered.slice(i * per, i * per + per);
+      if (!chunk.length) break;
+      out.push('【第 ' + (i + 1) + ' 天】' + chunk.map(function (s) { return s.label || s.name; }).join(' → '));
+    }
+    return out.join('\n\n') + '\n\n（本地排程，按地理顺路切分；配置 AI Key 可生成更细的衔接建议）';
   }
   /* 保存 HTML 文档（App 下载 / 浏览器下载 / 复制） */
   function saveDoc(name, html) {
@@ -118,9 +163,7 @@
     var km = 0;
     for (var i = 1; i < withLoc.length; i++) {
       var a = withLoc[i - 1], b = withLoc[i];
-      var R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
-      var ha = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      km += 2 * R * Math.asin(Math.sqrt(ha));
+      km += window.Geo.hav(a.lat, a.lng, b.lat, b.lng);
     }
     return {
       notes: notes, count: notes.length, withLoc: withLoc.length, sites: cities.size,
@@ -195,11 +238,11 @@
   /* 共用「筛选 + 生成」面板 */
   function openFilterPanel(kind, label, icon, emptyMsg, render) {
     var all = window.TravelNotes ? TravelNotes.list() : [];
-    if (!all.length) { flash(emptyMsg); return; }
+    if (!all.length) { (window.UI && window.UI.toast ? window.UI.toast(emptyMsg) : flash(emptyMsg)); return; }
     var opts = geoOptions(all);
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-    d.innerHTML = '<div style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
+    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:19px;color:#20201D;margin-bottom:4px">' + icon + ' ' + label + '</div>'
       + '<div style="font-size:12.5px;color:#7D7970;margin-bottom:14px">选择范围后生成，支持按省 / 市 / 时间筛选</div>'
       + '<div style="font-size:11.5px;color:#9c958a;margin-bottom:6px">省份（可多选跳过则不限）</div>'
@@ -337,7 +380,7 @@
       if (!notes.length) { flash('该范围没有游记'); return; }
       var d = el('div', 'rz-dlg');
       d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-      d.innerHTML = '<div style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3)">'
+      d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3)">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:4px">生成旅程故事</div>'
         + '<div style="font-size:12px;color:#7D7970;margin-bottom:12px">' + notes.length + ' 篇游记 · ' + prov + ' / ' + city + ' · ' + range + '</div>'
         + '<div id="sbody" style="margin-top:12px;max-height:44vh;overflow-y:auto;line-height:1.9;font-size:14px;color:#333;white-space:pre-wrap;display:none"></div>'
@@ -377,6 +420,14 @@
         var timeline = list.map(function (n) {
           return n.date + ' 在' + (n.siteName || '某处') + (n.weather ? '（' + n.weather + '）' : '') + '：' + (n.text || n.raw || '').slice(0, 120);
         }).join('\n');
+        /* 无 Key 本地兜底：时间线叙事，不让用户空手而归 */
+        if (!(window.Ai && Ai.hasKey())) {
+          go.disabled = false; go.textContent = '生成故事';
+          body.textContent = localStory(list);
+          act.style.display = 'flex';
+          flash('已生成本地版故事（配置 AI Key 可获得更优文采）');
+          return;
+        }
         aiCall([
           { role: 'system', content: '你是旅行文学作家。根据用户旅程的时间线记录，写一篇 500-800 字、有画面感与情感的完整旅行故事，像一篇散文，时间顺序推进，可融入旅途感悟，不要编造未出现的史实。只输出故事正文。' },
           { role: 'user', content: timeline }
@@ -397,10 +448,18 @@
   /* ============ 2. 定制路书 ============ */
   function buildItinerary(sitesIn, topicLabel) {
     var sites = (sitesIn && sitesIn.length) ? sitesIn : (window.SITES || []);
-    if (!sites.length) { flash('当前页面没有景点数据'); return; }
+    /* 无专题数据时，回退到「游记里带坐标的地点」，让回顾页的路书入口也可用 */
+    if (!sites.length) {
+      var loc = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function (n) { return n && n.lat != null && n.lng != null; }) : [];
+      if (loc.length) {
+        sites = loc.map(function (n) { return { name: n.siteName || n.title || '某处', label: n.siteName || n.title || '某处', lat: n.lat, lng: n.lng, city: n.city || '', county: '', theme: '', ty: '' }; });
+        topicLabel = topicLabel || '我的足迹';
+      }
+    }
+    if (!sites.length) { flash('还没有可用的景点：先去专题地图选点，或记录带位置的游记'); return; }
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-    d.innerHTML = '<div style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
+    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:18px;color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button id="ix" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer">✕</button></div>'
       + '<div style="font-size:13px;color:#7D7970;margin-bottom:8px">告诉我你想怎么走，基于真实景点生成每日行程：</div>'
       + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
@@ -417,6 +476,13 @@
       var days = parseInt(d.querySelector('#idays').value, 10) || 3;
       var pref = d.querySelector('#ipref').value.trim() || '经典路线';
       go.disabled = true; go.textContent = '⏳ 正在规划…'; out.style.display = 'block'; out.textContent = '';
+      /* 无 Key 本地兜底：贪心顺路排程，不让用户空手而归 */
+      if (!(window.Ai && Ai.hasKey())) {
+        go.disabled = false; go.textContent = '生成路书';
+        out.textContent = localItinerary(sites, days);
+        flash('已生成本地版路书（配置 AI Key 可获得更细建议）');
+        return;
+      }
       var pool = sites.slice(0, 80).map(function (s) {
         var tag = [s.ty || s.theme || '', s.dy || '', s.county || s.city || ''].filter(Boolean).join('·');
         return s.label + (tag ? '（' + tag + '）' : '');

@@ -106,7 +106,7 @@
   var SITES = [], map = null, pickMarker = null;
 
   function $(id) { return document.getElementById(id); }
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function esc(s) { return window.UI.esc(s); }
   function tip(msg, ms) { var t = $('nmTip'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('show'); }, ms || 2200); }
   function closeSheets() { $('rsSheet').classList.remove('show'); $('infoSheet').classList.remove('show'); }
 
@@ -133,7 +133,7 @@
     s.onload = function () {
       var sys = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
         var p = line.split('|');
-        return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8], source: '' };
+        return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8], desc: p[9] || '', source: '' };
       });
       SITES = sys;
       sys.forEach(function (x, i) { x.__i = i; });
@@ -239,6 +239,215 @@
       UI.toast('介绍已生成，可再手动微调');
     }).catch(function () { UI.toast('生成失败，请检查网络或 Key'); })
       .then(function () { btn.textContent = '✨ 生成介绍'; btn.disabled = false; });
+  }
+
+  /* ---------- 关键词加节点：关键词 → 候选列表(内置+高德) → 用户确认 → AI 补全 ---------- */
+  function extractKeyword(q, cb) {
+    var rough = String(q || '').replace(/帮我|请|给我|添加|加一个|加个|记录|收藏|我要去|我想去|想去|一下|一个|吧|啊|呀|哦|麻烦/g, '').replace(/^[，,。.\s]+|[，,。.\s]+$/g, '').trim();
+    if (!window.Ai || !Ai.hasKey()) { cb(rough); return; }
+    Ai.chat([
+      { role: 'system', content: '你是地点关键词提取助手。从用户输入里提取一个最核心的旅行地点关键词，只输出地点名本身，不要任何解释、标点或 JSON。输入可能来自语音识别，含同音字误读（如"古宫"应为"故宫"、"古浪雨"应为"鼓浪屿"、"云岗"应为"云冈"），请结合常识纠正。' },
+      { role: 'user', content: q }
+    ]).then(function (t) {
+      var kw = String(t || '').replace(/^[^\u4e00-\u9fa5a-zA-Z0-9]+|[^\u4e00-\u9fa5a-zA-Z0-9]+$/g, '').trim();
+      cb(kw || rough);
+    }).catch(function () { cb(rough); });
+  }
+  /* 合并内置库 + 高德 POI 为统一候选列表 */
+  function mergeCandidates(local, pois) {
+    var out = [];
+    (local || []).forEach(function (s) {
+      var c = { name: s.label || s.name, lat: s.lat, lng: s.lng, gcj: false, province: s.region, city: s.city || '', county: s.county || '', address: '', theme: s.theme || '', flag: s.flag || '', desc: s.desc || '', source: 'site' };
+      /* 去重：同名 或（名称互相包含 且 坐标极近）视为同地重复，只保留一条 */
+      var dup = out.some(function (o) {
+        var nameClose = o.name === c.name || o.name.indexOf(c.name) >= 0 || c.name.indexOf(o.name) >= 0;
+        if (!nameClose) return false;
+        if (c.lat == null || o.lat == null) return true;
+        return Math.abs(o.lat - c.lat) < 0.015 && Math.abs(o.lng - c.lng) < 0.02;
+      });
+      if (!dup) out.push(c);
+    });
+    (pois || []).forEach(function (p) {
+      if (!p || !p.location) return;
+      var dup = out.some(function (c) { return c.name === p.name || c.name.indexOf(p.name) >= 0 || p.name.indexOf(c.name) >= 0; });
+      if (dup) return;
+      var ll = String(p.location).split(',');
+      out.push({ name: p.name, lat: +ll[1], lng: +ll[0], gcj: true, province: p.pname || '', city: p.cityname || '', county: p.adname || '', address: p.address || '', theme: '', flag: '', desc: '', source: 'poi' });
+    });
+    return out.slice(0, 12);
+  }
+  /* AI 补全分类/标签/介绍 */
+  function aiEnrichNode(name, city, cb) {
+    if (!window.Ai || !Ai.hasKey()) { cb(null); return; }
+    Ai.chat([
+      { role: 'system', content: '你是旅行地点编辑助手。根据地点名与城市，输出该地点的分类、标签和介绍。只输出 JSON，格式：{"category":"分类（古建/自然/美食/博物馆/观景台/寺庙/街区/茶馆等）","tags":["标签"],"desc":"60-100字介绍"}。不编造不确定的史实。' },
+      { role: 'user', content: '地点：「' + name + '」' + (city ? '，城市：' + city : '') }
+    ]).then(function (t) {
+      var obj; try { obj = JSON.parse(String(t || '').replace(/```json|```/g, '').trim()); } catch (e) { obj = null; }
+      cb(obj);
+    }).catch(function () { cb(null); });
+  }
+  /* 选中候选：打开表单预填 + AI 补全空缺项 */
+  function chooseCandidate(c) {
+    openForm({ name: c.name, lat: c.lat, lng: c.lng, gcj: c.gcj, province: c.province, city: c.city, category: c.theme || '', tags: [], desc: c.desc || '', address: c.address });
+    aiEnrichNode(c.name, c.city, function (r) {
+      if (!r) return;
+      var cat = document.getElementById('nmCat');
+      var tg = document.getElementById('nmTags');
+      var dc = document.getElementById('nmDesc');
+      if (cat && !cat.value && r.category) cat.value = r.category;
+      if (tg && !tg.value && r.tags && r.tags.length) tg.value = r.tags.join(' ');
+      if (dc && !dc.value && r.desc) dc.value = r.desc;
+      UI.toast('AI 已补充分类/标签/介绍，可再微调');
+    });
+  }
+  /* 检测候选是否已在「我的地点」中（名称精确/包含 + 坐标接近，避免同名不同地误判） */
+  function findExistingNode(c) {
+    var users = loadUserNodes();
+    for (var i = 0; i < users.length; i++) {
+      var u = users[i];
+      if (!u.name) continue;
+      var exact = u.name === c.name;
+      var contain = u.name.indexOf(c.name) >= 0 || c.name.indexOf(u.name) >= 0;
+      if (!exact && !contain) continue;
+      if (c.lat != null && u.lat != null) {
+        var d = window.Geo.hav ? window.Geo.hav(c.lat, c.lng, +u.lat, +u.lng) : 0;
+        if (d < 3) return u;
+        continue; // 同名但坐标远（同名不同地），不算重复
+      }
+      return u; // 无坐标信息时，仅名称匹配即判重
+    }
+    return null;
+  }
+  function startPickPreset(extra) {
+    closeSheets();
+    UI.toast('在地图上点击「' + (extra && extra.name || '') + '」的位置');
+    map.once('click', function (e) {
+      var lat = e.latlng.lat, lng = e.latlng.lng;
+      putMarker(lat, lng);
+      openForm({ name: extra && extra.name, lat: lat, lng: lng, city: extra && extra.city, category: extra && extra.category, tags: extra && extra.tags, desc: extra && extra.desc });
+    });
+  }
+  function aiAddNode() {
+    var m = document.createElement('div');
+    m.className = 'ui-modal-mask nm-mask';
+    m.innerHTML =
+      '<div class="ui-modal nm-form" role="dialog" aria-modal="true" style="max-width:420px">' +
+      '<div class="ui-modal-title">✨ 关键词加节点</div>' +
+      '<div class="ui-modal-text nm-body">' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+      '<input id="aiNodeInput" class="nm-in" style="flex:1;min-width:0;margin-bottom:0" placeholder="输入地点关键词，如「故宫」" autocomplete="off">' +
+      '<button id="aiNodeMic" type="button" class="ui-btn" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:18px;line-height:1" aria-label="语音输入">🎤</button>' +
+      '</div>' +
+      '<div style="font-size:11.5px;color:var(--color-muted);margin-top:6px;line-height:1.6">输入关键词后列出相近地点，点选一个，再由 AI 补全分类与介绍</div>' +
+      '<div style="margin-top:10px"><div style="font-size:11px;color:var(--color-faint);margin-bottom:5px">示例 · 点一下直接搜索</div>' +
+      '<button class="nm-example" data-t="故宫" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">故宫</button>' +
+      '<button class="nm-example" data-t="鼓浪屿" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">鼓浪屿</button>' +
+      '<button class="nm-example" data-t="大熊猫基地" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">大熊猫基地</button>' +
+      '<button class="nm-example" data-t="正觉寺" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">正觉寺</button>' +
+      '</div>' +
+      '<div id="aiNodeStatus" style="font-size:12px;color:var(--color-primary-dark);margin-top:8px;display:none"></div>' +
+      '<div id="aiNodeList" style="display:none;margin-top:8px;max-height:46vh;overflow-y:auto;border-top:1px solid var(--color-line);padding-top:6px"></div>' +
+      '</div>' +
+      '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="aiNodeCancel">取消</button><button class="ui-btn ui-btn-primary" id="aiNodeGo">搜索</button></div></div>';
+    document.body.appendChild(m);
+    requestAnimationFrame(function () { m.classList.add('show'); });
+    m.querySelector('#aiNodeCancel').onclick = function () { m.remove(); };
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    var input = m.querySelector('#aiNodeInput');
+    var st = m.querySelector('#aiNodeStatus');
+    var listBox = m.querySelector('#aiNodeList');
+    var go = m.querySelector('#aiNodeGo');
+    var mic = m.querySelector('#aiNodeMic');
+    input.focus();
+    m.querySelectorAll('.nm-example').forEach(function (b) {
+      b.onclick = function () { input.value = b.dataset.t; run(); };
+    });
+    mic.onclick = function () {
+      if (!window.TNVoice) { UI.toast('语音识别不可用（需在 App 内使用）'); return; }
+      var started = window.TNVoice.start({
+        onStart: function () { mic.textContent = '🔴'; st.style.display = 'block'; st.textContent = '正在听，慢慢说…'; },
+        onPartial: function (t) { input.value = t; },
+        onResult: function (t) { mic.textContent = '🎤'; input.value = t; st.style.display = 'none'; UI.toast('已识别，可改同音字后点「搜索」'); },
+        onError: function (code) { mic.textContent = '🎤'; st.style.display = 'none'; UI.toast('识别失败：' + (code || '未知错误')); }
+      });
+      if (!started) { UI.toast('语音识别不可用（需在 App 内使用）'); }
+    };
+    function renderList(list, kw, hasKey) {
+      listBox.style.display = 'block';
+      if (!list.length) {
+        listBox.innerHTML = '<div style="padding:14px 4px;font-size:12.5px;color:var(--color-muted);text-align:center;line-height:1.8">没找到「' + esc(kw) + '」的相近地点</div>' +
+          '<div style="display:flex;gap:8px;margin-top:6px">' +
+          (hasKey ? '' : '<button id="aiNodeCfgKey" class="ui-btn" style="flex:1;min-height:40px;font-size:13px">配置高德 Key</button>') +
+          '<button id="aiNodePick" class="ui-btn ui-btn-primary" style="flex:1;min-height:40px;font-size:13px">地图点选位置</button></div>';
+        var ck = listBox.querySelector('#aiNodeCfgKey');
+        if (ck) ck.onclick = function () { promptKey(function () { run(); }); };
+        listBox.querySelector('#aiNodePick').onclick = function () { m.remove(); startPickPreset({ name: kw, city: '', category: '', tags: [], desc: '' }); };
+        return;
+      }
+      var html = '<div class="rs-sec" style="margin-top:2px">找到 ' + list.length + ' 个相近地点 · 点选一个</div>';
+      list.forEach(function (c, i) {
+        var sub = [];
+        function addLoc(v) {
+          v = String(v || '').trim();
+          if (!v) return;
+          var norm = v.replace(/(特别行政区|自治区|自治州|地区|省|市)$/, '');
+          var dup = sub.some(function (s) { return s === v || s.replace(/(特别行政区|自治区|自治州|地区|省|市)$/, '') === norm; });
+          if (!dup) sub.push(v);
+        }
+        addLoc(c.province);
+        addLoc(c.city);
+        addLoc(c.county);
+        if (c.address) sub.push(c.address);
+        if (!sub.length && c.theme) sub.push(c.theme);
+        var exist = findExistingNode(c);
+        html += '<div class="rs-item" data-i="' + i + '">' +
+          '<span class="ic">' + (c.source === 'site' ? '📍' : '🗺️') + '</span>' +
+          '<div class="main"><div class="nm" style="white-space:normal;line-height:1.4">' + esc(c.name) + (exist ? '<span class="bdg mine">已添加</span>' : '') + '</div>' +
+          '<div class="sub">' + esc(sub.join(' · ') || '未知位置') + '</div></div>' +
+          '<span class="act"' + (exist ? ' style="color:#5F7A4E"' : '') + '>' + (exist ? '已添加' : '＋ 添加') + '</span></div>';
+      });
+      if (!hasKey) {
+        html += '<button id="aiNodeCfgKey2" style="display:block;width:100%;border:0;background:none;color:var(--color-primary-dark);font-size:12px;padding:8px 4px;cursor:pointer">＋ 配置高德 Key，可搜到更多本地商铺 / 小店</button>';
+      }
+      listBox.innerHTML = html;
+      listBox.querySelectorAll('[data-i]').forEach(function (it) {
+        it.onclick = function () {
+          var c = list[+it.dataset.i];
+          var exist = findExistingNode(c);
+          if (exist) {
+            m.remove();
+            UI.toast('「' + exist.name + '」已在我的地点中，进入编辑');
+            openForm({ uid: exist.id, name: exist.name, lat: exist.lat, lng: exist.lng, gcj: !!exist.gcj, city: exist.city, category: exist.category, tags: exist.tags, desc: exist.desc, elev: exist.elev, province: exist.province, createdAt: exist.createdAt });
+          } else {
+            m.remove();
+            chooseCandidate(c);
+          }
+        };
+      });
+      var ck2 = listBox.querySelector('#aiNodeCfgKey2');
+      if (ck2) ck2.onclick = function () { promptKey(function () { run(); }); };
+    }
+    function run() {
+      var q = input.value.trim();
+      if (!q) { UI.toast('请输入地点关键词，如「故宫」'); return; }
+      go.disabled = true; st.style.display = 'block'; st.textContent = '搜索中…';
+      extractKeyword(q, function (kw) {
+        var local = localSearch(kw);
+        var hasKey = !!localStorage.getItem(AMAP_KEY);
+        function finish(pois) {
+          go.disabled = false; st.style.display = 'none';
+          renderList(mergeCandidates(local, pois), kw, hasKey);
+        }
+        if (hasKey) {
+          amapSearch(kw, function (data) { finish((data && data.pois) || []); });
+        } else {
+          finish([]);
+        }
+      });
+    }
+    go.onclick = run;
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); run(); } });
   }
 
   function promptKey(retry) {
@@ -511,6 +720,20 @@
     m.querySelector('#nmCancel').onclick = function () { m.remove(); };
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     document.getElementById('nmName').focus();
+    /* 手机键盘遮挡适配：弹窗高度跟随可视区，聚焦的输入框自动滚入视野 */
+    (function () {
+      var vv = window.visualViewport;
+      function fit() {
+        if (!m.isConnected) { if (vv) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); } return; }
+        if (vv) { m.style.top = vv.offsetTop + 'px'; m.style.height = vv.height + 'px'; }
+      }
+      if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); fit(); }
+      m.querySelectorAll('input,textarea').forEach(function (el) {
+        el.addEventListener('focus', function () {
+          setTimeout(function () { if (m.isConnected) el.scrollIntoView({ block: 'center' }); }, 300);
+        });
+      });
+    })();
     /* 添加照片：压缩到 240px base64 */
     var fileEl = m.querySelector('#nmFile');
     m.querySelector('#nmPhotoBox').onclick = function () { fileEl.click(); };
@@ -672,6 +895,7 @@
         '<div class="ui-modal nm-menu" role="dialog" aria-modal="true">' +
         '<div class="ui-modal-title">添加 / 管理地点</div>' +
         '<div class="ui-modal-text nm-menu-items">' +
+        '<button class="nm-menu-item" data-a="ai"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px" stroke-linecap="round"><path d="M12 3 L13.5 8.5 L19 10 L13.5 11.5 L12 17 L10.5 11.5 L5 10 L10.5 8.5 Z"/></svg>✨ 一句话加节点</button>' +
         '<button class="nm-menu-item" data-a="pick"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px"><path d="M12 21 C12 21 5 14.5 5 10 A7 7 0 0 1 19 10 C19 14.5 12 21 12 21 Z"/><circle cx="12" cy="10" r="2.6"/></svg>地图选点</button>' +
         '<button class="nm-menu-item" data-a="cur"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px"><circle cx="12" cy="12" r="2"/><path d="M12 2 V6 M12 18 V22 M2 12 H6 M18 12 H22"/></svg>使用当前位置</button>' +
         '<button class="nm-menu-item" data-a="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16 L21 21"/></svg>搜索地点</button>' +
@@ -686,7 +910,8 @@
         b.onclick = function () {
           var a = b.dataset.a;
           m.remove();
-          if (a === 'pick') startPick();
+          if (a === 'ai') aiAddNode();
+          else if (a === 'pick') startPick();
           else if (a === 'cur') addAtCurrent();
           else if (a === 'search') { $('q').focus(); }
           else if (a === 'mine') openMine();

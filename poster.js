@@ -21,13 +21,6 @@ window.FootprintPoster = (function () {
     var s = String(p).replace(/省|市|壮族自治区|回族自治区|维吾尔自治区|自治区|特别行政区/g, '');
     return PROV_SHORT[s] || s.charAt(0) || '';
   }
-  function hav(lat1, lng1, lat2, lng2) {
-    var R = 6371, r = Math.PI / 180;
-    var dLa = (lat2 - lat1) * r, dLo = (lng2 - lng1) * r;
-    var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) +
-      Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
-    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
-  }
   function esc2(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function flash(msg) {
     var d = document.createElement('div');
@@ -79,7 +72,7 @@ window.FootprintPoster = (function () {
     var all = (window.TravelNotes ? TravelNotes.list() : []).slice()
       .sort(function (a, b) { return a.ts - b.ts; });
     var pts = all.filter(function (n) { return n.lat != null && n.lng != null; });
-    if (!pts.length) { flash('还没有带位置的游记，先去记录一段旅程吧'); return; }
+    if (!pts.length) { (window.UI && window.UI.toast ? window.UI.toast('还没有带位置的游记，先去记录一段旅程吧') : flash('还没有带位置的游记，先去记录一段旅程吧')); return; }
 
     /* ---- 统计 ---- */
     var days = new Set(all.map(function (n) { return String(n.date || '').slice(0, 10); }).filter(Boolean));
@@ -90,7 +83,7 @@ window.FootprintPoster = (function () {
       if (pts[i].ts - pts[i - 1].ts > 3 * 24 * 3600 * 1000) tripCnt++;
     }
     var km = 0;
-    for (var j = 1; j < pts.length; j++) km += hav(pts[j - 1].lat, pts[j - 1].lng, pts[j].lat, pts[j].lng);
+    for (var j = 1; j < pts.length; j++) km += window.Geo.hav(pts[j - 1].lat, pts[j - 1].lng, pts[j].lat, pts[j].lng);
     var year = new Date().getFullYear();
 
     /* ---- 画布 ---- */

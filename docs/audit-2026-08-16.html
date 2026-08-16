@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE · 代码架构与用户视角审核（2026-08-16）</title>
+<style>
+  :root{
+    --bg:#F7F5EF; --surface:#FFFDF8; --ink:#20201D; --ink-soft:#55514A; --muted:#8C877D; --faint:#B4AFA4;
+    --line:#E3DED2; --line-strong:#CFC9BA;
+    --primary:#C86D4B; --primary-dark:#A9563B; --primary-soft:rgba(200,109,75,.12);
+    --green:#5F8A6B; --green-soft:rgba(95,138,107,.12);
+    --blue:#3E7CB1; --blue-soft:rgba(62,124,177,.10);
+    --gold:#BA7517; --gold-soft:rgba(186,117,23,.12);
+    --red:#B4543A; --red-soft:rgba(180,84,58,.10);
+    --serif:"Songti SC","STSong",Georgia,serif;
+    --sans:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 80px}
+  /* header */
+  header{padding:56px 0 8px;border-bottom:1px solid var(--line)}
+  .kicker{font-size:12px;letter-spacing:.32em;color:var(--primary);text-transform:uppercase;margin:0 0 14px}
+  h1{font-family:var(--serif);font-size:34px;font-weight:400;letter-spacing:.01em;margin:0 0 10px;line-height:1.25}
+  .sub{font-size:14px;color:var(--muted);margin:0}
+  .meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:18px;font-size:12.5px;color:var(--muted)}
+  .meta b{color:var(--ink);font-weight:600}
+  /* verdict */
+  .verdict{margin:28px 0;background:linear-gradient(135deg,#20201D,#2E2B26);color:#EFE9DC;border-radius:20px;padding:26px 26px;box-shadow:0 12px 36px rgba(30,30,28,.18)}
+  .verdict .vt{font-family:var(--serif);font-size:20px;letter-spacing:.04em;margin-bottom:12px}
+  .verdict p{font-size:14px;line-height:1.9;color:#C9C3B4;margin:0 0 10px}
+  .verdict p:last-child{margin-bottom:0}
+  .verdict .hl{color:#E8A18D}
+  .verdict .good{color:#A9C3A9}
+  /* section */
+  section{margin-top:44px}
+  h2{font-family:var(--serif);font-size:23px;font-weight:400;margin:0 0 6px;display:flex;align-items:baseline;gap:12px}
+  h2 .en{font-size:12px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase}
+  .lead{font-size:13.5px;color:var(--muted);margin:0 0 20px}
+  /* issue card */
+  .issue{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:0 4px 14px rgba(40,38,32,.04)}
+  .issue .head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .badge{flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:999px;white-space:nowrap;margin-top:2px}
+  .badge.a{background:var(--red-soft);color:var(--red);border:1px solid rgba(180,84,58,.3)}
+  .badge.b{background:var(--gold-soft);color:var(--gold);border:1px solid rgba(186,117,23,.3)}
+  .badge.c{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(62,124,177,.28)}
+  .badge.ux{background:var(--primary-soft);color:var(--primary-dark);border:1px solid rgba(200,109,75,.3)}
+  .badge.ok{background:var(--green-soft);color:var(--green);border:1px solid rgba(95,138,107,.3)}
+  .issue h3{font-family:var(--serif);font-size:17px;font-weight:600;margin:0;flex:1;min-width:200px;letter-spacing:.02em}
+  .issue .body{margin-top:10px;font-size:13.5px;color:var(--ink-soft)}
+  .issue .body p{margin:0 0 8px}
+  .issue .body p:last-child{margin-bottom:0}
+  code{background:rgba(32,32,29,.06);border-radius:5px;padding:1px 6px;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12px;color:var(--primary-dark)}
+  .ev{display:block;margin-top:8px;font-size:12px;color:var(--muted);line-height:1.6}
+  .ev b{color:var(--ink-soft);font-weight:600}
+  .fix{display:block;margin-top:10px;padding:9px 12px;border-radius:10px;background:var(--green-soft);color:#4C6B52;font-size:12.5px;line-height:1.7}
+  .fix b{font-weight:700}
+  /* ok list */
+  .ok-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.ok-grid{grid-template-columns:1fr}}
+  .ok-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px}
+  .ok-item .t{font-weight:600;color:var(--ink);margin-bottom:3px}
+  .ok-item .t .chk{color:var(--green);margin-right:4px}
+  .ok-item .d{color:var(--muted);font-size:12px}
+  /* priority */
+  .prio{counter-reset:p}
+  .prio-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .prio-item:last-child{border-bottom:0}
+  .prio-item::before{counter-increment:p;content:counter(p);flex:0 0 34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-family:var(--serif);font-size:17px;box-shadow:0 4px 12px rgba(200,109,75,.28)}
+  .prio-item .pt{font-weight:600;font-size:15px;color:var(--ink);margin-bottom:4px}
+  .prio-item .pd{font-size:13px;color:var(--ink-soft);line-height:1.75}
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--faint);text-align:center;letter-spacing:.05em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Audit Report</p>
+  <h1>行迹 TRACE · 代码架构与用户视角审核</h1>
+  <p class="sub">从「代码工程质量」与「普通用户可用性」两个维度交叉审视，附可执行的优先级建议。</p>
+  <div class="meta">
+    <span><b>日期</b> 2026-08-16</span>
+    <span><b>范围</b> 全站 12 个 HTML 页 · 核心引擎 JS · 数据层 · 构建产物</span>
+    <span><b>视角</b> 架构师 + 普通用户</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="vt">结论先行</div>
+  <p>这是一个<span class="good">方向清醒、且确实在持续收敛</span>的纯前端项目：上一轮审核的多数 P0 功能 bug 已修复，<code>window.Ai</code> / <code>window.Geo</code> 两大公共入口也已收口。工程兜底意识仍在。</p>
+  <p>但本轮发现一个<span class="hl">比「代码重复」更伤用户的问题</span>——<b>四个已开发完成的成果功能（纪念册 / 图鉴 / 路书 / 故事）在全部页面里找不到任何入口</b>，成为「孤儿功能」。普通用户要么根本不知道它们存在，要么知道也点不到。</p>
+  <p>其余问题集中在三类：<b>① 公共逻辑与样式仍大面积复制粘贴</b>（esc ×12、haversine ×6、双 :root、通用组件每页重写）；<b>② 冗余数据与死代码未清理</b>（3MB 僵尸文件、零引用路由框架、双份注册表）；<b>③ 面向普通用户的认知门槛偏高</b>（核心 AI 能力依赖用户自备 DeepSeek Key、设置页暴露开发者黑话）。</p>
+</div>
+
+<!-- ================= 已修复 ================= -->
+<section>
+  <h2>已修复项 <span class="en">Fixed · 延续性确认</span></h2>
+  <p class="lead">为避免重复报已修问题，先确认上一轮（2026-08-14）报告中的 P0 问题处理现状。</p>
+  <div class="ok-grid">
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>网页语音回调</div><div class="d">Web Speech 降级已改用 <code>window.__tnOnVoice*</code>，点击有反馈。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>断网搜索</div><div class="d"><code>s.onerror</code> 已置 <code>loaded=true</code>，本地游记独立于景点索引渲染。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>首启引导合并</div><div class="d">两套引导已合并为单一 <code>ob-mask</code>（3 步）。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>深色缩放按钮</div><div class="d">node-manager 已补 <code>.theme-dark .leaflet-control-zoom</code> 覆盖。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>AI 调用统一</div><div class="d"><code>window.Ai</code> 成为 DeepSeek 唯一入口，别名映射集中一处。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>持久化增量写</div><div class="d">由全量 <code>clear()+put</code> 改为 <code>delete()+put()</code> 增量写回。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>全国地图懒加载</div><div class="d">改用 662KB 轻量索引 + 详情按需补充。</div></div>
+    <div class="ok-item"><div class="t"><span class="chk">✓</span>node-manager 模型名</div><div class="d">已消除 <code>deepseek-chat</code> 硬编码不一致。</div></div>
+  </div>
+</section>
+
+<!-- ================= 架构问题 ================= -->
+<section>
+  <h2>一、代码架构问题 <span class="en">Architecture</span></h2>
+  <p class="lead">按严重度分三级：A = 功能断裂/死代码（用户可直接感知）· B = 重复未收口（维护风险）· C = 工程卫生。</p>
+
+  <div class="issue">
+    <div class="head"><span class="badge a">A · 功能断裂</span><h3>成果工坊四个功能已无任何入口 —— 孤儿代码</h3></div>
+    <div class="body">
+      <p>README 宣称的「成果工坊」包含<b>旅行纪念册 / 个人图鉴 / 定制路书 / 旅程故事</b>，对应 <code>results.js</code> 暴露的 <code>Results.album / atlas / itinerary / story</code> 四个函数，实现完整（含筛选面板、AI 叙事、文档导出）。</p>
+      <p>但全项目检索这四个函数的调用点，<b>结果为零</b>。唯一的入口 <code>Results.open()</code> 直接 <code>location.href='review.html'</code>，而 <code>review.html</code> 里只有「年度报告 / 横版海报 / 足迹海报 / 制图海报」——<b>没有这四个功能的任何按钮</b>。</p>
+      <span class="ev"><b>证据：</b><code>grep Results.(album|atlas|itinerary|story)</code> 全项目命中 0；<code>review.html</code> 仅 <code>aiReport / posterBtn / posterBtnH / posterCarto</code> 四个动作。</span>
+      <span class="fix"><b>建议：</b>在「回顾」页或「我的」页增设「成果工坊」分组，把四个入口接回；或在 review.html 顶部加一个「生成纪念册 / 图鉴 / 路书 / 故事」的工具条。这是当前<b>成本最低、收益最高</b>的一件事。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge a">A · 死代码</span><h3>app-router.js 零引用，SPA 方案未落地</h3></div>
+    <div class="body">
+      <p><code>app-router.js</code> 是一个完整的 SPA 路由框架（fetch 片段 + 脚本执行 + 返回栈），但没有任何页面 <code>&lt;script&gt;</code> 引入它，也没有任何 <code>Router.register/go</code> 调用。所有页面仍走整页 <code>location.href</code> 跳转。</p>
+      <span class="ev"><b>证据：</b><code>grep app-router.js|Router.register|Router.go</code> 仅命中自身注释。</span>
+      <span class="fix"><b>建议：</b>若决定继续整页跳转（当前做法对无框架项目其实更稳），直接删除该文件并移除 <code>docs/spa-route-plan.html</code> 相关计划，避免误导后续维护者。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 重复</span><h3>esc() 重复 12 处且语义不一致，XSS 面未完全收口</h3></div>
+    <div class="body">
+      <p>HTML 转义函数在 12 个文件里各自定义：<code>travel-notes.js / results.js</code> 转义引号，而 <code>search.html / review.html / story.html / travel-map.html / wishlist.html / topic-common.js</code> 等<b>不转义引号</b>。自定义节点 <code>label/desc</code>（用户输入 + AI 输出）进入 <code>innerHTML</code> 拼接时仍有注入缺口。</p>
+      <span class="ev"><b>证据：</b><code>grep "function esc("</code> 命中 12 处；<code>search.html:103</code> 只替换 <code>&amp;&lt;&gt;</code>。</span>
+      <span class="fix"><b>建议：</b>抽一个全局 <code>window.UI.esc()</code>（含引号全转义），逐页替换本地实现，重点套到自定义节点渲染链路上。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 重复</span><h3>haversine 距离仍重复 6 份，其中一处缺钳制</h3></div>
+    <div class="body">
+      <p><code>geo.js</code> 已收敛为主入口，但 <code>poster.js / results.js / wishlist.js / review.html / wishlist.html</code> 仍各留一份内联实现。<code>review.html:173</code> 的版本<b>缺 <code>Math.min(1,·)</code> 钳制</b>，近对跖点会产出 NaN，污染「里程」统计。</p>
+      <span class="ev"><b>证据：</b><code>grep "6371"</code> 命中 6 文件。</span>
+      <span class="fix"><b>建议：</b>统一改调 <code>window.Geo.hav()</code>，顺手修掉 review 的 NaN 隐患。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 令牌</span><h3>design.css 双 :root，设计令牌无单一事实源</h3></div>
+    <div class="body">
+      <p><code>design.css</code> 存在两个 <code>:root</code>（第 15 行与第 1127 行），后者二次覆盖 <code>--fs-*</code>（14px→0.9375rem）与 <code>--radius-md</code> 等，是圆角/字号跨组件漂移的直接根源。加上 <code>map.css</code> 与 <code>design.css</code> 双份大 CSS 并存，样式来源越发难追。</p>
+      <span class="ev"><b>证据：</b><code>design.css:15</code> 与 <code>:1127</code> 两个 <code>:root</code>；<code>:1127-1132</code> 覆盖 <code>--fs-*</code>。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 组件</span><h3>通用组件样式每页复制粘贴（topbar / back / bottom-nav）</h3></div>
+    <div class="body">
+      <p>顶栏、返回键、底栏五 Tab 的 CSS 在 <code>index / me / settings / explore-map / search / wishlist / review / planner</code> 等页<b>各自重写一份几乎相同的样式</b>，且细节已开始分叉（back 按钮 34px / 40px / 44px 三种尺寸并存）。改一个组件要同步 8 个文件。</p>
+      <span class="ev"><b>证据：</b>各页 <code>&lt;style&gt;</code> 内均有独立 <code>.topbar / .t-row .back / .bottom-nav</code> 定义。</span>
+      <span class="fix"><b>建议：</b>把 topbar / back / bottom-nav / toast 收敛进 <code>design.css</code> 的公共类，页面只保留业务样式。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 冗余</span><h3>nation-data.js（3MB）已成僵尸文件</h3></div>
+    <div class="body">
+      <p><code>nation-data.js</code>（3.04MB）在注册表里仍是「全国」专题的 <code>dataJs</code>，但 <code>topic.html:154</code> 已用 <code>if (dataJs==='nation-data.js') loadNationIndex()</code> 拦截，实际加载的是 662KB 的 <code>nation-index.js</code>。3MB 文件<b>不再被加载，却仍在仓库与 APK 资产里占体积</b>。</p>
+      <span class="ev"><b>证据：</b><code>ls</code> 显示 nation-data.js 3,040,835 B；nation-index.js 662,984 B。</span>
+      <span class="fix"><b>建议：</b>删除 nation-data.js 并同步更新注册表 <code>dataJs</code> 字段，APK 体积立减约 2.4MB。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge b">B · 冗余</span><h3>topic-meta.js 与 topic-meta-lite.js 双份注册表并存</h3></div>
+    <div class="body">
+      <p><code>topic.html</code> 加载 119KB 完整版 <code>topic-meta.js</code>，<code>search.html</code> 加载 56KB 精简版 <code>topic-meta-lite.js</code>。两份数据同源却需手动同步（主题色/别名改动要改两处），已出现字段漂移风险。</p>
+      <span class="ev"><b>证据：</b>两文件 <code>window.TOPIC_REGISTRY</code> 结构重复。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge c">C · 卫生</span><h3>tools/ 堆积 200+ 一次性脚本，无正式测试框架</h3></div>
+    <div class="body">
+      <p><code>tools/</code> 目录有 <code>fix-*/check-*/diag-*/probe-*/patch-*</code> 等 200 余个一次性脚本，记录了开发过程中的大量打补丁操作。它们不是测试、无法回归，长期看只会干扰对新工程师的理解。</p>
+      <span class="ev"><b>证据：</b><code>ls tools/ | wc -l</code> 远超 200。</span>
+      <span class="fix"><b>建议：</b>把仍在用的 verify/smoke/gen-* 保留，其余归档或删除；用 <code>tools/verify.js</code> 作为唯一入口统一验证。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge c">C · 健壮性</span><h3>内联 onclick 依赖 window 全局挂载，易静默失效</h3></div>
+    <div class="body">
+      <p>多个页面用 <code>onclick="doCheckin(i)"</code> 内联调用，函数必须显式挂到 <code>window</code> 才有效（<code>wishlist.html</code> 甚至专门写了注释「必须挂 window，否则点击 ReferenceError 无响应」）。任何一次重命名或作用域调整都会让按钮「点了没反应」。</p>
+      <span class="ev"><b>证据：</b><code>wishlist.html:522-525</code> 手动 <code>window.doCheckin = doCheckin</code>。</span>
+      <span class="fix"><b>建议：</b>改事件委托（<code>addEventListener</code>）或统一 <code>data-action</code> 分发，去掉全局泄漏。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 用户视角 ================= -->
+<section>
+  <h2>二、普通用户视角 <span class="en">User Experience</span></h2>
+  <p class="lead">站在一个「不太懂技术、只想记录旅行」的用户角度，看功能是否合理、操作是否友好。</p>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">高频痛点</span><h3>「海报与年报」按钮落点与文案不符</h3></div>
+    <div class="body">
+      <p>首页底部主按钮写着「<b>海报与年报</b>」，点击后 <code>Results.open()</code> 跳到 <code>review.html</code>（「旅程回顾」页）。用户预期看到海报生成，实际进入的是一个统计/日历/成就页面，需要自己再找海报按钮。文案与落点对不上，是一处「点完一愣」的体验。</p>
+      <span class="fix"><b>建议：</b>按钮改叫「旅程回顾」直接对应页面；或让首页按钮直达 review 页的「足迹海报」区。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">高频痛点</span><h3>核心 AI 能力依赖用户自备 DeepSeek Key，门槛偏高</h3></div>
+    <div class="body">
+      <p>「AI 润色」「年度报告」「旅程故事」「定制路书」是产品的核心卖点，但全部依赖用户在设置页手动填入一个 <code>sk-...</code> 的 DeepSeek API Key。对普通用户而言：不知道 DeepSeek 是什么、不知道去哪申请、不知道怎么填、填错没反馈。结果大概率是——<b>核心卖点在普通用户手里永远用不上</b>。</p>
+      <span class="ev"><b>证据：</b><code>results.js:23</code> 未配 Key 时提示「请到 设置 → AI 润色 填入 DeepSeek key」。</span>
+      <span class="fix"><b>建议（任选）：</b>① 内置一个默认中转/限流 Key（需后端）；② 提供「一键申请」引导页，把申请链接、粘贴位、测试按钮做成三步向导；③ 至少明确「不填 Key 也能用全部本地功能」并给一个可见的降级提示，而不是点生成时才弹错误。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">信息架构</span><h3>底栏「探索」与「专题」两个 Tab 内容高度重叠</h3></div>
+    <div class="body">
+      <p>底栏第一个 Tab「探索」是 <code>index.html</code>（杂志首页，含专题列表 + 时令推荐），第二个 Tab「专题」是 <code>explore-map.html</code>（专题地图列表）。两者在用户眼里都是「选一个地方去看」，首页也列了 8 个专题卡片、探索页又列了 30+ 个，<b>功能定位重叠，用户分不清该点哪个</b>。</p>
+      <span class="ev"><b>证据：</b><code>index.html</code> 的「附近，有什么故事」8 张专题卡 vs <code>explore-map.html</code> 的 30 张专题卡，内容同源。</span>
+      <span class="fix"><b>建议：</b>明确分工——首页只做「情绪入口 + 时令 + 最近旅程」，把「所有专题地图」统一交给「专题」Tab；首页专题卡片精简为 3–4 张并注明「更多见专题」。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">认知负担</span><h3>设置页「高级设置」暴露开发者黑话</h3></div>
+    <div class="body">
+      <p>即使已折叠进「高级设置」，里面仍堆着「节点分级 / 聚合密度 / 必去优先 / 高德 Key / 管理 MD 库 / 补全地点信息 / 导出 Obsidian 库」等术语。普通用户点开只会更困惑，也容易误点「载入示例数据」「清除全部数据」这类有副作用项。</p>
+      <span class="ev"><b>证据：</b><code>settings.html:127-187</code> 高级设置 7 个条目。</span>
+      <span class="fix"><b>建议：</b>把「高级设置」拆成「地图调节（3 项）」与「开发者/数据迁移（隐藏更深或长按进入）」两级，普通用户默认只见前者。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">预期管理</span><h3>网页版语音记录不可用，但引导未明确告知</h3></div>
+    <div class="body">
+      <p>核心功能「语音随手记」依赖 App 壳内的讯飞/Google 识别，网页版仅有 Web Speech 降级（浏览器兼容性差、且多数桌面浏览器不支持中文识别）。但首启引导和首页 CTA 都在强调「语音记录」，网页用户点了可能「没反应或识别失败」，产生挫败感。</p>
+      <span class="ev"><b>证据：</b><code>settings.html:260</code> 诊断信息写「当前非 App 环境：无原生语音引擎」。</span>
+      <span class="fix"><b>建议：</b>网页环境首次点击语音时给一个明确提示「语音识别在 App 内体验最佳，网页版可手动输入」，并提供手动输入兜底入口。</span>
+    </div>
+  </div>
+
+  <div class="issue">
+    <div class="head"><span class="badge ux">可访问性</span><h3>触控目标普遍 &lt; 44px，深色残留</h3></div>
+    <div class="body">
+      <p>返回键 34–40px、日历翻月键、标签 8px 等高频热区小于 iOS/Android 建议的 44px 最小值；<code>results.js</code> 的生成弹窗与导出的 HTML 文档仍硬编码浅色（<code>#FAF8F3 / #fff / #20201D</code>），深色模式下会突然切回刺眼白底。</p>
+      <span class="ev"><b>证据：</b><code>settings.html:16</code> back 34px；<code>results.js:34/202/340</code> 多处内联 <code>#FAF8F3</code>。</span>
+      <span class="fix"><b>建议：</b>高频热区用透明 padding 抬到 44px；结果弹窗与导出文档接入 <code>var(--color-*)</code> 令牌。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 优先级 ================= -->
+<section>
+  <h2>三、优先级建议 <span class="en">Priority</span></h2>
+  <p class="lead">按「用户价值 ÷ 改动成本」排序，前三条建议先做。</p>
+  <div class="prio">
+    <div class="prio-item">
+      <div><div class="pt">把成果工坊四个入口接回</div><div class="pd">在「回顾」页或「我的」页加一组「纪念册 / 图鉴 / 路书 / 故事」入口，调用现成的 <code>Results.album/atlas/itinerary/story</code>。功能已写完，只差一个入口——纯 UI 接线，价值最高。</div></div>
+    </div>
+    <div class="prio-item">
+      <div><div class="pt">清理死代码与僵尸数据</div><div class="pd">删除 <code>app-router.js</code>、3MB 的 <code>nation-data.js</code>（及注册表引用）、重复的 <code>topic-meta</code> 一份；APK 立减约 2.4MB，仓库更清爽。</div></div>
+    </div>
+    <div class="prio-item">
+      <div><div class="pt">收口 esc / haversine / 通用组件样式</div><div class="pd">抽全局 <code>UI.esc()</code> 与统一调 <code>Geo.hav()</code>，把 topbar/bottom-nav 样式收敛进 design.css。一次性消除 12 处 esc、6 处距离、8 份组件样式的漂移与 XSS 面。</div></div>
+    </div>
+    <div class="prio-item">
+      <div><div class="pt">降低 AI 门槛 + 修正文案落点</div><div class="pd">给 DeepSeek Key 做「一键申请」向导或默认降级提示；首页「海报与年报」按钮改名「旅程回顾」。直接改善新用户首体验。</div></div>
+    </div>
+    <div class="prio-item">
+      <div><div class="pt">信息架构梳理 + 深色/触控打磨</div><div class="pd">厘清「探索 / 专题」两个 Tab 分工；设置页高级项两级折叠；高频热区抬到 44px；results.js 弹窗接入深色令牌。属持续打磨项。</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>行迹 TRACE · 代码架构与用户视角审核 · 2026-08-16 · 生成于本地，供团队内部使用</footer>
+
+</div>
+</body>
+</html>

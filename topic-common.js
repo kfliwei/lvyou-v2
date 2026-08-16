@@ -18,7 +18,7 @@
   var state = { q: "", region: "", theme: "", city: "", elev: "", sort: "" };
   var FOOD_STATE = { q: "", prov: "", city: "", type: "" };
 
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function $(id) { return document.getElementById(id); }
 
   /* ---------- 坐标 / 距离 ---------- */
@@ -319,13 +319,14 @@
       '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
       '<span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span>' +
       '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
+      '<span onclick="window.TopicEngine.customItinerary()">🧭 定制路书</span>' +
       '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
   }
   /* ---------- 全国页按省懒加载详情（审核修复批次 2） ---------- */
   var PROV_FILE = {
     '北京':'bj-data.js','天津':'tj-data.js','河北':'he-data.js','山西':'data.js','内蒙古':'nmg-data.js',
     '辽宁':'ln-data.js','吉林':'jl-data.js','黑龙江':'hlj-data.js','上海':'sh-data.js','江苏':'js-data.js',
-    '浙江':'zj-data.js','安徽':'ah-data.js','福建':'fj-data.js','江西':'changzheng-data.js','山东':'sd-data.js',
+    '浙江':'zj-data.js','安徽':'ah-data.js','福建':'fj-data.js','江西':'jx-data.js','山东':'sd-data.js',
     '河南':'ha-data.js','湖北':'hb-data.js','湖南':'hn-data.js','广东':'gd-data.js','广西':'gxyn-data.js',
     '海南':'hi-data.js','重庆':'cq-data.js','四川':'sc-data.js','贵州':'gz-data.js','云南':'gxyn-data.js',
     '西藏':'xz-data.js','陕西':'sx-data.js','甘肃':'gs-data.js','青海':'qh-data.js','宁夏':'nx-data.js',
@@ -1273,6 +1274,7 @@
     toggleWish: toggleWish,
     flyToSite: flyToSite,
     closeSheet: closeSheet,
-    openSheet: openSheet
+    openSheet: openSheet,
+    customItinerary: function () { if (window.Results && Results.itinerary) Results.itinerary(SITES, (M && M.title) || ''); }
   };
 })();

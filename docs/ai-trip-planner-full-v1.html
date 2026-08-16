@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>对话式智能行程规划 · 完整方案 v1</title>
+<style>
+  :root{--bg:#F6F3EC;--surface:#FFFDF8;--ink:#26241F;--muted:#8C877D;--line:#E3DED2;--primary:#C86D4B;--green:#5F7A4E;--blue:#4A6B7A;--serif:"Songti SC","Noto Serif SC",serif;--sans:"PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75}
+  .wrap{max-width:940px;margin:0 auto;padding:32px 20px 60px}
+  h1{font-family:var(--serif);font-weight:400;font-size:30px;margin:8px 0 4px}
+  .kicker{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+  .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+  h2{font-family:var(--serif);font-weight:400;font-size:21px;margin:34px 0 12px;padding-left:12px;border-left:3px solid var(--primary)}
+  h3{font-size:15px;margin:20px 0 8px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;font-size:14px}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .flow .st{flex:1;min-width:130px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;text-align:center}
+  .flow .st b{display:block;color:var(--primary-dark);font-size:13px;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+  th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:rgba(200,109,75,.08);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 9px;border-radius:999px;white-space:nowrap}
+  .t1{background:#C86D4B;color:#fff}.t2{background:#4A6B7A;color:#fff}.t3{background:#5F7A4E;color:#fff}
+  code{background:rgba(38,36,31,.05);padding:1px 6px;border-radius:6px;font-size:12px}
+  footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Product Blueprint · v1 · 2026-08-15</div>
+  <h1>对话式智能行程规划 · 完整方案</h1>
+  <div class="sub">自然语言 → 真实数据 → 可执行行程 ｜ AI 管"选什么、为什么"，引擎管"怎么走、多久"</div>
+
+  <h2>1. 产品定义</h2>
+  <div class="card">
+    <b>一句话定位</b>：用户用一句话描述目的地/天数/喜好（喜好可不填），App 返回<b>真实可执行</b>的每日行程——候选是真实坐标节点，时间由算法实算，AI 负责推荐与叙事。
+    <br><b>与聊天 AI 的差异</b>：聊天 AI 给"文字方案"（可能幻觉、不可落地）；我们给"可执行对象"（真实坐标、地图轨迹、可保存可导航可打卡）。
+  </div>
+
+  <h2>2. 端到端用户流程</h2>
+  <div class="flow">
+    <div class="st"><b>① 输入</b>一句话：目的地+天数+偏好+出发地</div>
+    <div class="st"><b>② 解析</b>AI 结构化为意图对象（可改可确认）</div>
+    <div class="st"><b>③ 召回</b>三级数据源候选卡片列表</div>
+    <div class="st"><b>④ 筛选</b>用户勾选加减，实时汇总</div>
+    <div class="st"><b>⑤ 排期</b>引擎 2-opt + 时间模型出每日安排</div>
+    <div class="st"><b>⑥ 叙事</b>AI 生成行程故事与每日主题</div>
+    <div class="st"><b>⑦ 产出</b>地图轨迹/保存/分享/导航</div>
+    <div class="st"><b>⑧ 调整</b>"D2 太赶了" → 引擎重排</div>
+  </div>
+
+  <h2>3. 意图解析（对话层）</h2>
+  <table>
+    <tr><th>意图字段</th><th>解析方式</th><th>示例</th></tr>
+    <tr><td>目的地</td><td>AI 抽取 + 本地城市/省份词典兜底（省/市/区域名 → 坐标圈）</td><td>"西双版纳周边+广西" → [{region:'西双版纳', radius:'周边'},{province:'广西'}]</td></tr>
+    <tr><td>天数</td><td>正则（N 天/N 日）</td><td>6</td></tr>
+    <tr><td>偏好</td><td>AI 映射到主题标签（自然风光→森林山川/江河湖泊/草原…）</td><td>[自然] → 主题权重</td></tr>
+    <tr><td>出发地</td><td>城市名 → 坐标；缺省=当前位置</td><td>昆明</td></tr>
+    <tr><td>解析确认</td><td>解析结果卡片展示，用户可改（下拉/输入）</td><td>—</td></tr>
+  </table>
+
+  <h2>4. 三级数据源召回</h2>
+  <table>
+    <tr><th>级别</th><th>来源</th><th>召回策略</th><th>字段完整度</th></tr>
+    <tr><td><span class="tag t1">一级</span></td><td>本地库 7833 节点</td><td>区域匹配（region/city/county）或 距目的地中心 &lt; 圈选半径（周边=120km，省=全省）</td><td>全字段</td></tr>
+    <tr><td><span class="tag t2">二级</span></td><td>高德 POI（按需）</td><td>本地库不足时按目的地城市+类型检索 top 20，标"临时点"（不污染本地库）</td><td>名称/坐标/类型/照片</td></tr>
+    <tr><td><span class="tag t3">三级</span></td><td>用户自建</td><td>userNodes 全量参与</td><td>用户定义</td></tr>
+  </table>
+  <div class="card"><b>去重</b>：名称相似 或 距离&lt;500m 合并。<b>排序</b>：偏好主题命中 &gt; 必去 &gt; 网红 &gt; 距出发地近。<b>沉淀</b>：行程中被收藏/打卡的临时点可一键回写本地库（众包扩库）。</div>
+
+  <h2>5. 时间模型（引擎核心，AI 不碰数字）</h2>
+  <table>
+    <tr><th>组成</th><th>计算</th><th>默认值</th></tr>
+    <tr><td>路程</td><td>段间 haversine 距离 ÷ 路型系数</td><td>默认 60km/h；山区县/海拔差&gt;800m → 40；用户可标"高速多"→ 90</td></tr>
+    <tr><td>游玩</td><td>Σ 节点 playHours（节点新增字段，缺省 AI 建议+可改）</td><td>自然 3h / 人文 2h / 美食 1h</td></tr>
+    <tr><td>休息</td><td>每段 0.5h</td><td>—</td></tr>
+    <tr><td>吃饭</td><td>早 0.5 + 午 1 + 晚 1（当日含出发/返程日自动调整）</td><td>—</td></tr>
+    <tr><td>每日上限</td><td>驾驶 ≤5h，总时长 ≤12h（用户可调）</td><td>—</td></tr>
+  </table>
+  <div class="card"><b>排期算法</b>：2-opt 优化（多起点对比，起点=出发地最优）＋ 地理聚类（同城/同县优先，避免 zigzag）＋ 双约束（时间为主、站数为辅）。<b>校验</b>：AI 生成初稿后引擎复核耗时，超限自动提示"该日预计 13h，建议减 1-2 站"并给出候选替换。</div>
+
+  <h2>6. 数据模型</h2>
+  <div class="card">
+    <code>节点</code>：现有字段 + <code>playHours</code>（新增，游玩时长，缺省由 AI 建议）<br>
+    <code>行程</code>：{ id, name, createdAt, startPlace, days:[{ day, stops:[{ siteId|poiId, name, lat, lng, playH }], driveKm, driveH, playH, totalH, theme }], narrative }<br>
+    <code>临时点</code>：{ src:'poi'|'user', id, name, lat, lng, type, photo }——不入本地库，行程内引用
+  </div>
+
+  <h2>7. UI 流程（行程规划页改造）</h2>
+  <table>
+    <tr><th>阶段</th><th>界面</th><th>交互</th></tr>
+    <tr><td>对话输入</td><td>规划页顶部对话条"✍️ 告诉我你想怎么玩…"</td><td>支持自然语言 + 快捷标签（天数/偏好 chips）</td></tr>
+    <tr><td>解析确认</td><td>意图卡（目的地/天数/偏好/出发地）</td><td>可逐项修改</td></tr>
+    <tr><td>候选列表</td><td>景点卡片（图/名/类型/建议时长/必去网红徽标/临时点标识）</td><td>勾选/取消，底部汇总条"已选 12 个 · 预计 5 天"实时更新</td></tr>
+    <tr><td>排期结果</td><td>每日卡片（地图轨迹缩略 + 站列表 + 各耗时）</td><td>点轨迹看地图色线；↑↓/移除/换点</td></tr>
+    <tr><td>AI 叙事</td><td>行程一句话故事 + 每日主题</td><td>一键复制分享</td></tr>
+    <tr><td>行程库</td><td>已保存行程列表（命名/日期/分享/删除）</td><td>复用现有保存机制</td></tr>
+    <tr><td>多轮调整</td><td>快捷对话（"D2 太赶了"/"换成小众的"）</td><td>引擎重排/换候选</td></tr>
+  </table>
+
+  <h2>8. 里程碑</h2>
+  <table>
+    <tr><th>里程碑</th><th>内容</th><th>工作量</th></tr>
+    <tr><td><span class="tag t1">M1</span></td><td>对话入口 + 意图解析（AI+规则兜底） + 本地库召回 + 候选勾选 + 引擎排期（2-opt+时间模型） + 地图轨迹 + AI 叙事 + 保存/分享</td><td>1-1.5 天</td></tr>
+    <tr><td><span class="tag t2">M2</span></td><td>高德 POI 补位（临时点）+ 多轮调整对话 + playHours 批量建议</td><td>1 天</td></tr>
+    <tr><td><span class="tag t3">M3</span></td><td>行程库管理增强 + 导航串联（每日逐站导航）+ 临时点回写本地库</td><td>1 天</td></tr>
+    <tr><td>M4（可选）</td><td>天气/路况联动（雨天自动提示室内点）、团队分享行程</td><td>按需</td></tr>
+  </table>
+
+  <h2>9. 风险与对策</h2>
+  <table>
+    <tr><th>风险</th><th>对策</th></tr>
+    <tr><td>意图解析不准</td><td>本地词典规则兜底 + 解析结果卡可改</td></tr>
+    <tr><td>时间估算误差</td><td>系数可调 + 标注"估算" + 按用户反馈修正默认系数</td></tr>
+    <tr><td>AI 幻觉（数字/地点）</td><td>引擎覆盖全部数字；AI 只产出叙事文本；无数据源地点明确提示</td></tr>
+    <tr><td>高德/DeepSeek Key 依赖</td><td>高德来源校验（用户在控制台已修）；DeepSeek Key 已有；均降级可用（无 AI 时引擎+本地规则仍能走通全流程）</td></tr>
+    <tr><td>候选过多/过少</td><td>圈选半径自适应（候选 &lt;8 扩大，&gt;40 缩小）；偏好权重调节</td></tr>
+  </table>
+
+  <footer>方案 v1 · 2026-08-15 ｜ 与现有功能复用：节点库/想去清单/地图引擎/天气/实景照/Ai 模块/保存分享</footer>
+</div>
+</body>
+</html>

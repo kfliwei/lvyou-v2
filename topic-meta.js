@@ -1079,7 +1079,7 @@ window.TOPIC_REGISTRY = {
   nation: {
     p: 'nation',
     title: '全国风光人文地图',
-    dataJs: 'nation-data.js',
+    dataJs: 'nation-index.js',
     foodJs: '',
     foodEnabled: true,
     foodLabel: '风味',

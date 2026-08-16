@@ -10,10 +10,6 @@
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:60px}
-  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
-  .t-row{display:flex;align-items:center;gap:8px}
-  .t-row .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .t-row .back:active{transform:scale(.92)}
   .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
   .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;color:var(--color-ink);height:34px}
   .sbar .mic{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:15px;cursor:pointer}
@@ -59,6 +55,7 @@
     </div>
   </div>
   <div class="chips" id="chips"><span class="chip on" data-r="">全部</span></div>
+  <div class="chips" id="themeChips" style="display:none"></div>
   <div class="result" id="result">
     <div id="skel"></div>
   </div>
@@ -69,20 +66,20 @@
 <script src="ui.js"></script>
 <script>
 (function(){
-  var SITES=null, REGS=null, loaded=false, state={q:'', region:'', limit:20};
+  var SITES=null, REGS=null, loaded=false, state={q:'', region:'', theme:'', limit:20};
   var $q=document.getElementById('q'), $r=document.getElementById('result'), $c=document.getElementById('chips'), $sk=document.getElementById('skel');
 
-  /* 省全名 → 专题 key 映射（已注册省；未注册省回退全国） */
-  var PROV_KEY={'四川省':'sc','甘肃省':'gs','新疆维吾尔自治区':'xj','贵州省':'gz','青海省':'qh','西藏自治区':'xz','内蒙古自治区':'nmg','湖南省':'hn','湖北省':'hb','重庆市':'cq','宁夏回族自治区':'nx','陕西省':'sx2','广西壮族自治区':'gy','云南省':'gy','江西省':'cz','山西省':'sx'};
+  /* 省简称 → 专题 key（与 nation-index 的 region 简称一致；广西/云南共属「广西云南」gy 合并专题） */
+  var PROV_KEY={'北京':'bj','天津':'tj','河北':'he','山西':'sx','内蒙古':'nmg','辽宁':'ln','吉林':'jl','黑龙江':'hlj','上海':'sh','江苏':'js','浙江':'zj','安徽':'ah','福建':'fj','江西':'jx','山东':'sd','河南':'ha','湖北':'hb','湖南':'hn','广东':'gd','广西':'gy','海南':'hi','重庆':'cq','四川':'sc','贵州':'gz','云南':'gy','西藏':'xz','陕西':'sx2','甘肃':'gs','青海':'qh','宁夏':'nx','新疆':'xj','香港':'hk','澳门':'mo','台湾':'tw'};
 
   function loadData(cb){
     if(SITES){cb();return;}
     var s=document.createElement('script');
-    s.src='nation-index.js?v=20260813';
+    s.src='nation-index.js?v=20260816';
     s.onload=function(){
       SITES=(window.NATION_SITES_RAW||'').split('\n').map(function(line){
         var p=line.split('|');
-        return {name:p[0],label:p[1],region:p[2],city:p[3],county:p[4],theme:p[5],flag:p[6],lat:+p[7],lng:+p[8]};
+        return {name:p[0],label:p[1],region:p[2],city:p[3],county:p[4],theme:p[5],flag:p[6],lat:+p[7],lng:+p[8],desc:p[9]||''};
       });
       var m={};
       SITES.forEach(function(x){var r=x.region||'其他';if(!m[r])m[r]=0;m[r]++;});
@@ -96,15 +93,25 @@
     var html='<span class="chip on" data-r="">全部</span>';
     REGS.forEach(function(r){ html+='<span class="chip" data-r="'+r+'">'+r+'</span>'; });
     $c.innerHTML=html;
-    $c.querySelectorAll('.chip').forEach(function(ch){
-      ch.onclick=function(){ state.region=ch.dataset.r; state.limit=20; $c.querySelectorAll('.chip').forEach(function(x){x.classList.toggle('on',x===ch);}); render(); };
+    $c.querySelectorAll('.chip[data-r]').forEach(function(ch){
+      ch.onclick=function(){ state.region=ch.dataset.r; state.limit=20; $c.querySelectorAll('.chip[data-r]').forEach(function(x){x.classList.toggle('on',x===ch);}); render(); };
+    });
+    /* 主题筛选（第二行，top 12 高频主题） */
+    var th={};
+    SITES.forEach(function(x){ var t=x.theme||'其他'; th[t]=(th[t]||0)+1; });
+    var tops=Object.keys(th).sort(function(a,b){return th[b]-th[a];}).slice(0,12);
+    var $t=document.getElementById('themeChips');
+    if(tops.length){ $t.style.display=''; $t.innerHTML='<span class="chip on" data-th="">全部主题</span>' + tops.map(function(t){ return '<span class="chip" data-th="'+esc(t)+'">'+esc(t)+'</span>'; }).join(''); }
+    $t.querySelectorAll('.chip[data-th]').forEach(function(ch){
+      ch.onclick=function(){ state.theme=ch.dataset.th; state.limit=20; $t.querySelectorAll('.chip[data-th]').forEach(function(x){x.classList.toggle('on',x===ch);}); render(); };
     });
   }
-  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function esc(s){return window.UI.esc(s);}
   function flagHtml(s){var f=s.flag||'';return (f.indexOf('m')>=0?'<span class="bdg bdg-m">必去</span>':'')+(f.indexOf('h')>=0?'<span class="bdg bdg-h">网红</span>':'');}
 
   function render(){
     var q=state.q.trim().toLowerCase();
+    var words=q.split(/\s+/).filter(Boolean);
     if(!loaded){ $sk.style.display=''; $r.innerHTML='<div id="skel"></div>'; return; }
   if(!state.q.trim()){
     var hist=[], rec=[];
@@ -152,8 +159,9 @@
     if(q){
       SITES.forEach(function(s){
         if(state.region && s.region!==state.region) return;
+        if(state.theme && (s.theme||'')!==state.theme) return;
         var hay=(s.name+' '+s.label+' '+s.region+' '+s.city+' '+s.county+' '+(s.theme||'')+' '+(s.desc||'')).toLowerCase();
-        if(hay.indexOf(q)>=0) hits.push(s);
+        if(words.every(function(w){ return hay.indexOf(w)>=0; })) hits.push(s);
       });
       out+='<div class="sec-t"><b>景点</b><span>'+hits.length+' 个</span></div>';
       var limit = state.limit || 20;
@@ -167,10 +175,13 @@
 
     /* 游记组 */
     var notes=(window.TravelNotes&&TravelNotes.list)?TravelNotes.list():[];
-    var nh=q?notes.filter(function(n){return ((n.title||'')+' '+(n.siteName||'')+' '+(n.text||'')+' '+(n.raw||'')+' '+(n.tags||[]).join(' ')).toLowerCase().indexOf(q)>=0;}):notes.slice(0,5);
+    var nh=q?notes.filter(function(n){
+      var hay=((n.title||'')+' '+(n.siteName||'')+' '+(n.text||'')+' '+(n.raw||'')+' '+(n.tags||[]).join(' ')+' '+(n.weather||'')+' '+(n.province||'')+' '+(n.city||'')).toLowerCase();
+      return words.every(function(w){ return hay.indexOf(w)>=0; });
+    }):notes.slice(0,5);
     out+='<div class="sec-t"><b>游记</b><span>'+nh.length+' 篇</span></div>';
     nh.slice(0,15).forEach(function(n){
-      out+='<div class="item" data-go="travel-map.html"><span class="dot" style="background:#71806C"></span><div class="main"><div class="nm">'+esc(n.title||n.siteName||'未命名')+'</div><div class="sub">'+esc((n.date||'')+(n.province?' · '+n.province:'')+(n.siteName?' · '+n.siteName:''))+'</div></div><span class="arr">›</span></div>';
+      out+='<div class="item" data-go="travel-map.html?id='+encodeURIComponent(n.id||'')+'"><span class="dot" style="background:#71806C"></span><div class="main"><div class="nm">'+esc(n.title||n.siteName||'未命名')+'</div><div class="sub">'+esc((n.date||'')+(n.province?' · '+n.province:'')+(n.siteName?' · '+n.siteName:''))+'</div></div><span class="arr">›</span></div>';
     });
     if(!nh.length && q) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的游记</span></div>';
 

@@ -9,7 +9,7 @@
   'use strict';
 
   /* ---------- 基础工具 ---------- */
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function toast(m) { if (window.UI) UI.toast(m); }
   function $id(id) { return document.getElementById(id); }
 
@@ -231,7 +231,7 @@
         var k2 = String(p.lat.toFixed(3) + ',' + p.lng.toFixed(3));
         if (existing[k2]) return;
         existing[k2] = 1;
-        added.push({ name: p.name, label: p.name, region: state.regions[0], city: '', county: '', theme: intent.prefs[0] || '其他', flag: '', lat: p.lat, lng: p.lng, __poi: true });
+        added.push({ name: p.name, label: p.name, region: state.regions[0], city: '', county: '', theme: intent.prefs[0] || '其他', flag: '', lat: p.lat, lng: p.lng, gcj: true, __poi: true });
       });
       if (added.length) { state.candidates = state.candidates.concat(added); renderCandidates(); toast('已补充 ' + added.length + ' 处高德临时点'); }
     });
@@ -341,10 +341,18 @@
   /* ========================================================= */
   /*  渲染                                                       */
   /* ========================================================= */
+  var curStage = 'stageInput';
   function showStage(name) {
+    curStage = name;
     ['stageInput', 'stagePick', 'stageResult'].forEach(function (n) { $id(n).style.display = n === name ? 'block' : 'none'; });
     window.scrollTo(0, 0);
   }
+  /* 顶栏返回：结果页/选点页回到规划首页，首页返回浏览器历史 */
+  window.plannerBack = function () {
+    if (curStage === 'stageResult' || curStage === 'stagePick') showStage('stageInput');
+    else if (history.length > 1) history.back();
+    else location.href = 'index.html';
+  };
 
   /* 阶段一：输入 */
   function renderDestChips() {
@@ -358,6 +366,7 @@
   window.plannerPickRegion = function (r) {
     state.regions = r ? [r] : []; state.prefs = []; state.autoPrefs = []; state.days = state.days || 0; state.fromWish = false; state.amapSorted = false; state.wishPool = null;
     renderIntent(); doRecall(); showStage('stagePick');
+    if (r) { provSel = r; renderProvThemes(); } /* 联动展开该省主题 */
   };
 
   /* ---------- 偏好增强：省主题 + 我的节点（2026-08-15） ---------- */
@@ -399,7 +408,7 @@
       if (u.lat == null) return;
       var k = (+u.lat).toFixed(3) + ',' + (+u.lng).toFixed(3);
       var dup = state.candidates.some(function (c) { return c.lat != null && (+c.lat).toFixed(3) + ',' + (+c.lng).toFixed(3) === k; });
-      if (!dup) state.candidates.push({ name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', flag: '', lat: +u.lat, lng: +u.lng, __mine: true });
+      if (!dup) state.candidates.push({ name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', flag: '', lat: +u.lat, lng: +u.lng, gcj: !!u.gcj, __mine: true });
     });
     renderCandidates();
     toast('已加入 ' + (state.candidates.length - before) + ' 个我的节点');
@@ -542,15 +551,21 @@
       d.stops.forEach(function (s, si) {
         var det = detailCache[s.name];
         var warn = seasonWarn(det && det.best, trip.startDate);
-        h += '<div class="stop' + (warn ? ' warn' : '') + (s.done ? ' done' : '') + '"><span class="n">' + (si + 1) + '</span>' +
-          '<span class="lbl">' + (s.done ? '✓ ' : '') + esc(s.name) + '</span>' +
-          (det && det.best ? '<span class="meta">' + esc(det.best) + '</span>' : '') +
-          (warn ? '<span class="warn-ic" title="' + esc(warn) + '">⚠️</span>' : '') +
-          (state.travelMode ? '<button class="btn" style="min-height:26px;padding:0 10px;font-size:11px;flex:0 0 auto" onclick="window.plannerCheckinStop(' + di + ',' + si + ')">' + (s.done ? '已打卡' : '记一笔') + '</button>' : '') +
-          '<span class="meta" style="margin-left:6px">' + playH(s) + 'h</span>' +
+        var meta = [];
+        if (det && det.best) meta.push('<span class="meta">适合 ' + esc(det.best) + '</span>');
+        if (warn) meta.push('<span class="warn-ic" title="' + esc(warn) + '">⚠️</span>');
+        meta.push('<span class="meta">游玩 ' + playH(s) + 'h</span>');
+        var acts = '';
+        if (state.travelMode) acts += '<button class="btn mini" onclick="window.plannerCheckinStop(' + di + ',' + si + ')">' + (s.done ? '已打卡' : '记一笔') + '</button>';
+        acts += '<span class="ops">' +
           '<button class="mv" aria-label="上移" onclick="window.plannerMoveStop(' + di + ',' + si + ',-1)">↑</button>' +
           '<button class="mv" aria-label="下移" onclick="window.plannerMoveStop(' + di + ',' + si + ',1)">↓</button>' +
-          '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">✕</button></div>';
+          '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">✕</button></span>';
+        h += '<div class="stop' + (warn ? ' warn' : '') + (s.done ? ' done' : '') + '">' +
+          '<div class="stop-name"><span class="n">' + (si + 1) + '</span><span class="lbl">' + (s.done ? '✓ ' : '') + esc(s.name) + '</span></div>' +
+          '<div class="stop-meta">' + meta.join('') + '</div>' +
+          '<div class="stop-acts">' + acts + '</div>' +
+          '</div>';
       });
       h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
@@ -850,6 +865,8 @@
     try { localStorage.setItem('tn_trips', JSON.stringify(list)); } catch (e) {}
     toast('已保存行程「' + t.name + '」');
     renderTrips();
+    /* 滚动到已保存行程区，让用户立即看到 */
+    try { $id('tripsCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
   };
   window.plannerAddAllWish = function () {
     var pts = flatStops();
@@ -915,7 +932,11 @@
   window.plannerNavDay = function (di) {
     var t = state.trip; if (!t || !t.days[di]) return;
     var d = t.days[di];
-    var gcj = function (p) { if (!p) return null; try { var g = window.Geo.gcj02Of(p.lat, p.lng); return [g[1], g[0]]; } catch (e) { return [p.lng, p.lat]; } };
+    var gcj = function (p) {
+      if (!p) return null;
+      if (p.gcj) return [p.lng, p.lat]; /* 已是高德坐标，直接用，避免二次纠偏 */
+      try { var g = window.Geo.gcj02Of(p.lat, p.lng); return [g[1], g[0]]; } catch (e) { return [p.lng, p.lat]; }
+    };
     var start = gcj(d.stops[0]), dest = gcj(d.stops[d.stops.length - 1]);
     if (!start || !dest) { toast('站点缺少坐标'); return; }
     var ways = d.stops.slice(1, -1).map(gcj).filter(Boolean);
@@ -923,6 +944,7 @@
     if (ways.length) deep += '&vian=' + ways.length + '&vialons=' + ways.map(function (w) { return w[0]; }).join('|') + '&vialats=' + ways.map(function (w) { return w[1]; }).join('|');
     var web = 'https://uri.amap.com/navigation?from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(d.stops[0].name) + '&to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(d.stops[d.stops.length - 1].name) + '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
     if (ways.length) web += '&waypoints=' + ways.map(function (w) { return w[0] + ',' + w[1]; }).join(';');
+    toast('正在打开高德地图导航…');
     if (/GuJianApp/.test(navigator.userAgent)) { window.location.href = deep; return; }
     var t0 = Date.now(); window.location.href = deep;
     setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
@@ -980,6 +1002,7 @@
     state.trip.days = schedule(flat, state.trip.start, state.days);
     state.trip.narrative = null;
     renderResult();
+    toast('已重新排期 · ' + state.trip.days.length + ' 天 · ' + flat.length + ' 站');
   };
   /* 编辑选点：按行程省份重召回，预选原站点，回选点阶段 */
   window.plannerEditPick = function () {
@@ -1004,13 +1027,18 @@
   /* ---------- 已保存行程 ---------- */
   function loadTrips() { try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; } }
   function renderTrips() {
-    var list = loadTrips(); if (!list.length) { $id('tripsCard').style.display = 'none'; return; }
-    $id('tripsCard').style.display = 'block';
-    $id('tripsList').innerHTML = list.map(function (t, i) {
+    var list = loadTrips();
+    var html = list.map(function (t, i) {
       return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
         '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-faint)" onclick="window.plannerDelTrip(' + i + ')">✕</button></div>';
     }).join('');
+    /* 结果页（stageResult）底部的已保存行程 */
+    var card = $id('tripsCard');
+    if (card) { if (list.length) { card.style.display = 'block'; $id('tripsList').innerHTML = html; } else card.style.display = 'none'; }
+    /* 第一页（stageInput）的已保存行程入口 */
+    var home = $id('tripsHome');
+    if (home) { if (list.length) { home.style.display = 'block'; $id('tripsHomeList').innerHTML = html; } else home.style.display = 'none'; }
   }
   window.plannerOpenTrip = function (i) {
     var list = loadTrips(); if (!list[i]) return;
@@ -1067,7 +1095,7 @@
   function seedFromWish() {
     var wl = window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; });
     if (wl.length < 2) { toast('先去地图收藏至少 2 处想去的地方'); return; }
-    state.candidates = wl.map(function (w) { return { name: w.label, label: w.label, region: w.region, city: w.city, theme: w.theme, flag: '', lat: w.lat, lng: w.lng }; });
+    state.candidates = wl.map(function (w) { return { name: w.label, label: w.label, region: w.region, city: w.city, theme: w.theme, flag: '', lat: w.lat, lng: w.lng, gcj: !!w.gcj }; });
     state.wishPool = state.candidates.slice();
     state.selected = state.candidates.slice();
     state.fromWish = true; state.regions = []; state.prefs = []; state.autoPrefs = []; state.amapSorted = false; state.days = 0;
@@ -1094,6 +1122,17 @@
     var cf = $id('candFilter');
     if (cf) cf.oninput = function () { state.candFilter = this.value; renderCandidates(); };
     try { if (window.TravelNotes && TravelNotes.init) TravelNotes.init({}); } catch (e) {}
+    /* 从「想去清单」跳来：自动带入未打卡心愿，消除两步跳转 */
+    try {
+      if (/[?&]from=wish/.test(location.search)) {
+        var _wl = (window.Wish && Wish.list) ? Wish.list().filter(function (x) { return !x.visited && x.lat != null; }) : [];
+        if (_wl.length >= 2) {
+          setTimeout(function () { seedFromWish(); toast('已带入 ' + _wl.length + ' 处心愿，可直接排期'); }, 60);
+        } else if (_wl.length === 1) {
+          toast('心愿节点不足 2 处，请先在地图多收藏几处');
+        }
+      }
+    } catch (e) {}
     renderTrips();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

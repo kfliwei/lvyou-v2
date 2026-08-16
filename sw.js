@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v16';
+var CACHE = 'trace-v20';
 var SHELL = [
   './',
   './explore-map.html',

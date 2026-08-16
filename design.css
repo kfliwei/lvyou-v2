@@ -73,7 +73,7 @@
   --font-body:'PingFang SC','HarmonyOS Sans','Noto Sans SC','Microsoft YaHei',sans-serif;
 
   /* 字号阶梯 */
-  --fs-2xl:1.5rem; --fs-xl:1.25rem; --fs-lg:1.0625rem; --fs-md:0.9375rem; --fs-sm:0.8125rem; --fs-xs:0.71875rem;
+  --fs-2xl:2rem; --fs-xl:1.5rem; --fs-lg:1.125rem; --fs-md:0.9375rem; --fs-sm:0.8125rem; --fs-xs:0.6875rem;
   --lh-head:1.35; --lh-body:1.8;
 
   /* 间距 8pt */
@@ -91,6 +91,8 @@
   --t-fast:160ms cubic-bezier(.22,1,.36,1);
   --t-norm:280ms cubic-bezier(.22,1,.36,1);
   --t-slow:520ms cubic-bezier(.22,1,.36,1);
+  --dur-fast:.18s; --dur-norm:.3s; --dur-slow:.6s;
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
 
   /* 纵向密度 */
   --nav-h:44px; --chip-h:34px; --tab-h:52px;
@@ -1067,9 +1069,9 @@ html.font-lg{font-size:17.5px}
    ============================================================ */
 .ui-toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translate(-50%,-8px);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18);max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .28s var(--ease-standard, ease),transform .28s var(--ease-standard, ease);pointer-events:none}
 .ui-toast.show{opacity:1;transform:translate(-50%,0)}
-.ui-modal-mask{position:fixed;inset:0;background:rgba(32,32,29,.42);display:grid;place-items:center;z-index:9700;opacity:0;transition:opacity .22s ease}
+.ui-modal-mask{position:fixed;inset:0;background:rgba(32,32,29,.42);display:flex;z-index:9700;opacity:0;transition:opacity .22s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 0;box-sizing:border-box}
 .ui-modal-mask.show{opacity:1}
-.ui-modal{width:min(calc(100% - 48px),340px);background:var(--color-surface,#fffdf8);border:1px solid var(--color-line,#e3ded2);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:22px 20px 16px;transform:scale(.94);transition:transform .22s var(--ease-standard, ease)}
+.ui-modal{width:min(calc(100% - 48px),340px);margin:auto;background:var(--color-surface,#fffdf8);border:1px solid var(--color-line,#e3ded2);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:22px 20px 16px;transform:scale(.94);transition:transform .22s var(--ease-standard, ease)}
 .ui-modal-mask.show .ui-modal{transform:scale(1)}
 .ui-modal-title{font-family:var(--font-serif,serif);font-size:17px;color:var(--color-ink,#26241f);margin-bottom:8px}
 .ui-modal-text{font-size:13.5px;color:var(--color-ink-soft,#55514a);line-height:1.7;white-space:pre-line;margin-bottom:18px}
@@ -1122,13 +1124,9 @@ html.font-lg{font-size:17.5px}
 .lg.flash,.chip.flash{animation:leg-flash 1.2s ease-out}
 @keyframes leg-flash{0%{background:rgba(200,109,75,.25);transform:scale(1.03)}60%{background:rgba(200,109,75,.12)}100%{background:transparent}}
 /* ============================================================
-   美化推进 2026-08-13：设计令牌 / 动效节奏 / 玻璃拟态 / 启动遮罩
+   美化推进 2026-08-13：玻璃拟态 / 启动遮罩
+   （设计令牌 --fs-* / 动效 --dur-* / --ease-spring 已并入顶部 :root）
    ============================================================ */
-:root{
-  --dur-fast:.18s;--dur-norm:.3s;--dur-slow:.6s;
-  --ease-spring:cubic-bezier(.34,1.56,.64,1);
-  --fs-xs:.6875rem;--fs-sm:.8125rem;--fs-md:.9375rem;--fs-lg:1.125rem;--fs-xl:1.5rem;--fs-2xl:2rem
-}
 /* 列表 stagger 入场 */
 @keyframes fadeStagger{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .fade-stagger>*{opacity:0;animation:fadeStagger .5s var(--ease-standard) forwards}
@@ -1158,19 +1156,30 @@ html.font-lg{font-size:17.5px}
 .theme-ic{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;background:var(--color-bg-soft,#efe9da);font-size:13px;line-height:1}
 
 /* ============================================================
-   触控目标高标准 2026-08-15：仅高频/破坏性操作 ≥44px（低频标签/元信息保持原样）
+   触控目标平衡 2026-08-16：视觉紧凑 + 仍可点（原 44px 过大，挤占内容区）
+   顶栏/地图控件 34–38px（最省垂直空间），内容区按钮 40px
    ============================================================ */
-.t-row .back,.story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important;min-width:44px;min-height:44px;border-radius:50%}
-button.act,button.act.sec,button.mine,button.go{min-height:44px}
-.sbar .mic{width:44px!important;height:44px!important}
-.wl-btn{min-height:44px!important}
-.wl-remove{width:44px!important;height:44px!important}
-.nm-item-btn{min-height:44px}
-.is-btn{min-height:44px}
-.ctl button{width:44px!important;height:44px!important}
-.leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:44px!important;height:44px!important;line-height:44px!important}
+.story-bar .back,.nm-topbar .back{width:36px!important;height:36px!important;min-width:36px;min-height:36px;border-radius:50%}
+button.act,button.act.sec,button.mine,button.go{min-height:38px}
+.sbar .mic{width:40px!important;height:40px!important}
+.wl-btn{min-height:40px!important}
+.wl-remove{width:40px!important;height:40px!important}
+.nm-item-btn{min-height:40px}
+.is-btn{min-height:40px}
+.ctl button{width:36px!important;height:36px!important}
+.leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important}
 /* 行程条操作（驾驶场景高频） */
 .tripbar .mv,.tripbar .x{min-width:40px;min-height:40px;display:inline-grid;place-items:center}
+
+/* ============================================================
+   通用顶栏 / 返回键 / 底栏（topbar 收口 2026-08-16：各页内联重复 → 公共类）
+   ============================================================ */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
+.t-row{display:flex;align-items:center;gap:8px}
+.t-row .back{width:36px;height:36px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;text-decoration:none}
+.t-row .back:active{transform:scale(.92)}
+.t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
 
 /* ============================================================
    SPA 体验层 2026-08-15：全局页面进入过渡（file:// 多页架构的轻量替代）

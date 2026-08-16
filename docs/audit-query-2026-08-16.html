@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>架构与功能弱项审核 · 行迹 TRACE · 2026-08-16</title>
+<style>
+  :root{--bg:#141311;--card:#1e1c19;--line:#33302a;--ink:#e8e3d8;--soft:#b8b2a5;--muted:#8c877d;--faint:#6b665c;--pri:#c86d4b;--red:#e06a55;--amber:#d9a441;--green:#7a9c6f;--blue:#6d8fa8;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.8}
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-family:"Songti SC",serif;font-weight:600;font-size:26px;margin:0 0 4px;letter-spacing:.02em}
+  .meta{color:var(--muted);font-size:13px;margin-bottom:28px}
+  h2{font-family:"Songti SC",serif;font-weight:600;font-size:19px;margin:34px 0 14px;padding-left:12px;border-left:3px solid var(--pri)}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--ink)}
+  p{margin:8px 0}
+  .tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:999px;font-weight:700;margin-right:6px;vertical-align:1px}
+  .tag.a{background:rgba(224,106,85,.16);color:var(--red);border:1px solid rgba(224,106,85,.4)}
+  .tag.b{background:rgba(217,164,65,.14);color:var(--amber);border:1px solid rgba(217,164,65,.36)}
+  .tag.c{background:rgba(109,143,168,.16);color:var(--blue);border:1px solid rgba(109,143,168,.4)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0}
+  .card h3{margin-top:0}
+  code{background:#2a2723;padding:1px 6px;border-radius:5px;font-size:12.5px;color:#e5c9a8;font-family:ui-monospace,Consolas,monospace}
+  pre{background:#1b1917;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:12px;line-height:1.7;color:#d8cbb6}
+  pre code{background:none;padding:0;color:inherit}
+  .kw{color:#e5c9a8;font-weight:600}
+  ul{margin:6px 0;padding-left:22px}
+  li{margin:4px 0}
+  .arrow{color:var(--pri);font-weight:700}
+  .hl{background:rgba(200,109,75,.16);padding:0 4px;border-radius:4px;color:#e8b49a}
+  table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#26231f;font-weight:600}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+  .sum{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .sum b{display:block;font-size:26px;font-family:"Songti SC",serif}
+  .sum span{font-size:11.5px;color:var(--muted)}
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f6f3ec;--card:#fffdf8;--line:#e3ded2;--ink:#26241f;--soft:#55514a;--muted:#8c877d;--faint:#b0aa9d;--pri:#c86d4b;--red:#b34a3f;--amber:#a06b12;--green:#5f7a4e;--blue:#4a6d86}
+    code{background:#efe9da;color:#8a5a2b}
+    pre{background:#fbf8f1;color:#55514a}
+    th{background:#f2ede2}
+    .hl{color:#a04a2c}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>架构与功能弱项审核报告</h1>
+  <div class="meta">行迹 TRACE · 2026-08-16 · 聚焦「查询/检索能力」与「功能弱项」</div>
+
+  <div class="summary">
+    <div class="sum"><b>3</b><span>A 级查询弱项</span></div>
+    <div class="sum"><b>4</b><span>B 级体验弱项</span></div>
+    <div class="sum"><b>7833</b><span>全量站点（单索引）</span></div>
+    <div class="sum"><b>0</b><span>拼音/模糊搜索</span></div>
+  </div>
+
+  <h2>一、结论摘要</h2>
+  <p>架构方向清醒、持续收敛（上一轮的死代码/重复实现/双 <code>:root</code> 已清理）。本轮从「功能」视角切入，发现<span class="hl">查询/检索能力存在明显短板</span>，其中 3 个 A 级问题会直接让用户「搜得到却点不到、搜不到想搜的」。</p>
+
+  <h2>二、查询/检索能力弱项（核心发现）</h2>
+
+  <div class="card">
+    <h3><span class="tag a">A1</span> 搜索结果无法跳转到对应省份专题</h3>
+    <p>搜索索引 <code>nation-index.js</code> 里的省份用<span class="hl">简称</span>（<code>山西</code>），而 <code>search.html</code> 的跳转映射 <code>PROV_KEY</code> 用<span class="hl">全称</span>（<code>山西省</code>），导致匹配永远落空：</p>
+    <pre><code>// nation-index.js 实际数据
+"云冈石窟|云冈石窟|山西|大同市|..."   // region = "山西"（简称）
+
+// search.html 的映射（全称 + 本身还错乱）
+PROV_KEY = { '山西省':'sx', '广西壮族自治区':'gy', '云南省':'gy', '江西省':'cz', ... }</code></pre>
+    <p><span class="arrow">→</span> <code>PROV_KEY['山西']</code> = <code>undefined</code>，于是<span class="hl">所有景点搜索结果点击后都降级跳「全国地图」</span>，而不是用户搜到的那个省。映射本身也错乱（广西/云南共用 <code>gy</code>、江西映射 <code>cz</code>）。</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag a">A2</span> 搜索无法匹配「景点描述」</h3>
+    <p>搜索索引只有 9 个字段（无 <code>desc</code>），但匹配代码却引用了 <code>s.desc</code>：</p>
+    <pre><code>// nation-index.js 每行只有 9 列
+name|label|region|city|county|theme|flag|lat|lng   ← 没有 desc
+
+// search.html 匹配时却读 s.desc（恒为 undefined）
+var hay = (s.name + s.label + s.region + s.city + s.county + s.theme + s.desc)  ← desc 无效</code></pre>
+    <p><span class="arrow">→</span> 搜 <code>四大石窟</code>、<code>海内孤品</code> 这类描述性关键词，<span class="hl">永远搜不到</span>（它们只存在于 data.js 的 <code>desc</code> 字段里）。搜索被降级成「只能搜名字/地名/类型」。</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag a">A3</span> 搜索仅「子串匹配」，无拼音 / 模糊 / 分词</h3>
+    <ul>
+      <li><span class="hl">无拼音</span>：搜 <code>xiangshan</code>、<code>ys</code> 找不到「香山」「云冈」（中文景点无法用拼音/首字母定位）</li>
+      <li><span class="hl">无容错</span>：打错一个字（「云岗」vs「云冈」）就搜不到</li>
+      <li><span class="hl">无多关键词</span>：搜「北京 茶馆」整串 <code>indexOf</code> 匹配失败，不支持空格分词</li>
+    </ul>
+  </div>
+
+  <h3>B 级（体验弱项，不阻断）</h3>
+  <div class="card">
+    <h3><span class="tag b">B1</span> 游记结果无法精准定位</h3>
+    <p>搜到某篇游记，点击只跳 <code>travel-map.html</code> 首页，<span class="hl">不能定位到具体那篇</span>——用户得自己在列表里再翻一遍。</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag b">B2</span> 游记搜索字段不全、无地区筛选</h3>
+    <p>游记匹配了 <code>title/siteName/text/raw/tags</code>，但<span class="hl">漏了 <code>weather/province/city</code></span>；且景点有「地区 chips」筛选，游记没有对应筛选。</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag b">B3</span> 搜索全量加载 662KB 索引</h3>
+    <p><code>nation-index.js</code> 一次加载 7833 站（662KB），首屏偏重，无按省懒加载。</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag b">B4</span> 无主题/类型筛选</h3>
+    <p>搜索页只有「地区」chips，无法按「石窟 / 古塔 / 寺庙 / 美食」等类型筛（数据里明明有 <code>theme</code>/<code>ty</code> 字段）。</p>
+  </div>
+
+  <h2>三、数据层架构弱项</h2>
+  <div class="card">
+    <h3><span class="tag b">数据源「双轨漂移」</span></h3>
+    <table>
+      <tr><th>数据源</th><th>覆盖</th><th>省份字段</th><th>字段数</th></tr>
+      <tr><td><code>data.js</code></td><td>山西（552 站）</td><td>全称「山西省」</td><td>name/flag/label/region/city/county/dy/ty/lat/lng/desc/wiki/img</td></tr>
+      <tr><td><code>nation-index.js</code></td><td>全国（7833 站）</td><td>简称「山西」</td><td>name/label/region/city/county/theme/flag/lat/lng</td></tr>
+      <tr><td>各省 <code>*-data.js</code></td><td>单省</td><td>全称</td><td>各不统一</td></tr>
+    </table>
+    <p><span class="arrow">→</span> 同一字段（省份）三种写法、同一站点字段集合不一致，<span class="hl">搜索、跳转、统计、图例都会踩坑</span>，这是 A1/A2 的根源。</p>
+  </div>
+
+  <h2>四、其它功能弱项</h2>
+  <div class="card">
+    <h3><span class="tag c">C1</span> AI 核心卖点依赖用户自备 Key</h3>
+    <p>AI 润色 / 年报 / 旅程故事 / 定制路书，都依赖用户自填 DeepSeek Key（<code>tn_aiKey</code>）。无 Key 时降级为本地模板，体验打折、门槛偏高。</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag c">C2</span> 无云同步 / 账号体系</h3>
+    <p>数据仅存本地（<code>localStorage</code>），换机靠手动「导出备份 → 导入」。无账号、无云同步。</p>
+  </div>
+  <div class="card">
+    <h3><span class="tag c">C3</span> 离线能力有限</h3>
+    <p><code>sw.js</code> 只预缓存约 74 个核心文件，各省数据（大文件）不缓存，离线时地图/景点数据不全。</p>
+  </div>
+
+  <h2>五、改进建议（按投入产出比排序）</h2>
+  <table>
+    <tr><th>优先级</th><th>建议</th><th>成本</th><th>收益</th></tr>
+    <tr><td>①</td><td><span class="hl">统一省份字段命名</span>（nation-index 改全称，或 PROV_KEY 按简称重映射），修 A1</td><td>低</td><td>高 · 搜索结果可精准跳省</td></tr>
+    <tr><td>②</td><td><span class="hl">nation-index 补 desc 字段</span> + 搜索匹配 desc，修 A2</td><td>低</td><td>高 · 可按描述内容搜索</td></tr>
+    <tr><td>③</td><td>加拼音搜索（内置轻量拼音表 / 首字母索引）</td><td>中</td><td>高 · 中文景点可拼音定位</td></tr>
+    <tr><td>④</td><td>游记结果带 <code>?note=id</code> 精准定位到具体那篇</td><td>低</td><td>中</td></tr>
+    <tr><td>⑤</td><td>搜索页加「主题/类型」筛选 chips</td><td>低</td><td>中</td></tr>
+    <tr><td>⑥</td><td>多关键词分词（空格切分 + 全部命中）</td><td>低</td><td>中</td></tr>
+  </table>
+  <p style="margin-top:18px;color:var(--muted)">①②⑤⑥ 均为低风险改动，可一轮完成；③（拼音）需引入拼音映射表，建议单独评估。</p>
+</div>
+</body>
+</html>

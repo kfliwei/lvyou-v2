@@ -915,6 +915,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   }
   function setPhase(p) { state.phase = p; }
 
+  /* 通用语音识别：临时消费者（如「一句话加节点」）优先，否则走默认游记面板 */
+  var _voiceTemp = null;
+
   function toggleRec() {
     if (state.phase === 'recording') {
       $X(ui.panel, '#tnNote').textContent = '请停止说话，识别将在 1-2 秒后自动结束';
@@ -958,6 +961,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 原生回调（MainActivity 注入） ---------- */
   window.__tnOnVoiceStart = function () {
+    if (_voiceTemp && _voiceTemp.onStart) { _voiceTemp.onStart(); return; }
     state.phase = 'recording';
     setMic('live');
     ui.panel.classList.remove('is-idle');
@@ -967,12 +971,14 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(ui.panel, '#tnNote').textContent = '';
   };
   window.__tnOnVoicePartial = function (t) {
+    if (_voiceTemp && _voiceTemp.onPartial) { _voiceTemp.onPartial(t); return; }
     state.partial = t;
     var b = $X(ui.panel, '#tnRaw').querySelector('b');
     if (b) b.textContent = '实时转写';
     $X(ui.panel, '#tnRaw').innerHTML = '<b>实时转写</b>' + esc(t);
   };
   window.__tnOnVoiceResult = function (t) {
+    if (_voiceTemp && _voiceTemp.onResult) { _voiceTemp.onResult(t); _voiceTemp = null; return; }
     var finalText = (state.append && state.raw) ? (state.raw + ' ' + (t || '')) : t;
     state.append = false;
     state.raw = finalText;
@@ -1001,6 +1007,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(ui.panel, '#tnNote').textContent = ($X(ui.panel, '#tnNote').textContent || '') + ' 录音已留存';
   };
   window.__tnOnVoiceError = function (code) {
+    if (_voiceTemp && _voiceTemp.onError) { _voiceTemp.onError(code); _voiceTemp = null; return; }
     state.phase = 'idle';
     setMic('idle');
     ui.panel.classList.add('is-idle');
@@ -1014,6 +1021,44 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     try { localStorage.setItem('tn_lastVoiceError', code + '｜' + msg); } catch (e) {}
     $X(ui.panel, '#tnNote').textContent = msg + (code.indexOf('xf_') === 0 ? '（' + code.replace('xf_', '') + '）' : '');
     flash(msg);
+  };
+
+  /* ---------- 通用语音识别接口（供「一句话加节点」等复用） ---------- */
+  window.TNVoice = {
+    start: function (handlers) {
+      _voiceTemp = handlers || {};
+      if (window.AndroidVoice) {
+        var ok = false;
+        try { ok = AndroidVoice.isVoiceSupported(); } catch (e) { ok = false; }
+        if (ok) {
+          try { AndroidVoice.setVad(parseInt(localStorage.getItem('tn_vad'), 10) || 5000); AndroidVoice.setKeepAudio(false); } catch (e2) {}
+          AndroidVoice.startVoice();
+          return true;
+        }
+        _voiceTemp = null;
+        return false;
+      }
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { _voiceTemp = null; return false; }
+      rec = new SR();
+      rec.lang = 'zh-CN'; rec.interimResults = true; rec.continuous = false;
+      rec.onstart = function () { if (window.__tnOnVoiceStart) window.__tnOnVoiceStart(); };
+      rec.onresult = function (e) {
+        var txt = '';
+        for (var i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+        if (e.results[e.results.length - 1].isFinal) { if (window.__tnOnVoiceResult) window.__tnOnVoiceResult(txt); }
+        else if (window.__tnOnVoicePartial) window.__tnOnVoicePartial(txt);
+      };
+      rec.onerror = function (e) { if (window.__tnOnVoiceError) window.__tnOnVoiceError(e.error || 'err'); };
+      rec.onend = function () { rec = null; };
+      rec.start();
+      return true;
+    },
+    cancel: function () {
+      _voiceTemp = null;
+      if (window.AndroidVoice) { try { AndroidVoice.cancelVoice(); } catch (e) {} }
+      else if (rec) { try { rec.stop(); } catch (e) {} rec = null; }
+    }
   };
 
   /* ---------- AI 润色 ---------- */
@@ -1044,7 +1089,19 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       return;
     }
     var key = localStorage.getItem(AI_KEY);
-    if (!key) { flash('未配置 AI Key：可直接保存原文；或到设置页配置 DeepSeek Key 后再润色'); return; }
+    if (!key) {
+      /* 无 Key 本地兜底：直接采用原文，不让用户空手而归 */
+      var r3 = getRaw();
+      ai.style.display = 'block';
+      ai.textContent = r3;
+      load.style.display = 'none';
+      $X(ui.panel, '#tnSave').disabled = false;
+      var p3 = $X(ui.panel, '#tnPolish');
+      p3.style.display = 'block';
+      p3.textContent = '↻ 换风格重润';
+      $X(ui.panel, '#tnNote').textContent = '未配置 AI Key，已采用原文（可到设置页配置后重润）';
+      return;
+    }
     load.style.display = 'block';
     ai.style.display = 'none';
     var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
@@ -1626,25 +1683,28 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 导出 / 导入备份 ---------- */
   function exportNotes() {
-    var d = el('div', 'tn-dlg');
     var json = JSON.stringify(notes, null, 2);
     var fname = '行迹TRACE备份-' + fmtDay(Date.now()) + '.json';
-    d.innerHTML = '<h4>导出备份 <button class="tn-x" id="tnExpX" style="font-size:14px">✕</button></h4>'
-      + '<div style="font-size:12px;color:var(--i5);margin:8px 0">共 ' + notes.length + ' 篇 · 建议用「保存到手机」导出 .json 文件，日后导入更方便。</div>'
-      + '<textarea id="tnExpTxt" readonly>' + esc(json) + '</textarea>'
-      + '<button id="tnExpFile" class="copy">保存为文件</button>'
-      + '<button id="tnExpCopy" class="copy">复制全部</button>'
-      + '<button id="tnExpDone">完成</button>';
-    document.body.appendChild(d);
-    d.style.display = 'block';
-    $X(d, '#tnExpX').onclick = function () { d.remove(); };
-    $X(d, '#tnExpDone').onclick = function () { d.remove(); };
-    $X(d, '#tnExpCopy').onclick = function () {
-      var t = $X(d, '#tnExpTxt');
-      t.select();
+    var m = el('div', 'ui-modal-mask');
+    m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
+      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
+      + '<div class="ui-modal-text" style="margin-bottom:12px">共 ' + notes.length + ' 篇 · 建议用「保存为文件」导出 .json，日后导入更方便。</div>'
+      + '<textarea id="tnExpTxt" class="nm-ta" readonly style="min-height:120px">' + esc(json) + '</textarea>'
+      + '<div class="ui-modal-acts" style="gap:8px">'
+      + '<button id="tnExpCopy" class="ui-btn" style="flex:1">复制全部</button>'
+      + '<button id="tnExpFile" class="ui-btn ui-btn-primary" style="flex:1">保存为文件</button>'
+      + '</div></div>';
+    document.body.appendChild(m);
+    requestAnimationFrame(function () { m.classList.add('show'); });
+    var close = function () { m.remove(); };
+    m.onclick = function (e) { if (e.target === m) close(); };
+    $X(m, '#tnExpX').onclick = close;
+    $X(m, '#tnExpCopy').onclick = function () {
+      var t = $X(m, '#tnExpTxt');
+      t.focus(); t.select();
       try { document.execCommand('copy'); flash('已复制到剪贴板'); } catch (e) { flash('复制失败，请手动长按选择复制'); }
     };
-    $X(d, '#tnExpFile').onclick = function () {
+    $X(m, '#tnExpFile').onclick = function () {
       if (window.AndroidVoice && window.AndroidVoice.saveTextFile) {
         window.__tnSaveDone = function (r) {
           if (r === 'err') flash('保存失败');
@@ -1662,37 +1722,42 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     };
   }
   function importNotes() {
-    var d = el('div', 'tn-dlg');
-    d.innerHTML = '<h4>导入备份 <button class="tn-x" id="tnImpX" style="font-size:14px">✕</button></h4>'
-      + '<div style="font-size:12px;color:var(--i5);margin:8px 0">支持粘贴 JSON 或从文件导入（.json），按 id 去重合并。</div>'
+    var m = el('div', 'ui-modal-mask');
+    m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
+      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导入备份 <button id="tnImpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
+      + '<div class="ui-modal-text" style="margin-bottom:12px">支持粘贴 JSON 或从文件导入（.json），按 id 去重合并。</div>'
       + '<input type="file" id="tnImpFile" accept=".json,application/json" style="display:none">'
-      + '<button id="tnImpPick" class="copy">选择文件导入</button>'
-      + '<textarea id="tnImpTxt" placeholder="或在此粘贴导出的 JSON 备份内容…"></textarea>'
-      + '<button id="tnImpSave">合并导入（按 id 去重）</button>';
-    document.body.appendChild(d);
-    d.style.display = 'block';
-    $X(d, '#tnImpX').onclick = function () { d.remove(); };
-    var file = $X(d, '#tnImpFile');
-    $X(d, '#tnImpPick').onclick = function () { file.click(); };
+      + '<button id="tnImpPick" class="ui-btn" style="width:100%;margin-bottom:8px">选择文件导入</button>'
+      + '<textarea id="tnImpTxt" class="nm-ta" placeholder="或在此粘贴导出的 JSON 备份内容…" style="min-height:120px"></textarea>'
+      + '<div class="ui-modal-acts" style="gap:8px">'
+      + '<button id="tnImpSave" class="ui-btn ui-btn-primary" style="flex:1">合并导入（按 id 去重）</button>'
+      + '</div></div>';
+    document.body.appendChild(m);
+    requestAnimationFrame(function () { m.classList.add('show'); });
+    var close = function () { m.remove(); };
+    m.onclick = function (e) { if (e.target === m) close(); };
+    $X(m, '#tnImpX').onclick = close;
+    var file = $X(m, '#tnImpFile');
+    $X(m, '#tnImpPick').onclick = function () { file.click(); };
     file.onchange = function () {
       var f = file.files && file.files[0];
       if (!f) return;
       var rd = new FileReader();
       rd.onload = function () {
-        $X(d, '#tnImpTxt').value = String(rd.result || '');
+        $X(m, '#tnImpTxt').value = String(rd.result || '');
         flash('已读取文件，可点「合并导入」');
       };
       rd.readAsText(f);
     };
-    $X(d, '#tnImpSave').onclick = function () {
+    $X(m, '#tnImpSave').onclick = function () {
       try {
-        var arr = JSON.parse($X(d, '#tnImpTxt').value.trim());
+        var arr = JSON.parse($X(m, '#tnImpTxt').value.trim());
         if (!Array.isArray(arr)) throw new Error('bad');
         var ids = {};
         notes.forEach(function (x) { ids[x.id] = 1; });
         var added = 0;
         arr.forEach(function (x) { if (x && x.id && !ids[x.id]) { notes.push(x); ids[x.id] = 1; added++; } });
-        persist(); renderTNLayer(); renderList(); renderStats(); d.remove();
+        persist(); renderTNLayer(); renderList(); renderStats(); m.remove();
         flash('导入完成，新增 ' + added + ' 篇');
       } catch (e) { flash('JSON 格式不正确'); }
     };

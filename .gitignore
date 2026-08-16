@@ -24,3 +24,4 @@ data/.cache/
 # 签名与密钥（勿提交）
 *.keystore
 keystore.properties
+tn-key.js

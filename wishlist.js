@@ -62,13 +62,6 @@ window.Wish = (function () {
   function count() { return load().length; }
 
   /* 到达提醒：当前位置 3km 内是否有未打卡的心愿节点 */
-  function hav(aLat, aLng, bLat, bLng) {
-    var R = 6371, r = Math.PI / 180;
-    var dLa = (bLat - aLat) * r, dLo = (bLng - aLng) * r;
-    var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) +
-      Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
-    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
-  }
   function checkNearby(cb) {
     if (!navigator.geolocation) return;
     var list = load().filter(function (x) { return !x.visited; });
@@ -76,7 +69,7 @@ window.Wish = (function () {
     navigator.geolocation.getCurrentPosition(function (p) {
       var lat = p.coords.latitude, lng = p.coords.longitude;
       var near = list.filter(function (x) {
-        return x.lat != null && x.lng != null && hav(lat, lng, x.lat, x.lng) < 3;
+        return x.lat != null && x.lng != null && window.Geo.hav(lat, lng, x.lat, x.lng) < 3;
       });
       if (near.length && cb) cb(near);
     }, function () {}, { timeout: 8000, maximumAge: 60000 });

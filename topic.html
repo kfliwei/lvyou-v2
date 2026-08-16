@@ -151,7 +151,7 @@
       boot();
     });
   }
-  if (cfg.dataJs === 'nation-data.js') loadNationIndex();
+  if (cfg.p === 'nation') loadNationIndex();
   else loadScript(cfg.dataJs, function () {
     if (cfg.routesKey) { loadScript('routes-data.js', function () { if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); }); }
     else if (cfg.foodJs) loadScript(cfg.foodJs, boot);

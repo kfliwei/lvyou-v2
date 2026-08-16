@@ -10,11 +10,6 @@
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
-  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
-  .t-row .back{width:44px;height:44px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .t-row{display:flex;align-items:center;gap:8px;height:42px}
-  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
-  .t-row .title small{font-family:var(--font-sans);font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
   .wrap{padding:18px 16px 8px}
   .hero-card{display:flex;align-items:center;gap:14px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px 16px;margin-bottom:14px}
   .seal{width:52px;height:52px;border-radius:16px;background:var(--color-primary);color:#fff;display:grid;place-items:center;font-family:var(--font-serif);font-size:26px;flex:0 0 auto;box-shadow:0 4px 14px rgba(200,109,75,.3)}
@@ -41,9 +36,6 @@
   .entry .nm{flex:1;font-size:13.5px}
   .entry .nm small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
   .entry .arr{color:var(--color-faint)}
-  .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:100;width:min(calc(100% - 24px),480px);height:76px;display:grid;grid-template-columns:repeat(5,1fr);padding:8px;background:rgba(250,248,243,.9);border:1px solid rgba(32,32,29,.07);border-radius:28px;box-shadow:var(--shadow-float);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-  .bottom-nav__item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:20px;color:var(--color-muted);font-size:11px;letter-spacing:.04em;text-decoration:none;min-height:44px}
-  .bottom-nav__item.active{color:var(--color-ink);background:rgba(255,255,255,.65);font-weight:600}
 </style>
 </head>
 <body>
@@ -92,11 +84,13 @@
   </nav>
 </div>
 
+<script src="geo.js"></script>
+<script src="ui.js"></script>
 <script src="travel-notes.js"></script>
 <script src="wishlist.js"></script>
 <script>
 (function(){
-  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function esc(s){ return window.UI.esc(s); }
   function render(){
     var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
     var wish = (window.Wish && Wish.count) ? Wish.count() : 0;

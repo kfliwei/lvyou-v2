@@ -40,7 +40,7 @@ function ok(n, c, x) { console.log((c ? 'PASS' : 'FAIL') + '  ' + n + (x ? '  ['
     return {
       title: (document.getElementById('resultTitle') || {}).textContent || '',
       days,
-      map: !!document.querySelector('#resultMap .leaflet-container, #mapEl .leaflet-container'),
+      map: !!document.querySelector('#mapBox .leaflet-container'),
       actBtns: (document.getElementById('actRow') || {}).textContent || '',
       bodyLen: (document.getElementById('resultBody') || {}).innerHTML ? document.getElementById('resultBody').innerHTML.length : 0
     };

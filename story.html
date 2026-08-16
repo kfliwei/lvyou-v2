@@ -61,10 +61,11 @@
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="geo.js"></script>
+<script src="ui.js"></script>
 <script src="travel-notes.js"></script>
 <script>
 /* 滚动叙事地图：滚动卡片，地图跟随飞至对应节点 */
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){return window.UI.esc(s);}
 /* GCJ-02 纠偏：与全站一致——默认高德街道瓦片（国内可达、无需代理），数据坐标经 GCJ 纠偏后对齐 */
 function _tlat(lng, lat) { return window.Geo._tlat(lng, lat); }
 function _tlng(lng, lat) { return window.Geo._tlng(lng, lat); }

@@ -12,12 +12,6 @@
 <link rel="stylesheet" href="map.css">
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
-  .topbar{position:sticky;top:0;z-index:100;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07);padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px}
-  .t-row{display:flex;align-items:center;gap:8px;height:42px}
-  .t-row .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .t-row .back:active{transform:scale(.92)}
-  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em}
-  .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:11px;color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
   .wrap{padding:20px 16px 120px;max-width:520px;margin:0 auto}
   .wl-empty{text-align:center;padding:70px 20px;color:var(--color-faint)}
   .wl-empty .em{font-family:var(--font-serif);font-size:22px;color:var(--color-ink-soft);line-height:1.8}
@@ -45,7 +39,6 @@
   .wl-group-cnt{font-size:11px;color:var(--color-muted);background:var(--color-bg-soft);border-radius:999px;padding:2px 10px;flex:0 0 auto}
   .wl-group-arr{color:var(--color-faint);font-size:12px;flex:0 0 auto}
   .wl-mv{width:32px;height:32px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:13px;cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
-  .theme-dark .topbar{background:rgba(29,28,25,.92)}
   .theme-dark .wl-item{border-bottom-color:var(--color-line)}
   .theme-dark .wl-main b{color:var(--color-ink)}
   .theme-dark .wl-btn{background:var(--color-surface);border-color:var(--color-line-strong);color:var(--color-ink-soft)}
@@ -53,7 +46,7 @@
   html,body{height:auto;min-height:100%}
   body{display:block;overflow:auto}
   /* 顶栏按钮防挤压：固定宽度不收缩，标题区自适应 */
-  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap}
+  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 10px}
 </style>
 </head>
 <body>
@@ -78,6 +71,7 @@
   </div>
 </div>
 
+<script src="geo.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
 <script src="ui.js"></script>
@@ -86,7 +80,7 @@
   var body = document.getElementById('wlBody');
   var empty = document.getElementById('wlEmpty');
   var cnt = document.getElementById('cntLabel');
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(s) { return window.UI.esc(s); }
   function themeColor(t) {
     var map = { '高原湖泊':'#5F6D76','雪山冰川':'#9C9A92','名山大川':'#71806C','峡谷天堑':'#8A5A44','江河瀑布':'#5F6D76','古建寺院':'#A9563B','古城古镇':'#8A5A44','古城遗址':'#7E7663','红色遗迹':'#C86D4B','民族风情':'#C86D4B','城市地标':'#6D7D88','溶洞奇观':'#8C7B66','森林草原':'#71806C','森林山川':'#71806C','宗教圣地':'#A9563B','遗址陵墓':'#7E7663','温泉康养':'#C86D4B','石窟艺术':'#A9563B','丹霞地貌':'#BA7517','雅丹地貌':'#BA7517','沙漠戈壁':'#BA7517','草原湿地':'#639922','石窟寺':'#A9563B','佛寺':'#A9563B','古塔':'#7E7663','楼阁牌坊':'#8A5A44','名城名镇':'#8A5A44','壁画彩塑':'#C86D4B','关隘长城':'#993C1D','窑洞民居':'#BA7517','庙宇道观':'#A9563B','文庙书院':'#A9563B','陵墓':'#7E7663','桥梁':'#6D7D88','教堂会馆':'#6D7D88' };
     return map[t] || '#B4AFA4';
@@ -200,12 +194,6 @@
   }
 
   /* ---------- 跨专题行程规划（贪心：每天 ≤6 站、单日 ≤260km）---------- */
-  function havKm(aLat, aLng, bLat, bLng) {
-    var R = 6371, r = Math.PI / 180;
-    var dLa = (bLat - aLat) * r, dLo = (bLng - aLng) * r;
-    var a = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
-    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
-  }
   /* 复制文本（剪贴板 + execCommand 兜底） */
   function copyText(txt) {
     function legacy() {
@@ -251,7 +239,7 @@
     while (pts.length) {
       var idx = 0, bestD = 1e12;
       for (var k = 0; k < pts.length; k++) {
-        var d = cur ? havKm(cur.lat, cur.lng, pts[k].lat, pts[k].lng) : 0;
+        var d = cur ? window.Geo.hav(cur.lat, cur.lng, pts[k].lat, pts[k].lng) : 0;
         if (d < bestD) { bestD = d; idx = k; }
       }
       var next = pts.splice(idx, 1)[0];
@@ -272,7 +260,7 @@
   /* 每天里程：D2+ 含跨天衔接段（上一天终点 → 本天首站） */
   function dayKm(d, prevEnd) {
     var k = 0, last = prevEnd || d[0];
-    for (var i = 0; i < d.length; i++) { k += havKm(last.lat, last.lng, d[i].lat, d[i].lng); last = d[i]; }
+    for (var i = 0; i < d.length; i++) { k += window.Geo.hav(last.lat, last.lng, d[i].lat, d[i].lng); last = d[i]; }
     return k;
   }
   function renderPlan(total) {
@@ -298,7 +286,7 @@
       d.forEach(function (s, i) {
         var isStart = s.isStart;
         var from = i > 0 ? d[i - 1] : null;
-        var seg = from ? Math.round(havKm(from.lat, from.lng, s.lat, s.lng)) : null;
+        var seg = from ? Math.round(window.Geo.hav(from.lat, from.lng, s.lat, s.lng)) : null;
         if (isStart) {
           /* 跨天起点站：上一天终点，本天从此出发（不可移动） */
           html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
@@ -351,6 +339,7 @@
     var web = 'https://uri.amap.com/navigation?from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(sName) +
       '&to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(dName) + '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
     if (ways.length) web += '&waypoints=' + ways.map(function (w) { return w[0] + ',' + w[1]; }).join(';');
+    UI.toast('正在打开高德地图导航…');
     if (/GuJianApp/.test(navigator.userAgent)) { window.location.href = deep; return; }
     var t0 = Date.now(); window.location.href = deep;
     setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
@@ -441,7 +430,7 @@
   };
   var pc = document.getElementById('wlPlanClose');
   if (pc) pc.onclick = function () { document.getElementById('wlPlan').style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
-  document.getElementById('wlPlanBtn').onclick = function () { location.href = 'planner.html'; };
+  document.getElementById('wlPlanBtn').onclick = function () { location.href = 'planner.html?from=wish'; };
 
   function itemHtml(w, i) {
     var done = !!w.visited;

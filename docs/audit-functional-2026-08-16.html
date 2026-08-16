@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能性评估报告 · 行迹 TRACE</title>
+<style>
+  :root{
+    --bg:#1a1a18; --panel:#22221f; --panel2:#2a2a26; --line:#383833;
+    --ink:#f0efe8; --ink-soft:#c9c7bd; --muted:#8f8d82; --faint:#6a685f;
+    --red:#e06c5a; --green:#7fb069; --amber:#d9a441; --blue:#6f9fd8; --purple:#a98fd0;
+    --primary:#d9a441;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;padding:28px 18px 60px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:.01em}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 26px}
+  h2{font-size:17px;margin:34px 0 12px;padding-left:10px;border-left:3px solid var(--primary)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .mod{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .mod b{display:block;font-size:14px;margin-bottom:4px}
+  .mod span{font-size:12px;color:var(--muted);line-height:1.5}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:500;font-size:12.5px}
+  .ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid;margin-right:6px;font-weight:600}
+  .tag.ok{border-color:var(--green)} .tag.warn{border-color:var(--amber)} .tag.bad{border-color:var(--red)}
+  .score{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+  .score .box{flex:1;min-width:140px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .score .box .n{font-size:26px;font-weight:700}
+  .score .box .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .note{font-size:12.5px;color:var(--muted);background:var(--panel2);border-left:3px solid var(--line);padding:8px 12px;border-radius:6px;margin:8px 0}
+  .pill{font-size:11px;color:var(--ink-soft)}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>功能性评估报告 · 行迹 TRACE</h1>
+  <p class="sub">评估维度：功能能否真正用起来 · 链路是否闭环 · 有没有断头路 · 依赖门槛是否卡住用户 &nbsp;|&nbsp; 2026-08-16</p>
+
+  <div class="score">
+    <div class="box"><div class="n" style="color:var(--green)">12</div><div class="l">功能模块</div></div>
+    <div class="box"><div class="n" style="color:var(--green)">9</div><div class="l">完全闭环链路</div></div>
+    <div class="box"><div class="n" style="color:var(--amber)">2</div><div class="l">有断点/体验瑕疵</div></div>
+    <div class="box"><div class="n" style="color:var(--red)">1</div><div class="l">门槛型弱项（AI）</div></div>
+  </div>
+
+  <h2>一、功能全景（12 个模块，入口全部可达）</h2>
+  <div class="grid">
+    <div class="mod"><b>🏠 首页</b><span>搜索 / 规划 / 记录 / 专题精选 / 成果入口</span></div>
+    <div class="mod"><b>🗺️ 探索地图</b><span>34 省专题 + 全国地图 + 搜索入口</span></div>
+    <div class="mod"><b>📍 专题地图</b><span>景点列表 / 详情 sheet / 收藏 / 定制路书</span></div>
+    <div class="mod"><b>👣 足迹地图</b><span>游记时间线 / 地图 / 导出导入</span></div>
+    <div class="mod"><b>✍️ 游记</b><span>文字 / 语音 / 图片 / 位置 / 导出导入</span></div>
+    <div class="mod"><b>⭐ 想去清单</b><span>收藏 / 打卡 / 跨专题规划 / 到达提醒</span></div>
+    <div class="mod"><b>🧭 行程规划</b><span>选省→主题→景点→排期→导航→保存</span></div>
+    <div class="mod"><b>🎁 成果工坊</b><span>年报 / 海报 / 纪念册 / 图鉴 / 故事 / 路书</span></div>
+    <div class="mod"><b>📌 我的地点</b><span>节点增删改 / 语音 / 定位</span></div>
+    <div class="mod"><b>🔍 搜索</b><span>景点（desc/分词/筛选）/ 游记 / 省跳转</span></div>
+    <div class="mod"><b>⚙️ 设置</b><span>AI Key / 备份 / MD库 / 主题</span></div>
+    <div class="mod"><b>📝 MD库</b><span>markdown 管理</span></div>
+  </div>
+
+  <h2>二、链路闭环分级</h2>
+  <table>
+    <tr><th style="width:34%">链路</th><th style="width:10%">状态</th><th>说明</th></tr>
+    <tr><td>记录游记 → 足迹地图 → 成果工坊 → 年报/海报</td><td><span class="tag ok">闭环</span></td><td>入口齐全，成果工坊 3 入口已接回 review 页，均有空数据 toast 反馈</td></tr>
+    <tr><td>行程规划全链路（选省→主题→景点→排期→每日行程→导航→保存）</td><td><span class="tag ok">闭环</span></td><td>含保存行程首页直显、重新排期成功提示、导航尊重 gcj 标记</td></tr>
+    <tr><td>专题地图 → 景点详情 → 收藏 / 定制路书</td><td><span class="tag ok">闭环</span></td><td>定制路书经 TopicEngine.customItinerary → Results.itinerary</td></tr>
+    <tr><td>搜索 → 省专题跳转 → 游记精准定位</td><td><span class="tag ok">闭环</span></td><td>省份映射/desc 匹配/多关键词/主题筛选均已在 08-16 修复</td></tr>
+    <tr><td>想去清单 → 收藏 → 打卡/撤销 → 到达提醒</td><td><span class="tag ok">闭环</span></td><td>Wish.checkin/undoCheckin 状态机完整，3km 提醒在</td></tr>
+    <tr><td>想去清单「规划行程」→ 带入心愿节点</td><td><span class="tag warn">有断点</span></td><td>按钮只跳 planner 首页，需再点「一键串起来」，两步且无引导</td></tr>
+    <tr><td>成果工坊「定制路书」入口</td><td><span class="tag warn">入口深</span></td><td>只在专题景点详情 sheet 里，一级入口不可见</td></tr>
+    <tr><td>AI 功能（润色/故事/路书）无 Key</td><td><span class="tag bad">门槛</span></td><td>无 Key 直接报错，无本地降级（年报例外，有统计式兜底）</td></tr>
+  </table>
+
+  <h2>三、核心发现</h2>
+
+  <div class="card">
+    <b style="color:var(--red)">A1 · AI 是「半扇门」，无 Key 用户拿不到核心价值</b>
+    <p style="font-size:13.5px;margin:6px 0">
+      成果工坊的「旅程故事」、游记「AI 润色」、专题「定制路书」三者，在未配置 DeepSeek Key 时
+      <b>直接返回报错提示</b>（<code>results.js:32</code> 判 <code>Ai.hasKey()</code>），没有本地降级。
+      只有「年度报告」做了统计式本地兜底（<code>review.html:438</code>）。
+      这意味着：普通用户（大概率不自备 Key）打开应用，AI 卖点里 3/4 是「点了就报错」。
+    </p>
+    <div class="note">建议：故事/润色/路书补本地模板兜底（类似年报），或把「AI 生成」与「本地模板生成」做成可选，别让功能空转。</div>
+  </div>
+
+  <div class="card">
+    <b style="color:var(--amber)">B1 · 想去清单「规划行程」两步跳转缺引导</b>
+    <p style="font-size:13.5px;margin:6px 0">
+      <code>wishlist.html:433</code> 的按钮只执行 <code>location.href='planner.html'</code>，
+      心愿节点不会自动带入；到 planner 页后还需用户自己发现并点「已收藏 N 处，一键串起来」按钮。
+      链路通，但一步跳转 + 一次手动点击，中间无任何「下一步点哪里」的衔接。
+    </p>
+    <div class="note">建议：按钮跳转时带 <code>?from=wish</code> 参数，planner 页检测后高亮引导「一键串起来」；或直接跨页调用 <code>plannerSeedWish()</code>。</div>
+  </div>
+
+  <div class="card">
+    <b style="color:var(--amber)">B2 · 「定制路书」入口太深</b>
+    <p style="font-size:13.5px;margin:6px 0">
+      路书只藏在专题地图某个景点详情 sheet 的「更多」菜单里，用户不在专题里点开具体景点就永远找不到。
+      成果工坊（review 页）也只挂了纪念册/图鉴/故事三入口，没有路书。
+    </p>
+    <div class="note">建议：在回顾页成果工坊补一个「路书」入口（无站点时提示先去专题），或放到行程规划结果页。</div>
+  </div>
+
+  <div class="card">
+    <b style="color:var(--green)">✅ 数据层已能支撑功能</b>
+    <p style="font-size:13.5px;margin:6px 0">
+      经过本轮补全，介绍为空清零（8050 站），「必去/网红」标识从 562 → 1764 个，
+      搜索支持 desc 匹配 + 多关键词分词 + 主题筛选 + 省份精准跳转 + 游记定位。
+      数据质量不再是功能短板，反而成了亮点。
+    </p>
+  </div>
+
+  <h2>四、各模块可用性速览</h2>
+  <table>
+    <tr><th>模块</th><th>可用性</th><th>关键点</th></tr>
+    <tr><td>首页</td><td><span class="ok">● 完整</span></td><td>入口齐全，成果入口文案已修正为「旅程回顾」</td></tr>
+    <tr><td>探索地图</td><td><span class="ok">● 完整</span></td><td>34 省专题 + nation 全齐，纯静态导航页（够用）</td></tr>
+    <tr><td>专题地图</td><td><span class="ok">● 完整</span></td><td>列表/详情/收藏/路书/想去打卡全通</td></tr>
+    <tr><td>足迹地图</td><td><span class="ok">● 完整</span></td><td>游记时间线+地图，导出导入已统一 UI</td></tr>
+    <tr><td>游记</td><td><span class="ok">● 完整</span></td><td>文字/语音/图片/位置，语音有网页降级</td></tr>
+    <tr><td>想去清单</td><td><span class="warn">● 有小瑕疵</span></td><td>打卡/撤销闭环，规划两步跳转（B1）</td></tr>
+    <tr><td>行程规划</td><td><span class="ok">● 完整</span></td><td>全链路闭环，保存/导航/重新排期均可用</td></tr>
+    <tr><td>成果工坊</td><td><span class="warn">● 半门槛</span></td><td>年报有兜底；故事无 Key 报错（A1）；路书入口深（B2）</td></tr>
+    <tr><td>我的地点</td><td><span class="ok">● 完整</span></td><td>增删改/语音/定位，键盘遮挡已修</td></tr>
+    <tr><td>搜索</td><td><span class="ok">● 完整</span></td><td>desc/分词/筛选/跳转/定位，本轮全面增强</td></tr>
+    <tr><td>设置 / MD库</td><td><span class="ok">● 完整</span></td><td>AI Key、备份、主题、MD 管理均可达</td></tr>
+  </table>
+
+  <h2>五、结论与建议优先级</h2>
+  <p style="font-size:13.5px">
+    项目功能<b>骨架完整、九成链路闭环</b>，数据层经过本轮补全已是亮点。
+    当前最大的功能性短板是 <b style="color:var(--red)">AI 功能的 Key 门槛</b>——它既是产品的核心差异化卖点，又是「无 Key 就报错」的半成品体验。
+  </p>
+  <table>
+    <tr><th>优先级</th><th>事项</th><th>成本</th></tr>
+    <tr><td>①</td><td>给「故事/润色/路书」补本地模板兜底（对齐年报）</td><td>中</td></tr>
+    <tr><td>②</td><td>想去清单「规划行程」一步带入心愿 + 引导</td><td>低</td></tr>
+    <tr><td>③</td><td>回顾页补「路书」一级入口</td><td>低</td></tr>
+  </table>
+  <div class="note">三处都是「成本低、收益高」的体验修补，且不涉及数据/架构重构，可一轮完成。需要我直接修，说一声即可。</div>
+</div>
+</body>
+</html>
