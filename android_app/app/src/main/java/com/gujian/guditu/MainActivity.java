@@ -59,9 +59,20 @@ public class MainActivity extends Activity {
         ws.setUseWideViewPort(false);
         // 允许 file:// 页面加载 https 地图瓦片
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        // 关闭缓存：assets 更新后每次启动强制加载最新版（避免旧 JS/CSS 残留）
+        // 缓存策略：LOAD_DEFAULT 按 HTTP 头判断新鲜度（瓦片有 cache-control，正常走缓存）
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
-        webView.clearCache(true);
+        // 仅在版本号变化时清理缓存（避免每次冷启动都清空地图瓦片，自驾弱网首屏白板）
+        try {
+            String curVer = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            String lastVer = getSharedPreferences("_app", MODE_PRIVATE).getString("lastVer", "");
+            if (!curVer.equals(lastVer)) {
+                webView.clearCache(true);
+                getSharedPreferences("_app", MODE_PRIVATE).edit().putString("lastVer", curVer).apply();
+                Log.d(TAG, "版本变化 " + lastVer + " → " + curVer + "，已清理缓存");
+            }
+        } catch (Exception e) {
+            // 读取版本失败则不清缓存（保底不破坏正常使用）
+        }
         // 追加自定义 UA 标记，供网页识别"是否运行在 App 内"（用于直接拉起高德深链）
         ws.setUserAgentString(ws.getUserAgentString() + " GuJianApp");
 
