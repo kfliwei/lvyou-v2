@@ -153,8 +153,31 @@
     var t = (text || '').trim();
     var intent = { regions: matchRegions(t), days: 0, prefs: [], raw: t };
     var m = t.match(/(\d+)\s*[天日]/); if (m) intent.days = parseInt(m[1], 10);
+    // 中文数字天数：两天/三天/一周/半个月/两三天（阿拉伯数字优先，未命中才走中文）
+    if (!intent.days) {
+      var CN = { '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+      var cm = t.match(/([一二两三四五六七八九十])\s*天/);
+      if (cm && CN[cm[1]]) intent.days = CN[cm[1]];
+      var cr = t.match(/([一二两三四五六七八九])\s*([一二两三四五六七八九])\s*天/);
+      if (cr && CN[cr[2]]) intent.days = CN[cr[2]]; // 两三天→3、七八天→8
+      if (t.indexOf('十来天') >= 0) intent.days = 10;
+      if (t.indexOf('一周') >= 0) intent.days = 7;
+      if (t.indexOf('两周') >= 0) intent.days = 14;
+      if (t.indexOf('半个月') >= 0 || t.indexOf('半月') >= 0) intent.days = 15;
+      if (t.indexOf('一个月') >= 0) intent.days = 30;
+    }
     PREF_KEYS.forEach(function (p) { var kw = PREF[p].kw; for (var i = 0; i < kw.length; i++) if (t.indexOf(kw[i]) >= 0) { intent.prefs.push(p); break; } });
     return intent;
+  }
+  /* 节奏/同伴规则提取（无 Key 降级版 aiEnhance） */
+  var PACE_KW = { '舒缓': ['慢慢', '不赶', '悠闲', '放松', '慢游', '佛系', '轻松', '休闲'], '紧凑': ['紧凑', '抓紧', '特种兵', '暴走', '高效', '赶时间'] };
+  var COMPANION_KW = { '带老人': ['带爸妈', '带父母', '带老人', '带妈妈', '带爸爸', '带长辈', '陪爸妈', '陪父母'], '亲子': ['带孩子', '带娃', '带小孩', '带小朋友', '亲子'], '独自': ['独自', '一个人', '自己去'] };
+  function ruleEnhance(text) {
+    var t = text || '', pace = null, companions = null;
+    Object.keys(PACE_KW).forEach(function (p) { if (pace) return; for (var i = 0; i < PACE_KW[p].length; i++) if (t.indexOf(PACE_KW[p][i]) >= 0) { pace = p; break; } });
+    Object.keys(COMPANION_KW).forEach(function (c) { if (companions) return; for (var i = 0; i < COMPANION_KW[c].length; i++) if (t.indexOf(COMPANION_KW[c][i]) >= 0) { companions = c; break; } });
+    if (!pace && !companions) return null;
+    return { pace: pace || '一般', companions: companions || '无', vibe: null };
   }
 
   /* ---------- 召回 ---------- */
@@ -1059,12 +1082,17 @@
     state.startDate = '';
     var proceed = function () {
       renderIntent(); doRecall(); showStage('stagePick');
-      if (getAILevel() === 'full') {
-        aiEnhance(text, function (j) {
-          var bar = $id('aiEnhBar');
-          var parts = [j.pace && ('节奏·' + j.pace), j.companions && ('同伴·' + j.companions), j.vibe].filter(Boolean);
-          if (parts.length) bar.innerHTML = '<div style="margin:10px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;background:var(--color-primary-soft);color:var(--color-primary-dark)">✨ AI 补充：' + esc(parts.join('；')) + '</div>';
-        });
+      var renderEnhBar = function (j, prefix) {
+        var bar = $id('aiEnhBar');
+        if (!bar) return;
+        var parts = [j.pace && ('节奏·' + j.pace), j.companions && ('同伴·' + j.companions), j.vibe].filter(Boolean);
+        if (parts.length) bar.innerHTML = '<div style="margin:10px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;background:var(--color-primary-soft);color:var(--color-primary-dark)">' + prefix + esc(parts.join('；')) + '</div>';
+      };
+      if (getAILevel() === 'full' && window.Ai.hasKey()) {
+        aiEnhance(text, function (j) { if (j) renderEnhBar(j, '✨ AI 补充：'); });
+      } else {
+        var rj = ruleEnhance(text);
+        if (rj) renderEnhBar(rj, '👪 已识别：');
       }
     };
     if (!state.regions.length && getAILevel() === 'full' && window.Ai.hasKey()) {
