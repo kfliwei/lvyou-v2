@@ -177,7 +177,7 @@
     Object.keys(PACE_KW).forEach(function (p) { if (pace) return; for (var i = 0; i < PACE_KW[p].length; i++) if (t.indexOf(PACE_KW[p][i]) >= 0) { pace = p; break; } });
     Object.keys(COMPANION_KW).forEach(function (c) { if (companions) return; for (var i = 0; i < COMPANION_KW[c].length; i++) if (t.indexOf(COMPANION_KW[c][i]) >= 0) { companions = c; break; } });
     if (!pace && !companions) return null;
-    return { pace: pace || '一般', companions: companions || '无', vibe: null };
+    return { pace: pace || '一般', companions: companions || null, vibe: null };
   }
 
   /* ---------- 召回 ---------- */
