@@ -144,7 +144,7 @@
   }
 
   /* ---------- 状态 ---------- */
-  var state = { regions: [], days: 0, prefs: [], start: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null };
+  var state = { regions: [], days: 0, prefs: [], start: null, end: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null };
   function nodeUid(s) { return (window.Wish ? Wish.uid(s) : String((s.name || s.label || '') + '|' + s.lat + '|' + s.lng)); }
   function isSelected(s) { var u = nodeUid(s); return state.selected.some(function (x) { return nodeUid(x) === u; }); }
 
@@ -314,7 +314,7 @@
     days.forEach(function (dd) { dd.totalH = dd.driveH + dd.playH + (dd.stops.length - 1) * 0.5 + 2.5; });
     return days;
   }
-  function schedule(sel, start, targetDays, preserveOrder) { return splitIntoDays(preserveOrder ? sel : orderStops(sel, start), start, targetDays); }
+  function schedule(sel, start, targetDays, preserveOrder, reverseOrder) { var o = preserveOrder ? sel : orderStops(sel, start); if (reverseOrder) o = o.slice().reverse(); return splitIntoDays(o, start, targetDays); }
 
   /* ---------- 季节校验 ---------- */
   function seasonWarn(best, startDate) {
@@ -445,10 +445,11 @@
     h += '<div class="fld"><label>天数</label><div class="row"><input type="number" id="intentDays" min="1" max="30" value="' + (state.days || 5) + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
     h += '<div id="intentProvThemes" style="display:none;margin-top:6px"></div>';
     h += '<div class="chips" style="margin-top:4px"><span class="chip mine" onclick="window.plannerAddMine()">📌 我的节点</span></div>';
-    h += '<div class="fld"><label>出发地（缺省当前位置）</label><div class="row"><input type="text" id="intentStart" placeholder="如：成都"><button class="btn ghost" id="useLocBtn">📍 当前位置</button></div></div>';
+
+
     h += '<div class="fld"><label>出发日期（用于季节提醒，可空）</label><input type="date" id="intentDate" value="' + esc(state.startDate || '') + '"></div>';
     h += '<div id="aiEnhBar"></div>';
-    $id('intentCard').innerHTML = '<div class="sec-title">这趟怎么玩</div>' + h;
+    $id('intentCard').innerHTML = '<div class="sec-title" style="display:flex;align-items:center;justify-content:space-between">这趟怎么玩<span style="font-size:12px;font-weight:400"><a href="javascript:window.plannerBack()" style="color:var(--color-primary-dark);text-decoration:none">← 修改目的地</a></span></div>' + h;
     /* 目的地 chips */
     var all = Object.keys(regionSet || {});
     var rc = all.map(function (r) { return '<span class="chip' + (state.regions.indexOf(r) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleRegion(\'' + esc(r) + '\')">' + esc(r) + '</span>'; }).join('');
@@ -457,15 +458,6 @@
     /* 绑定 */
     $id('intentDays').onchange = function () { state.days = parseInt(this.value, 10) || 0; };
     $id('intentDate').onchange = function () { state.startDate = this.value; };
-    $id('intentStart').onchange = function () { state.start = matchStart(this.value); };
-    $id('useLocBtn').onclick = function () {
-      if (!navigator.geolocation) { toast('当前环境不支持定位'); return; }
-      navigator.geolocation.getCurrentPosition(function (p) {
-        state.start = { name: '我的位置', lat: p.coords.latitude, lng: p.coords.longitude };
-        $id('intentStart').value = '我的位置';
-        toast('已设为当前位置');
-      }, function () { toast('定位失败，可手动输入出发地'); }, { timeout: 8000 });
-    };
     /* 目的地/偏好变化后重召回 */
     state.__bound = true;
   }
@@ -485,7 +477,8 @@
     buildDicts();
     var c = cityCoord[name] || cityCoord[name + '市'] || cityCoord[name + '州'];
     if (c) return { name: name, lat: c.lat, lng: c.lng };
-    return null;
+    /* 找不到坐标时保留名称（仅标注，不参与导航里程） */
+    return { name: name, lat: null, lng: null };
   }
   function resolveRegionName(name) {
     if (!name) return null;
@@ -592,6 +585,16 @@
       });
       h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
+    /* 终到地行：有名称即显示（环线标注；有坐标算里程） */
+    if (trip.end && trip.end.name) {
+      var lastDay = days[days.length - 1];
+      var lastStop = lastDay && lastDay.stops ? lastDay.stops[lastDay.stops.length - 1] : null;
+      var endKm = lastStop && lastStop.lat != null && trip.end.lat != null ? window.Geo.hav(lastStop.lat, lastStop.lng, trip.end.lat, trip.end.lng) : 0;
+      h += '<div class="stop" style="padding:8px 10px;border-radius:10px;background:rgba(200,109,75,.05);border:1px solid rgba(200,109,75,.14)">' +
+        '<div class="stop-name"><span class="n" style="background:var(--color-primary);color:#fff">终</span>' +
+        '<span class="lbl">' + esc(trip.end.name) + (trip.end.isLoop ? '（回到起点 · 环线）' : '（抵达地）') + '</span></div>' +
+        '<div class="stop-meta"><span class="meta">' + Math.round(endKm) + ' km</span></div></div>';
+    }
     $id('resultBody').innerHTML = h;
   }
   function renderNarrative(n) {
@@ -602,6 +605,8 @@
   function renderResult() {
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
+    /* 终到地：有名称即设置（环线=与出发地同名），有坐标则参与里程 */
+    if (state.end && state.end.name) { trip.end = state.end; trip.end.isLoop = !!(state.start && state.start.name && state.start.name === state.end.name); }
     $id('resultTitle').textContent = trip.name + ' · ' + days.length + ' 天 · ' + days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站';
     var totalKm = days.reduce(function (s, d) { return s + d.driveKm; }, 0);
     $id('resultTitle').textContent += ' · 约 ' + Math.round(totalKm) + ' km';
@@ -831,6 +836,7 @@
     var bnd = [], seq = [];
     if (trip.start && trip.start.lat != null) seq.push(trip.start);
     seq = seq.concat(pts);
+    if (trip.end && trip.end.lat != null) seq.push(trip.end);   /* 终到地：末站 → 终点（有坐标时） */
     var routeReal = 0;
     for (var i = 1; i < seq.length; i++) {
       var a = [seq[i - 1].lat, seq[i - 1].lng], b = [seq[i].lat, seq[i].lng];
@@ -1020,12 +1026,14 @@
     persistTrip(); renderDaysBody(); renderMap();
   };
   window.plannerReschedule = function () {
-    var flat = flatStops();
-    if (flat.length < 2) { toast('站点太少，无法重新排期'); return; }
-    state.trip.days = schedule(flat, state.trip.start, state.days);
-    state.trip.narrative = null;
-    renderResult();
-    toast('已重新排期 · ' + state.trip.days.length + ' 天 · ' + flat.length + ' 站');
+    /* 打开排期向导（步骤可回退调整） */
+    showStage('stagePick');
+    var cards = $id('stagePick').querySelectorAll('.card');
+    for (var ci = 0; ci < cards.length; ci++) cards[ci].style.display = 'none';
+    var sb = $id('summbar'); if (sb) sb.style.display = 'none';
+    $id('wizardBox').style.display = 'block';
+    var w = state.wiz || (state.wiz = { step: 1, sortMode: 'geo', sortOrder: 'asc' });
+    w.step = 1; renderWizard();
   };
   /* 编辑选点：按行程省份重召回，预选原站点，回选点阶段 */
   window.plannerEditPick = function () {
@@ -1106,15 +1114,100 @@
       proceed();
     }
   }
+
+  /* ---------- 排期向导（4 步：起终点 → 环线 → 排序 → 排期） ---------- */
+  function wizardOpen() {
+    if (state.selected.length < 2) { toast('至少选 2 个景点才能排期'); return; }
+    var w = state.wiz || { sortMode: 'geo', sortOrder: 'asc' };
+    if (state.isLoop && state.start && state.start.name) state.end = state.start;
+    /* 向导起终点兜底（输入框未失焦也能读到值） */
+    var wsEl2 = $id('wStart'), weEl2 = $id('wEnd');
+    if (wsEl2 && wsEl2.value) state.start = matchStart(wsEl2.value);
+    if (weEl2 && weEl2.value) state.end = matchStart(weEl2.value);
+    state.wiz = state.wiz || { step: 1, sortMode: 'geo', sortOrder: 'asc' };
+    $id('wizardBox').style.display = 'block';
+    var cards = $id('stagePick').querySelectorAll('.card');
+    for (var i = 0; i < cards.length; i++) cards[i].style.display = 'none';
+    var sb = $id('summbar'); if (sb) sb.style.display = 'none';
+    renderWizard();
+  }
+  window.plannerOpenWizard = wizardOpen;
+  function renderWizard() {
+    var w = state.wiz || (state.wiz = { step: 1, sortMode: 'geo', sortOrder: 'asc' });
+    var names = ['起终点', '环线', '排序', '排期'];
+    var bar = names.map(function (nm, i) {
+      var st = i + 1 === w.step ? 'background:var(--color-primary);color:#fff' : (i + 1 < w.step ? 'background:var(--color-primary-soft);color:var(--color-primary-dark)' : 'background:var(--color-bg-soft);color:var(--color-muted)');
+      return '<span class="chip" data-s="' + (i + 1) + '" style="' + st + ';cursor:pointer">' + (i + 1) + '. ' + nm + '</span>';
+    }).join('');
+    var body = '';
+    if (w.step === 1) {
+      body = '<div class="fld"><label>出发地（可不填，缺省=当前位置）</label><input type="text" id="wStart" placeholder="如：成都" value="' + esc(state.start ? state.start.name : '') + '"></div>' +
+        '<div class="fld"><label>终到地（可不填，留空=单程）</label><input type="text" id="wEnd" placeholder="如：成都" value="' + esc(state.end ? state.end.name : '') + '"></div>';
+    } else if (w.step === 2) {
+      body = '<div class="fld"><label>是否环线</label><div class="row" style="gap:10px">' +
+        '<button class="btn' + (state.isLoop ? ' primary' : '') + '" id="wLoopY" style="flex:1">是 · 回到起点</button>' +
+        '<button class="btn' + (!state.isLoop ? ' primary' : '') + '" id="wLoopN" style="flex:1">否 · 单程</button></div>' +
+        '<div style="font-size:11.5px;color:var(--color-muted);margin-top:8px;line-height:1.6">环线：末站回到出发地，适合自驾往返；单程：终点即行程结束地。</div></div>';
+    } else if (w.step === 3) {
+      body = '<div class="fld"><label>排序方式</label><div class="row" style="gap:10px">' +
+        '<button class="btn' + (w.sortMode === 'geo' ? ' primary' : '') + '" id="wSortGeo" style="flex:1">按地理最近邻</button>' +
+        '<button class="btn' + (w.sortMode === 'amap' ? ' primary' : '') + '" id="wSortAmap" style="flex:1">按高德路线</button></div></div>' +
+        '<div class="fld"><label>方向（排序完成后）</label><div class="row" style="gap:10px">' +
+        '<button class="btn' + (w.sortOrder === 'asc' ? ' primary' : '') + '" id="wOrderAsc" style="flex:1">正序 · 从起点出发</button>' +
+        '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button></div></div>';
+    } else {
+      body = '<div style="font-size:13px;line-height:2.1;padding:4px 2px">' +
+        '<div>出发地：<b>' + (state.start && state.start.name ? esc(state.start.name) : '当前位置') + '</b></div>' +
+        '<div>终到地：<b>' + (state.end && state.end.name ? esc(state.end.name) : '单程（不设终点）') + '</b></div>' +
+        '<div>环线：<b>' + (state.isLoop ? '是 · 回到起点' : '否 · 单程') + '</b></div>' +
+        '<div>排序：<b>' + (w.sortMode === 'amap' ? '高德路线' : '地理最近邻') + ' · ' + (w.sortOrder === 'desc' ? '倒序' : '正序') + '</b></div></div>';
+    }
+    var nav = '<div class="row" style="gap:8px;margin-top:14px">' +
+      (w.step > 1 ? '<button class="btn" id="wBack" style="flex:1">上一步</button>' : '<button class="btn ghost" id="wCancel" style="flex:1">取消</button>') +
+      (w.step < 4 ? '<button class="btn primary" id="wNext" style="flex:1">下一步</button>' : '<button class="btn primary" id="wDone" style="flex:1">开始排期</button>') +
+      '</div>';
+    $id('wizardBox').innerHTML = '<div class="card" style="margin-bottom:0"><div class="sec-title">排期设置</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + bar + '</div>' + body + nav + '</div>';
+    /* 绑定步骤条 */
+    var chips = $id('wizardBox').querySelectorAll('[data-s]');
+    for (var ci = 0; ci < chips.length; ci++) (function (el) { el.onclick = function () { if (parseInt(el.getAttribute('data-s'), 10) <= w.step) { w.step = parseInt(el.getAttribute('data-s'), 10); renderWizard(); } }; })(chips[ci]);
+    if (w.step === 1) {
+      var wsEl = $id('wStart'), weEl = $id('wEnd');
+      wsEl.onchange = function () { state.start = matchStart(this.value); };
+      weEl.onchange = function () { state.end = matchStart(this.value); };
+    } else if (w.step === 2) {
+      $id('wLoopY').onclick = function () { state.isLoop = true; if (state.start && state.start.name) state.end = { name: state.start.name, lat: state.start.lat, lng: state.start.lng }; renderWizard(); };
+      $id('wLoopN').onclick = function () { state.isLoop = false; renderWizard(); };
+    } else if (w.step === 3) {
+      $id('wSortGeo').onclick = function () { w.sortMode = 'geo'; renderWizard(); };
+      $id('wSortAmap').onclick = function () { var ak = ''; try { ak = localStorage.getItem('tn_amap_key') || ''; } catch (e) {} if (!ak) { toast('按高德路线需要先在「我的地点」或设置里配置高德 Key，已改用地理最近邻'); w.sortMode = 'geo'; renderWizard(); return; } w.sortMode = 'amap'; renderWizard(); };
+      $id('wOrderAsc').onclick = function () { w.sortOrder = 'asc'; renderWizard(); };
+      $id('wOrderDesc').onclick = function () { w.sortOrder = 'desc'; renderWizard(); };
+    }
+    var nxt = $id('wNext'), bak = $id('wBack'), can = $id('wCancel'), don = $id('wDone');
+    if (nxt) nxt.onclick = function () {
+      /* 第 1 步：保存起终点（输入框将离开 DOM） */
+      if (w.step === 1) {
+        var s1 = $id('wStart'), e1 = $id('wEnd');
+        if (s1 && s1.value) state.start = matchStart(s1.value);
+        if (e1 && e1.value) state.end = matchStart(e1.value);
+      }
+      if (w.step < 4) { w.step++; renderWizard(); }
+    };
+    if (bak) bak.onclick = function () { if (w.step > 1) { w.step--; renderWizard(); } };
+    if (can) can.onclick = function () { $id('wizardBox').style.display = 'none'; renderCandidates(); showStage('stagePick'); var c2 = $id('stagePick').querySelectorAll('.card'); for (var j = 0; j < c2.length; j++) c2[j].style.display = ''; var sb2 = $id('summbar'); if (sb2 && state.selected.length >= 2) sb2.style.display = ''; };
+    if (don) don.onclick = doSchedule;
+  }
+
   window.plannerGenerate = doGenerate;
   function doSchedule() {
     if (state.selected.length < 2) { toast('至少选 2 个景点才能排期'); return; }
     state.days = parseInt(($id('intentDays') && $id('intentDays').value) || state.days || 0, 10) || 0;
     state.startDate = $id('intentDate') ? $id('intentDate').value : '';
-    state.start = $id('intentStart') && $id('intentStart').value ? (matchStart($id('intentStart').value) || state.start) : state.start;
-    var days = schedule(state.selected, state.start, state.days, state.amapSorted);
+    
+    
+    var days = schedule(state.selected, state.start, state.days, (state.wiz && state.wiz.sortMode === 'amap') || state.amapSorted, !!(state.wiz && state.wiz.sortOrder === 'desc'));
     var name = (state.regions.join('/') || '旅行') + ' ' + days.length + ' 日' + (state.prefs.length ? state.prefs.join('·') : '') + '之旅';
-    state.trip = { name: name, createdAt: Date.now(), start: state.start, startDate: state.startDate, aiLevel: getAILevel(), days: days, narrative: null };
+    state.trip = { name: name, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: days, narrative: null };
     showStage('stageResult'); renderResult();
   }
   window.plannerSchedule = doSchedule;
@@ -1146,7 +1239,7 @@
     };
     var aiBtns = $id('aiSwitch').querySelectorAll('button');
     for (var i = 0; i < aiBtns.length; i++) aiBtns[i].onclick = function () { setAILevel(this.getAttribute('data-level')); };
-    $id('scheduleBtn').onclick = doSchedule;
+    $id('scheduleBtn').onclick = wizardOpen;
     var cf = $id('candFilter');
     if (cf) cf.oninput = function () { state.candFilter = this.value; renderCandidates(); };
     try { if (window.TravelNotes && TravelNotes.init) TravelNotes.init({}); } catch (e) {}

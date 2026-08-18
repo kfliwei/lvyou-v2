@@ -179,6 +179,7 @@
       <div id="candHint" style="display:none;margin:-2px 0 8px;padding:8px 12px;border-radius:10px;font-size:12px;line-height:1.6;background:var(--color-primary-soft);color:var(--color-primary-dark)"></div>
       <div id="candList"></div>
     </div>
+    <div id="wizardBox" style="display:none"></div>
     <div class="summbar" id="summbar" style="display:none">
       <div class="info" id="summInfo"></div>
       <div class="acts">
@@ -213,5 +214,10 @@
 <script src="nation-index.js"></script>
 <script src="tn-key.js"></script>
   <script src="planner.js"></script>
+  <script>
+    /* 起终点：存储到 window（planner.js 意图卡渲染时读取） */
+    window.__planEnd = null;
+    window.__planStart = null;
+  </script>
 </body>
 </html>
