@@ -177,11 +177,12 @@
   .mem-node{position:relative;width:100%;height:100%;cursor:pointer}
   .mem-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
   .mem-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--color-primary);opacity:.5;pointer-events:none;animation:node-breathe 3s ease-in-out infinite}
-  .mem-node--endpoint{width:36px;height:36px;border-radius:50%;overflow:hidden;border:3px solid var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.3);background:var(--color-bg-soft)}
+  .mem-node--endpoint{width:40px;height:40px;border-radius:50%;overflow:hidden;border:3px solid var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.3);background:var(--color-bg-soft)}
   .mem-node--endpoint .mem-dot{background:var(--color-primary);width:13px;height:13px}
   .mem-node--endpoint .mem-ring{width:30px;height:30px;opacity:.6}
-  .mem-node--photo{width:36px;height:36px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2);background:var(--color-bg-soft)}
-  .mem-node--photo img, .mem-node--endpoint img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .mem-node--photo{width:44px;height:44px;border-radius:11px;overflow:hidden;border:3px solid #fff;box-shadow:0 5px 16px rgba(0,0,0,.22);background:var(--color-bg-soft)}
+  .mem-node--photo img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+  .mem-node--endpoint img{width:100%;height:100%;object-fit:cover;border-radius:50%}
   .mem-node--photo.no-photo{background:var(--color-bg-soft)}
   .mem-node--photo.no-photo img{display:none}
   .mem-node--photo.no-photo::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink)}
@@ -374,51 +375,66 @@ function refresh(){
   const pts=[];
   const ordered = notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
   const linePts = ordered.map(n=>gxy(n.lat,n.lng));
+  // 轨迹：陶土实线 + 生长动画（蓝图 §4.4：起点→路线逐渐生长 800-1600ms）
   if (linePts.length >= 2) {
-    // TRACE v2：陶土单色轨迹 + 逐段生长动画（规范 §7 记忆地图轨迹生长）
-    var trackLine=L.polyline(linePts,{color:'#C86D4B',weight:3,opacity:0,lineCap:'round',dashArray:'7 7'}).addTo(tnLayer);
-    setTimeout(function(){ trackLine.setStyle({opacity:.75}); },50);
+    var trackLine=L.polyline(linePts,{color:'#C86D4B',weight:3,opacity:.75,lineCap:'round',lineJoin:'round'}).addTo(tnLayer);
+    var _path=trackLine._path;
+    if (_path && _path.getTotalLength) {
+      try {
+        var _len=_path.getTotalLength();
+        _path.style.strokeDasharray=_len;
+        _path.style.strokeDashoffset=_len;
+        _path.style.transition='stroke-dashoffset 1400ms cubic-bezier(.22,1,.36,1)';
+        requestAnimationFrame(function(){ _path.style.strokeDashoffset='0'; });
+      } catch(e){}
+    }
   }
   // 节点系统：单篇 = 照片/墨点节点；同地点多篇（≈11m 内）= 聚合节点（照片/墨点 + 数量角标），点击展开该地点记忆列表
+  // 叙事动画：轨迹生长后，节点按时间顺序依次浮现（记忆→照片→终点）
   const groups = {};
   ordered.forEach(function(n){
     const k = n.lat.toFixed(4)+','+n.lng.toFixed(4);
     if(!groups[k]) groups[k]=[];
     groups[k].push(n);
   });
-  Object.keys(groups).forEach(function(k){
-    const items=groups[k];
+  function makeNode(items){
     const isGroup=items.length>1;
+    const first=items[0];
+    const isStart=first===ordered[0], isEnd=first===ordered[ordered.length-1];
+    const photo=first.photos&&first.photos.length?first.photos[0]:null;
+    if(isGroup){
+      const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
+      const nodeInner=(photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>')+'<span class="mem-badge">'+items.length+'</span>';
+      return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:photo?[44,44]:[26,26], anchor:photo?[22,22]:[13,13], onclick:function(){openGroupSheet(items);} };
+    }
+    const n=items[0];
+    const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
+    const nodeInner=photo
+      ?'<img src="'+photo+'" alt="" onerror="this.remove()">'
+      :((isStart||isEnd)?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':'<span class="mem-dot" style="background:'+tagColor(n)+'"></span>');
+    const size=(isStart||isEnd)?[40,40]:(photo?[44,44]:[26,26]);
+    const anchor=(isStart||isEnd)?[20,20]:(photo?[22,22]:[13,13]);
+    return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:size, anchor:anchor, onclick:function(){openMemSheet(n);} };
+  }
+  const gkeys=Object.keys(groups);
+  const delayStep=gkeys.length>1?Math.min(220,1300/gkeys.length):200;
+  gkeys.forEach(function(k,gi){
+    const items=groups[k];
     const p=gxy(items[0].lat,items[0].lng);
     pts.push(p);
-    if(isGroup){
-      /* 聚合节点：第一张照片（或墨点）+ 数量角标 */
-      const first=items[0];
-      const photo=first.photos&&first.photos.length?first.photos[0]:null;
-      const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
-      const nodeInner=photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>';
-      const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'<span class="mem-badge">'+items.length+'</span></div>';
-      const nodeSize=photo?[36,36]:[26,26];
-      const nodeAnchor=photo?[18,18]:[13,13];
-      const m=L.marker(p,{icon:L.divIcon({html:iconHtml,className:'',iconSize:nodeSize,iconAnchor:nodeAnchor})});
-      m.on('click',function(){openGroupSheet(items);});
+    const node=makeNode(items);
+    const m=L.marker(p,{icon:L.divIcon({html:node.html,className:'',iconSize:node.size,iconAnchor:node.anchor})});
+    m.on('click',node.onclick);
+    setTimeout(function(){
       m.addTo(tnLayer);
-    } else {
-      /* 单篇节点 */
-      const n=items[0];
-      const isStart=n===ordered[0], isEnd=n===ordered[ordered.length-1];
-      const photo=n.photos&&n.photos.length?n.photos[0]:null;
-      const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
-      const nodeInner=photo
-        ?'<img src="'+photo+'" alt="" onerror="this.remove()">'
-        :(isStart?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':isEnd?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':'<span class="mem-dot" style="background:'+tagColor(n)+'"></span>');
-      const iconHtml='<div class="'+nodeCls+'">'+nodeInner+'</div>';
-      const nodeSize=photo?[36,36]:[26,26];
-      const nodeAnchor=photo?[18,18]:[13,13];
-      const m=L.marker(p,{icon:L.divIcon({html:iconHtml,className:'',iconSize:nodeSize,iconAnchor:nodeAnchor})});
-      m.on('click',function(){openMemSheet(n);});
-      m.addTo(tnLayer);
-    }
+      var ic=m._icon;
+      if(ic){
+        ic.style.opacity='0';
+        ic.style.transition='opacity 520ms cubic-bezier(.22,1,.36,1),transform 520ms cubic-bezier(.22,1,.36,1)';
+        ic.style.transform='translateY(6px)';
+        requestAnimationFrame(function(){ ic.style.opacity='1'; ic.style.transform='translateY(0)'; });
+      }
+    },350+gi*delayStep);
   });
   if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));
   const sites=new Set(notes.filter(n=>n.lat!=null).map(n=>n.lat.toFixed(4)+','+n.lng.toFixed(4)));

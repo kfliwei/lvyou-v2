@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>旅行图册 · 行迹</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  body{overflow-x:hidden}
+  .al{max-width:720px;margin:0 auto;min-height:100dvh}
+
+  /* ---- 顶栏（半透明渐隐，沉浸阅读） ---- */
+  .al-top{
+    position:fixed;top:0;left:0;right:0;z-index:60;
+    display:flex;align-items:center;gap:12px;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 18px 12px;
+    background:linear-gradient(to bottom,rgba(247,245,239,.92),rgba(247,245,239,0));
+    pointer-events:none;
+  }
+  .al-top > *{pointer-events:auto}
+  .al-back{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--color-line);cursor:pointer;font-size:16px;color:var(--color-ink);flex:0 0 auto}
+  .al-back:active{transform:scale(.94)}
+  .al-progress{flex:1;height:1px;background:var(--color-line-strong);position:relative;overflow:hidden}
+  .al-progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--color-primary);transition:width .3s}
+  .al-label{font-size:11px;color:var(--color-muted);letter-spacing:.18em;flex:0 0 auto}
+  .al-edit,.al-export{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--color-line);font-size:12px;color:var(--color-ink-soft);cursor:pointer;letter-spacing:.04em;flex:0 0 auto}
+  .al-edit{background:var(--color-primary);color:#fff;border-color:var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.25)}
+  .al-edit:active,.al-export:active{transform:scale(.96)}
+
+  /* ---- 封面 ---- */
+  .al-cover{position:relative;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;padding:64px 30px 56px;overflow:hidden}
+  .al-cover__img{position:absolute;inset:0}
+  .al-cover__shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.05) 55%)}
+  .al-cover__content{position:relative;z-index:2;color:#F4F1E7}
+  .al-cover__tag{font-size:11px;letter-spacing:.34em;opacity:.8}
+  .al-cover__title{font-family:var(--font-serif);font-size:clamp(46px,13vw,64px);font-weight:400;line-height:1.1;letter-spacing:.04em;margin-top:18px}
+  .al-cover__sub{margin-top:14px;font-family:var(--font-serif);font-size:19px;opacity:.92}
+  .al-cover__year{margin-top:22px;font-size:12px;letter-spacing:.3em;opacity:.75}
+  .al-cover__scroll{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:3;color:#F4F1E7;font-size:10px;letter-spacing:.3em;opacity:.8;animation:alScroll 2.4s ease-in-out infinite}
+  @keyframes alScroll{0%,100%{opacity:.35}50%{opacity:.9}}
+
+  /* ---- 页 ---- */
+  .al-page{padding:100px 30px 90px}
+  .al-opening__title{font-family:var(--font-serif);font-size:44px;font-weight:400;line-height:1.15}
+  .al-opening__dates{margin-top:18px;font-size:13px;color:var(--color-muted);letter-spacing:.12em}
+  .al-opening__stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:44px}
+  .al-os b{display:block;font-family:var(--font-serif);font-size:26px;font-weight:400}
+  .al-os span{font-size:11px;color:var(--color-muted);display:block;margin-top:4px}
+  .al-opening__words{margin-top:64px;font-family:var(--font-serif);font-size:20px;line-height:2;color:var(--color-ink-soft);white-space:pre-wrap}
+
+  /* ---- Chapter ---- */
+  .al-ch-num{font-size:11px;color:var(--color-muted);letter-spacing:.26em}
+  .al-ch-title{font-family:var(--font-serif);font-size:clamp(38px,10vw,48px);font-weight:400;line-height:1.15;margin-top:16px}
+  .al-ch-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;margin-top:44px;display:block}
+  .al-ch-img--wide{aspect-ratio:16/10}
+  .al-ch-img--tall{aspect-ratio:3/4}
+  .al-ch-caption{margin-top:10px;font-size:11px;color:var(--color-muted);letter-spacing:.1em;text-align:right}
+  .al-duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:44px}
+  .al-duo .al-ch-img{margin-top:0;aspect-ratio:3/4}
+  .al-ch-lead{margin-top:24px;font-family:var(--font-serif);font-size:17px;line-height:2.05;color:var(--color-ink-soft);white-space:pre-wrap}
+
+  /* ---- 地图插页 ---- */
+  .al-map-plate{margin:64px 0 0;border-radius:18px;background:var(--map-bg);padding:34px 24px 28px;position:relative;overflow:hidden}
+  .al-map-plate svg{width:100%;height:auto;display:block}
+  .al-mp-title{font-size:11px;letter-spacing:.24em;color:var(--color-muted);text-align:center}
+
+  /* ---- 声音块 ---- */
+  .al-audio{margin-top:44px;display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--color-bg-soft);border-radius:16px}
+  .al-audio__btn{width:56px;height:56px;border-radius:50%;background:var(--color-primary);color:#fff;display:grid;place-items:center;cursor:pointer;flex:0 0 auto;border:0;transition:transform var(--t-fast);box-shadow:0 8px 20px rgba(200,109,75,.3)}
+  .al-audio__btn:active{transform:scale(.92)}
+  .al-audio__btn.is-playing{background:var(--color-primary);animation:alBreathe 2.8s ease-in-out infinite}
+  @keyframes alBreathe{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,.25)}50%{box-shadow:0 0 0 18px rgba(200,109,75,0)}}
+  .al-audio__meta{flex:1;min-width:0}
+  .al-audio__label{display:block;font-family:var(--font-serif);font-size:16px}
+  .al-audio__place{display:block;font-size:11px;color:var(--color-muted);margin-top:3px}
+  .al-audio__time{font-size:12px;color:var(--color-muted);font-variant-numeric:tabular-nums}
+
+  /* ---- Closing ---- */
+  .al-closing{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:60px 34px}
+  .al-closing__t{font-family:var(--font-serif);font-size:30px;font-weight:400;line-height:2;color:var(--color-ink-soft);white-space:pre-wrap}
+  .al-closing__mark{margin-top:44px;font-family:var(--font-serif);font-size:34px;letter-spacing:.1em}
+  .al-closing__link{margin-top:52px;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--color-primary-dark);cursor:pointer;padding:6px 0;border-bottom:1.5px solid var(--color-primary-dark)}
+
+  /* ---- 空状态 ---- */
+  .al-empty{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px}
+  .al-empty .em{font-family:var(--font-serif);font-size:44px;color:var(--color-faint)}
+  .al-empty b{display:block;margin-top:14px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
+  .al-empty span{display:block;margin-top:8px;font-size:12.5px;color:var(--color-muted);line-height:1.9}
+  .al-empty .btn{margin-top:26px;display:inline-flex;min-height:48px;align-items:center;padding:0 28px;border-radius:999px;background:var(--color-primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+
+  /* 深色适配 */
+  .theme-dark .al-top{background:linear-gradient(to bottom,rgba(29,28,25,.92),rgba(29,28,25,0))}
+  .theme-dark .al-back{background:rgba(38,36,32,.7)}
+  .theme-dark .al-export{background:rgba(38,36,32,.7);color:var(--color-ink-soft);border-color:var(--color-line)}
+</style>
+</head>
+<body>
+
+<div class="al-top">
+  <button class="al-back" onclick="history.length>1?history.back():location.href='review.html'" title="返回" aria-label="返回">←</button>
+  <div class="al-progress"><i id="alProg"></i></div>
+  <span class="al-label">Album</span>
+  <button class="al-export" id="alExport" title="导出 HTML">导出</button>
+  <button class="al-edit" id="alEdit" title="编辑这本旅行书">编辑</button>
+</div>
+
+<div class="al" id="albumRoot"></div>
+
+<script src="travel-notes.js"></script>
+<script src="album.js"></script>
+<script src="ui.js"></script>
+<script>
+(function () {
+  var ALBUM = null, _bound = false;
+
+  function esc(s){ return window.UI ? UI.esc(s) : String(s==null?'':s); }
+
+  function toast(msg){ if (window.UI) UI.toast(msg); }
+
+  /* 声音播放绑定 */
+  function bindAudio(root) {
+    root.querySelectorAll('.al-audio').forEach(function (a) {
+      var btn = a.querySelector('.al-audio__btn');
+      var t = a.querySelector('.al-audio__time');
+      if (!btn || btn._bound) return;
+      btn._bound = true;
+      var au = new Audio(a.dataset.audio);
+      function fmt(s){ if(!isFinite(s)) return '00:00'; s=Math.floor(s); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+      function icon(playing){
+        return playing
+          ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5 H10 V19 H6 Z M14 5 H18 V19 H14 Z"/></svg>'
+          : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5 L19 12 L7 19 Z"/></svg>';
+      }
+      au.addEventListener('loadedmetadata', function(){ t.textContent = fmt(au.duration); });
+      btn.onclick = function () {
+        if (au.paused) { au.play(); btn.classList.add('is-playing'); btn.innerHTML = icon(true); }
+        else { au.pause(); btn.classList.remove('is-playing'); btn.innerHTML = icon(false); }
+      };
+      au.addEventListener('ended', function(){ btn.classList.remove('is-playing'); btn.innerHTML = icon(false); });
+    });
+  }
+
+  /* 阅读进度 */
+  function bindProgress() {
+    addEventListener('scroll', function () {
+      var h = document.documentElement.scrollHeight - innerHeight;
+      var p = h > 0 ? (scrollY / h * 100) : 0;
+      document.getElementById('alProg').style.width = p + '%';
+    }, { passive: true });
+  }
+
+  function render(album) {
+    ALBUM = album;
+    document.getElementById('albumRoot').innerHTML = Album.render(album);
+    document.getElementById('alEdit').style.display = album ? 'block' : 'none';
+    document.getElementById('alExport').style.display = album ? 'block' : 'none';
+    if (album) bindAudio(document.getElementById('albumRoot'));
+  }
+
+  function renderEmpty() {
+    document.getElementById('albumRoot').innerHTML =
+      '<div class="al-empty"><div class="em">册</div><b>还没有可以成册的游记</b>'
+      + '<span>出去走一走，记下几段旅程，<br>这里会慢慢长成一本属于你的旅行书。</span>'
+      + '<button class="btn" onclick="location.href=\'travel-map.html\'">去记录 →</button></div>';
+    document.getElementById('alEdit').style.display = 'none';
+    document.getElementById('alExport').style.display = 'none';
+  }
+
+  function autoCreate() {
+    var notes = (window.TravelNotes ? TravelNotes.list() : []);
+    if (!notes.length) { renderEmpty(); return; }
+    var a = Album.buildFromNotes(notes);
+    // 静默存为草稿，保证有 id，编辑/导出可闭环
+    Album.save(a).then(function (saved) {
+      render(saved);
+      toast('已从 ' + notes.length + ' 篇游记生成图册，点「编辑」可调整');
+    }).catch(function () {
+      render(a);   // 存储失败仍可预览
+    });
+  }
+
+  function boot() {
+    var id = new URLSearchParams(location.search).get('id');
+    if (id) {
+      Album.get(id).then(function (a) { if (a) render(a); else autoCreate(); })
+        .catch(function () { autoCreate(); });
+    } else {
+      Album.list().then(function (list) {
+        if (list.length) render(list[list.length - 1]);
+        else autoCreate();
+      }).catch(function () { autoCreate(); });
+    }
+  }
+
+  /* 编辑：跳转编辑器 */
+  document.getElementById('alEdit').onclick = function () {
+    if (!ALBUM) return;
+    if (ALBUM.id && ALBUM.updatedAt) { location.href = 'album-edit.html?id=' + encodeURIComponent(ALBUM.id); return; }
+    Album.save(ALBUM).then(function (saved) { location.href = 'album-edit.html?id=' + encodeURIComponent(saved.id); });
+  };
+
+  /* 导出独立 HTML */
+  document.getElementById('alExport').onclick = function () {
+    if (!ALBUM) return;
+    var html = Album.exportHTML(ALBUM);
+    var name = (ALBUM.title || '我的旅行图册');
+    if (window.AndroidVoice && window.AndroidVoice.saveTextFile) {
+      window.__tnSaveDone = function (r) {
+        if (r === 'err') toast('保存失败');
+        else if (r === 'need_perm') toast('需要存储权限');
+        else toast('已保存：Download/' + r);
+      };
+      try { AndroidVoice.saveTextFile(name + '.html', html); } catch (e) { toast('保存不可用'); }
+    } else {
+      var a = document.createElement('a');
+      a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+      a.download = name + '.html'; a.click();
+      toast('已下载');
+    }
+  };
+
+  bindProgress();
+  // 等游记库就绪再启动
+  if (window.TravelNotes) {
+    TravelNotes.init({});
+    window.TravelNotes._onReady = boot;
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

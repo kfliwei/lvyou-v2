@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>编辑旅行书 · 行迹</title>
+<link rel="manifest" href="manifest.webmanifest">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  /* flex 列布局：顶栏 + 内容滚动区 + 底栏，底栏参与布局不遮挡内容 */
+  body{display:flex;flex-direction:column;overflow:hidden}
+
+  .ed-top{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top, 0px) + 10px) 18px 10px;background:rgba(247,245,239,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--color-line)}
+  .ed-back{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:var(--color-surface);border:1px solid var(--color-line);cursor:pointer;font-size:16px;color:var(--color-ink);flex:0 0 auto}
+  .ed-back:active{transform:scale(.92)}
+  .ed-title{font-family:var(--font-serif);font-size:19px;font-weight:400;flex:1;min-width:0}
+  .ed-title small{display:block;font-family:var(--font-sans);font-size:10.5px;color:var(--color-muted);letter-spacing:.08em;font-weight:400;margin-top:2px}
+  .ed-done{padding:10px 20px;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;flex:0 0 auto;box-shadow:0 4px 14px rgba(200,109,75,.25)}
+  .ed-done:active{transform:scale(.94)}
+
+  /* 内容滚动容器：独立滚动，底部即底栏顶部，输入框永不与底栏重叠 */
+  .ed-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:720px;margin:0 auto;padding:8px 16px 32px}
+
+  /* 封面卡 */
+  .ed-cover{margin-top:8px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;box-shadow:var(--shadow-soft);overflow:hidden}
+  .ed-cover__thumb{position:relative;aspect-ratio:16/9;background:var(--color-bg-soft);background-size:cover;background-position:center}
+  .ed-cover__thumb .shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),rgba(0,0,0,.05) 60%)}
+  .ed-cover__tt{position:absolute;left:18px;bottom:14px;right:18px;color:#F4F1E7;font-family:var(--font-serif);font-size:24px}
+  .ed-cover__body{padding:14px 16px}
+.ed-field{width:100%;height:44px;border:1px solid var(--color-line);border-radius:12px;font-size:14px;padding:0 12px;background:var(--color-surface);color:var(--color-ink);margin-bottom:8px}
+.ed-field:focus{outline:none;border-color:var(--color-primary)}
+.ed-label{display:block;font-size:10.5px;color:var(--color-muted);letter-spacing:.18em;margin:0 2px 5px;text-transform:uppercase}
+  .ed-cover__btn{width:100%;min-height:44px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-bg-soft);color:var(--color-ink-soft);font-size:13px;cursor:pointer}
+  .ed-cover__btn:active{transform:scale(.98)}
+
+  /* 章节卡 */
+  .ed-chapter{margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;box-shadow:var(--shadow-soft);padding:16px;position:relative;scroll-margin-bottom:120px}
+  .ech-head{display:flex;align-items:center;gap:12px}
+  .ech-grip{color:var(--color-faint);cursor:grab;font-size:16px;letter-spacing:-2px;line-height:1;flex:0 0 auto;user-select:none}
+  .ech-body{flex:1;min-width:0}
+  .ech-num{font-size:10px;color:var(--color-muted);letter-spacing:.24em}
+  .ech-title{font-family:var(--font-serif);font-size:20px;font-weight:400;margin-top:4px;border:0;background:transparent;width:100%;outline:none;color:var(--color-ink)}
+  .ech-title:focus{border-bottom:1px dashed var(--color-line-strong)}
+  .ech-del{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--color-bg-soft);color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto}
+  .ech-del.danger{color:#B3543C}
+  .ech-del:active{transform:scale(.92)}
+
+  /* 照片区 */
+  .ech-photos{margin-top:14px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .eph{position:relative;border-radius:12px;overflow:hidden;background:var(--color-bg-soft);border:1.5px dashed var(--color-line-strong);aspect-ratio:4/3}
+  .eph img{width:100%;height:100%;object-fit:cover;display:block}
+  .eph .bar{position:absolute;left:6px;bottom:6px;display:flex;gap:5px}
+  .eph .btn{height:28px;padding:0 9px;border-radius:8px;background:rgba(250,248,243,.92);border:1px solid rgba(32,32,29,.1);font-size:10.5px;color:#20201D;cursor:pointer;display:inline-flex;align-items:center}
+  .eph .btn.rm{position:absolute;right:6px;top:6px;width:26px;height:26px;padding:0;justify-content:center;border-radius:50%}
+  .eph-empty{display:grid;place-items:center;color:var(--color-faint);font-size:12px;cursor:pointer}
+
+  /* 布局切换 */
+  .ech-layout{display:flex;gap:6px;margin-top:10px;align-items:center}
+  .ech-layout .lb{font-size:10.5px;color:var(--color-muted);margin-right:2px}
+  .lay-mode{width:40px;height:32px;border-radius:8px;background:var(--color-bg-soft);border:1px solid var(--color-line);display:grid;place-items:center;font-size:11px;color:var(--color-ink-soft);cursor:pointer}
+  .lay-mode.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+  .lay-mode:active{transform:scale(.92)}
+
+  /* 文字区 */
+  .ech-text{margin-top:12px;border-radius:12px;border:1.5px dashed var(--color-line-strong);padding:14px 16px 20px;font-family:var(--font-serif);font-size:15px;line-height:2;color:var(--color-ink-soft);background:var(--color-bg-soft);min-height:120px;display:block;white-space:pre-wrap;word-break:break-word;scroll-margin-bottom:140px}
+  .ech-text:focus{outline:none;border-color:var(--color-primary)}
+  .ech-text:empty:before{content:'写一段文字…';color:var(--color-faint)}
+
+  /* 声音 */
+  .ech-audio{margin-top:12px;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--color-primary-soft);border-radius:12px}
+  .ech-audio .play{color:var(--color-primary-dark);font-weight:600;font-size:13px}
+  .ech-audio .meta{flex:1;min-width:0;font-size:11px;color:var(--color-muted)}
+  .ech-audio .rm{color:var(--color-muted);font-size:12px;cursor:pointer;padding:6px}
+
+  /* 添加栏 */
+  /* 底栏：普通 flex 项，占布局高度（不再 fixed 悬浮） */
+  .add-bar{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px calc(env(safe-area-inset-bottom, 0px) + 12px);background:rgba(247,245,239,.96);backdrop-filter:blur(16px);border-top:1px solid var(--color-line);box-shadow:0 -8px 24px rgba(30,30,28,.08)}
+  .add-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:14px;background:var(--color-surface);border:1px solid var(--color-line);font-size:11px;color:var(--color-muted);cursor:pointer}
+  .add-btn:active{transform:scale(.96)}
+  .add-btn .plus{width:22px;height:22px;border-radius:50%;background:var(--color-primary);color:#fff;display:grid;place-items:center;font-size:13px;line-height:1}
+
+  /* 选择器 modal */
+  .picker{position:fixed;inset:0;z-index:1000;background:rgba(32,32,29,.5);display:flex;align-items:flex-end;justify-content:center}
+  .picker .panel{background:var(--color-surface);border-radius:20px 20px 0 0;width:100%;max-width:720px;max-height:76dvh;padding:14px 16px calc(env(safe-area-inset-bottom, 0px) + 18px);overflow-y:auto}
+  .picker .phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .picker .phead b{font-family:var(--font-serif);font-size:17px;font-weight:400}
+  .picker .pclose{width:32px;height:32px;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer}
+  .p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .p-cell{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--color-bg-soft);cursor:pointer;border:2px solid transparent}
+  .p-cell img{width:100%;height:100%;object-fit:cover}
+  .p-cell.on{border-color:var(--color-primary)}
+  .p-cell .pl{position:absolute;left:0;right:0;bottom:0;padding:3px 6px;background:linear-gradient(to top,rgba(0,0,0,.6),transparent);color:#fff;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 游记选择器 */
+  .n-item{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .n-item:active{background:var(--color-bg-soft)}
+  .n-item .th{width:42px;height:42px;border-radius:10px;overflow:hidden;background:var(--color-bg-soft);flex:0 0 auto;display:grid;place-items:center}
+  .n-item .th img{width:100%;height:100%;object-fit:cover}
+  .n-item .th span{font-family:var(--font-serif);font-size:15px;color:var(--color-muted)}
+  .n-item .main{flex:1;min-width:0}
+  .n-item .main b{display:block;font-family:var(--font-serif);font-size:14px;font-weight:600;color:var(--color-ink)}
+  .n-item .main span{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
+
+  .theme-dark .ed-top{background:rgba(29,28,25,.92)}
+  .theme-dark .add-bar{background:rgba(29,28,25,.96)}
+
+  /* Toast（ui.js 创建 .ui-toast 时的可见样式，album-edit 局部兜底） */
+  .ui-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 14px);transform:translateX(-50%) translateY(-12px);background:rgba(32,32,29,.92);color:#FAF8F3;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:1100;box-shadow:0 8px 24px rgba(30,30,28,.3);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;letter-spacing:.02em}
+  .ui-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="ed-top">
+  <button class="ed-back" onclick="history.length>1?history.back():location.href='album.html'" aria-label="返回">←</button>
+  <div class="ed-title">编辑旅行书<small>ALBUM EDITOR</small></div>
+  <button class="ed-done" id="edDone">完成</button>
+</div>
+
+<div class="ed-wrap" id="edRoot"></div>
+
+<div class="add-bar">
+  <button class="add-btn" id="addPhoto"><span class="plus">+</span>添加照片</button>
+  <button class="add-btn" id="addMemory"><span class="plus">+</span>添加记忆</button>
+  <button class="add-btn" id="addText"><span class="plus">+</span>添加文字</button>
+  <button class="add-btn" id="addMap"><span class="plus">+</span>添加地图</button>
+</div>
+
+<script src="travel-notes.js"></script>
+<script src="album.js"></script>
+<script src="ui.js"></script>
+<script>
+(function () {
+  var album = null, notes = [];
+
+  function esc(s){ return window.UI ? UI.esc(s) : String(s==null?'':s); }
+  function toast(m){ if (window.UI) UI.toast(m); }
+
+  /* 聚焦/点按中的文字编辑框（保证不被底部固定栏遮挡） */
+  var activeEch = null;
+  function echWrap() { return document.querySelector('.ed-wrap'); }
+  /* 安全线：内容滚动区底部（即底栏顶部）向上 16px 缓冲 */
+  function echSafeLine() {
+    var wrap = echWrap();
+    if (wrap) return wrap.getBoundingClientRect().bottom - 16;
+    var bar = document.querySelector('.add-bar');
+    var barH = bar ? bar.getBoundingClientRect().height : 88;
+    var vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    return vh - barH - 16;
+  }
+  function scheduleEchScroll(delay) {
+    setTimeout(function () {
+      if (!activeEch) return;
+      var wrap = echWrap();
+      if (!wrap) return;
+      var rect = activeEch.getBoundingClientRect();
+      var safe = echSafeLine();
+      if (rect.bottom > safe) {
+        wrap.scrollTop += rect.bottom - safe + 12;
+      }
+    }, delay || 0);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function () { scheduleEchScroll(150); });
+    window.visualViewport.addEventListener('scroll', function () { scheduleEchScroll(0); });
+  }
+  /* 新增章节后：滚动到新章节，确保文字输入框完整露出在底栏之上 */
+  function scrollLastChapterIntoView() {
+    setTimeout(function () {
+      var wrap = echWrap();
+      if (!wrap) return;
+      var cards = document.querySelectorAll('.ed-chapter');
+      var last = cards[cards.length - 1];
+      if (!last) return;
+      var el = last.querySelector('.ech-text') || last;
+      var rect = el.getBoundingClientRect();
+      var safe = echSafeLine();
+      if (rect.bottom > safe) {
+        wrap.scrollTop += rect.bottom - safe + 12;
+      }
+    }, 80);   // 等 render() 重绘后再量位置
+  }
+
+  /* 照片池：所有游记照片 + 各自归属 */
+  function buildPhotoPool() {
+    var pool = [];
+    notes.forEach(function (n) {
+      (n.photos || []).forEach(function (p) {
+        pool.push({ src: p, label: n.title || n.siteName || '' });
+      });
+    });
+    return pool;
+  }
+
+  /* 通用 modal 选择器 */
+  function openPicker(title, cellsHtml) {
+    var m = document.createElement('div');
+    m.className = 'picker';
+    m.innerHTML = '<div class="panel"><div class="phead"><b>' + esc(title) + '</b><button class="pclose">✕</button></div>'
+      + '<div class="pbody">' + cellsHtml + '</div></div>';
+    document.body.appendChild(m);
+    function close(){ m.remove(); }
+    m.querySelector('.pclose').onclick = close;
+    m.onclick = function (e) { if (e.target === m) close(); };
+    return { el: m, close: close };
+  }
+
+  /* 选照片 */
+  function pickPhoto(cb) {
+    var pool = buildPhotoPool();
+    if (!pool.length) { toast('还没有照片：先去游记里添加照片'); return; }
+    var cells = '<div class="p-grid">' + pool.map(function (p, i) {
+      return '<div class="p-cell" data-i="' + i + '"><img src="' + p.src + '" alt="" onerror="this.remove()"><span class="pl">' + esc(p.label) + '</span></div>';
+    }).join('') + '</div>';
+    var pk = openPicker('选择一张照片', cells);
+    pk.el.querySelectorAll('.p-cell').forEach(function (c) {
+      c.onclick = function () { pk.close(); cb(pool[+c.dataset.i].src); };
+    });
+  }
+
+  /* 选记忆（游记） */
+  function pickNote(cb) {
+    if (!notes.length) { toast('还没有游记'); return; }
+    var items = notes.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).map(function (n) {
+      var th = (n.photos && n.photos[0]) ? '<img src="' + n.photos[0] + '" onerror="this.remove()">' : '<span>记</span>';
+      return '<div class="n-item" data-id="' + esc(n.id) + '"><div class="th">' + th + '</div>'
+        + '<div class="main"><b>' + esc(n.title || n.siteName || '未命名') + '</b><span>' + esc((n.date || '') + (n.weather ? ' · ' + n.weather : '')) + '</span></div></div>';
+    }).join('');
+    var pk = openPicker('添加一段记忆', items);
+    pk.el.querySelectorAll('.n-item').forEach(function (it) {
+      it.onclick = function () {
+        var n = null;
+        for (var i = 0; i < notes.length; i++) if (notes[i].id === it.dataset.id) { n = notes[i]; break; }
+        pk.close(); cb(n);
+      };
+    });
+  }
+
+  /* ---- 章节操作 ---- */
+  function chapterFromNote(n) {
+    var ph = (n.photos || []).slice(0, 2);
+    return {
+      id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
+      title: n.title || n.siteName || '未命名',
+      lead: (n.text || n.raw || '').trim(),
+      layout: ph.length >= 2 ? 'duo' : (ph.length ? 'full' : 'text'),
+      photos: ph,
+      caption: (n.date || '') + (n.weather ? ' · ' + n.weather : ''),
+      audio: n.audio || '',
+      audioLabel: n.title || n.siteName || '',
+      mapPoints: (n.lat != null && n.lng != null) ? [{ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' }] : []
+    };
+  }
+  function newChapter() {
+    return { id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '新章节', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: [] };
+  }
+  function addChapter(ch) {
+    album.chapters.push(ch);
+    render();
+    scrollLastChapterIntoView();
+  }
+  function removeChapter(idx) {
+    if (window.UI) {
+      UI.confirm({ title: '删除章节', text: '确定删除「' + (album.chapters[idx].title || '') + '」吗？', okText: '删除', danger: true }, function (ok) { if (ok) { album.chapters.splice(idx, 1); render(); } });
+    } else {
+      album.chapters.splice(idx, 1); render();
+    }
+  }
+
+  /* ---- 渲染 ---- */
+  function render() {
+    var root = document.getElementById('edRoot');
+    var h = [];
+
+    // 封面卡
+    var coverBg = album.cover ? 'background-image:url(' + album.cover + ')' : 'background:' + album.coverGradient;
+    h.push('<div class="ed-cover">'
+      + '<div class="ed-cover__thumb" style="' + coverBg + '"><div class="shade"></div><div class="ed-cover__tt">' + esc(album.title) + '</div></div>'
+      + '<div class="ed-cover__body">'
+      + '<label class="ed-label" for="cvTitle">书名</label>'
+      + '<input class="ed-field" id="cvTitle" value="' + esc(album.title) + '" placeholder="如：湘西">'
+      + '<label class="ed-label" for="cvSub">副标题</label>'
+      + '<input class="ed-field" id="cvSub" value="' + esc(album.subtitle || '') + '" placeholder="如：我的夏天">'
+      + '<label class="ed-label" for="cvYear">年份</label>'
+      + '<input class="ed-field" id="cvYear" value="' + esc(album.year || '') + '" placeholder="如：2026" style="margin-bottom:10px">'
+      + '<button class="ed-cover__btn" id="cvSwap">换封面</button>'
+      + '</div></div>');
+
+    // 章节卡
+    album.chapters.forEach(function (ch, i) {
+      h.push(renderChapterCard(ch, i));
+    });
+
+    root.innerHTML = h.join('');
+
+    // 封面绑定
+    root.querySelector('#cvTitle').onchange = function () { album.title = this.value.trim(); };
+    root.querySelector('#cvSub').onchange = function () { album.subtitle = this.value.trim(); };
+    root.querySelector('#cvYear').onchange = function () { album.year = this.value.trim(); };
+    root.querySelector('#cvSwap').onclick = function () {
+      pickPhoto(function (src) { album.cover = src; render(); });
+    };
+
+    // 章节绑定
+    album.chapters.forEach(function (ch, i) { bindChapter(root, ch, i); });
+  }
+
+  function renderChapterCard(ch, i) {
+    var photosHtml = '';
+    if (ch.photos && ch.photos.length) {
+      photosHtml = ch.photos.map(function (p, pi) {
+        return '<div class="eph"><img src="' + p + '" alt="" onerror="this.remove()">'
+          + '<button class="btn" data-act="swap" data-pi="' + pi + '">换</button>'
+          + '<button class="btn rm" data-act="rmph" data-pi="' + pi + '">✕</button></div>';
+      }).join('');
+    } else {
+      photosHtml = '<div class="eph eph-empty" data-act="addph">＋ 加照片</div>';
+    }
+    var audioHtml = ch.audio
+      ? '<div class="ech-audio"><span class="play">▶</span><span class="meta">原声 · ' + esc(ch.audioLabel || '这一刻') + '</span><span class="rm" data-act="rmaudio">移除</span></div>'
+      : '';
+    var layouts = [['full', '大图', '单张照片占满（4:3）'], ['duo', '双图', '两张照片并排（3:4）'], ['wide', '全宽', '宽屏大图（16:10）'], ['text', '文字', '纯文字页（无图）']];
+    var layHtml = layouts.map(function (L) {
+      return '<button class="lay-mode' + (ch.layout === L[0] ? ' active' : '') + '" data-act="lay" data-l="' + L[0] + '" title="' + L[2] + '">' + L[1] + '</button>';
+    }).join('');
+
+    return '<div class="ed-chapter" data-i="' + i + '">'
+      + '<div class="ech-head">'
+      + '<span class="ech-grip">⋮⋮</span>'
+      + '<div class="ech-body"><div class="ech-num">Chapter ' + String(i + 1).padStart(2, '0') + '</div>'
+      + '<input class="ech-title" value="' + esc(ch.title || '') + '" placeholder="章节标题"></div>'
+      + '<button class="ech-del danger" data-act="del" title="删除章节">✕</button>'
+      + '</div>'
+      + '<div class="ech-photos">' + photosHtml + '</div>'
+      + '<div class="ech-layout"><span class="lb">布局</span>' + layHtml + '</div>'
+      + '<div class="ech-text" contenteditable="true" data-act="lead">' + esc(ch.lead || '').replace(/\n/g, '<br>') + '</div>'
+      + audioHtml
+      + '</div>';
+  }
+
+  function bindChapter(root, ch, i) {
+    var card = root.querySelector('.ed-chapter[data-i="' + i + '"]');
+    if (!card) return;
+    card.querySelector('.ech-title').onchange = function () { ch.title = this.value.trim(); };
+    card.querySelector('.ech-text').oninput = function () { ch.lead = this.innerText; };
+    /* 聚焦 ech-text 时滚动到添加栏上方，避免 fixed 底栏遮挡输入框下沿
+       要点：动态测量添加栏实际高度；用 visualViewport 取真实可视高度（iOS 键盘）；
+       键盘弹出/收起（visualViewport resize）后自动再校正一次 */
+    var el = card.querySelector('.ech-text');
+    el.addEventListener('focus', function () {
+      activeEch = el;
+      scheduleEchScroll();
+      scheduleEchScroll(180);   // 键盘弹出动画后再次校正
+      scheduleEchScroll(600);   // 兜底：输入法弹出慢时
+    });
+    /* 移动端点按即校正（不依赖 focus，部分 WebView 点按不触发 focus 事件） */
+    el.addEventListener('pointerdown', function () {
+      activeEch = el;
+      scheduleEchScroll(320);
+    });
+    el.addEventListener('blur', function () { if (activeEch === el) activeEch = null; });
+    // 删除
+    card.querySelector('[data-act="del"]').onclick = function () { removeChapter(i); };
+    // 布局
+    card.querySelectorAll('[data-act="lay"]').forEach(function (b) {
+      b.onclick = function () {
+        ch.layout = b.dataset.l;
+        card.querySelectorAll('.lay-mode').forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+      };
+    });
+    // 照片操作
+    card.querySelectorAll('[data-act="swap"]').forEach(function (b) {
+      b.onclick = function () { var pi = +b.dataset.pi; pickPhoto(function (src) { ch.photos[pi] = src; render(); }); };
+    });
+    card.querySelectorAll('[data-act="rmph"]').forEach(function (b) {
+      b.onclick = function () { ch.photos.splice(+b.dataset.pi, 1); render(); };
+    });
+    var addphBtn = card.querySelector('[data-act="addph"]');
+    if (addphBtn) addphBtn.onclick = function () { pickPhoto(function (src) { ch.photos.push(src); render(); }); };
+    // 移除声音（仅章节含音频时才存在该按钮）
+    var rmaudioBtn = card.querySelector('[data-act="rmaudio"]');
+    if (rmaudioBtn) rmaudioBtn.onclick = function () { ch.audio = ''; render(); };
+  }
+
+  /* ---- 添加栏 ---- */
+  document.getElementById('addPhoto').onclick = function () {
+    pickPhoto(function (src) {
+      album.chapters.push({ id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '这一刻', lead: '', layout: 'full', photos: [src], caption: '', audio: '', audioLabel: '', mapPoints: [] });
+      render();
+      scrollLastChapterIntoView();
+    });
+  };
+  document.getElementById('addMemory').onclick = function () {
+    pickNote(function (n) { addChapter(chapterFromNote(n)); });
+  };
+  document.getElementById('addText').onclick = function () { addChapter(newChapter()); };
+  document.getElementById('addMap').onclick = function () {
+    var pts = [];
+    notes.filter(function (n) { return n.lat != null && n.lng != null; }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (n) {
+      pts.push({ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' });
+    });
+    if (!pts.length) { toast('还没有带位置的游记'); return; }
+    album.chapters.push({ id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '我们的路线', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: pts });
+    render();
+    scrollLastChapterIntoView();
+  };
+
+  /* ---- 完成保存 ---- */
+  document.getElementById('edDone').onclick = function () {
+    album.updatedAt = Date.now();
+    Album.save(album).then(function () {
+      toast('已保存');
+      location.href = 'album.html?id=' + encodeURIComponent(album.id);
+    }).catch(function () {
+      toast('保存失败');
+    });
+  };
+
+  /* ---- 启动 ---- */
+  function boot() {
+    notes = (window.TravelNotes ? TravelNotes.list() : []);
+    var id = new URLSearchParams(location.search).get('id');
+    if (id) {
+      Album.get(id).then(function (a) {
+        if (a) { album = a; render(); }
+        else { album = Album.buildFromNotes(notes); render(); }
+      }).catch(function () { album = Album.buildFromNotes(notes); render(); });
+    } else {
+      album = Album.buildFromNotes(notes);
+      render();
+    }
+  }
+
+  if (window.TravelNotes) {
+    TravelNotes.init({});
+    window.TravelNotes._onReady = boot;
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

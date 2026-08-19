@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>行迹 TRACE v2.23 · 功能完整性审核报告</title>
+<style>
+  :root {
+    --bg: #F7F5EF; --bg-soft: #F0EDE5; --bg-deep: #E6E1D7;
+    --surface: #FFFFFF; --ink: #20201D; --ink-soft: #4C4A45;
+    --muted: #7D7970; --faint: #AAA59B; --line: rgba(32,32,29,.09);
+    --primary: #C86D4B; --primary-dark: #A9563B; --primary-soft: rgba(200,109,75,.10);
+    --green: #71806C; --blue: #6D7D88; --amber: #B08A3E; --red: #B04A3A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "SF Pro Text","PingFang SC","Noto Sans SC",system-ui,sans-serif;
+    font-size: 15px; line-height: 1.75; padding: 40px 20px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .serif { font-family: "Songti SC","STSong","Noto Serif SC",serif; }
+  header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+  header .kicker { font-size: 12px; letter-spacing: .35em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+  header h1 { font-size: 30px; font-weight: 600; letter-spacing: .02em; }
+  header .sub { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 24px 0 8px; }
+  .meta-item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .meta-item .v { font-size: 20px; font-weight: 600; font-family: "Songti SC",serif; }
+  .meta-item .k { font-size: 11px; color: var(--muted); letter-spacing: .12em; margin-top: 2px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-left: 12px; border-left: 3px solid var(--primary); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; color: var(--ink); }
+  p { margin: 10px 0; color: var(--ink-soft); }
+  .score-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+  .score-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .score-card .dim { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; }
+  .score-card .dim b { font-size: 22px; color: var(--primary-dark); font-family: "Songti SC",serif; }
+  .bar { height: 5px; border-radius: 3px; background: var(--bg-deep); margin-top: 10px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+  .score-card .note { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 13.5px; margin: 14px 0; }
+  th { background: var(--bg-soft); color: var(--ink); font-weight: 600; text-align: left; padding: 10px 12px; font-size: 12.5px; letter-spacing: .04em; }
+  td { padding: 10px 12px; border-top: 1px solid var(--line); color: var(--ink-soft); vertical-align: top; }
+  td:first-child { color: var(--ink); white-space: nowrap; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+  .t-ok { background: rgba(113,128,108,.14); color: #4E5C49; }
+  .t-part { background: rgba(176,138,62,.14); color: #8A6C2E; }
+  .t-miss { background: rgba(176,74,58,.12); color: #96402F; }
+  .t-p0 { background: rgba(176,74,58,.14); color: #96402F; }
+  .t-p1 { background: rgba(176,138,62,.14); color: #8A6C2E; }
+  .t-p2 { background: rgba(109,125,136,.14); color: #4E5C64; }
+  .t-p3 { background: rgba(32,32,29,.07); color: var(--muted); }
+  .callout { border-radius: 14px; padding: 16px 18px; margin: 14px 0; font-size: 14px; line-height: 1.8; }
+  .c-red { background: rgba(176,74,58,.08); border: 1px solid rgba(176,74,58,.25); }
+  .c-amber { background: rgba(176,138,62,.08); border: 1px solid rgba(176,138,62,.25); }
+  .c-green { background: rgba(113,128,108,.10); border: 1px solid rgba(113,128,108,.28); }
+  .callout b { color: var(--ink); }
+  .c-red .head { color: #96402F; font-weight: 600; }
+  .c-amber .head { color: #8A6C2E; font-weight: 600; }
+  .c-green .head { color: #4E5C49; font-weight: 600; }
+  code { background: var(--bg-deep); border-radius: 4px; padding: 1px 6px; font-size: 12.5px; font-family: "SF Mono",Consolas,monospace; color: var(--ink); }
+  ul, ol { padding-left: 22px; margin: 8px 0; color: var(--ink-soft); }
+  li { margin: 5px 0; }
+  .timeline { position: relative; margin: 18px 0; padding-left: 8px; }
+  .tl-item { display: flex; gap: 14px; padding: 10px 0; }
+  .tl-marker { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--primary-soft); color: var(--primary-dark); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .tl-body { flex: 1; border-bottom: 1px dashed var(--line); padding-bottom: 12px; }
+  .tl-body:last-child { border-bottom: none; }
+  .tl-title { font-weight: 600; font-size: 14px; }
+  .tl-title .tag { margin-left: 8px; }
+  .tl-text { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.7; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel h4 { font-size: 13px; letter-spacing: .1em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .panel li { font-size: 13.5px; }
+  footer { text-align: center; color: var(--faint); font-size: 12px; padding: 36px 0 12px; border-top: 1px solid var(--line); margin-top: 44px; line-height: 2; }
+  .ok-ic { color: var(--green); font-weight: 700; }
+  .warn-ic { color: var(--amber); font-weight: 700; }
+  .bad-ic { color: var(--red); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">FUNCTIONAL AUDIT · 2026-08-19</div>
+  <h1 class="serif">行迹 TRACE v2.23 · 功能完整性审核</h1>
+  <div class="sub">审核对象:lvyou-v2(Web 前端 · 15 页面)+ lvyou-v2-android(构建工程 v2.23 / versionCode 33)<br>审核维度:功能完整性 · 实用性 · 可提升方向(对照《设计蓝图 v2.0》与 README 宣称能力)</div>
+  <div class="meta-grid">
+    <div class="meta-item"><div class="v">15</div><div class="k">页面</div></div>
+    <div class="meta-item"><div class="v">7833</div><div class="k">地图节点</div></div>
+    <div class="meta-item"><div class="v">34 省</div><div class="k">专题覆盖</div></div>
+    <div class="meta-item"><div class="v">2.23</div><div class="k">构建版本</div></div>
+  </div>
+</header>
+
+<h2>一、总体评分</h2>
+<div class="score-row">
+  <div class="score-card">
+    <div class="dim"><span>功能完整性</span><b>8.5<span style="font-size:12px;color:var(--faint)">/10</span></b></div>
+    <div class="bar"><i style="width:85%"></i></div>
+    <div class="note">README 宣称能力全部真实落地且可验证;但对照设计蓝图 v2.0,图册(杂志式旅行书)、记忆地图照片化、抵达情绪页三项核心差异化设计未落地或已变形。</div>
+  </div>
+  <div class="score-card">
+    <div class="dim"><span>实用性(个人自用)</span><b>9<span style="font-size:12px;color:var(--faint)">/10</span></b></div>
+    <div class="bar"><i style="width:90%"></i></div>
+    <div class="note">无 Key 全链路可用、数据主权完备(IndexedDB + Obsidian/GPX 导出)、旅行模式闭环真实可用。扣分项:存储统计口径失真、离线地图缺失、真机弱网首屏仍受缓存清除拖累。</div>
+  </div>
+  <div class="score-card">
+    <div class="dim"><span>工程健康度</span><b>7<span style="font-size:12px;color:var(--faint)">/10</span></b></div>
+    <div class="bar"><i style="width:70%"></i></div>
+    <div class="note">git 纪律好(提交信息详尽、20+ 审核文档入库、tools 300+ 验证脚本)。最大隐患:双工程漂移--修复写进了 git 仓库副本,实际构建工程未同步(详见三-1)。</div>
+  </div>
+</div>
+
+<div class="callout c-green">
+  <span class="head">一句话结论:</span><b>这是一款功能密度远超"个人自用"水准的成熟应用,宣称即所得,无虚标。</b>当前阶段的正确动作不是加功能,而是三件事:<b>把已修复的代码同步到真正构建的工程</b>、<b>补齐存储/离线两个可靠性短板</b>、<b>决定蓝图差异化设计(图册/记忆地图)是砍掉还是排期回归</b>。
+</div>
+
+<h2>二、功能完整性对照</h2>
+<h3>2.1 README 宣称能力 - 全部实锤 ✓</h3>
+<table>
+  <tr><th style="width:150px">宣称能力</th><th style="width:80px">状态</th><th>代码证据</th></tr>
+  <tr><td>语音游记闭环</td><td><span class="tag t-ok">✓ 完整</span></td><td><code>travel-notes.js</code>(144KB):讯飞+Google 双引擎、AI 润色、IndexedDB 持久层含版本迁移框架、增量 diff 写回、媒体优先落盘 <code>file://</code></td></tr>
+  <tr><td>34 省 7833 节点专题地图</td><td><span class="tag t-ok">✓ 完整</span></td><td><code>nation-index.js</code>(1.4MB 真实坐标)+ <code>topic-meta.js</code> 注册表驱动 <code>topic.html</code> + <code>node-lod.js</code> LOD 分层(Zoom1 聚合→Zoom4 详情,严格按蓝图 §4.2 实现)</td></tr>
+  <tr><td>对话式行程规划</td><td><span class="tag t-ok">✓ 完整</span></td><td><code>planner.js</code>(83KB):意图解析→真实节点召回→贪心排期→季节校验→旅行模式逐站打卡→一键成册→GPX/导航/导出;AI 三档降级链(full→ruleEnhance→template)无 Key 全通</td></tr>
+  <tr><td>想去清单</td><td><span class="tag t-ok">✓ 完整</span></td><td>打卡 + 3km 到达提醒(<code>wishlist.js</code>),可跳转 planner 自动带入未打卡心愿</td></tr>
+  <tr><td>旅程回顾</td><td><span class="tag t-ok">✓ 完整</span></td><td><code>review.html</code>:月历热力、年度报告、足迹海报(<code>poster.js</code>)、省份色块</td></tr>
+  <tr><td>成果工坊</td><td><span class="tag t-ok">✓ 完整</span></td><td>纪念册/图鉴/路书/故事(<code>results.js</code>)+ Obsidian MD 库整库导出含 GPX 轨迹(<code>vault.js</code>)</td></tr>
+  <tr><td>PWA 离线</td><td><span class="tag t-part">◐ 部分</span></td><td><code>sw.js</code> 壳预缓存 77 项 + stale-while-revalidate;但地图瓦片无离线缓存,弱网山区地图仍白板</td></tr>
+</table>
+
+<h3>2.2 设计蓝图 v2.0 核心设计 - 三项未落地</h3>
+<table>
+  <tr><th style="width:170px">蓝图设计</th><th style="width:80px">状态</th><th>现实实现 / 差距</th></tr>
+  <tr><td>图册 Album（杂志式旅行书 + 编辑器，蓝图 05/09）</td><td><span class="tag t-miss">✗ 未落地</span></td><td><b>（2026-08-19 二次复核确认，逐项证据见 2.2.1）</b>三项子设计均未落地：①纵向沉浸杂志排版——纪念册为 720px 普通卡片流文档，无全宽大图/大留白/非对称杂志语言；②封面/章节/地图插页/声音页结构——chapter/章节 在 results.js/planner.js/travel-notes.js 中 0 处，封面实为深色渐变页头条幅，地图插页 0 处，声音页 0 处（纪念册内录音仅以“X 段录音”统计数字呈现，无播放器；原声仅在 Obsidian MD 导出 vault.js 中保留，属另一条产品线）；③图册编辑器（换图/换布局/改文字/增删章节）——全项目关键词零命中，仅有的“换图”是地图切层按钮（topic.html/travel-map.html 的 layBtn）。这是蓝图定位「一本会动的旅行杂志」的最大缺口。</td></tr>
+  <tr><td>记忆地图(照片节点 + 同点多记忆聚合,蓝图 04)</td><td><span class="tag t-part">◐ 变形</span></td><td><code>travel-map.html</code> 有游记节点 + 渐变轨迹 + 轨迹生长动画;但「记忆节点照片化(40-52px 照片图标)」「一地点多记忆聚合展开(岳麓山·3 段记忆)」「轨迹生长→记忆依次浮现」的叙事级实现未见。</td></tr>
+  <tr><td>首页情绪入口(蓝图 01)</td><td><span class="tag t-part">◐ 变形</span></td><td>现实首页是功能入口型(专题宫格 + 语音入口 + 搜索),信息密度高;蓝图的「今天,去哪里?」极简情绪页 + 大留白 + 呼吸节点未采用。属于产品定位选择,非缺陷,但与蓝图验收标准("像旅游电商→失败")存在张力。</td></tr>
+  <tr><td>你到了 Arrived 情绪页(蓝图 07)</td><td><span class="tag t-part">◐ 替代</span></td><td>由 planner 旅行模式「打卡→toast 已打卡·可以开始记录」替代闭环功能,但「你到了这里。如果愿意,说说现在看到的」的情绪仪式感缺失。</td></tr>
+  <tr><td>行程抽屉(蓝图 08)</td><td><span class="tag t-ok">✓ 变形实现</span></td><td>planner 内嵌排期卡 + 上下移/移除/重排 + 导航跳转,功能等价,形态不同。</td></tr>
+  <tr><td>LOD 分层 / Cluster(蓝图 §4.2)</td><td><span class="tag t-ok">✓ 完整</span></td><td><code>node-lod.js</code> 严格按蓝图实现(米白 Cluster + 细边框 + 300-500ms 散开)。</td></tr>
+  <tr><td>信息架构 4 Tab</td><td><span class="tag t-part">◐ 偏离</span></td><td>蓝图为「探索/地图/旅途/我的」4 项;现实为「探索/专题/足迹/回顾/我的」5 Tab + <code>me.html</code> 聚合页。「回顾」单独占 Tab 与蓝图「克制」基调略有出入。</td></tr>
+</table>
+
+<div class="callout c-amber">
+  <span class="head">判断：</span>蓝图三项缺口里，<b>「图册」是唯一真正值得回归的差异化设计</b>——它承载"这趟旅行对我意味着什么"的情感闭环，而当前"成册"只到工具层。记忆地图的照片化属于图册的入口侧，可一并考虑。首页情绪化与 4 Tab 属定位取舍，建议维持现状不折腾。
+</div>
+
+<h3>2.2.1 图册三项子设计复核记录（2026-08-19，应用户要求二次复核）</h3>
+<table>
+  <tr><th style="width:150px">蓝图要求（v2.0 §4.5）</th><th style="width:90px">结论</th><th>代码证据（逐项）</th></tr>
+  <tr>
+    <td>纵向沉浸杂志排版</td>
+    <td><span class="tag t-miss">✗ 未落地</span></td>
+    <td>现有两条"成册"路径均为普通纵向文档流：<code>results.js buildAlbum()</code>（L325-342）生成 <code>max-width:720px</code> 卡片流（白底圆角卡片 + 六宫格统计 + 按时间倒序的笔记卡片）；<code>planner.js buildTripAlbumDoc()</code>（L937-944）更简，仅标题+日期+正文的笔记列表。均无蓝图要求的"非对称、大留白、单图/双图/全宽图/文字页"杂志排版语言，无全屏大图、无封面渐变压暗。纵向✓，沉浸杂志✗。</td>
+  </tr>
+  <tr>
+    <td>封面 / Opening / Chapter / 地图插页 / 声音页 / Closing 结构</td>
+    <td><span class="tag t-miss">✗ 未落地</span></td>
+    <td><b>封面：</b><code>docShell()</code> 的 <code>.cover</code> 仅为深色渐变页头条幅（标题+副标题一行，44px padding），非蓝图的全屏大图封面；<b>章节：</b><code>chapter|章节</code> 在 results.js / planner.js / travel-notes.js 中 0 处命中，无任何 Chapter 划分（按天/按地聚合分层不存在，卡片平铺）；<b>地图插页：</b>纪念册生成物中无任何地图/轨迹可视化；<b>声音页：</b>纪念册 HTML 中无 <code>&lt;audio&gt;</code> 元素——录音仅以统计数字"X 段录音"呈现（<code>summarize()</code> L173）。<b>边界说明：</b>原声播放存在于 App 内游记面板（travel-notes.js L1459）、Memory Sheet（travel-map.html L530）与 Obsidian MD 导出（vault.js L388），但均不在"纪念册/图册"生成物内。</td>
+  </tr>
+  <tr>
+    <td>图册编辑器（换图/换布局/改文字/增删章节）</td>
+    <td><span class="tag t-miss">✗ 未落地</span></td>
+    <td>全项目（86 个 html/js 文件）关键词扫描：<code>换图</code>仅 2 处命中且均为地图"切换图层"按钮（topic.html L43 / travel-map.html L267 的 <code>layBtn</code>，title="切换图层"）；<code>换布局/增删章节/album-edit/editAlbum/图册编辑</code> 零命中。生成流程为"筛选→一键生成→导出 HTML"，无任何生成后编辑环节。配套原型 <code>ui-v2/09-album-edit.html</code> 未复制进 lvyou-v2（ui-v2 原型目录留在 lvyou 老版，符合"原型仅参考"决策，但也说明编辑器从未进入实施）。</td>
+  </tr>
+</table>
+<p style="font-size:12.5px;color:var(--muted)">复核方法：results.js（521 行）/ planner.js 成册段（L907-960）逐行阅读 + 全项目 86 文件关键词扫描 + android assets 同步校验（assets 与 web 根目录逐文件一致，不存在仅打包进 App 的隐藏图册页）。结论：三项子设计均<b>确认未落地</b>，原审核结论成立且表述已细化。技术注记：游记对象的 <code>audio</code> 字段（file:// 路径或 base64）与 <code>photos</code> 数组齐备，图册的数据原料完整；但导出独立 HTML 时 file:// 音频引用在 App 外不可播，未来实现图册需内联 base64 或 zip 打包。</p>
+
+<h2>三、本次审核新发现问题</h2>
+
+<h3>3.1 🔴 双工程漂移:缓存修复没有修到真正构建的工程</h3>
+<div class="callout c-red">
+  <p><b>这是本次审核最有价值的发现。</b>项目存在两份 Android 壳代码:</p>
+  <ul>
+    <li><b>git 仓库副本</b> <code>lvyou-v2/android_app/</code>(versionCode 31 / v2.21)</li>
+    <li><b>实际构建工程</b> <code>lvyou-v2-android/</code>(versionCode 33 / v2.23,所有 APK 产物在此)</li>
+  </ul>
+  <p>8-17 的提交 <code>5f5b247</code>("冷启动不再每次清空缓存 → 改为版本号变化时才清理,保留瓦片 HTTP 缓存")<b>只改了 git 仓库副本的 MainActivity.java</b>。实际构建工程里的 MainActivity.java 仍是旧版--<code>onCreate</code> 中无条件 <code>webView.clearCache(true)</code>。</p>
+  <p><b>后果:</b>v2.22、v2.23 两个已出货的 APK 上,"每次冷启动清空地图瓦片缓存、弱网首屏白板"的问题<b>依然存在</b>。修复代码其实已经写好了,只差同步过去。</p>
+  <p><b>修复成本:一次文件复制。</b>同理建议核对两工程的其它差异(本次抽查 build.gradle/manifest 一致性正常,但 XfVoiceEngine 等未逐一 diff)。</p>
+</div>
+
+<h3>3.2 🟠 死引用与一致性残留</h3>
+<table>
+  <tr><th style="width:230px">问题</th><th style="width:70px">级别</th><th>说明与修复</th></tr>
+  <tr><td><code>planner.html</code> 引用不存在的 <code>tn-key.js</code></td><td><span class="tag t-p1">P1</span></td><td>Web 根目录与 Android assets 均存在此死引用。功能无损(planner.js 实际用 <code>window.Ai</code>,来自 travel-notes.js;推测是早期"构建时注入 Key"方案删除后的残留),但每次加载报 404。删一行即可。</td></tr>
+  <tr><td><code>topic.html</code> 仍用旧版 <code>.tabbar</code></td><td><span class="tag t-p1">P1</span></td><td>全站其余页面均已统一为 v2 毛玻璃 <code>bottom-nav</code>,唯独专题地图页(恰恰是使用率最高的页面)还是旧黛青实心 tabbar。旧审核 U1 的实锤残留。</td></tr>
+  <tr><td><code>sw.js</code> 缓存名 <code>trace-v20</code> 未随版本 bump</td><td><span class="tag t-p1">P1</span></td><td>版本已到 2.23,SW 壳缓存名仍停在 v20。好在页面资源多带 <code>?v=20260813</code> 查询参数,但建议建立「versionName 联动 bump CACHE」的纪律(<code>tools/bump-version.js</code> 已存在,可扩展)。</td></tr>
+  <tr><td><code>settings.html</code> 链出 <code>test-data.html</code> 且保留「载入示例数据」</td><td><span class="tag t-p2">P2</span></td><td>生产包内可一键注入演示数据,存在污染真实游记库的风险(游记已迁 IndexedDB,示例数据若仍写旧 localStorage 通道则无害,但需确认)。个人自用可接受,公开前必须收口。</td></tr>
+  <tr><td>APK 产物管理散乱</td><td><span class="tag t-p2">P2</span></td><td>17 个 debug APK 堆在构建工程根目录;<code>lvyou-v2/APK/</code> 为空目录;<code>android_app/</code> 无 assets 像是"半份镜像"。建议统一产物目录 + 保留最近 N 版 + 其余入 git LFS 或删除。</td></tr>
+</table>
+
+<h3>3.3 🟠 存储可靠性:架构已升级,仪表没跟上</h3>
+<div class="callout c-amber">
+  <p><b>先肯定:</b>旧审核的 F1(localStorage 5MB 天花板)已在 8-15 落地解决--游记迁 IndexedDB(含版本迁移框架 + 增量 diff 写回),媒体优先走原生 <code>file://</code> 落盘,架构层面是对的。</p>
+  <p><b>但仪表盘还是旧的:</b><code>settings.html</code> 的存储统计仍只统计 <code>localStorage['travelNotes']</code> 与 <code>tn_audio</code>--前者早已不是主存储,后者是旧通道残留。<b>用户看到的存储用量是错的</b>(大概率显示接近 0,而真实数据在 IndexedDB 和 files/ 目录里),既无法感知真实占用,也没有 <code>navigator.storage.estimate()</code> 的配额预警。旧审核指出的「统计口径不准」在架构升级后反而更不准了。</p>
+  <p><b>修复方向:</b>统计改为 <code>navigator.storage.estimate()</code>(总量/配额)+ IndexedDB 计数(笔记条数/媒体字节);导出备份同步覆盖 IDB + files/ 媒体。</p>
+</div>
+
+<h3>3.4 🟡 其他核实结论</h3>
+<ul>
+  <li><b>离线地图仍缺失(旧 F2 未解):</b>SW 只缓存应用壳,瓦片请求失败无降级提示。旅行场景(山区/高原弱网)地图白板的体验缺口仍在。方案:<code>leaflet.offline</code> 类 IDB 瓦片缓存,或至少加「瓦片加载失败」轻提示。</li>
+  <li><b>Android 壳的既有欠账未清(旧报告 ★1/★2 项):</b>构建工程 <code>onDestroy</code> 仍未 <code>webView.destroy()</code>(内存泄漏)、<code>onRequestPermissionsResult</code> 仍未实现(权限被拒静默失败)、仍是 debug 签名 + <code>minifyEnabled false</code>、无 ABI 精简(多背 1.2MB armeabi-v7a)。</li>
+  <li><b>到达提醒能力受限:</b>3km 检查依赖页面在前台运行,WebView 形态下无后台通知能力--受架构限制,属已知边界,不算缺陷,但值得知晓。</li>
+</ul>
+
+<h2>四、可提升方向(优先级路线)</h2>
+<div class="timeline">
+  <div class="tl-item">
+    <div class="tl-marker">P0</div>
+    <div class="tl-body">
+      <div class="tl-title">同步修复到构建工程 <span class="tag t-p0">立即 · 一次复制</span></div>
+      <div class="tl-text">把 git 仓库 <code>android_app/</code> 里已修好的 MainActivity.java(版本号条件清缓存)同步到 <code>lvyou-v2-android/</code>,顺手补 <code>onDestroy</code> 的 <code>webView.destroy()</code>。真机弱网首屏直接受益,v2.24 出包验证。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P0</div>
+    <div class="tl-body">
+      <div class="tl-title">三处一行级清理 <span class="tag t-p0">立即 · 半小时</span></div>
+      <div class="tl-text">删 <code>planner.html</code> 的 tn-key.js 死引用(web + assets 两处);<code>topic.html</code> tabbar 换 bottom-nav;<code>sw.js</code> CACHE bump 到 trace-v23 并纳入 bump-version 流程。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P1</div>
+    <div class="tl-body">
+      <div class="tl-title">存储仪表修正 + 双工程收敛 <span class="tag t-p1">1 周内</span></div>
+      <div class="tl-text">settings 存储统计改 <code>navigator.storage.estimate()</code> + IDB 计数,加配额 80% 预警;备份导出覆盖 IDB + files/ 媒体。构建链收敛为「单一工程 + 单向同步脚本」(<code>tools/sync-assets.js</code>、<code>verify-apk-assets.js</code> 已有雏形,扩展到 Java 层 diff 校验),杜绝再次漂移。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P1</div>
+    <div class="tl-body">
+      <div class="tl-title">瓦片离线缓存 <span class="tag t-p1">1-2 周</span></div>
+      <div class="tl-text">IDB 瓦片缓存层(最近浏览区域/常用省份预下载),弱网时降级读缓存 + 明确提示。这是旅行场景实用性最大单项提升。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P2</div>
+    <div class="tl-body">
+      <div class="tl-title">图册 Album 回归(蓝图核心差异化)<span class="tag t-p2">中期 · 唯一值得加的新功能</span></div>
+      <div class="tl-text">在现有「一键成册」之上加一层杂志式排版引擎:封面/Opening/章节(大图+文字+地图插页+声音页)/Closing 结构,纵向沉浸阅读;数据全部来自既有游记(含原声),不需要新数据源。可先做「只读版图册」验证体验,再考虑编辑器。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P2</div>
+    <div class="tl-body">
+      <div class="tl-title">release 构建链 <span class="tag t-p2">中期</span></div>
+      <div class="tl-text">签名配置(keystore.properties 已支持但未创建)、R8 + shrinkResources、ABI 精简 arm64-v8a、AAB 分发。预计体积 -20% 且安装稳定性提升。</div>
+    </div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-marker">P3</div>
+    <div class="tl-body">
+      <div class="tl-title">SPA 化 + 记忆地图照片化 <span class="tag t-p3">长期</span></div>
+      <div class="tl-text">SPA 路由(docs 已有 <code>spa-route-plan.html</code> 规划)消除整页刷新;记忆节点照片化可与图册入口联动。两项均大工程,建议在图册验证后一并考虑。</div>
+    </div>
+  </div>
+</div>
+
+<h2>五、值得保持的亮点</h2>
+<div class="two-col">
+  <div class="panel">
+    <h4>工程纪律</h4>
+    <ul>
+      <li>git 提交信息详尽(含回归验证结论),工作区 0 未提交</li>
+      <li>20+ 轮审核文档全部入库(docs/),问题可追溯</li>
+      <li>tools/ 300+ 脚本,几乎每个功能配套 check/diag/verify</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h4>架构决策</h4>
+    <ul>
+      <li>IndexedDB 版本迁移框架(逐级迁移,保留升级路径)</li>
+      <li>增量 diff 持久化(只写变化记录)</li>
+      <li>AI 三档降级链:无 Key 全流程可用,"引擎与叙事分离"边界清晰</li>
+      <li>媒体优先原生落盘 file://,避免大 Base64 跨桥</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  行迹 TRACE v2.23 功能审核报告 · 2026-08-19<br>
+  审核方法:静态代码审查(页面/脚本/构建工程/git 历史/双工程 diff),未含真机动态测试<br>
+  建议配合 <code>docs/audit-2026-08-16.html</code> 系列既有审核交叉阅读
+</footer>
+
+</div>
+</body>
+</html>
