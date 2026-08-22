@@ -18,7 +18,7 @@
   var state = { q: "", region: "", theme: "", city: "", elev: "", sort: "" };
   var FOOD_STATE = { q: "", prov: "", city: "", type: "" };
 
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function $(id) { return document.getElementById(id); }
 
   /* ---------- 坐标 / 距离 ---------- */

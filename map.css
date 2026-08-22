@@ -896,6 +896,11 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:12px;font-family:v
 .ls-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(32,32,29,.22));pointer-events:none}
 .ls-place{font-family:var(--font-serif);font-size:30px;font-weight:400;margin-top:8px;letter-spacing:.01em}
 .ls-loc{margin-top:5px;font-size:12px;color:var(--color-muted);letter-spacing:.05em}
+.ls-elev{margin-top:12px;padding:10px 12px;background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:14px}
+.ls-elev .elev-head{font-size:12px;font-weight:700;color:var(--color-ink);margin-bottom:6px;letter-spacing:.03em}
+.ls-elev .elev-wrap{display:flex;align-items:center;gap:10px}
+.ls-elev svg{flex:0 0 auto;display:block}
+.ls-elev .elev-zone{flex:1;min-width:0;font-size:11px;line-height:1.6;padding:2px 0;font-family:var(--font-sans)}
 .ls-desc{margin-top:12px;font-size:14px;color:var(--color-ink-soft);line-height:1.8}
 .ls-hist{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:13px;color:var(--color-ink-soft);line-height:1.8}
 .ls-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:18px}

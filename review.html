@@ -89,6 +89,29 @@
 .ws-item .ws-main small{display:block;font-size:11.5px;color:var(--color-muted);margin-top:2px;line-height:1.5}
 .ws-item .ws-arr{color:var(--color-faint);flex:0 0 auto;font-size:15px}
 .theme-dark .ws-item{background:var(--color-surface);border-color:var(--color-line)}
+
+/* ---- 旅行画像 ---- */
+#profileSec .sec-title{margin-bottom:12px}
+.prof-th{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--color-line)}
+.prof-th:last-of-type{border-bottom:0}
+.prof-th .th-dot{flex:0 0 12px;width:12px;height:12px;border-radius:50%}
+.prof-th .th-name{flex:0 0 auto;font-size:13px;color:var(--color-ink-soft);font-weight:600;min-width:86px}
+.prof-th .th-bar{flex:1;height:7px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+.prof-th .th-bar i{display:block;height:100%;border-radius:99px;background:var(--color-primary);opacity:.85}
+.prof-th .th-cnt{flex:0 0 auto;font-size:11.5px;color:var(--color-muted)}
+.prof-rec{display:flex;gap:10px;padding:10px 4px;border-bottom:1px dashed var(--color-line);align-items:flex-start}
+.prof-rec:last-of-type{border-bottom:0}
+.prof-rec .pr-ic{flex:0 0 30px;height:30px;border-radius:9px;background:var(--color-primary-soft);color:var(--color-primary-dark);display:grid;place-items:center;font-size:15px}
+.prof-rec .pr-main{flex:1;min-width:0}
+.prof-rec .pr-main b{display:block;font-size:13.5px;color:var(--color-ink);font-weight:600}
+.prof-rec .pr-main small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px;line-height:1.5}
+.prof-rec .pr-go{flex:0 0 auto;align-self:center;font-size:11.5px;color:var(--color-primary);font-weight:600;cursor:pointer;padding:6px 4px}
+.prof-rec .pr-go:active{opacity:.6}
+.prof-hint{font-size:11.5px;color:var(--color-muted);line-height:1.7;padding:4px 4px 0}
+.theme-dark .prof-th{border-color:var(--color-line)}
+.theme-dark .prof-rec{border-color:var(--color-line)}
+.theme-dark .prof-th .th-bar{background:var(--color-bg-soft)}
+.theme-dark .prof-rec .pr-main b{color:var(--color-ink)}
 </style>
 <style>
   body{padding-bottom:112px}
@@ -173,6 +196,13 @@
     <div class="sec"><div class="sec-title">月份分布</div><div class="monthbar" id="monthBar"></div></div>
     <div class="sec"><div class="sec-title">标签</div><div class="tagcloud" id="tagCloud"></div></div>
     <div class="sec"><div class="sec-title">到过的地方</div><div class="places" id="places"></div></div>
+    <div class="sec" id="profileSec">
+      <div class="sec-title">旅行画像</div>
+      <div id="profileBox" style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px 14px">
+        <div id="profThemes" style="margin-bottom:16px"></div>
+        <div id="profRecs"></div>
+      </div>
+    </div>
   </div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -202,7 +232,7 @@ function render(){
     else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
     selDay=Object.keys(dayMap).sort().pop()||'';
   }
-  renderStats(); renderToday(); renderStats2(); renderProv(); renderAchieve(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay();
+  renderStats(); renderToday(); renderStats2(); renderProv(); renderAchieve(); renderCal(); renderMonthBar(); renderTags(); renderPlaces(); renderDay(); renderProfile();
 }
 function maxStreak(){
   var days = Object.keys(dayMap).sort(), best = 0, cur = 0, prev = null;
@@ -215,6 +245,125 @@ function maxStreak(){
     prev = d;
   });
   return best;
+}
+/* ---------- 旅行画像：主题分布 + 未去推荐（纯本地，懒加载 nation-index） ---------- */
+var _profIndex = null, _profLoading = false;
+var PROF_THEME_ICON = { '城市地标': '🏙', '古城古镇': '🏯', '雪山冰川': '🏔', '高原湖泊': '💧', '沙漠戈壁': '🏜', '雅丹地貌': '🌋', '民族风情': '🪘', '红色遗迹': '🚩', '宗教圣地': '🛕', '峡谷天堑': '⛰', '名山大川': '🏔', '森林山川': '🌲', '森林草原': '🌿', '草原湿地': '🌾', '江河瀑布': '🌊', '瀑布': '💦', '江河湖泊': '🌅', '峡谷': '🏞', '溶洞奇观': '🕳', '溶洞': '🕳', '温泉康养': '♨', '温泉地热': '♨', '古建寺院': '⛩', '佛寺': '⛩', '寺庙': '⛩', '道观': '☯', '神祠': '🛕', '寺观彩塑': '🗿', '寺观壁画': '🎨', '石窟寺': '🗿', '石窟艺术': '🗿', '古塔': '🗼', '楼阁牌坊': '🏛', '衙署民居': '🏠', '古戏台': '🎭', '名城名镇': '🏘', '古城': '🏰', '古城遗址': '🏚', '古遗址': '🏚', '遗址陵墓': '⚰', '陵寝墓葬': '⚰', '长城关隘': '🧱', '渡口渡江': '⛴', '重大战役': '⚔', '重要会议': '📜', '旧址纪念地': '🪦', '出发地': '🚩', '会师地': '🤝', '纪念碑': '🗽', '雪山草地': '🏔', '雪山高原': '🏔', '垭口': '🛣', '神山': '🪷', '圣湖': '💧', '冰川': '🧊', '草原': '🌾', '村庄': '🏡', '民族村寨': '🛖', '热带雨林': '🌴', '茶山': '🍵', '喀斯特山水': '🏞', '名山梯田': '🌾', '人文古迹': '🏛', '海岛海滩': '🏝', '边境口岸': '🛂', '江河峡谷': '🏞', '丹霞地貌': '🧱', '土林': '🏜', '盐湖': '🧂', '文庙书院': '📚', '主题公园': '🎡', '其他': '📍' };
+function loadProfileIndex(cb) {
+  if (_profIndex) { cb(_profIndex); return; }
+  if (_profLoading) { setTimeout(function () { loadProfileIndex(cb); }, 300); return; }
+  _profLoading = true;
+  var s = document.createElement('script');
+  s.src = 'nation-index.js?v=20260815';
+  s.onload = function () {
+    try {
+      _profIndex = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
+        var p = line.split('|');
+        return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8] };
+      }).filter(function (x) { return x.lat && x.lng && x.theme; });
+    } catch (e) { _profIndex = []; }
+    _profLoading = false;
+    cb(_profIndex);
+  };
+  s.onerror = function () { _profLoading = false; cb([]); };
+  document.head.appendChild(s);
+}
+function renderProfile() {
+  var tBox = document.getElementById('profThemes'), rBox = document.getElementById('profRecs');
+  if (!tBox || !rBox) return;
+  var withPos = notes.filter(function (n) { return n.lat != null && n.lng != null && n.siteName; });
+  if (!withPos.length) {
+    tBox.innerHTML = '<div class="prof-hint">记录带位置的游记后，这里会分析你的旅行偏好，并推荐你可能喜欢的景点。</div>';
+    rBox.innerHTML = '';
+    return;
+  }
+  /* 主题分布：直接用笔记已有字段（无 theme 时按 siteName 反查索引，懒加载） */
+  var thCnt = {};
+  withPos.forEach(function (n) { var t = n.theme || ''; if (t) thCnt[t] = (thCnt[t] || 0) + 1; });
+  if (Object.keys(thCnt).length) {
+    renderProfileThemes(tBox, thCnt);
+    renderProfileRecs(rBox, withPos, thCnt);
+  } else {
+    tBox.innerHTML = '<div class="prof-hint">正在读取节点库，分析你的旅行偏好…</div>';
+    loadProfileIndex(function (idx) {
+      var cnt = {};
+      withPos.forEach(function (n) {
+        var hit = idx.find(function (x) { return x.label === n.siteName || x.name === n.siteName; });
+        if (hit && hit.theme) cnt[hit.theme] = (cnt[hit.theme] || 0) + 1;
+      });
+      if (!Object.keys(cnt).length) { tBox.innerHTML = '<div class="prof-hint">暂时无法识别你的景点主题，多记录一些热门景点后再来看看。</div>'; rBox.innerHTML = ''; return; }
+      renderProfileThemes(tBox, cnt);
+      renderProfileRecs(rBox, withPos, cnt);
+    });
+  }
+}
+function renderProfileThemes(box, cnt) {
+  var arr = Object.keys(cnt).map(function (t) { return { t: t, n: cnt[t] }; }).sort(function (a, b) { return b.n - a.n; });
+  var top = arr.slice(0, 5), max = top[0].n;
+  box.innerHTML = '<div class="prof-hint" style="margin-bottom:8px">你最爱的主题（按游记数）</div>' +
+    top.map(function (x) {
+      return '<div class="prof-th"><span class="th-dot" style="background:' + themeColor(x.t) + '"></span>' +
+        '<span class="th-name">' + (PROF_THEME_ICON[x.t] || '📍') + ' ' + esc(x.t) + '</span>' +
+        '<span class="th-bar"><i style="width:' + Math.round(x.n / max * 100) + '%"></i></span>' +
+        '<span class="th-cnt">' + x.n + '</span></div>';
+    }).join('');
+}
+function themeColor(t) {
+  var m = {
+    '城市地标': '#C86D4B', '古城古镇': '#8A5A44', '雪山冰川': '#7FA8C9', '高原湖泊': '#3E7CB1', '沙漠戈壁': '#C9A227',
+    '雅丹地貌': '#BA7517', '民族风情': '#B4547A', '红色遗迹': '#A63A3A', '宗教圣地': '#8E6A4A', '峡谷天堑': '#5F8A6B',
+    '名山大川': '#4A7C59', '森林山川': '#3E7C59', '森林草原': '#5F8A6B', '草原湿地': '#6B8E5A', '江河瀑布': '#2E86AB',
+    '瀑布': '#2E86AB', '江河湖泊': '#2E86AB', '峡谷': '#5F8A6B', '溶洞奇观': '#7A6A8E', '溶洞': '#7A6A8E',
+    '温泉康养': '#C97B4A', '温泉地热': '#C97B4A', '古建寺院': '#8A5A44', '佛寺': '#8A5A44', '寺庙': '#8A5A44',
+    '道观': '#6D7D88', '神祠': '#8E6A4A', '寺观彩塑': '#B4547A', '寺观壁画': '#7A6A8E', '石窟寺': '#A67B5B',
+    '石窟艺术': '#A67B5B', '古塔': '#8A5A44', '楼阁牌坊': '#8A5A44', '衙署民居': '#8A5A44', '古戏台': '#B4547A',
+    '名城名镇': '#8A5A44', '古城': '#8A5A44', '古城遗址': '#8A5A44', '古遗址': '#8A5A44', '遗址陵墓': '#6D7D88',
+    '陵寝墓葬': '#6D7D88', '长城关隘': '#8A5A44', '渡口渡江': '#2E86AB', '重大战役': '#A63A3A', '重要会议': '#A63A3A',
+    '旧址纪念地': '#A63A3A', '出发地': '#A63A3A', '会师地': '#A63A3A', '纪念碑': '#6D7D88', '雪山草地': '#7FA8C9',
+    '雪山高原': '#7FA8C9', '垭口': '#7FA8C9', '神山': '#8E6A4A', '圣湖': '#3E7CB1', '冰川': '#7FA8C9',
+    '草原': '#5F8A6B', '村庄': '#8A5A44', '民族村寨': '#B4547A', '热带雨林': '#3E7C59', '茶山': '#6B8E5A',
+    '喀斯特山水': '#5F8A6B', '名山梯田': '#6B8E5A', '人文古迹': '#8A5A44', '海岛海滩': '#2E86AB', '边境口岸': '#6D7D88',
+    '江河峡谷': '#2E86AB', '丹霞地貌': '#BA7517', '土林': '#BA7517', '盐湖': '#3E7CB1', '文庙书院': '#6D7D88',
+    '主题公园': '#B4547A', '其他': '#9A9A92'
+  };
+  return m[t] || '#C86D4B';
+}
+function renderProfileRecs(box, withPos, thCnt) {
+  var prefThemes = Object.keys(thCnt).sort(function (a, b) { return thCnt[b] - thCnt[a]; }).slice(0, 3);
+  var visited = {};
+  withPos.forEach(function (n) { visited[n.siteName] = 1; if (n.city) visited[n.city] = 1; });
+  var myLat = 0, myLng = 0;
+  withPos.forEach(function (n) { myLat += n.lat; myLng += n.lng; });
+  myLat /= withPos.length; myLng /= withPos.length;
+  box.innerHTML = '<div class="prof-hint" style="margin-bottom:8px">你可能喜欢 · 还没去过</div><div style="min-height:60px;color:var(--color-muted);font-size:12px;padding:8px 4px">正在匹配全国节点库…</div>';
+  loadProfileIndex(function (idx) {
+    var cands = idx.filter(function (x) {
+      if (visited[x.label] || visited[x.name]) return false;
+      return prefThemes.indexOf(x.theme) >= 0;
+    }).map(function (x) {
+      var d = Math.sqrt(Math.pow((x.lat - myLat) * 111, 2) + Math.pow((x.lng - myLng) * 111 * Math.cos(myLat * Math.PI / 180), 2));
+      return { x: x, d: d };
+    }).sort(function (a, b) { return a.d - b.d; }).slice(0, 3);
+    if (!cands.length) { box.innerHTML = '<div class="prof-hint">已探索过不少同类景点，换些新主题去看看？</div>'; return; }
+    box.innerHTML = '<div class="prof-hint" style="margin-bottom:8px">你可能喜欢 · 还没去过</div>' +
+      cands.map(function (c) {
+        var x = c.x;
+        return '<div class="prof-rec"><span class="pr-ic">' + (PROF_THEME_ICON[x.theme] || '📍') + '</span>' +
+          '<span class="pr-main"><b>' + esc(x.label || x.name) + '</b>' +
+          '<small>' + (x.region || '') + (x.city ? ' · ' + x.city : '') + (x.county ? ' · ' + x.county : '') + ' · ' + (PROF_THEME_ICON[x.theme] || '') + x.theme + ' · 距你约 ' + Math.round(c.d) + 'km</small></span>' +
+          '<span class="pr-go" data-n="' + esc(x.name) + '">去看看 ›</span></div>';
+      }).join('');
+    box.querySelectorAll('.pr-go').forEach(function (el) {
+      el.onclick = function () {
+        var nm = el.dataset.n;
+        var hit = idx.find(function (x) { return x.name === nm; });
+        if (hit && window.Geo && window.Geo.gcj02Of) {
+          var g = window.Geo.gcj02Of(hit.lat, hit.lng);
+          location.href = 'travel-map.html?lat=' + g[0] + '&lng=' + g[1] + '&name=' + encodeURIComponent(hit.label || hit.name);
+        } else location.href = 'travel-map.html';
+      };
+    });
+  });
 }
 function renderStats2(){
   var provs = {}, cities = {}, km = 0;
@@ -476,12 +625,6 @@ window.TravelNotes._onReady=render;
 window.TravelNotes._afterSave=render;
 TravelNotes.init({});
 </script>
-<nav class="bottom-nav" aria-label="主导航">
-  <a class="bottom-nav__item" href="index.html"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12 L12 4 L20 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5 V20 H17.5 V10.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>探索</a>
-  <a class="bottom-nav__item" href="explore-map.html"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span></span>专题</a>
-  <a class="bottom-nav__item" href="travel-map.html"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19 C6 15 8 15 10 19 C12 15 14 15 16 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 6 C6 3 8 3 10 6 C12 3 14 3 16 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>足迹</a>
-  <a class="bottom-nav__item active" href="review.html" aria-current="page"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 5 H20 V19 H4 Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 9 H20" stroke="currentColor" stroke-width="1.6"/><path d="M8 3 V6 M16 3 V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>回顾</a>
-  <a class="bottom-nav__item" href="me.html"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.2" opacity=".5"/></svg></span></span>我的</a>
-</nav>
+<div id="bnav"></div><script src="nav.js" data-active="review"></script>
 </body>
 </html>

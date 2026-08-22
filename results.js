@@ -18,7 +18,7 @@
       '.theme-dark .rz-panel select,.theme-dark .rz-panel input,.theme-dark .rz-panel textarea{background:var(--color-surface)!important;color:var(--color-ink)!important;border-color:var(--color-line)!important}';
     document.head.appendChild(st);
   })();
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   function flash(msg) {
     var f = document.createElement('div');

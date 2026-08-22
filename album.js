@@ -15,9 +15,7 @@
   var DB_NAME = 'trace-albums', DB_VER = 2;
 
   /* ---------- 工具 ---------- */
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
+  var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function fmtD(ts) { var d = new Date(ts); return d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
   function fmtDM(ts) { var d = new Date(ts); return pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }

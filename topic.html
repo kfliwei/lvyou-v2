@@ -6,7 +6,7 @@
 <title>行迹 TRACE · 省份专题</title>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="map.css?v=20260813">
+<link rel="stylesheet" href="map.css?v=20260822">
 <link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <style>.pop{max-width:200px;font-size:12px}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
@@ -109,18 +109,18 @@
   <button role="tab" data-tab="route"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 L10 9 L14 13 L20 5"/><circle cx="4" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="2" fill="currentColor" stroke="none"/></svg></span></span>路线</button>
   <button role="tab" data-tab="food"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8 H19 V11 C19 15 16 18 12 18 C8 18 5 15 5 11 Z"/><path d="M12 18 V21"/></svg></span></span>美食</button>
 </nav>
-<script src="vendor/leaflet/leaflet.js?v=20260813"></script>
-<script src="node-lod.js?v=20260813"></script>
+<script src="vendor/leaflet/leaflet.js?v=20260822"></script>
+<script src="node-lod.js?v=20260822"></script>
 <script src="geo.js"></script>
-<script src="quotes.js?v=20260813"></script>
-<script src="travel-notes.js?v=20260813"></script>
-<script src="results.js?v=20260813"></script>
-<script src="vault.js?v=20260813"></script>
-<script src="topic-meta.js?v=20260813"></script>
-<script src="site-images.js?v=20260815"></script>
-<script src="wishlist.js?v=20260813"></script>
-<script src="topic-common.js?v=20260813"></script>
-<script src="ui.js?v=20260813"></script>
+<script src="quotes.js?v=20260822"></script>
+<script src="travel-notes.js?v=20260822"></script>
+<script src="results.js?v=20260822"></script>
+<script src="vault.js?v=20260822"></script>
+<script src="topic-meta.js?v=20260822"></script>
+<script src="site-images.js?v=20260822"></script>
+<script src="wishlist.js?v=20260822"></script>
+<script src="topic-common.js?v=20260822"></script>
+<script src="ui.js?v=20260822"></script>
 <script>
 /* 启动器：?p=sc → 载入 sc-data.js(+sc-food.js) → TopicEngine.init() */
 (function () {
@@ -142,7 +142,7 @@
   }
   /* 全国页懒加载（审核修复）：轻量索引渲染 + 节点详情按省按需补充 */
   function loadNationIndex() {
-    loadScript('nation-index.js?v=20260815', function () {
+    loadScript('nation-index.js?v=20260822', function () {
       window.SITES = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
         var p = line.split('|');
         return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8] };

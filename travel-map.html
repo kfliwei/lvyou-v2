@@ -575,6 +575,8 @@ function zoomPhoto(src){
 // 统计条：可收起 / 展开
 // URL ?id= 直达定位某条游记（首页搜索栏点击进入）：仅 flyTo 定位到节点，不自动弹详情大图
 (function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();
+// URL ?lat=&lng=&name= 定位任意景点（旅行画像「去看看」跳转）：flyTo + 顶部提示
+(function(){var ml=location.search.match(/[?&]lat=([-.\d]+)[&]lng=([-.\d]+)/);if(ml){var nm=(location.search.match(/[?&]name=([^&]*)/)||[])[1]||'';setTimeout(function(){try{var g=gxy(+ml[1],+ml[2]);if(map){map.flyTo(g,Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nm?decodeURIComponent(nm):'这个景点');}}catch(e){}},500);}})();
 
 document.getElementById('statClose').onclick=function(){
   document.getElementById('statBar').style.display='none';

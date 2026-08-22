@@ -168,16 +168,23 @@ window.Ai = (function () {
       snap.forEach(function (n) { ns[n.id] = JSON.stringify(n); });
       lastSnap = ns;
     });
-    // 容量预警（估算内存占用）
+    // 容量预警：分场景阈值 —— base64 回退（音频/照片内嵌 data URI）才是真风险，file:// 落盘无压力
     var mb = storageMB();
-    if (mb > 3 && Math.floor(mb / 0.2) > (persist._lastWarn || 0)) {
-      persist._lastWarn = Math.floor(mb / 0.2);
-      setTimeout(function () { flash('存储占用 ' + mb.toFixed(1) + 'MB：可在设置里导出备份'); }, 600);
+    var hasB64 = notes.some(function (n) {
+      return (n.audio && n.audio.indexOf('data:') === 0) || (n.photos || []).some(function (p) { return typeof p === 'string' && p.indexOf('data:') === 0; });
+    });
+    var threshold = hasB64 ? 30 : 200;   // base64 回退 30MB 预警；file:// 落盘 200MB 才提示
+    if (mb > threshold && Math.floor(mb / (hasB64 ? 5 : 20)) > (persist._lastWarn || 0)) {
+      persist._lastWarn = Math.floor(mb / (hasB64 ? 5 : 20));
+      var tip = hasB64
+        ? '⚠️ 存储占用 ' + mb.toFixed(1) + 'MB（照片/录音以内嵌方式保存，建议尽快导出备份）'
+        : '存储占用 ' + mb.toFixed(1) + 'MB：可在设置里导出备份';
+      setTimeout(function () { flash(tip); }, 600);
     }
   }
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
-  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function uid() { return 'tn_' + Date.now(); }
   function fmtDay(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
@@ -1285,6 +1292,12 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     }
     attachWeather(note);
     resetPanelAfterSave();
+    /* base64 回退检测：音频/照片以内嵌方式保存（非 file:// 落盘）时，首次保存提示一次导出 */
+    var b64Saved = (note.audio && note.audio.indexOf('data:') === 0) || (note.photos || []).some(function (p) { return typeof p === 'string' && p.indexOf('data:') === 0; });
+    if (b64Saved && !localStorage.getItem('tn_b64_warned')) {
+      try { localStorage.setItem('tn_b64_warned', '1'); } catch (e) {}
+      setTimeout(function () { flash('照片/录音以内嵌方式保存，长期累积会占空间，建议在「设置 → 导出备份」定期备份'); }, 1200);
+    }
     flash('已保存 · 可继续录制下一篇');
   }
   function resetPanelAfterSave() {
@@ -1682,44 +1695,95 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   }
 
   /* ---------- 导出 / 导入备份 ---------- */
-  function exportNotes() {
-    var json = JSON.stringify(notes, null, 2);
-    var fname = '行迹TRACE备份-' + fmtDay(Date.now()) + '.json';
-    var m = el('div', 'ui-modal-mask');
-    m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
-      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
-      + '<div class="ui-modal-text" style="margin-bottom:12px">共 ' + notes.length + ' 篇 · 建议用「保存为文件」导出 .json，日后导入更方便。</div>'
-      + '<textarea id="tnExpTxt" class="nm-ta" readonly style="min-height:120px">' + esc(json) + '</textarea>'
-      + '<div class="ui-modal-acts" style="gap:8px">'
-      + '<button id="tnExpCopy" class="ui-btn" style="flex:1">复制全部</button>'
-      + '<button id="tnExpFile" class="ui-btn ui-btn-primary" style="flex:1">保存为文件</button>'
-      + '</div></div>';
-    document.body.appendChild(m);
-    requestAnimationFrame(function () { m.classList.add('show'); });
-    var close = function () { m.remove(); };
-    m.onclick = function (e) { if (e.target === m) close(); };
-    $X(m, '#tnExpX').onclick = close;
-    $X(m, '#tnExpCopy').onclick = function () {
-      var t = $X(m, '#tnExpTxt');
-      t.focus(); t.select();
-      try { document.execCommand('copy'); flash('已复制到剪贴板'); } catch (e) { flash('复制失败，请手动长按选择复制'); }
-    };
-    $X(m, '#tnExpFile').onclick = function () {
-      if (window.AndroidVoice && window.AndroidVoice.saveTextFile) {
-        window.__tnSaveDone = function (r) {
-          if (r === 'err') flash('保存失败');
-          else if (r === 'need_perm') flash('需要存储权限');
-          else flash('已保存：Download/' + r);
+  /* file:// 落盘文件读回 base64（完整备份用；WebView setAllowFileAccessFromFileURLs=true 已允许 fetch file://） */
+  function fileMime(path) {
+    var ext = ((path || '').match(/\.([a-zA-Z0-9]+)$/) || [])[1] || '';
+    ext = ext.toLowerCase();
+    if (ext === 'm4a' || ext === 'aac') return 'audio/mp4';
+    if (ext === 'mp3') return 'audio/mpeg';
+    if (ext === 'wav') return 'audio/wav';
+    if (ext === 'png') return 'image/png';
+    if (ext === 'webp') return 'image/webp';
+    if (ext === 'gif') return 'image/gif';
+    return 'image/jpeg';
+  }
+  function readFileAsDataURL(path, cb) {
+    if (!path || path.indexOf('file://') !== 0) { cb(null); return; }
+    try {
+      fetch(path).then(function (r) { return r.blob(); }).then(function (blob) {
+        var fr = new FileReader();
+        fr.onload = function () {
+          var dataUrl = String(fr.result || '');
+          var b64 = dataUrl.substring(dataUrl.indexOf(',') + 1);
+          cb('data:' + fileMime(path) + ';base64,' + b64);
         };
-        try { AndroidVoice.saveTextFile(fname, json); } catch (e) { flash('保存不可用，请用复制'); }
-      } else {
-        var a = document.createElement('a');
-        a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
-        a.download = fname;
-        a.click();
-        flash('已下载');
-      }
-    };
+        fr.onerror = function () { cb(null); };
+        fr.readAsDataURL(blob);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+  function exportNotes() {
+    /* 完整备份：深拷贝 notes，把 file:// 的录音/照片读回 base64 嵌入，换手机导入后可还原 */
+    var snapshot = JSON.parse(JSON.stringify(notes));
+    var tasks = [];
+    snapshot.forEach(function (n) {
+      if (n.audio && n.audio.indexOf('file://') === 0) tasks.push({ note: n, field: 'audio', path: n.audio });
+      (n.photos || []).forEach(function (p, i) {
+        if (typeof p === 'string' && p.indexOf('file://') === 0) tasks.push({ note: n, field: 'photo', path: p, idx: i });
+      });
+    });
+    var fname = '行迹TRACE备份-' + fmtDay(Date.now()) + '.json';
+    function build(json) {
+      var m = el('div', 'ui-modal-mask');
+      m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
+        + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
+        + '<div class="ui-modal-text" style="margin-bottom:12px">共 ' + notes.length + ' 篇' + (tasks.length ? ' · 含 ' + tasks.length + ' 个录音/照片文件（已内嵌，可完整恢复）' : '') + ' · 建议用「保存为文件」导出 .json。</div>'
+        + '<textarea id="tnExpTxt" class="nm-ta" readonly style="min-height:120px">' + esc(json) + '</textarea>'
+        + '<div class="ui-modal-acts" style="gap:8px">'
+        + '<button id="tnExpCopy" class="ui-btn" style="flex:1">复制全部</button>'
+        + '<button id="tnExpFile" class="ui-btn ui-btn-primary" style="flex:1">保存为文件</button>'
+        + '</div></div>';
+      document.body.appendChild(m);
+      requestAnimationFrame(function () { m.classList.add('show'); });
+      var close = function () { m.remove(); };
+      m.onclick = function (e) { if (e.target === m) close(); };
+      $X(m, '#tnExpX').onclick = close;
+      $X(m, '#tnExpCopy').onclick = function () {
+        var t = $X(m, '#tnExpTxt');
+        t.focus(); t.select();
+        try { document.execCommand('copy'); flash('已复制到剪贴板'); } catch (e) { flash('复制失败，请手动长按选择复制'); }
+      };
+      $X(m, '#tnExpFile').onclick = function () {
+        if (window.AndroidVoice && window.AndroidVoice.saveTextFile) {
+          window.__tnSaveDone = function (r) {
+            if (r === 'err') flash('保存失败');
+            else if (r === 'need_perm') flash('需要存储权限');
+            else flash('已保存：Download/' + r);
+          };
+          try { AndroidVoice.saveTextFile(fname, json); } catch (e) { flash('保存不可用，请用复制'); }
+        } else {
+          var a = document.createElement('a');
+          a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
+          a.download = fname;
+          a.click();
+          flash('已下载');
+        }
+      };
+    }
+    function finish() { build(JSON.stringify(snapshot, null, 2)); }
+    if (!tasks.length) { finish(); return; }
+    /* 异步读回全部 file:// 文件（录音+照片），完成后生成自包含 JSON */
+    var done = 0;
+    tasks.forEach(function (t) {
+      readFileAsDataURL(t.path, function (dataUrl) {
+        if (dataUrl) {
+          if (t.field === 'audio') t.note.audio = dataUrl;
+          else t.note.photos[t.idx] = dataUrl;
+        }
+        done++;
+        if (done === tasks.length) finish();
+      });
+    });
   }
   function importNotes() {
     var m = el('div', 'ui-modal-mask');
@@ -1775,7 +1839,17 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 数据管理：清除 / 容量 / 照片墙 ---------- */
   function storageMB() {
-    try { return JSON.stringify(notes).length / 1024 / 1024; } catch (e) { return 0; }
+    /* 算入 base64 音频/照片真实体积：file:// 路径只占几十字节，base64 数据 URI 才占空间 */
+    try {
+      var bytes = JSON.stringify(notes).length;
+      notes.forEach(function (n) {
+        if (n.audio && n.audio.indexOf('data:') === 0) bytes += n.audio.length;
+        (n.photos || []).forEach(function (p) {
+          if (typeof p === 'string' && p.indexOf('data:') === 0) bytes += p.length;
+        });
+      });
+      return bytes / 1024 / 1024;
+    } catch (e) { return 0; }
   }
   function clearAll() {
     confirmDialog('删除本机全部游记（含照片与录音）？此操作不可恢复，建议先导出备份。', function () {

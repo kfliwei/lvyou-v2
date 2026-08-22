@@ -1,5 +1,8 @@
-/* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存） */
-var CACHE = 'trace-v21';
+/* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
+var CACHE = 'trace-v22';
+var TILES = 'trace-tiles-v1';
+var TILE_MAX_ENTRIES = 800;   /* 瓦片缓存上限（约 800 张，防爆 Storage） */
+var TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com', 'tile.opentopomap.org', 'is.autonavi.com'];
 var SHELL = [
   './',
   './explore-map.html',
@@ -43,6 +46,17 @@ var SHELL = [
   './vendor/leaflet/leaflet.js',
   './images/icon.svg',
   './manifest.webmanifest',
+  /* ---- 各省数据/美食（预缓存，离线开箱可用） ---- */
+  './ah-data.js', './bj-data.js', './changzheng-data.js', './cq-data.js', './cq-food.js',
+  './fj-data.js', './gd-data.js', './gs-data.js', './gs-food.js', './gxyn-data.js',
+  './gz-data.js', './gz-food.js', './ha-data.js', './hb-data.js', './hb-food.js',
+  './he-data.js', './hi-data.js', './hk-data.js', './hlj-data.js', './hn-data.js', './hn-food.js',
+  './jl-data.js', './js-data.js', './jx-data.js', './ln-data.js', './mo-data.js',
+  './nmg-data.js', './nmg-food.js', './nx-data.js', './nx-food.js', './qh-data.js', './qh-food.js',
+  './qingzang-data.js', './sc-data.js', './sc-food.js', './sd-data.js', './sh-data.js',
+  './sx-data.js', './sx-food.js', './tj-data.js', './tw-data.js', './xj-data.js', './xj-food.js',
+  './xz-data.js', './xz-food.js', './zj-data.js',
+  /* ---- 主题插图 ---- */
   './art/empty-journey.svg',
   './art/empty-md.svg',
   './art/empty-memory.svg',
@@ -84,21 +98,41 @@ var SHELL = [
 ];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
-    /* 闁劖娼� add + catch閿涙艾宕熸稉顏呮瀮娴犲墎宸辨径鍙樼瑝瑜板崬鎼烽弫缈犵秼鐎瑰顥� */
     return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); }));
   }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
-    return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(ks.filter(function (k) { return k !== CACHE && k !== TILES; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
+/* 瓦片缓存清理：超过上限时删除最早写入的条目 */
+function trimTiles(c) {
+  c.keys().then(function (ks) {
+    if (ks.length <= TILE_MAX_ENTRIES) return;
+    var drop = ks.slice(0, ks.length - TILE_MAX_ENTRIES);
+    Promise.all(drop.map(function (k) { return c.delete(k); }));
+  });
+}
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
-  if (url.origin !== location.origin) return;              /* 缁楊兛绗侀弬鐧哥礄閻★妇澧�/API閿涘绗夌紓鎾崇摠 */
-    if (req.mode === 'navigate') {                            /* 鐎佃壈鍩呴敍姘辩秹缂佹粈绱崗鍫幢閺傤厾缍夐崶鐐衡偓鈧崚鏉垮嚒缂傛挸鐡ㄦい?妫ｆ牠銆� */
+  /* 地图瓦片：cache-first + 后台更新 + 离线回退 */
+  if (TILE_HOSTS.some(function (h) { return url.hostname.indexOf(h) >= 0; })) {
+    e.respondWith(caches.open(TILES).then(function (c) {
+      return c.match(req).then(function (hit) {
+        var f = fetch(req).then(function (res) {
+          if (res && res.ok) { c.put(req, res.clone()); trimTiles(c); }
+          return res;
+        }).catch(function () { return hit; });
+        return hit || f;
+      });
+    }));
+    return;
+  }
+  if (url.origin !== location.origin) return;              /* 跨域非瓦片（天气/实景照/API）不拦截 */
+  if (req.mode === 'navigate') {                           /* 页面：网络优先，离线回退缓存/首页 */
     e.respondWith(fetch(req).then(function (res) {
       if (res && res.ok) {
         var clone = res.clone();
@@ -110,7 +144,7 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  e.respondWith(caches.open(CACHE).then(function (c) {      /* 閸忔湹缍戦崥灞剧爱閿涙tale-while-revalidate */
+  e.respondWith(caches.open(CACHE).then(function (c) {      /* 静态资源：stale-while-revalidate */
     return c.match(req).then(function (hit) {
       var f = fetch(req).then(function (res) {
         if (res && res.ok) c.put(req, res.clone());
