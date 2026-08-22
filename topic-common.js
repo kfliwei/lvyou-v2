@@ -306,6 +306,7 @@
     : '<div class="ls-img-ph"><span class="ls-img-ph-ch">' + esc((s.label || '景').charAt(0)) + '</span><i>实景照加载中…</i></div>') + '</div>';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
+      (s.elev ? '<div class="ls-elev">' + elevSvg(s) + '</div>' : '') +
       '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
@@ -321,6 +322,30 @@
       '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
       '<span onclick="window.TopicEngine.customItinerary()">🧭 定制路书</span>' +
       '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
+  }
+  /* ---------- 海拔标尺（SVG 迷你地形可视化，纯本地） ---------- */
+  var ELEV_MAX = 8848; /* 珠峰 */
+  function elevSvg(s) {
+    var e = Math.max(0, Math.min(+s.elev || 0, ELEV_MAX));
+    var W = 250, H = 92, padL = 8, padR = 52, top = 6, bot = H - 14;
+    var band = bot - top;
+    function yOf(m) { return bot - (Math.min(Math.max(m, 0), ELEV_MAX) / ELEV_MAX) * band; }
+    var refs = [[0, '海平面'], [1000, '1000m'], [2000, '2000m'], [3000, '3000m'], [4500, '雪线'], [6000, '6000m'], [8848, '珠峰']];
+    var g = '';
+    refs.forEach(function (r) {
+      var y = yOf(r[0]).toFixed(1);
+      g += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="var(--color-line)" stroke-width="1" stroke-dasharray="2 4"/>' +
+        '<text x="' + (W - padR + 6) + '" y="' + (yOf(r[0]) + 3) + '" font-size="9" fill="var(--color-faint)" font-family="var(--font-sans)">' + r[1] + '</text>';
+    });
+    var ey = yOf(e);
+    var zone = e >= 4500 ? '<div class="elev-zone" style="color:var(--cinnabar-500)">⚠ 高海拔 · 注意高原反应</div>'
+      : (e >= 2500 ? '<div class="elev-zone" style="color:var(--gold-700)">海拔不低 · 适量活动</div>' : '<div class="elev-zone" style="color:var(--color-muted)">低海拔 · 舒适</div>');
+    g += '<line x1="' + padL + '" y1="' + ey.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + ey.toFixed(1) + '" stroke="var(--color-primary)" stroke-width="2"/>' +
+      '<circle cx="' + padL + '" cy="' + ey.toFixed(1) + '" r="4" fill="var(--color-primary)" stroke="#fff" stroke-width="1.5"/>' +
+      '<text x="' + (W - padR + 6) + '" y="' + (ey + 3) + '" font-size="10" font-weight="700" fill="var(--color-primary)" font-family="var(--font-sans)">' + Math.round(e) + 'm</text>';
+    return '<div class="elev-head">海拔 ' + Math.round(e) + ' 米</div>' +
+      '<div class="elev-wrap"><svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" fill="none">' +
+      '<line x1="' + padL + '" y1="' + top + '" x2="' + padL + '" y2="' + bot + '" stroke="var(--color-line-strong)" stroke-width="2"/>' + g + '</svg>' + zone + '</div>';
   }
   /* ---------- 全国页按省懒加载详情（审核修复批次 2） ---------- */
   var PROV_FILE = {
@@ -348,6 +373,7 @@
           if (SITES[i].name === x.name && !SITES[i].desc) {
             SITES[i].desc = x.desc; SITES[i].best = x.best; SITES[i].img = x.img;
             SITES[i].dy = x.dy; SITES[i].ty = x.ty;
+            if (x.elev) SITES[i].elev = x.elev;
           }
         }
       });
