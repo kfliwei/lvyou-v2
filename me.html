@@ -2,9 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>我的 · 行迹</title>
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="design.css">
 <style>
@@ -36,6 +35,30 @@
   .entry .nm{flex:1;font-size:13.5px}
   .entry .nm small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
   .entry .arr{color:var(--color-faint)}
+  /* v3 CINEMATIC LAYER */
+  .hero-card{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;border:1px solid color-mix(in srgb,var(--color-gold-bright) 34%,transparent);background:linear-gradient(150deg,var(--color-surface),color-mix(in srgb,var(--color-primary-soft) 45%,var(--color-surface)));box-shadow:var(--shadow-medium)}
+  .hero-card::after{content:"";position:absolute;right:-48px;top:-48px;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at center,rgba(212,113,74,.16),transparent 70%);pointer-events:none}
+  .seal{width:56px;height:56px;border-radius:18px;background:var(--grad-primary);font-size:28px;box-shadow:var(--glow-ember),inset 0 1px 0 rgba(255,255,255,.28);position:relative;z-index:1}
+  .hero-card .who{position:relative;z-index:1}
+  .hero-card .who b{font-size:20px}
+  .wish-pill{padding:8px 14px;background:var(--grad-night);color:var(--color-paper-warm);box-shadow:var(--shadow-soft);position:relative;z-index:1;font-size:11.5px}
+  .wish-pill b{color:var(--color-gold-bright);font-family:var(--font-serif)}
+  .stats{gap:8px}
+  .stats .st{padding:11px 2px 10px;border-radius:14px;box-shadow:var(--shadow-soft);position:relative;overflow:hidden}
+  .stats .st::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--grad-gold-line);opacity:.8}
+  .stats .st b{font-size:18px;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .panel{border-radius:18px;padding:14px 15px;box-shadow:var(--shadow-soft)}
+  .prov{padding:5px 10px;font-size:11px;transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out)}
+  .prov.on{background:var(--grad-primary);border-color:transparent;box-shadow:0 3px 10px rgba(172,78,45,.28)}
+  .rec .dot{background:var(--grad-primary)}
+  .entry{border-radius:18px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-soft);transition:transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+  .entry:active{transform:scale(.985)}
+  @media(hover:hover){.entry:hover{transform:translateY(-2px);box-shadow:var(--shadow-float)}}
+  .entry .ic{width:40px;height:40px;border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--color-primary) 24%,var(--color-surface)),color-mix(in srgb,var(--color-primary) 10%,var(--color-surface)))}
+  .entry .arr{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);font-size:13px}
+  .theme-dark .hero-card{background:linear-gradient(150deg,rgba(255,255,255,.06),rgba(212,113,74,.10));border-color:rgba(220,174,94,.22)}
+  .theme-dark .wish-pill{background:linear-gradient(145deg,#2B241D,#1F1A15)}
+  .theme-dark .entry .ic{background:linear-gradient(145deg,rgba(212,113,74,.22),rgba(212,113,74,.08))}
 </style>
 </head>
 <body>
@@ -98,9 +121,9 @@
     var pn = st.provs.length;
     document.getElementById('meSub').textContent = notes.length ? (pn + ' 个省份 · ' + Object.keys(cities).length + ' 个城市 · ' + Object.keys(days).length + ' 天在路上') : '还没有记录，去探索第一处风景';
     document.getElementById('meStats').innerHTML = [
-      ['省份', pn + ' / 31'], ['城市', Object.keys(cities).length], ['里程', Math.round(km) + ' km'], ['记录日', Object.keys(days).length]
+      ['省份', pn + ' / 34'], ['城市', Object.keys(cities).length], ['里程', Math.round(km) + ' km'], ['记录日', Object.keys(days).length]
     ].map(function(m){ return '<div class="st"><b>' + m[1] + '</b><span>' + m[0] + '</span></div>'; }).join('');
-    var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新']];
+    var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新'],['香港','港'],['澳门','澳'],['台湾','台']];
     document.getElementById('meProvs').innerHTML = ALL.map(function(p){ return '<span class="prov' + (provs[p[0]] ? ' on' : '') + '">' + p[1] + '</span>'; }).join('');
     var recent = notes.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,4);
     document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){

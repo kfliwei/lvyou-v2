@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v22';
+var CACHE = 'trace-v29';
 var TILES = 'trace-tiles-v1';
 var TILE_MAX_ENTRIES = 800;   /* 瓦片缓存上限（约 800 张，防爆 Storage） */
 var TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com', 'tile.opentopomap.org', 'is.autonavi.com'];
@@ -14,7 +14,6 @@ var SHELL = [
   './search.html',
   './settings.html',
   './story.html',
-  './test-data.html',
   './topic.html',
   './travel-map.html',
   './wishlist.html',
@@ -29,6 +28,11 @@ var SHELL = [
   './vault.js',
   './quotes.js',
   './topic-meta.js',
+  './topic-meta-lite.js',
+  './topic-catalog.js',
+  './site-images.js',
+  './nav.js',
+  './tn-key.js',
   './topic-common.js',
   './wishlist.js',
   './geo.js',

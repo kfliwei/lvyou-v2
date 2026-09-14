@@ -28,10 +28,17 @@
     if (mq.addEventListener) mq.addEventListener('change', apply);
     else if (mq.addListener) mq.addListener(apply);
   }
-  /* PWA：仅 http/https 注册（file:// 与 Android WebView 内不注册，功能不受影响） */
-  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    });
+  /* PWA：仅 http/https 启用（file:// 与 Android WebView 内不启用，功能不受影响）。
+     manifest 改为动态注入而非页面静态 <link>：file:// 下静态链接必被 CORS 拦截报错 */
+  if (/^https?:/.test(location.protocol)) {
+    var mf = document.createElement('link');
+    mf.rel = 'manifest';
+    mf.href = 'manifest.webmanifest';
+    document.head.appendChild(mf);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
   }
 })();

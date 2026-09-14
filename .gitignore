@@ -26,3 +26,10 @@ data/.cache/
 keystore.properties
 tn-key.js
 img-test/nation-check/
+
+# 调试截图 / 杂项
+/_*.png
+/=
+
+# tools 一次性脚本归档
+tools/archive/

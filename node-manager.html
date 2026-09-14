@@ -2,9 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>我的地点 · 行迹</title>
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="map.css">
@@ -71,6 +70,18 @@
   .leaflet-control-zoom a.leaflet-control-zoom-in{border-bottom:1px solid rgba(32,32,29,.08) !important}
   .theme-dark #rsSheet,.theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
   .theme-dark .leaflet-control-zoom a{background:var(--color-surface) !important;color:var(--color-ink) !important}
+  /* v3 CINEMATIC LAYER */
+  .nm-topbar{background:rgba(248,244,236,.82);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+  .nsearch-bar{border-radius:24px}
+  .nsearch-bar .go,.sbar .go{background:var(--grad-primary);box-shadow:0 6px 16px -4px rgba(172,78,45,.5)}
+  #rsSheet,#infoSheet{border-radius:24px}
+  #infoSheet .is-btn.primary{background:var(--grad-primary);border-color:transparent}
+  .rs-item .ic{background:linear-gradient(145deg,rgba(219,125,83,.18),rgba(169,76,45,.08));color:var(--color-ember-deep)}
+  .rs-sec{color:var(--color-gold-bright);letter-spacing:.2em}
+  .nsearch-bar .keybtn{border-color:transparent;background:linear-gradient(145deg,rgba(219,125,83,.16),rgba(169,76,45,.07));color:var(--color-ember-deep)}
+  .nsearch-bar .keybtn:active{background:rgba(200,109,75,.22)}
+  .theme-dark .nm-topbar{background:rgba(27,23,19,.82)}
+  .theme-dark .nsearch-bar .keybtn{background:linear-gradient(145deg,rgba(219,125,83,.28),rgba(169,76,45,.14));color:#e8a07c}
 </style>
 </head>
 <body>
@@ -88,7 +99,7 @@
 
 <!-- 底部搜索栏（顶栏只留返回+标题，搜索移到下方，空间更充足） -->
 <div class="nsearch-bar">
-  <button class="keybtn" id="qKey" aria-label="配置高德 Key" title="配置高德 Key">⚙</button>
+  <button class="keybtn" id="qKey" aria-label="配置高德 Key" title="配置高德 Key"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <input id="q" type="search" placeholder="搜景点 / 茶馆 / 观景台…" autocomplete="off" aria-label="搜索地点">
   <button class="go" id="qGo">搜索</button>
 </div>

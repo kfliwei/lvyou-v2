@@ -2,12 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>行迹 TRACE · 省份专题</title>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="map.css?v=20260822">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="map.css">
 <script src="theme.js"></script>
 <style>.pop{max-width:200px;font-size:12px}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
 .pop .pm{color:var(--color-muted);margin-top:6px;font-size:0.6875rem}.pop .pfoot{margin-top:10px;display:flex;gap:8px}
@@ -23,7 +22,7 @@
     <button class="act sec" onclick="TravelNotes.openList()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:-2px;margin-right:4px"><path d="M9 6 H20 M9 12 H20 M9 18 H20"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>游记</button>
   </div>
   <div class="s-row">
-    <div class="search">🔍<input id="search" placeholder="搜名称 / 城市 / 类型 / 简介…"></div>
+    <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex:0 0 auto"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5"/></svg><input id="search" placeholder="搜名称 / 城市 / 类型 / 简介…"></div>
     <div class="sort"><select id="sortSel"></select></div>
   </div>
   <div class="chip-row" id="dynChips"></div>
@@ -49,7 +48,7 @@
     <div class="laymenu" id="layMenu"></div>
     <button class="dayLegendBtn" id="dayLegendBtn" title="展开 / 收起每日轨迹色" style="display:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4 C16 8 16 16 12 20 C8 16 8 8 12 4 Z"/></svg> 每日色</button>
     <div class="dayLegend" id="dayLegend" style="display:none"></div>
-    <div class="pickHint" id="pickHint" style="display:none">📍 点击地图任意位置，设为「我的位置」</div>
+    <div class="pickHint" id="pickHint" style="display:none">点击地图任意位置，设为「我的位置」</div>
     <button class="tripfab" id="tripFab" aria-label="我的行程"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15.8 8.2 L13 13 L8.2 15.8 L11 11 Z"/></svg><span class="badge" id="tripBadge">0</span></button>
     <div class="tripbar" id="tripBar">
       <div class="th"><span class="tt">我的行程</span><span class="cnt" id="tripCnt">0</span><button class="clr" id="tripClear">清空</button><button class="cls" id="tripClose">✕</button></div>
@@ -68,7 +67,7 @@
   </section>
   <section id="route" class="view">
     <div class="routeSelBar">
-      <select id="routeSel"><option value="">🧭 选择一条路线</option></select>
+      <select id="routeSel"><option value="">选择一条路线</option></select>
     </div>
     <div class="routes" id="routes"></div>
   </section>
@@ -109,25 +108,25 @@
   <button role="tab" data-tab="route"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 L10 9 L14 13 L20 5"/><circle cx="4" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="5" r="2" fill="currentColor" stroke="none"/></svg></span></span>路线</button>
   <button role="tab" data-tab="food"><span class="ic"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8 H19 V11 C19 15 16 18 12 18 C8 18 5 15 5 11 Z"/><path d="M12 18 V21"/></svg></span></span>美食</button>
 </nav>
-<script src="vendor/leaflet/leaflet.js?v=20260822"></script>
-<script src="node-lod.js?v=20260822"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="node-lod.js"></script>
 <script src="geo.js"></script>
-<script src="quotes.js?v=20260822"></script>
-<script src="travel-notes.js?v=20260822"></script>
-<script src="results.js?v=20260822"></script>
-<script src="vault.js?v=20260822"></script>
-<script src="topic-meta.js?v=20260822"></script>
-<script src="site-images.js?v=20260822"></script>
-<script src="wishlist.js?v=20260822"></script>
-<script src="topic-common.js?v=20260822"></script>
-<script src="ui.js?v=20260822"></script>
+<script src="quotes.js"></script>
+<script src="travel-notes.js"></script>
+<script src="results.js"></script>
+<script src="vault.js"></script>
+<script src="topic-meta.js"></script>
+<script src="site-images.js"></script>
+<script src="wishlist.js"></script>
+<script src="topic-common.js"></script>
+<script src="ui.js"></script>
 <script>
 /* 启动器：?p=sc → 载入 sc-data.js(+sc-food.js) → TopicEngine.init() */
 (function () {
   /* 缓存策略：sw.js 版本化治理后不再注销 SW，依赖 CACHE bump + ?v= 版本号刷新 */
   var p = (location.search.match(/[?&]p=([^&]+)/) || [])[1] || 'sc';
   var cfg = window.TOPIC_REGISTRY[p] || window.TOPIC_REGISTRY.sc;
-  if (!cfg) { document.body.innerHTML = '<div style="padding:40px;text-align:center">未知专题：' + p + '</div>'; return; }
+  if (!cfg) { document.body.textContent = '未知专题：' + p; document.body.style.cssText = 'padding:40px;text-align:center'; return; }
   window.TOPIC_META = cfg;
   document.title = cfg.title;
   var titleEl = document.querySelector('.title');
@@ -142,7 +141,7 @@
   }
   /* 全国页懒加载（审核修复）：轻量索引渲染 + 节点详情按省按需补充 */
   function loadNationIndex() {
-    loadScript('nation-index.js?v=20260822', function () {
+    loadScript('nation-index.js', function () {
       window.SITES = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
         var p = line.split('|');
         return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8] };
@@ -162,19 +161,10 @@
 
 <script>
 (function(){
-  if(window.Wish && Wish.checkNearby){
-    setTimeout(function(){
-      Wish.checkNearby(function(near){
-        var s = near[0];
-        var d = document.createElement('div');
-        d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+76px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
-        d.innerHTML='<span style="flex:1">你已在 <b>'+s.label+'</b> 附近（3km 内），记录一下？</span><button id="tnNGo" style="flex:0 0 auto;border:0;border-radius:999px;background:#C86D4B;color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去打卡</button>';
-        document.body.appendChild(d);
-        document.getElementById('tnNGo').onclick=function(){ d.remove(); location.href='wishlist.html'; };
-        setTimeout(function(){ d.remove(); }, 10000);
-      });
-    }, 3500);
-  }
+  try{
+    /* 附近想去打卡提示（共享实现见 wishlist.js Wish.nearbyNudge） */
+    if(window.Wish && Wish.nearbyNudge) Wish.nearbyNudge(3500);
+  }catch(e){}
 })();
 </script>
 </body>

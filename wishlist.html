@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>想去清单 · 行迹</title>
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -47,6 +46,36 @@
   body{display:block;overflow:auto}
   /* 顶栏按钮防挤压：固定宽度不收缩，标题区自适应 */
   .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 10px}
+  /* v3 CINEMATIC LAYER */
+  .t-row .wl-btn{min-height:32px;padding:0 11px;font-size:12px;border-radius:999px;font-weight:500}
+  .t-row .title{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wl-empty p{color:var(--color-ink-soft)}
+  #wlPlanBtn{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(172,78,45,.32)}
+  .wl-item{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-soft);transition:transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+  .wl-item:active{transform:scale(.985)}
+  @media(hover:hover){.wl-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-float)}}
+  .wl-group{margin-top:2px}
+  .wl-group:not(:first-child) .wl-group-head{border-top:0}
+  .wl-group-head{padding:14px 4px 8px}
+  .wl-group-name{font-size:15.5px;display:flex;align-items:center;gap:9px}
+  .wl-group-name::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--grad-gold-line);flex:0 0 auto}
+  .wl-group-cnt{background:color-mix(in srgb,var(--color-gold-bright) 15%,var(--color-surface));color:var(--color-ink-soft);padding:2px 11px}
+  .wl-dot{box-shadow:0 0 0 4px rgba(212,113,74,.10)}
+  .wl-main .wl-tag{background:color-mix(in srgb,var(--color-gold-bright) 18%,var(--color-surface));color:var(--color-ember-deep);padding:2px 11px;font-weight:500}
+  .wl-main .wl-done-tag{background:rgba(95,122,78,.12);color:var(--color-green)}
+  .wl-btn{border-radius:999px;font-weight:500;transition:transform .15s var(--ease-out),box-shadow .15s var(--ease-out)}
+  .wl-btn.primary{background:var(--grad-primary);border-color:transparent;box-shadow:0 4px 12px rgba(172,78,45,.28)}
+  .wl-btn.done{background:rgba(95,122,78,.12)}
+  .wl-remove{transition:background .15s,color .15s}
+  @media(hover:hover){.wl-remove:hover{background:rgba(172,78,45,.10);color:var(--color-ember-deep)}}
+  .wl-mv{border-radius:10px}
+  .wl-empty{padding:80px 20px 60px}
+  .wl-empty .em{display:block;font-size:24px;line-height:1.9;padding-top:26px;position:relative}
+  .wl-empty .em::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:3px;border-radius:2px;background:var(--grad-gold-line)}
+  .wl-empty a{display:inline-block;margin-top:20px;padding:11px 28px;border-radius:999px;background:var(--grad-primary);color:#fff;font-size:13.5px;text-decoration:none;box-shadow:var(--glow-ember)}
+  .wl-empty a:active{transform:scale(.96)}
+  .theme-dark .wl-main .wl-tag{background:rgba(220,174,94,.16);color:var(--color-gold-bright)}
+  .theme-dark .wl-group-cnt{background:rgba(220,174,94,.12)}
 </style>
 </head>
 <body>
@@ -56,8 +85,8 @@
     <div class="title">想去清单 <small id="cntLabel"></small></div>
     <button class="wl-btn" style="min-height:34px" id="wlMapBtn">地图</button>
     <button class="wl-btn" style="min-height:34px;margin-left:6px" id="wlPlanBtn">规划行程</button>
-    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="window.copyWishlist()">复制清单</button>
-    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="location.href='explore-map.html'">去探索</button>
+    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="window.copyWishlist()">复制</button>
+    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="location.href='explore-map.html'">探索</button>
   </div>
 </header>
 <div class="wrap">
@@ -344,7 +373,7 @@
       html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px;display:flex;align-items:center;gap:8px">' +
         '<b style="font-family:var(--font-serif);font-weight:400;color:' + DAY_COLORS[di % DAY_COLORS.length] + '">D' + (di + 1) + '</b>' +
         '<span style="font-size:11.5px;color:var(--color-muted);flex:1">' + visitN + ' 站 · 约 ' + Math.round(km) + ' km' + (prevEnd ? '（含衔接段）' : '') + '</span>' +
-        '<button class="wl-btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="navDay(' + di + ')">🚗 导航</button></div>';
+        '<button class="wl-btn" style="min-height:30px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;gap:4px" onclick="navDay(' + di + ')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12 21 4l-4.5 16-4.5-6.5z"/></svg>导航</button></div>';
       /* 出发地（D1 首站前）：起点行 */
       if (di === 0 && window.__planStart && window.__planStart.hasCoord) {
         html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
@@ -382,7 +411,7 @@
           '<button class="wl-mv" aria-label="下移" onclick="movePlanSite(' + di + ',' + i + ',1)">↓</button></div>';
       });
     });
-    html += '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.copyPlan()">📋 复制计划</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" id="wlPlanClose">收起计划</button></div></div>';
+    html += '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.copyPlan()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 5.5V3.5h6v2"/></svg>复制计划</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" id="wlPlanClose">收起计划</button></div></div>';
     box.innerHTML = html;
     box.style.display = 'block';
     document.getElementById('planStations').value = window.__planStations || 6;

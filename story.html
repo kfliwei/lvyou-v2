@@ -2,9 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>旅程叙事 · 行迹</title>
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
@@ -38,6 +37,24 @@
   .story-nav .sn-info b{font-family:var(--font-serif);font-weight:400;font-size:14px;color:var(--color-ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .story-nav .sn-info span{display:block;font-size:10.5px;color:var(--color-muted);margin-top:1px}
   .theme-dark .story-nav{background:rgba(29,28,25,.92);border-color:var(--color-line)}
+
+/* ============================================================
+   v3 CINEMATIC LAYER · 旅程叙事
+   ============================================================ */
+.story-bar{background:rgba(248,244,236,.82);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border-bottom-color:rgba(33,26,19,.06)}
+.story-bar select{border-radius:999px;padding:0 26px 0 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--color-faint) 50%),linear-gradient(135deg,var(--color-faint) 50%,transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 10px) 50%;background-size:4px 4px;background-repeat:no-repeat}
+.story-card{border-radius:20px;padding:20px 18px 18px;transition:box-shadow .3s,border-color .3s}
+.story-card.active{box-shadow:var(--shadow-medium),0 0 0 1.5px var(--color-gold-bright);border-color:color-mix(in srgb,var(--color-gold-bright) 45%,var(--color-line))}
+.story-card .sc-date{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.16em}
+.story-card .sc-date::before{content:"";width:12px;height:2px;border-radius:2px;background:var(--grad-gold-line)}
+.story-card .sc-place{font-size:23px}
+.story-card .sc-tags span{background:rgba(200,109,75,.10);color:var(--color-ember-deep);font-weight:500}
+.story-card .sc-pics img{border-radius:12px}
+.story-nav{background:rgba(248,244,236,.85);border:1px solid rgba(220,174,94,.25);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+.story-nav .sn-btn{background:linear-gradient(145deg,var(--color-surface),var(--color-bg-soft))}
+.story-empty b{font-size:20px}
+.theme-dark .story-bar{background:rgba(27,23,19,.82)}
+.theme-dark .story-nav{background:rgba(27,23,19,.85)}
 
 /* ============================================================
    TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
