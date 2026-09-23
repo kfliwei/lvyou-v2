@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>我的 · 行迹</title>
+<title>设置 · 行迹</title>
 <link rel="stylesheet" href="design.css">
 <link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
@@ -38,8 +38,6 @@
   .data-acts .btn-primary,.data-acts .btn-secondary{width:100%;min-height:46px;border-radius:999px;font-size:14px;font-family:var(--font-sans)}
   .data-danger{width:100%;min-height:46px;border:1px solid var(--color-line-strong);border-radius:999px;background:transparent;color:var(--color-primary-dark);font-size:14px;cursor:pointer;font-family:var(--font-sans)}
   .data-danger:active{background:var(--color-primary-soft)}
-  .savebar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:min(calc(100% - 28px),528px);z-index:90}
-  .savebar .btn-primary{width:100%;min-height:50px;border-radius:999px;font-size:15px;font-family:var(--font-sans);box-shadow:0 10px 28px rgba(200,109,75,.3)}
   body{padding-bottom:80px}
 
 /* ============================================================
@@ -65,7 +63,7 @@
   <header class="topbar">
     <div class="t-row">
       <button class="back" aria-label="返回" onclick="history.length>1?history.back():location.href='index.html'">←</button>
-      <div class="title">我的 <small id="statLabel"></small></div>
+      <div class="title">设置 <small id="statLabel"></small></div>
     </div>
   </header>
 
@@ -145,7 +143,7 @@
           </div>
           <div class="switchrow" style="margin-top:12px">
             <div><div class="sw-label">必去优先显示</div><div class="sw-sub">中缩放只显示必去/重要节点，视野更清晰；关闭则全部显示</div></div>
-            <div class="sw" id="swLodMajor" onclick="toggle('swLodMajor','tn_lod_major')"></div>
+            <div class="sw" id="swLodMajor"></div>
           </div>
         </div>
         <div class="adv-item">
@@ -215,9 +213,6 @@
     </div>
   </div>
 
-  <div class="savebar">
-    <button class="btn-primary" onclick="saveSettings()">保存设置</button>
-  </div>
 </div>
 
 <script src="quotes.js"></script>
@@ -227,17 +222,23 @@
 <script>
   function fmtSize(mb){ return mb.toFixed(1) + ' MB'; }
   function refreshStorage(){
+    /* 口径与 persist() 容量预警一致：游记内存快照（含内嵌 base64 媒体）实测体积；
+       file:// 落盘媒体只计路径，另用 navigator.storage.estimate 提示浏览器配额 */
     var mb = 0;
     try {
-      var raw = localStorage.getItem('travelNotes');
-      if (raw) mb = (raw.length / 1048576);
-      // 加上录音等
-      var audio = localStorage.getItem('tn_audio');
-      if (audio) mb += (audio.length / 1048576);
+      if (window.TravelNotes && TravelNotes.storageMB) mb = TravelNotes.storageMB();
+      else { var raw = localStorage.getItem('travelNotes'); if (raw) mb = raw.length / 1048576; }
     } catch(e){}
     var st = document.getElementById('storage');
     st.textContent = fmtSize(mb);
-    st.style.color = mb > 3 ? 'var(--color-primary-dark)' : 'var(--color-ink-soft)';
+    st.style.color = mb > 30 ? 'var(--color-primary-dark)' : 'var(--color-ink-soft)';
+    if (navigator.storage && navigator.storage.estimate) {
+      navigator.storage.estimate().then(function (es) {
+        if (!es || !es.quota || es.usage / es.quota < 0.8) return;
+        st.textContent = fmtSize(mb) + ' · 浏览器配额已用 ' + Math.round(es.usage / es.quota * 100) + '%';
+        st.style.color = 'var(--color-primary-dark)';
+      }).catch(function () {});
+    }
   }
   function refreshVoiceDiag(){
     /* 语音引擎诊断：讯飞/Google 可用性 + 最近一次识别错误码 + 崩溃日志（便于定位"语音闪退"） */
@@ -307,15 +308,6 @@
       });
     });
   })();
-  function saveSettings(){
-    var key = document.getElementById('inKey').value.trim();
-    if (key) localStorage.setItem('tn_aiKey', key); else localStorage.removeItem('tn_aiKey');
-    var m = document.querySelector('#chModel button.on');
-    if (m) localStorage.setItem('tn_model', m.dataset.m);
-    var v = document.querySelector('#chVad button.on');
-    if (v) localStorage.setItem('tn_vad', v.dataset.v);
-    toast('设置已保存');
-  }
   function toggle(id, k){
     var el = document.getElementById(id);
     var off = el.classList.contains('off');
@@ -356,6 +348,7 @@
     });
   }
   function toast(msg){
+    if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
     d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18)';
     d.textContent = msg; document.body.appendChild(d);
@@ -423,14 +416,13 @@
     window.TravelNotes._onReady = function () {
       var n = TravelNotes.list().length;
       document.getElementById('statLabel').textContent = n ? n + ' 篇游记' : '';
+      refreshStorage();
     };
     TravelNotes.init({});
     /* 提前注入 UI（CSS+弹窗/闪屏 DOM），保证导出备份/导入等弹窗样式可用 */
     try { TravelNotes.ensureUI(); } catch (e) {}
   }
 </script>
-
-<script>
-
+<div id="bnav"></div><script src="nav.js" data-active="settings"></script>
 </body>
 </html>

@@ -55,14 +55,13 @@
     <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
     <div class="title">想去清单 <small id="cntLabel"></small></div>
     <button class="wl-btn" style="min-height:34px" id="wlMapBtn">地图</button>
-    <button class="wl-btn" style="min-height:34px;margin-left:6px" id="wlPlanBtn">规划行程</button>
+    <a class="wl-btn" style="min-height:34px;margin-left:6px;display:inline-flex;align-items:center;text-decoration:none" href="planner.html?from=wish">规划行程</a>
     <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="window.copyWishlist()">复制清单</button>
     <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="location.href='explore-map.html'">去探索</button>
   </div>
 </header>
 <div class="wrap">
   <div id="wlMap" style="display:none;height:60vh;height:60dvh;border-radius:18px;overflow:hidden;border:1px solid var(--color-line)"></div>
-  <div id="wlPlan" style="display:none"></div>
   <div id="wlBody"></div>
   <div class="wl-empty" id="wlEmpty" style="display:none">
     <div class="em">想去的地方，<br>先记在这里。</div>
@@ -120,86 +119,6 @@
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);
   }
-  /* 真实导航线路：OSRM 免费路由（无需 Key，返回道路折线）；失败回退直线 */
-  var OSRM = 'https://router.project-osrm.org/route/v1/driving/';
-  var routeGen = 0;
-  function fetchRoute(a, b, cb) {
-    var url = OSRM + a[1] + ',' + a[0] + ';' + b[1] + ',' + b[0] + '?overview=full&geometries=geojson';
-    fetch(url).then(function (r) { return r.json(); }).then(function (j) {
-      if (j && j.code === 'Ok' && j.routes && j.routes[0]) {
-        cb(j.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; }));
-      } else cb(null);
-    }).catch(function () { cb(null); });
-  }
-  /* 行程计划地图：每日同色标记 + 路线连线（真实道路线渐进替换直线） */
-  function renderPlanMap() {
-    var days = window.__planDays || [];
-    if (!days.length) return;
-    var box = document.getElementById('wlMap');
-    box.style.display = 'block';   /* 先显示容器，再初始化/计算尺寸（否则 Leaflet 按 0 尺寸 fitBounds，标记全在视野外） */
-    initMap();
-    map.invalidateSize();
-    clearMarkers();
-    planLayer.clearLayers();
-    mapOn = true;
-    document.getElementById('wlMapBtn').textContent = '列表';
-    routeGen++;
-    var gen = routeGen;
-    var bnd = [];
-    var segments = [];
-    days.forEach(function (d, di) {
-      var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : (window.__planStart && window.__planStart.hasCoord ? window.__planStart : null);
-      var col = DAY_COLORS[di % DAY_COLORS.length];
-      var seq = [];
-      if (prevEnd && prevEnd.lat != null) seq.push({ s: prevEnd, dash: '4 6', col: col });
-      d.forEach(function (s) {
-        if (s.isEnd) return;   /* 终点站不画为途经点，末天段单独画 */
-        seq.push({ s: s, dash: null, col: col });
-      });
-      /* 终到地段：末天末站 → 终点 */
-      if (di === days.length - 1 && window.__planEnd && window.__planEnd.hasCoord) {
-        seq.push({ s: window.__planEnd, dash: '4 6', col: col });
-      }
-      seq.forEach(function (it, i) {
-        if (i === 0) return;
-        var a = [seq[i - 1].s.lat, seq[i - 1].s.lng];
-        var b = [it.s.lat, it.s.lng];
-        if (a[0] == null || b[0] == null) return;
-        bnd.push(a, b);
-        /* 先画直线即时反馈，随后逐个替换为真实道路线 */
-        var line = L.polyline([a, b], { color: it.col, weight: 4, opacity: .85, dashArray: it.dash, lineCap: 'round' }).addTo(planLayer);
-        segments.push({ a: a, b: b, line: line, dash: it.dash, col: it.col });
-      });
-      d.forEach(function (s, i) {
-        if (s.lat == null) return;
-        var num = s.isStart ? '起' : (i - (d[0] && d[0].isStart ? 1 : 0));
-        var m = L.marker([s.lat, s.lng], {
-          icon: L.divIcon({ className: '', html: '<div style="position:relative;width:28px;height:28px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:10px;background:' + col + ';color:#fff;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">' + num + '</span></div>', iconSize: [28, 28], iconAnchor: [14, 14] })
-        });
-        m.bindPopup('<b>D' + (di + 1) + ' · ' + esc(s.label) + '</b><br>' + esc(s.region || ''));
-        planLayer.addLayer(m);
-      });
-    });
-    if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
-    else if (bnd.length === 1) map.setView(bnd[0], 9);
-    /* 渐进替换：串行请求真实路线（并发 1，避免限流；重新规划后丢弃旧回调） */
-    var idx = 0;
-    function nextRoute() {
-      if (gen !== routeGen) return;
-      if (idx >= segments.length) return;
-      var seg = segments[idx++];
-      fetchRoute(seg.a, seg.b, function (coords) {
-        if (gen !== routeGen) return;
-        if (coords && coords.length > 1) {
-          try { planLayer.removeLayer(seg.line); } catch (e) {}
-          L.polyline(coords, { color: seg.col, weight: 4, opacity: .9, dashArray: seg.dash, lineCap: 'round' }).addTo(planLayer);
-        }
-        nextRoute();
-      });
-    }
-    nextRoute();
-  }
-
   /* ---------- 跨专题行程规划（贪心：每天 ≤6 站、单日 ≤260km）---------- */
   /* 复制文本（剪贴板 + execCommand 兜底） */
   function copyText(txt) {
@@ -216,15 +135,6 @@
       navigator.clipboard.writeText(txt).then(function () { UI.toast('已复制'); }, legacy);
     } else legacy();
   }
-  /* ① 行程计划文本分享 */
-  window.copyPlan = function () {
-    var days = window.__planDays; if (!days || !days.length) { UI.toast('请先规划行程'); return; }
-    var txt = '🚗 行程计划（行迹 TRACE）\n';
-    days.forEach(function (d, di) {
-      txt += 'Day' + (di + 1) + '：' + d.map(function (s) { return s.label; }).join(' → ') + '\n';
-    });
-    copyText(txt);
-  };
   /* ④ 想去清单文本分享 */
   window.copyWishlist = function () {
     var list = window.Wish ? Wish.list() : [];
@@ -234,288 +144,13 @@
     copyText(txt);
   };
 
-  function planTrip() {
-    var list = window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; });
-    var box = document.getElementById('wlPlan');
-    if (list.length < 2) { UI.toast('至少需要 2 个未打卡的心愿节点才能规划行程'); return; }
-    var maxPerDay = parseInt(document.getElementById('planStations') ? document.getElementById('planStations').value : '6', 10) || 6;
-    var maxKm = parseInt(document.getElementById('planKm') ? document.getElementById('planKm').value : '260', 10) || 260;
-    /* 出发地/终到地：从 wishlist 匹配节点（有坐标则参与导航里程，无坐标仅标注） */
-    var allList = window.Wish.list();
-    var selStart = (document.getElementById('planStart') && document.getElementById('planStart').value || '').trim();
-    var selEnd = (document.getElementById('planEnd') && document.getElementById('planEnd').value || '').trim();
-    var isLoop = !!(document.getElementById('planLoop') && document.getElementById('planLoop').checked);
-    if (isLoop && selStart) selEnd = selStart;   /* 环线：终到地 = 出发地 */
-    var startNode = selStart ? allList.find(function (x) { return x.label === selStart && x.lat != null; }) || null : null;
-    var endNode = selEnd ? allList.find(function (x) { return x.label === selEnd && x.lat != null; }) || null : null;
-    /* 记录起点/终点信息（label + lat/lng，供渲染和导航使用） */
-    window.__planStart = selStart ? { label: selStart, lat: startNode ? startNode.lat : null, lng: startNode ? startNode.lng : null, hasCoord: !!startNode } : null;
-    window.__planEnd = selEnd ? { label: selEnd, lat: endNode ? endNode.lat : null, lng: endNode ? endNode.lng : null, hasCoord: !!endNode } : null;
-    /* 最近邻贪心分日 */
-    var pts = list.map(function (x) { return x; });
-    var days = [], cur = startNode || null, dayDist = 0;
-    /* 出发地已指定：跳过贪心起点选择，cur 已是起点 */
-    if (startNode) {
-      /* 从 pts 中移除已在出发地的节点（避免重复规划） */
-      var si = pts.findIndex(function (x) { return x.label === selStart; });
-      if (si >= 0) pts.splice(si, 1);
-    }
-    while (pts.length) {
-      var idx = 0, bestD = 1e12;
-      for (var k = 0; k < pts.length; k++) {
-        var d = cur ? window.Geo.hav(cur.lat, cur.lng, pts[k].lat, pts[k].lng) : 0;
-        if (d < bestD) { bestD = d; idx = k; }
-      }
-      var next = pts.splice(idx, 1)[0];
-      if (!cur) { cur = next; days.push([next]); dayDist = 0; continue; }
-      if (!days.length || days[days.length - 1].length >= maxPerDay || dayDist + bestD > maxKm) {
-        var start = { label: cur.label, lat: cur.lat, lng: cur.lng, region: cur.region, theme: cur.theme, isStart: true };
-        days.push([start, next]); dayDist = 0;
-      }
-      else { days[days.length - 1].push(next); dayDist += bestD; }
-      cur = next;
-    }
-    /* 终到地：末天末站之后追加终点站（isEnd），环线时回到起点 */
-    if (endNode && days.length) {
-      var lastDay = days[days.length - 1];
-      var endStop = { label: selEnd, lat: endNode.lat, lng: endNode.lng, region: endNode.region || '', theme: endNode.theme || '', isEnd: true, isLoop: isLoop };
-      lastDay.push(endStop);
-    }
-    /* 渲染计划（可调） */
-    window.__planDays = days;
-    renderPlan(list.length);
-    renderPlanMap();
-  }
-  /* 每天里程：含出发地段（起点→D1首站）+ 跨天衔接 + 终点段（末站→终到地） */
-  function dayKm(d, di, prevEnd) {
-    var k = 0, last = prevEnd || d[0];
-    for (var i = 0; i < d.length; i++) { if (last.lat != null && d[i].lat != null) k += window.Geo.hav(last.lat, last.lng, d[i].lat, d[i].lng); last = d[i]; }
-    return k;
-  }
-  function totalKm() {
-    var days = window.__planDays || [];
-    var start = window.__planStart;
-    var end = window.__planEnd;
-    var k = 0;
-    days.forEach(function (d, di) {
-      var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : (start && start.hasCoord ? start : null);
-      k += dayKm(d, di, prevEnd);
-    });
-    /* 终到地段：末天末站 → 终点 */
-    if (end && end.hasCoord && days.length) {
-      var lastDay = days[days.length - 1];
-      var last = lastDay[lastDay.length - 1];
-      if (last.lat != null) k += window.Geo.hav(last.lat, last.lng, end.lat, end.lng);
-    }
-    return k;
-  }
-  function renderPlan(total) {
-    var box = document.getElementById('wlPlan');
-    var days = window.__planDays || [];
-    var tKm = Math.round(totalKm());
-    var html = '<div style="background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px">' +
-      '<div style="font-family:var(--font-serif);font-size:17px;margin-bottom:4px">行程计划 · ' + days.length + ' 天 / ' + total + ' 站 · 约 ' + tKm + ' km</div>' +
-      '<div style="font-size:12px;color:var(--color-muted);margin-bottom:10px">按地理邻近自动分日，跨天从上一天终点继续；每天可一键导航，可上下调整顺序</div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;font-size:12.5px">' +
-      '<span style="color:var(--color-muted)">每天</span><input id="planStations" type="number" min="1" max="12" value="6" style="width:52px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
-      '<span style="color:var(--color-muted)">站 · ≤</span><input id="planKm" type="number" min="30" max="800" step="10" value="260" style="width:64px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);text-align:center;font-size:13px">' +
-      '<span style="color:var(--color-muted)">km/天</span>' +
-      '<button class="wl-btn" style="margin-left:auto;flex:0 0 auto;white-space:nowrap" onclick="replan()">重新规划</button>' +
-      '<a href="planner.html?from=wish" style="display:inline-block;margin-left:6px;font-size:11px;color:var(--color-muted);text-decoration:none;white-space:nowrap">AI 规划</a></div>' +
-      /* 出发地 / 终到地（从心愿节点选择，支持手动输入；环线=起点终点同名） */
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;font-size:12.5px">' +
-      '<span style="color:var(--color-muted);flex:0 0 auto">出发地</span><input id="planStart" list="wlList" placeholder="选点或输入" autocomplete="off" style="flex:1;min-width:80px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);font-size:13px;padding:0 8px">' +
-      '<span style="color:var(--color-muted);flex:0 0 auto">终到地</span><input id="planEnd" list="wlList" placeholder="选点或输入" autocomplete="off" style="flex:1;min-width:80px;height:34px;border:1px solid var(--color-line-strong);border-radius:8px;background:var(--color-surface);color:var(--color-ink);font-size:13px;padding:0 8px">' +
-      '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-muted);cursor:pointer;white-space:nowrap"><input type="checkbox" id="planLoop" style="accent-color:var(--color-primary)">环线</label>' +
-      '</div>' +
-      '<datalist id="wlList"></datalist>';
-    /* 填充 datalist */
-    setTimeout(function () {
-      var dl = document.getElementById('wlList');
-      if (dl) {
-        var ws = (window.Wish && Wish.list) ? Wish.list() : [];
-        dl.innerHTML = ws.map(function (w) { return '<option value="' + esc(w.label) + '">'; }).join('');
-      }
-    }, 50);
-    days.forEach(function (d, di) {
-      var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : (window.__planStart && window.__planStart.hasCoord ? window.__planStart : null);
-      var km = dayKm(d, di, prevEnd);
-      var visitN = d.length - (d[0] && d[0].isStart ? 1 : 0) - (d[d.length - 1] && d[d.length - 1].isEnd ? 1 : 0);
-      html += '<div style="border-top:1px solid var(--color-line);padding:8px 0 4px;display:flex;align-items:center;gap:8px">' +
-        '<b style="font-family:var(--font-serif);font-weight:400;color:' + DAY_COLORS[di % DAY_COLORS.length] + '">D' + (di + 1) + '</b>' +
-        '<span style="font-size:11.5px;color:var(--color-muted);flex:1">' + visitN + ' 站 · 约 ' + Math.round(km) + ' km' + (prevEnd ? '（含衔接段）' : '') + '</span>' +
-        '<button class="wl-btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="navDay(' + di + ')">🚗 导航</button></div>';
-      /* 出发地（D1 首站前）：起点行 */
-      if (di === 0 && window.__planStart && window.__planStart.hasCoord) {
-        html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
-          '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">起</span>' +
-          '<span style="flex:1;min-width:0;font-size:0.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(window.__planStart.label) + '（出发地）</span>' +
-          '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">0km</span></div>';
-      }
-      d.forEach(function (s, i) {
-        var isStart = s.isStart;
-        var isEnd = s.isEnd;
-        var from = i > 0 ? d[i - 1] : null;
-        var seg = from ? Math.round(window.Geo.hav(from.lat, from.lng, s.lat, s.lng)) : null;
-        if (isStart) {
-          /* 跨天起点站：上一天终点，本天从此出发（不可移动） */
-          html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
-            '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">起</span>' +
-            '<span style="flex:1;min-width:0;font-size:0.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + '（D' + di + ' 终点 · 本天出发地）</span>' +
-            '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">0km</span></div>';
-          return;
-        }
-        if (isEnd) {
-          var endLabel = (s.isLoop ? '（回到起点 · 环线）' : '（抵达地）');
-          html += '<div style="display:flex;gap:8px;align-items:center;padding:4px 0 2px">' +
-            '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">终</span>' +
-            '<span style="flex:1;min-width:0;font-size:0.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + endLabel + '</span>' +
-            (seg != null ? '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">' + seg + 'km</span>' : '') + '</div>';
-          return;
-        }
-        html += '<div style="display:flex;gap:8px;align-items:center;padding:5px 0">' +
-          '<span style="flex:0 0 20px;text-align:center;color:var(--color-faint);font-size:0.75rem">' + (i - (d[0] && d[0].isStart ? 1 : 0)) + '</span>' +
-          '<span style="flex:1;min-width:0;font-size:0.8438rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s.label) + '</span>' +
-          '<span style="font-size:0.6875rem;color:var(--color-muted);flex:0 0 auto">' + esc(s.region || '') + '</span>' +
-          (seg != null ? '<span style="font-size:0.6875rem;color:var(--color-faint);flex:0 0 auto">' + seg + 'km</span>' : '') +
-          '<button class="wl-mv" aria-label="上移" onclick="movePlanSite(' + di + ',' + i + ',-1)">↑</button>' +
-          '<button class="wl-mv" aria-label="下移" onclick="movePlanSite(' + di + ',' + i + ',1)">↓</button></div>';
-      });
-    });
-    html += '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.copyPlan()">📋 复制计划</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" onclick="window.__exportPlan()">导出 GPX</button><button class="wl-btn" style="flex:1;justify-content:center;min-width:100px" id="wlPlanClose">收起计划</button></div></div>';
-    box.innerHTML = html;
-    box.style.display = 'block';
-    document.getElementById('planStations').value = window.__planStations || 6;
-    document.getElementById('planKm').value = window.__planKm || 260;
-    document.getElementById('wlPlanClose').onclick = function () { box.style.display = 'none'; document.getElementById('wlMap').style.display = 'none'; mapOn = false; document.getElementById('wlMapBtn').textContent = '地图'; };
-  }
-  window.replan = function () {
-    window.__planStations = parseInt(document.getElementById('planStations').value, 10) || 6;
-    window.__planKm = parseInt(document.getElementById('planKm').value, 10) || 260;
-    /* 保留起终点值（input 修改后 replan 重新读取） */
-    planTrip();
-  };
-  /* 每天导航：起点 = 上一天终点（跨天衔接）或本天首站，途经中间站，终点 = 本天末站 */
-  window.navDay = function (di) {
-    var days = window.__planDays || [];
-    var d = days[di]; if (!d || !d.length) { UI.toast('没有可导航的站点'); return; }
-    var prevEnd = di > 0 ? days[di - 1][days[di - 1].length - 1] : (window.__planStart && window.__planStart.hasCoord ? window.__planStart : null);
-    var gcj = function (p) {
-      if (!p) return null;
-      if (p.gcj) return [p.lng, p.lat];
-      try { var g = window.Geo && Geo.gcj02Of ? Geo.gcj02Of(p.lat, p.lng) : null; return g ? [g[1], g[0]] : [p.lng, p.lat]; } catch (e) { return [p.lng, p.lat]; }
-    };
-    var startP = prevEnd || d[0];
-    var endP = d[d.length - 1];
-    /* 终到地：末天导航终点改为终到地 */
-    if (di === days.length - 1 && window.__planEnd && window.__planEnd.hasCoord) endP = window.__planEnd;
-    var start = gcj(startP), dest = gcj(endP);
-    if (!start || !dest) { UI.toast('站点缺少坐标，无法导航'); return; }
-    var ways = d.slice(1, -1).map(gcj).filter(Boolean);   /* 途经中间站（跳过起点站） */
-    var sName = (prevEnd ? '昨日终点·' : '') + startP.label;
-    var dName = d[d.length - 1].label;
-    var deep = 'amapuri://route/plan/?sourceApplication=' + encodeURIComponent('行迹') +
-      '&slat=' + start[1] + '&slon=' + start[0] + '&sname=' + encodeURIComponent(sName) +
-      '&dlat=' + dest[1] + '&dlon=' + dest[0] + '&dname=' + encodeURIComponent(dName) + '&dev=0&t=0';
-    if (ways.length) deep += '&vian=' + ways.length + '&vialons=' + ways.map(function (w) { return w[0]; }).join('|') + '&vialats=' + ways.map(function (w) { return w[1]; }).join('|');
-    var web = 'https://uri.amap.com/navigation?from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(sName) +
-      '&to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(dName) + '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
-    if (ways.length) web += '&waypoints=' + ways.map(function (w) { return w[0] + ',' + w[1]; }).join(';');
-    UI.toast('正在打开高德地图导航…');
-    if (/GuJianApp/.test(navigator.userAgent)) { window.location.href = deep; return; }
-    var t0 = Date.now(); window.location.href = deep;
-    setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
-  };
-  /* 调整站序：dir=-1 上移、1 下移；边界时自动跨天。起点站锁定；跨天后同步衔接（后一天起点=前一天终点） */
-  window.movePlanSite = function (di, si, dir) {
-    var days = window.__planDays; if (!days || !days[di]) return;
-    var d = days[di];
-    if (d[si] && (d[si].isStart || d[si].isEnd)) return;   /* 起点站和终点站不可移动 */
-    var to = si + dir;
-    if (to >= 0 && to < d.length) {
-      var t = d[si]; d[si] = d[to]; d[to] = t;
-    } else if (dir < 0 && di > 0) {
-      days[di - 1].push(d.splice(si, 1)[0]);
-    } else if (dir > 0 && di < days.length - 1) {
-      days[di + 1].unshift(d.splice(si, 1)[0]);
-    } else { return; }
-    /* 同步起点站：保证「后一天起点 = 前一天终点」始终成立 */
-    days.forEach(function (dd, ddi) {
-      if (ddi === 0 || !(dd[0] && dd[0].isStart)) return;
-      var pe = days[ddi - 1][days[ddi - 1].length - 1];
-      if (pe) { dd[0].label = pe.label; dd[0].lat = pe.lat; dd[0].lng = pe.lng; dd[0].region = pe.region; }
-    });
-    window.__planDays = days.filter(function (x) { return x.length; });
-    renderPlan(window.Wish.list().filter(function (x) { return !x.visited && x.lat != null; }).length);
-  };
-  /* 面板内提示条（在计划面板顶部显示导出结果，必定可见） */
-  function planMsg(msg, ok) {
-    var bar = document.getElementById('planMsg');
-    if (!bar) {
-      bar = document.createElement('div');
-      bar.id = 'planMsg';
-      bar.style.cssText = 'margin:8px 0 4px;padding:9px 12px;border-radius:10px;font-size:12.5px;line-height:1.6;text-align:center';
-      var plan = document.getElementById('wlPlan');
-      if (plan) plan.insertBefore(bar, plan.firstChild);
-    }
-    bar.style.background = ok === false ? 'rgba(180,84,58,.12)' : 'rgba(113,128,108,.14)';
-    bar.style.color = ok === false ? '#B4543A' : '#5F7A4E';
-    bar.textContent = msg;
-    bar.style.display = 'block';
-    clearTimeout(planMsg._t);
-    planMsg._t = setTimeout(function () { bar.style.display = 'none'; }, 6000);
-  }
-  window.__exportPlan = function () {
-    var days = window.__planDays; if (!days || !days.length) { planMsg('请先规划行程', false); flash('请先规划行程'); return; }
-    planMsg('正在导出 GPX…');
-    flash('正在导出 GPX…');
-    var pts = [];
-    days.forEach(function (d) { d.forEach(function (s) { pts.push(s); }); });
-    var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
-      '<gpx version="1.1" creator="行迹 TRACE" xmlns="http://www.topografix.com/GPX/1/1">' +
-      '<metadata><name>行迹行程计划</name><time>' + new Date().toISOString() + '</time></metadata><trk><name>行程计划</name><trkseg>' +
-      pts.map(function (s) { return '<trkpt lat="' + s.lat + '" lon="' + s.lng + '"><name>' + s.label + '</name></trkpt>'; }).join('') +
-      '</trkseg></trk>';
-    days.forEach(function (d, di) { d.forEach(function (s) { gpx += '<wpt lat="' + s.lat + '" lon="' + s.lng + '"><name>D' + (di + 1) + (s.isStart ? ' 起点' : (s.isEnd ? (s.isLoop ? ' 环线终点' : ' 终点') : '')) + ' ' + s.label + '</name></wpt>'; }); });
-    /* 出发地/终到地（单独 wpt） */
-    if (window.__planStart && window.__planStart.hasCoord) gpx += '<wpt lat="' + window.__planStart.lat + '" lon="' + window.__planStart.lng + '"><name>出发地 ' + window.__planStart.label + '</name></wpt>';
-    if (window.__planEnd && window.__planEnd.hasCoord && !window.__planEnd.isStart) gpx += '<wpt lat="' + window.__planEnd.lat + '" lon="' + window.__planEnd.lng + '"><name>终到地 ' + window.__planEnd.label + '</name></wpt>';
-    gpx += '</gpx>';
-    var fname = '行迹行程计划_' + new Date().toISOString().slice(0, 10) + '.gpx';
-    /* App 壳：保存到系统下载目录（MediaStore，免权限）；回调确认保存结果 */
-    if (window.AndroidVoice && AndroidVoice.saveTextFile) {
-      try {
-        window.__tnSaveDone = function (st) {
-          if (st === 'need_perm') { planMsg('需要存储权限，请在系统设置中允许后重试', false); flash('需要存储权限'); }
-          else { planMsg('已保存到下载目录：' + fname + ' ✓'); flash('GPX 已保存到下载目录 ✓'); }
-        };
-        AndroidVoice.saveTextFile(fname, gpx);
-        setTimeout(function () { planMsg('已保存到下载目录：' + fname + ' ✓'); flash('GPX 已保存到下载目录 ✓'); }, 1500);
-        return;
-      } catch (e) { planMsg('导出失败，请重试', false); flash('导出失败，请重试'); return; }
-    }
-    try {
-      var blob = new Blob([gpx], { type: 'application/gpx+xml' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fname;
-      document.body.appendChild(a); a.click(); a.remove();
-      planMsg('GPX 已导出：' + fname + ' ✓');
-      flash('GPX 已导出 ✓');
-    } catch (e) { planMsg('导出失败，请用其他方式', false); flash('导出失败，请用其他方式'); }
-  };
-
   /* 按钮绑定 */
   document.getElementById('wlMapBtn').onclick = function () {
     mapOn = !mapOn;
     document.getElementById('wlMap').style.display = mapOn ? 'block' : 'none';
-    document.getElementById('wlPlan').style.display = 'none';
     this.textContent = mapOn ? '列表' : '地图';
     if (mapOn) renderMap();
   };
-  var pc = document.getElementById('wlPlanClose');
-  if (pc) pc.onclick = function () { document.getElementById('wlPlan').style.display = 'none'; document.getElementById('wlMapBtn').textContent = '地图'; };
-  document.getElementById('wlPlanBtn').onclick = function () { planTrip(); };
 
   function itemHtml(w, i) {
     var done = !!w.visited;
@@ -598,6 +233,7 @@
   window.undoCheckin = undoCheckin;
   window.doRemove = doRemove;
   function flash(msg) {
+    if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
     d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);
@@ -609,5 +245,6 @@
   render();
 })();
 </script>
+<div id="bnav"></div><script src="nav.js" data-active="wishlist"></script>
 </body>
 </html>

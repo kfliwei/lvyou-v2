@@ -126,6 +126,7 @@
   <div class="t-row">
     <button class="back" onclick="window.plannerBack?plannerBack():(history.length>1?history.back():location.href='index.html')" aria-label="返回">←</button>
     <div class="title">行程规划 <small>把想去的地方串成一场旅行</small></div>
+    <a href="wishlist.html" aria-label="想去清单" style="flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);text-decoration:none;font-size:16px">☆</a>
   </div>
 </header>
 <div class="wrap">
@@ -212,12 +213,12 @@
 <script src="wishlist.js"></script>
 <script src="ui.js"></script>
 <script src="nation-index.js"></script>
-<script src="tn-key.js"></script>
   <script src="planner.js"></script>
   <script>
     /* 起终点：存储到 window（planner.js 意图卡渲染时读取） */
     window.__planEnd = null;
     window.__planStart = null;
   </script>
+<div id="bnav"></div><script src="nav.js" data-active="planner"></script>
 </body>
 </html>

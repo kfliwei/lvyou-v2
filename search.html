@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="design.css">
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
-  .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:60px}
+  .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
   .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
   .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;color:var(--color-ink);height:34px}
   .sbar .mic{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:15px;cursor:pointer}
@@ -234,5 +234,6 @@ $q.oninput=function(){ state.q=$q.value; state.limit=20; clearTimeout(state._t);
   loadData(function(){ render(); });
 })();
 </script>
+<div id="bnav"></div><script src="nav.js" data-active="search"></script>
 </body>
 </html>

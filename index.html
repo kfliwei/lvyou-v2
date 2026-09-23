@@ -58,21 +58,23 @@
   .sp-group + .sp-group{border-top:1px solid var(--color-line);margin-top:6px;padding-top:10px}
   .sp-title{font-size:0.6875rem;color:var(--color-muted);letter-spacing:.1em;margin:0 8px 6px}
   .sp-note{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background var(--duration-fast)}
-  .sp-note:hover{background:var(--color-bg-soft)}
+  @media (hover:hover){.sp-note:hover{background:var(--color-bg-soft)}}
+  .sp-note:active{background:var(--color-bg-soft)}
   .sp-note b{font-size:14px;font-weight:500;color:var(--color-ink);font-family:var(--font-serif)}
   .sp-note small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px;font-family:var(--font-sans)}
   .sp-topic{display:block;padding:9px 12px;border-radius:12px;font-size:13px;color:var(--color-primary-dark);cursor:pointer;font-family:var(--font-sans);font-weight:500}
-  .sp-topic:hover{background:var(--color-primary-soft)}
+  @media (hover:hover){.sp-topic:hover{background:var(--color-primary-soft)}}
+  .sp-topic:active{background:var(--color-primary-soft)}
   .sp-empty{font-size:0.7813rem;color:var(--color-faint);padding:8px 12px;font-family:var(--font-sans)}
   .hero__cta{position:relative;z-index:2;margin-top:28px;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;cursor:pointer;padding:8px 0}
   .hero__cta::after{content:"";position:absolute;left:0;bottom:2px;height:1.5px;width:100%;background:var(--color-ink);transform-origin:left;transition:transform var(--duration-normal) var(--ease-standard)}
-  .hero__cta:hover::after{transform:scaleX(1.3)}
+  @media (hover:hover){.hero__cta:hover::after{transform:scaleX(1.3)}}
   /* 随手记：与「探索地图」并列的文字入口（非按钮形态，印章点缀） */
   .hero-note{cursor:pointer;color:var(--color-muted);font-size:14px;letter-spacing:.08em;display:inline-flex;align-items:center;gap:7px;padding:8px 0;transition:color .25s}
   .hero-note:active{color:var(--color-primary)}
   .hero-note__seal{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid var(--color-primary);border-radius:6px;color:var(--color-primary);font-family:var(--font-serif);font-size:12px;line-height:1;flex:0 0 auto}
   .hero__cta .arr{transition:transform var(--duration-normal) var(--ease-standard)}
-  .hero__cta:hover .arr{transform:translateX(4px)}
+  @media (hover:hover){.hero__cta:hover .arr{transform:translateX(4px)}}
 
   /* ---- Section 通用 ---- */
   .home-section{padding:56px 20px}
@@ -135,7 +137,7 @@
   .home-end__s{color:var(--color-muted);font-size:14px;margin-top:10px;letter-spacing:.1em}
   .home-end__cta{display:inline-flex;align-items:center;gap:8px;margin-top:26px;font-size:15px;font-weight:500;cursor:pointer;position:relative;padding:6px 0}
   .home-end__cta::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:100%;background:var(--color-ink);transform-origin:left;transition:transform var(--duration-normal) var(--ease-standard)}
-  .home-end__cta:hover::after{transform:scaleX(1.3)}
+  @media (hover:hover){.home-end__cta:hover::after{transform:scaleX(1.3)}}
 
   /* ---- 底部操作（保留功能入口） ---- */
   .home-actions{display:flex;gap:10px;padding:28px 20px 8px}
@@ -321,7 +323,7 @@
   <!-- ============ 底部操作（保留功能） ============ -->
   <div class="home-actions">
     <button class="ha-btn seal" onclick="__tnAnywhere()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>随手记</button>
-    <button class="ha-btn line" onclick="Results.open()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 16 L9.5 11.5 L13.5 15 L16 12.5 L20 16"/></svg>旅程回顾</button>
+    <button class="ha-btn line" onclick="location.href='review.html'"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 16 L9.5 11.5 L13.5 15 L16 12.5 L20 16"/></svg>旅程回顾</button>
   </div>
 
 </div>
@@ -335,6 +337,8 @@
 <script src="travel-notes.js"></script>
 <script src="results.js"></script>
 <script src="vault.js"></script>
+<script src="ui.js"></script>
+<script src="wishlist.js"></script>
 <script>
   // ===== 保留原业务逻辑（P1 仅视觉重构） =====
   function refreshHome() {
@@ -503,7 +507,7 @@
     var last=+localStorage.getItem('tn_lastBackup')||0;
     if(Date.now()-last>30*864e5){
       var d=document.createElement('div');
-      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+104px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
       d.innerHTML='<span style="flex:1">距上次备份已超 30 天，数据只在本机，建议备份一次。</span><button id="bkGo" style="flex:0 0 auto;border:0;border-radius:999px;background:#C86D4B;color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去备份</button>';
       document.body.appendChild(d);
       document.getElementById('bkGo').onclick=function(){ d.remove(); location.href='settings.html'; };
@@ -520,7 +524,7 @@
       Wish.checkNearby(function(near){
         var s = near[0];
         var d = document.createElement('div');
-        d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+        d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+104px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
         d.innerHTML='<span style="flex:1">你已在 <b>'+s.label+'</b> 附近（3km 内），记录一下？</span><button id="tnNGo" style="flex:0 0 auto;border:0;border-radius:999px;background:#C86D4B;color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去打卡</button>';
         document.body.appendChild(d);
         document.getElementById('tnNGo').onclick=function(){ d.remove(); location.href='wishlist.html'; };
@@ -530,7 +534,6 @@
   }
 })();
 </script>
-</body>
 
 <script>
 /* 首启引导（3 步，一次性，可跳过） */

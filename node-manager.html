@@ -667,7 +667,7 @@
   $('rsClose').onclick = function () { $('rsSheet').classList.remove('show'); };
   $('qGo').onclick = doSearch;
   $('q').onkeydown = function (e) { if (e.key === 'Enter') doSearch(); };
-  $('qKey').onclick = function () { promptKey(function () { }); };
+  $('qKey').onclick = function () { promptKey(function () { doSearch(); }); };
   /* 已有 Key 时齿轮显示为绿色（已配置指示） */
   try {
     if (localStorage.getItem(AMAP_KEY)) {

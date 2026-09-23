@@ -261,6 +261,7 @@
   function ymOf(n) { var d = (n.day || (n.date || '').slice(0, 10) || fmtDay(n.ts || Date.now())).slice(0, 7); return d || '未知'; }
   function wordsOf(n) { return String(n.text || n.raw || '').length; }
   function toast(msg) {
+    if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
     d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);

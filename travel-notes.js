@@ -141,6 +141,14 @@ window.Ai = (function () {
   }
   /* 上次持久化快照（id → JSON 字符串），用于增量 diff */
   var lastSnap = null;
+  /* IDB 不可用、回退 localStorage 也可能满（QuotaExceeded）：明确提示一次，避免静默丢数据 */
+  function warnStoreFail() {
+    try {
+      if (localStorage.getItem('tn_storefail_warned')) return;
+      localStorage.setItem('tn_storefail_warned', '1');
+    } catch (e) {}
+    flash('存储空间已满：本次保存失败，请导出备份后清理旧游记');
+  }
   function persist() {
     // 内存已更新；增量写回 IDB（diff：只写变化的记录；删除消失的；首次全量）
     var snap = notes.slice();
@@ -154,15 +162,15 @@ window.Ai = (function () {
       Object.keys(lastSnap).forEach(function (id) { if (!curIds[id]) removed.push(id); });
     }
     openDB(function (db) {
-      if (!db) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) {} return; }
+      if (!db) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) { warnStoreFail(); } return; }
       try {
         var tx = db.transaction('notes', 'readwrite');
         var st = tx.objectStore('notes');
         if (!lastSnap) st.clear();          // 首次：全量重建
         removed.forEach(function (id) { st.delete(id); });
         changed.forEach(function (n) { st.put(n); });
-        tx.onerror = function () { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) {} };
-      } catch (e) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e2) {} }
+        tx.onerror = function () { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e) { warnStoreFail(); } };
+      } catch (e) { try { localStorage.setItem(KEY, JSON.stringify(snap)); } catch (e2) { warnStoreFail(); } }
       // 更新快照
       var ns = {};
       snap.forEach(function (n) { ns[n.id] = JSON.stringify(n); });
@@ -241,9 +249,15 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-mic.ok{background:linear-gradient(145deg,#c9a227,#96700a);border-color:rgba(245,240,228,.6);box-shadow:0 10px 26px rgba(184,134,11,.4),inset 0 2px 6px rgba(255,255,255,.15)}\
 .tn-miclabel{margin-top:6px;font-size:12px;color:#7d7a6e;text-align:center}\
 .tn-miclabel b{color:var(--color-primary)}\
-.tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:16.5px;line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:240px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
+.tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:16.5px;line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:150px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
 .tn-recbox b{font-family:var(--fb);display:block;font-size:9.5px;color:#9c958a;margin-bottom:7px;font-weight:400;letter-spacing:1px}\
-.tn-recbox textarea{width:100%;background:transparent;border:0;color:#26241f;font-size:16.5px;line-height:1.8;resize:vertical;outline:0;min-height:260px;font-family:var(--fd)}\
+.tn-recbox textarea{width:100%;background:transparent;border:0;color:#26241f;font-size:16.5px;line-height:1.8;resize:vertical;outline:0;min-height:150px;font-family:var(--fd)}\
+.tn-panel.is-done .tn-prompt{display:none}\
+.tn-panel.is-done .tn-now{display:none}\
+.tn-panel.is-done .tn-ring{width:72px;height:72px;margin-top:2px;display:flex;align-items:center;justify-content:center}\
+.tn-panel.is-done .tn-ringbar{display:none}\
+.tn-panel.is-done .tn-mic{width:56px;height:56px}\
+.tn-panel.is-done .tn-mic svg{width:26px;height:26px}\
 .tn-tags{width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--color-line);border-radius:10px;font-size:14px;box-sizing:border-box;background:#fff;color:#26241f;outline:0;transition:var(--tf)}\
 .tn-tags:focus{border-color:rgba(184,134,11,.6);box-shadow:0 0 0 3px rgba(184,134,11,.15)}\
 .tn-tags::placeholder{color:#9c958a}\
@@ -401,7 +415,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-quote .add{display:inline-block;margin-top:8px;font-size:11px;color:var(--b7);border:1px solid var(--ln);border-radius:999px;padding:3px 10px;font-family:var(--fb)}\
 .tn-quotes .empty{padding:36px 20px;text-align:center;font-size:13px;color:var(--i5);line-height:1.9;font-family:var(--fb)}\
 .tn-quotes .web{display:block;width:100%;margin-top:4px;min-height:44px;border:0;border-radius:10px;background:var(--b6);color:#f5ede0;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fb)}\
-.tn-flash{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(31,54,52,.97);color:#efe9dc;padding:11px 20px;border-radius:3px;font-size:13.5px;font-weight:700;z-index:9500;display:none;box-shadow:0 6px 24px rgba(0,0,0,.3)}\
+.tn-flash{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translate(-50%,-8px);background:rgba(31,54,52,.97);color:#efe9dc;padding:11px 20px;border-radius:3px;font-size:13.5px;font-weight:700;z-index:9500;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;box-shadow:0 6px 24px rgba(0,0,0,.3)}\
+.tn-flash.on{opacity:1;transform:translate(-50%,0)}\
 @media (max-width:380px){.tn-body{padding-left:14px;padding-right:14px}.tn-head{padding-left:12px;padding-right:12px}.tn-ring{width:172px;height:172px}.tn-mic{width:92px;height:92px}.tn-recbox,.tn-ai{font-size:18px}.tn-listbar{padding-left:12px;padding-right:12px}.tn-item{padding:12px 13px}}\
 .tn-guide{position:fixed;inset:0;z-index:9006;display:none;flex-direction:column;background:linear-gradient(175deg,#1f2b26 0%,#141a17 100%);color:#efe9dc}\
 .tn-guide .bar{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px)+8px) 16px 10px;border-bottom:1px solid rgba(239,233,220,.08)}\
@@ -476,10 +491,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     <button class="tn-repolish" id="tnQuote" >追加名言</button>\
     <button class="tn-save" id="tnSave" disabled>保存游记</button>\
   </div>\
-  <div class="tn-confirm" id="tnConfirm">\
-    <div class="tc-txt">听见了。<br>要不要留下这段记忆？</div>\
-    <div class="tc-btns"><button class="tn-cfm-save" id="tnCfmSave">保存</button><button class="tn-cfm-again" id="tnCfmAgain">再说一点</button></div>\
-  </div>\
+  <div class="tn-confirm" id="tnConfirm" style="display:none"></div>\
   <div class="tn-quotes" id="tnQuotes">\
     <div class="bar"><button class="tn-x" id="tnQuoteBack">←</button><b>名言检索</b></div>\
     <div class="sr"><input id="tnQuoteSearch" placeholder="搜索关键词（如：云冈 / 山水 / 苍山）"><button class="tn-x" id="tnQuoteClear" style="width:40px;height:40px;background:var(--sf2);color:var(--i5)">✕</button></div>\
@@ -513,22 +525,18 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     });
     $X(panel, '#tnX').onclick = closePanel;
     $X(panel, '#tnRec').onclick = toggleRec;
-    // 菜单项互斥高亮（bottom-nav 语义：当前激活项白底高亮）
-    function setActs(activeId){
-      ['tnPolish','tnQuote'].forEach(function(id){
-        var b = panel.querySelector('#'+id);
-        if (b) b.classList.toggle('on', id === activeId);
-      });
-    }
     $X(panel, '#tnPolish').onclick = doPolish;
     $X(panel, '#tnSave').onclick = saveNote;
-    // 两段确认：保存 / 再说一点（保存复用 saveNote；再说一点 = 追加补充，保留已说内容）
-    $X(panel, '#tnCfmSave').onclick = function () { $X(panel, '#tnSave').click(); };
-    $X(panel, '#tnCfmAgain').onclick = function () {
-      state.append = true;   // 追加模式：识别完成后拼接到已有内容，而不是重说
-      $X(ui.panel, '#tnNote').textContent = '继续说吧，会接到刚才的内容后面';
-      $X(panel, '#tnRec').click();
-    };
+    /* 转写框常驻 textarea：直接打字也能成稿（事件委托，innerHTML 重建不丢绑定） */
+    $X(panel, '#tnRaw').addEventListener('input', function (e) {
+      var ta = e.target;
+      if (!ta || ta.id !== 'tnRawEdit') return;
+      state.raw = ta.value;
+      var has = !!ta.value.trim();
+      $X(panel, '#tnSave').disabled = !has;
+      var p = $X(panel, '#tnPolish');
+      if (has && p.style.display === 'none') { p.style.display = 'block'; p.textContent = '整理一下'; }
+    });
     $X(panel, '#tnFile').onchange = onPickPhotos;
     // 名人名言检索面板
     var qq = $X(panel, '#tnQuotes');
@@ -756,110 +764,24 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(list, '#tnViewTrip').onclick = function () { viewMode = 'trip'; setViewTabs(); renderList(); };
     $X(list, '#tnViewTime').onclick = function () { viewMode = 'timeline'; setViewTabs(); renderList(); };
     $X(list, '#tnViewCal').onclick = function () { viewMode = 'calendar'; setViewTabs(); renderList(); };
-    // 设置（毛玻璃分组：AI 润色 / 语音记录 / 数据备份）
-    var set = el('div', 'tn-settings');
-    set.innerHTML = '\
-<h4>设置 <button class="tn-x" id="tnKeyClose" style="font-size:14px">✕</button></h4>\
-<div class="setcard" style="margin-bottom:12px">\
-  <b style="display:block;font-size:13px;color:var(--color-ink);margin-bottom:10px">AI 润色设置</b>\
-  <input id="tnKeyInput" placeholder="sk-xxxxxxxx（存本机，用于 AI 润色）">\
-  <div class="tn-style" id="tnModel"></div>\
-  <p>key 仅保存在本机 localStorage，不经过任何服务器。可在 platform.deepseek.com 获取。</p>\
-</div>\
-<div class="setcard" style="margin-bottom:12px">\
-  <b style="display:block;font-size:13px;color:var(--color-ink);margin-bottom:10px">🎙 语音记录</b>\
-  <div style="font-size:12.5px;color:var(--i7);margin-bottom:6px">⏸ 停止说话多久自动结束（仅 App 内生效）</div>\
-  <div class="tn-style" id="tnVadSeg"></div>\
-  <div style="display:flex;align-items:center;gap:10px;margin-top:12px">\
-    <div style="flex:1"><div style="font-size:13px;color:var(--i9);font-weight:600">🎙 保留录音</div><div style="font-size:11px;color:var(--i5)">识别同时录制音频，可回放</div></div>\
-    <div class="tnswitch" id="tnKeepAudio"></div>\
-  </div>\
-</div>\
-<div class="setcard">\
-  <b style="display:block;font-size:13px;color:var(--color-ink);margin-bottom:10px">地图显示</b>\
-  <div style="display:flex;align-items:center;gap:10px">\
-    <div style="flex:1"><div style="font-size:13px;color:var(--i9);font-weight:600">专题地图显示游记节点</div><div style="font-size:11px;color:var(--i5)">默认关闭；开启后在长征/滇桂黔等专题地图上显示 📝 游记节点</div></div>\
-    <div class="tnswitch" id="tnThemeNotes"></div>\
-  </div>\
-</div>\
-<div class="setcard">\
-  <b style="display:block;font-size:13px;color:var(--b7);margin-bottom:8px">数据与备份</b>\
-  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--i5);margin-bottom:10px"><span>存储占用</span><b id="tnStorage" style="color:var(--b6)">--</b></div>\
-  <div style="display:flex;gap:8px">\
-    <button id="tnExpBtn2" style="flex:1;margin-top:0;min-height:42px;font-size:12.5px;background:var(--sf2);color:var(--b7);border:1px solid var(--ln);box-shadow:none">导出</button>\
-    <button id="tnImpBtn2" style="flex:1;margin-top:0;min-height:42px;font-size:12.5px;background:var(--sf2);color:var(--b7);border:1px solid var(--ln);box-shadow:none">导入</button>\
-    <button id="tnDocBtn2" style="flex:1;margin-top:0;min-height:42px;font-size:12.5px;background:var(--sf2);color:var(--b7);border:1px solid var(--ln);box-shadow:none">文档</button>\
-  </div>\
-  <button id="tnClearBtn" style="background:#e74c3c;box-shadow:none;margin-top:10px">清除全部数据</button>\
-</div>\
-<button id="tnKeySave">保存设置</button>';
-    [['2000', '⏸ 2 秒'], ['5000', '⏸ 5 秒']].forEach(function (v) {
-      var b = el('button', localStorage.getItem('tn_vad') === v[0] ? 'on' : '', v[1]);
-      b.dataset.v = v[0];
-      $X(set, '#tnVadSeg').appendChild(b);
-    });
-    $X(set, '#tnVadSeg').querySelectorAll('button').forEach(function (b) {
-      b.onclick = function () {
-        $X(set, '#tnVadSeg').querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-      };
-    });
-    var sw = $X(set, '#tnKeepAudio');
-    sw.className = 'tnswitch' + (localStorage.getItem('tn_keepAudio') === '0' ? ' off' : '');
-    var swTheme = $X(set, '#tnThemeNotes');
-    swTheme.className = 'tnswitch' + (localStorage.getItem('tn_themeNotes') !== '1' ? ' off' : '');
-    MODEL_LIST.forEach(function (m) {
-      var b = el('button', localStorage.getItem('tn_model') === m[0] ? 'on' : '', m[1]);
-      b.dataset.m = m[0];
-      $X(set, '#tnModel').appendChild(b);
-    });
-    $X(set, '#tnModel').querySelectorAll('button').forEach(function (b) {
-      b.onclick = function () {
-        $X(set, '#tnModel').querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-      };
-    });
-    $X(set, '#tnKeySave').onclick = function () {
-      localStorage.setItem(AI_KEY, $X(set, '#tnKeyInput').value.trim());
-      var m = $X(set, '#tnModel button.on');
-      localStorage.setItem('tn_model', m ? m.dataset.m : 'deepseek-v4-flash');
-      var v = $X(set, '#tnVadSeg button.on');
-      localStorage.setItem('tn_vad', v ? v.dataset.v : '5000');
-      var keep = !$X(set, '#tnKeepAudio').classList.contains('off');
-      localStorage.setItem('tn_keepAudio', keep ? '1' : '0');
-      var themeNotes = !$X(set, '#tnThemeNotes').classList.contains('off');
-      localStorage.setItem('tn_themeNotes', themeNotes ? '1' : '0');
-      if (window.AndroidVoice) {
-        try { AndroidVoice.setVad(parseInt(localStorage.getItem('tn_vad'), 10)); } catch (e) {}
-        try { AndroidVoice.setKeepAudio(keep); } catch (e) {}
-      }
-      set.style.display = 'none';
-      flash('设置已保存');
-    };
-    $X(set, '#tnKeyClose').onclick = function () { set.style.display = 'none'; };
-    $X(set, '#tnExpBtn2').onclick = exportNotes;
-    $X(set, '#tnImpBtn2').onclick = importNotes;
-    $X(set, '#tnDocBtn2').onclick = exportDoc;
-    $X(set, '#tnClearBtn').onclick = clearAll;
-    $X(set, '#tnKeepAudio').onclick = function () { this.classList.toggle('off'); };
-    $X(set, '#tnThemeNotes').onclick = function () { this.classList.toggle('off'); };
     var flashEl = el('div', 'tn-flash');
     document.body.appendChild(mask);
     document.body.appendChild(panel);
     document.body.appendChild(list);
-    document.body.appendChild(set);
     document.body.appendChild(flashEl);
     document.body.appendChild(guide);
-    ui = { mask: mask, panel: panel, list: list, set: set, flashEl: flashEl };
+    ui = { mask: mask, panel: panel, list: list, flashEl: flashEl };
     window.__tnKeepAudio = function () { return localStorage.getItem('tn_keepAudio') !== '0'; };
     window.__tnVad = function () { return parseInt(localStorage.getItem('tn_vad'), 10) || 5000; };
   }
   function $X(root, sel) { return root.querySelector(sel); }
   function flash(msg) {
-    ui.flashEl.textContent = msg;
-    ui.flashEl.style.display = 'block';
+    var fe = ui && ui.flashEl;
+    if (!fe) return;
+    fe.textContent = msg;
+    fe.classList.add('on');
     clearTimeout(flash._t);
-    flash._t = setTimeout(function () { ui.flashEl.style.display = 'none'; }, 2200);
+    flash._t = setTimeout(function () { fe.classList.remove('on'); }, 2200);
   }
   /* 自定义确认弹层（替代原生 confirm，WebView/预览环境原生对话框不可靠） */
   function confirmDialog(msg, onOk, okLabel) {
@@ -896,9 +818,10 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     // TRACE v2：中央地点大字 + 时间（沉浸式语音页）
     var nowEl = $X(ui.panel, '#tnNow');
     if (nowEl) nowEl.innerHTML = '<div class="tn-now__place">' + esc(site.label) + '</div><div class="tn-now__time">' + fmtTime(Date.now()) + '</div>';
-    $X(ui.panel, '#tnRaw').innerHTML = '<b>语音转写 · 可说一段话，说完稍等即可</b>';
-    $X(ui.panel, '#tnAI').style.display = 'none';
-    $X(ui.panel, '#tnAI').textContent = '';
+    $X(ui.panel, '#tnRaw').innerHTML = '<b>转写 · 说一段话，或直接在此打字</b><textarea id="tnRawEdit" placeholder="点麦克风开说；也可现在打字…"></textarea>';
+    var aiEl = $X(ui.panel, '#tnAI');
+    aiEl.style.display = 'none';
+    aiEl.textContent = '';
     $X(ui.panel, '#tnLoading').style.display = 'none';
     $X(ui.panel, '#tnSave').disabled = true;
     var p = $X(ui.panel, '#tnPolish');
@@ -929,6 +852,11 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (state.phase === 'recording') {
       $X(ui.panel, '#tnNote').textContent = '请停止说话，识别将在 1-2 秒后自动结束';
       return;
+    }
+    /* 已有内容再说 = 自动追加到后面（替代旧「再说一点」确认条） */
+    if (((state.raw || '') + '').trim() && !state.append) {
+      state.append = true;
+      $X(ui.panel, '#tnNote').textContent = '继续说，会接到刚才的内容后面';
     }
     if (window.AndroidVoice) {
       var ok = false;
@@ -986,20 +914,35 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   };
   window.__tnOnVoiceResult = function (t) {
     if (_voiceTemp && _voiceTemp.onResult) { _voiceTemp.onResult(t); _voiceTemp = null; return; }
-    var finalText = (state.append && state.raw) ? (state.raw + ' ' + (t || '')) : t;
+    /* 最终结果为空时回退实时转写，避免"说了却什么都没出现" */
+    var spoken = (t || '').trim() || (state.partial || '').trim();
+    if (!spoken) {
+      state.append = false;
+      flash('没有听清，请重试');
+      $X(ui.panel, '#tnNote').textContent = '没有听清 · 再点麦克风重来';
+      state.phase = 'idle';
+      setMic('idle');
+      return;
+    }
+    var finalText = (state.append && state.raw) ? (state.raw.trim() + '\n' + spoken) : spoken;
     state.append = false;
+    state.partial = '';
     state.raw = finalText;
     state.phase = 'idle';
     setMic('ok');
     ui.panel.classList.add('is-done');
     ui.panel.classList.remove('is-idle');
-    $X(ui.panel, '#tnMicLabel').innerHTML = '好的，我记住了。 <b>可编辑</b>';
+    $X(ui.panel, '#tnMicLabel').innerHTML = '我记住了 · <b>再说一句会自动接在后面</b>';
     $X(ui.panel, '#tnRaw').innerHTML = '<b>转写完成（可编辑）</b><textarea id="tnRawEdit" placeholder="可修改转写内容…">' + esc(finalText) + '</textarea>';
     var p = $X(ui.panel, '#tnPolish');
     p.style.display = 'block';
     p.textContent = '整理一下';
     $X(ui.panel, '#tnSave').disabled = false;
     $X(ui.panel, '#tnNote').textContent = '可先 AI 润色成精美文字，或直接保存原文';
+    requestAnimationFrame(function () {
+      var ed = $X(ui.panel, '#tnRaw');
+      if (ed && ed.scrollIntoView) ed.scrollIntoView({ block: 'center' });
+    });
   };
   window.__tnOnVoiceAudio = function (b64) {
     state.audio = b64;
@@ -1078,6 +1021,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     return t ? t.value.trim() : state.raw.trim();
   }
   function doPolish() {
+    if (doPolish._busy) { flash('正在润色中，请稍候…'); return; }
     var raw = getRaw();
     if (!raw) { flash('请先输入或录制内容'); return; }
     var st = STYLES.filter(function (x) { return x.id === curStyle(); })[0] || STYLES[0];
@@ -1109,32 +1053,38 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       $X(ui.panel, '#tnNote').textContent = '未配置 AI Key，已采用原文（可到设置页配置后重润）';
       return;
     }
-    load.style.display = 'block';
-    ai.style.display = 'none';
     var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
     var model = MODEL_ALIAS[rawM] || rawM;
-    var body = {
-      model: model,
-      messages: [
-        { role: 'system', content: st.system },
-        { role: 'user', content: '请润色以下语音口述（地点：' + (state.site ? state.site.label : '未知') + '）：\n' + raw }
-      ],
-      temperature: 0.7
-    };
-    if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-    body.stream = true;
-    Ai.stream(body.messages, function (delta) {
+    var msgs = [
+      { role: 'system', content: st.system },
+      { role: 'user', content: '请润色以下语音口述（地点：' + (state.site ? state.site.label : '未知') + '）：\n' + raw }
+    ];
+    doPolish._busy = true;
+    var unlockT = setTimeout(function () { doPolish._busy = false; }, 45000);   // 兜底解锁，防流卡死
+    load.style.display = 'block';
+    /* 关键修复：流式结果写入的 #tnAI 此前被隐藏且从不清空——润色"看不到"的根因 */
+    ai.textContent = '';
+    ai.style.display = 'block';
+    requestAnimationFrame(function () { ai.scrollIntoView({ block: 'nearest' }); });
+    Ai.stream(msgs, function (delta) {
       ai.textContent += delta;
       ai.scrollTop = ai.scrollHeight;
     }).then(function () {
+      doPolish._busy = false;
       load.style.display = 'none';
+      if (!ai.textContent.trim()) {
+        ai.style.display = 'none';
+        flash('润色返回为空（网络或 key 无效），可保存原文');
+      }
       $X(ui.panel, '#tnSave').disabled = false;
       var p = $X(ui.panel, '#tnPolish');
       p.style.display = 'block';
       p.textContent = '↻ 换风格重润';
       $X(ui.panel, '#tnNote').textContent = '润色完成：' + st.icon + st.name + '（不满意可换风格重润）';
     }).catch(function () {
+      doPolish._busy = false;
       load.style.display = 'none';
+      ai.style.display = 'none';
       flash('润色失败（网络或 key 无效），可保存原文');
       $X(ui.panel, '#tnSave').disabled = false;
     });
@@ -1307,7 +1257,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     ui.panel.classList.remove('is-done');
     var t1 = $X(ui.panel, '#tnTitle'); if (t1) t1.value = '';
     var t2 = $X(ui.panel, '#tnTags'); if (t2) t2.value = '';
-    $X(ui.panel, '#tnRaw').innerHTML = '<b>语音转写 · 可说一段话，说完稍等即可</b>';
+    $X(ui.panel, '#tnRaw').innerHTML = '<b>转写 · 说一段话，或直接在此打字</b><textarea id="tnRawEdit" placeholder="点麦克风开说；也可现在打字…"></textarea>';
     var ai = $X(ui.panel, '#tnAI'); ai.style.display = 'none'; ai.textContent = '';
     $X(ui.panel, '#tnLoading').style.display = 'none';
     $X(ui.panel, '#tnSave').disabled = true;
@@ -1839,29 +1789,10 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 
   /* ---------- 数据管理：清除 / 容量 / 照片墙 ---------- */
   function storageMB() {
-    /* 算入 base64 音频/照片真实体积：file:// 路径只占几十字节，base64 数据 URI 才占空间 */
+    /* 真实占用 = 记录 JSON 序列化体积（内嵌 base64 音频/照片已含其中；file:// 路径只占几十字节） */
     try {
-      var bytes = JSON.stringify(notes).length;
-      notes.forEach(function (n) {
-        if (n.audio && n.audio.indexOf('data:') === 0) bytes += n.audio.length;
-        (n.photos || []).forEach(function (p) {
-          if (typeof p === 'string' && p.indexOf('data:') === 0) bytes += p.length;
-        });
-      });
-      return bytes / 1024 / 1024;
+      return JSON.stringify(notes).length / 1024 / 1024;
     } catch (e) { return 0; }
-  }
-  function clearAll() {
-    confirmDialog('删除本机全部游记（含照片与录音）？此操作不可恢复，建议先导出备份。', function () {
-      notes = [];
-      persist();
-      localStorage.removeItem(KEY);
-      try {
-        if (ui && ui.list) { renderTagBar(); renderStats(); renderList(); }
-        if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
-      } catch (e) {}
-      flash('已清除全部数据');
-    }, '全部删除');
   }
   function openPhotoWall() {
     buildUI();
@@ -2018,26 +1949,6 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     /* 2026-08-15：参数卡框移除，直接打开设置页（Key/模型/VAD/保留录音/主题开关/存储均在设置页） */
     location.href = 'settings.html';
     return;
-    buildUI();
-    $X(ui.set, '#tnKeyInput').value = localStorage.getItem(AI_KEY) || '';
-    var cur = (MODEL_ALIAS && MODEL_ALIAS[localStorage.getItem('tn_model')]) || localStorage.getItem('tn_model') || 'deepseek-v4-flash';
-    $X(ui.set, '#tnModel').querySelectorAll('button').forEach(function (b) {
-      b.classList.toggle('on', b.dataset.m === cur);
-    });
-    var vad = localStorage.getItem('tn_vad') || '5000';
-    $X(ui.set, '#tnVadSeg').querySelectorAll('button').forEach(function (b) {
-      b.classList.toggle('on', b.dataset.v === vad);
-    });
-    var keep = localStorage.getItem('tn_keepAudio') !== '0';
-    $X(ui.set, '#tnKeepAudio').className = 'tnswitch' + (keep ? '' : ' off');
-    var themeNotes = localStorage.getItem('tn_themeNotes') === '1';
-    $X(ui.set, '#tnThemeNotes').className = 'tnswitch' + (themeNotes ? '' : ' off');
-    var mb = storageMB();
-    var st = $X(ui.set, '#tnStorage');
-    st.textContent = mb.toFixed(1) + ' MB';
-    st.style.color = mb > 3 ? '#e74c3c' : 'var(--b6)';
-    if (mb > 3) flash('存储快满（' + mb.toFixed(1) + 'MB）：可关闭保留录音或导出备份');
-    ui.set.style.display = 'block';
   }
 
   /* ---------- 独立游记地图页：渲染所有游记节点 ---------- */
@@ -2092,6 +2003,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     explain: function (iOrSite) { buildUI(); if (startGuideRef) startGuideRef(iOrSite); else flash('讲解暂不可用'); },
     count: function () { return notes.length; },
     list: function () { return notes.slice(); },
+    storageMB: storageMB,
     /* 按索引查询（city/day/ts），IDB 不可用时回退内存 filter；cb(noteArray) */
     queryIndex: function (idx, value, cb) {
       var name = idx === 'city' ? 'by_city' : (idx === 'day' ? 'by_day' : 'by_ts');
