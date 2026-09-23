@@ -295,23 +295,39 @@
     }
     return ordered;
   }
-  /* 把已排序的站按预算切分到天（targetDays 为软目标，站数/天数摊开） */
+  /* 把已排序的站切分到天：
+     - 指定了天数：按段均衡切成 targetDays 天（跨城长途算进当天路程，超载交给 warnline 提示）；
+     - 未指定天数：按预算贪心切分，但单日不足 2 站不再拆（修复长途段后「一天一站+300km」连环碎裂） */
   function splitIntoDays(ordered, start, targetDays) {
     var MAX_KM = 260, MAX_H = 12;
-    var maxStops = 6;
-    if (targetDays && targetDays > 0) maxStops = Math.max(1, Math.min(6, Math.ceil(ordered.length / targetDays)));
-    var days = [], day = null, prev = start && start.lat != null ? start : null;
-    function newDay() { day = { stops: [], driveKm: 0, driveH: 0, playH: 0 }; days.push(day); }
+    var days = [];
+    function mkDay() { return { stops: [], driveKm: 0, driveH: 0, playH: 0 }; }
+    function addLeg(day, prev, s) { var leg = prev ? legEst(prev, s) : { km: 0, h: 0 }; day.stops.push(s); day.driveKm += leg.km; day.driveH += leg.h; day.playH += playH(s); }
+    function finish(dd) { dd.totalH = dd.driveH + dd.playH + (dd.stops.length - 1) * 0.5 + 2.5; }
+    var prev = start && start.lat != null ? start : null;
+    if (targetDays && targetDays > 0) {
+      var D = Math.min(targetDays, ordered.length), n = ordered.length;
+      var base = Math.floor(n / D), rem = n % D, i = 0;
+      for (var d = 0; d < D; d++) {
+        var day = mkDay(), cnt = base + (d < rem ? 1 : 0);
+        for (var j = 0; j < cnt; j++) { addLeg(day, prev, ordered[i++]); prev = ordered[i - 1]; }
+        finish(day); days.push(day);
+      }
+      return days;
+    }
+    var cur = null;
     ordered.forEach(function (s) {
       var leg = prev ? legEst(prev, s) : { km: 0, h: 0 };
       var ph = playH(s);
-      if (!day) newDay();
-      var tStops = day.stops.length + 1, tKm = day.driveKm + leg.km, tH = day.driveH + day.playH + leg.h + ph + (tStops - 1) * 0.5 + 2.5;
-      if (day.stops.length && (tStops > maxStops || tKm > MAX_KM || tH > MAX_H)) { newDay(); leg = prev ? legEst(prev, s) : { km: 0, h: 0 }; ph = playH(s); }
-      day.stops.push(s); day.driveKm += leg.km; day.driveH += leg.h; day.playH += ph;
-      prev = s;
+      if (!cur) { cur = mkDay(); days.push(cur); }
+      var tStops = cur.stops.length + 1, tKm = cur.driveKm + leg.km, tH = cur.driveH + cur.playH + leg.h + ph + (tStops - 1) * 0.5 + 2.5;
+      if (cur.stops.length >= 2 && (tStops > 6 || tKm > MAX_KM || tH > MAX_H)) {
+        cur = mkDay(); days.push(cur);
+        leg = prev ? legEst(prev, s) : { km: 0, h: 0 }; ph = playH(s);
+      }
+      addLeg(cur, prev, s); prev = s;
     });
-    days.forEach(function (dd) { dd.totalH = dd.driveH + dd.playH + (dd.stops.length - 1) * 0.5 + 2.5; });
+    days.forEach(finish);
     return days;
   }
   function schedule(sel, start, targetDays, preserveOrder, reverseOrder) { var o = preserveOrder ? sel : orderStops(sel, start); if (reverseOrder) o = o.slice().reverse(); return splitIntoDays(o, start, targetDays); }
