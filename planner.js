@@ -146,6 +146,39 @@
   /* ---------- 状态 ---------- */
   var state = { regions: [], days: 0, prefs: [], start: null, end: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null };
   function nodeUid(s) { return (window.Wish ? Wish.uid(s) : String((s.name || s.label || '') + '|' + s.lat + '|' + s.lng)); }
+
+  /* localStorage 写入守卫：满额时如实提示，不再伪装成功 */
+  function lsSet(k, v) {
+    try { localStorage.setItem(k, v); return true; }
+    catch (e) { toast('本地存储空间已满，本次未能保存'); return false; }
+  }
+  /* 高德路线/距离缓存 LRU 上限 300 条，防无界膨胀挤爆配额 */
+  function rememberCacheKey(k) {
+    try {
+      var lst = JSON.parse(localStorage.getItem('tn_rc_idx') || '[]');
+      var out = [];
+      for (var i = 0; i < lst.length; i++) { var it = lst[i]; if (it !== k && localStorage.getItem(it) != null) out.push(it); }
+      out.push(k);
+      while (out.length > 300) { localStorage.removeItem(out.shift()); }
+      localStorage.setItem('tn_rc_idx', JSON.stringify(out));
+    } catch (e) {}
+  }
+  /* 规划进度快照（sessionStorage）：WebView 返回/刷新后可恢复 */
+  var SS_KEY = 'tn_planner_state';
+  var ssTimer = null;
+  function persistState() {
+    clearTimeout(ssTimer);
+    ssTimer = setTimeout(function () {
+      try {
+        sessionStorage.setItem(SS_KEY, JSON.stringify({
+          stage: curStage, regions: state.regions, days: state.days, prefs: state.prefs, autoPrefs: state.autoPrefs,
+          start: state.start, end: state.end, startDate: state.startDate, isLoop: state.isLoop, wiz: state.wiz,
+          candidates: state.candidates, selected: state.selected, trip: state.trip,
+          fromWish: state.fromWish, amapSorted: state.amapSorted
+        }));
+      } catch (e) {}
+    }, 350);
+  }
   function isSelected(s) { var u = nodeUid(s); return state.selected.some(function (x) { return nodeUid(x) === u; }); }
 
   /* ---------- 意图解析（规则先行） ---------- */
@@ -385,6 +418,7 @@
     curStage = name;
     ['stageInput', 'stagePick', 'stageResult'].forEach(function (n) { $id(n).style.display = n === name ? 'block' : 'none'; });
     window.scrollTo(0, 0);
+    persistState();
   }
   /* 顶栏返回：结果页/选点页回到规划首页，首页返回浏览器历史 */
   window.plannerBack = function () {
@@ -541,6 +575,10 @@
     if (!c.length) { card.style.display = 'none'; bar.style.display = 'none'; return; }
     card.style.display = 'block';
     var q = (state.candFilter || '').trim().toLowerCase();
+    /* 清空筛选词时回收未选中的搜索并入项，防候选列表被历史检索残留污染 */
+    if (!q && c.some(function (s) { return s.__searchAdd && !isSelected(s); })) {
+      state.candidates = c = c.filter(function (s) { return !s.__searchAdd || isSelected(s); });
+    }
     var candHit = function (s) { return (s.name + ' ' + s.theme + ' ' + s.city + ' ' + s.region + ' ' + (s.county || '')).toLowerCase().indexOf(q) >= 0; };
     var list = q ? c.filter(candHit) : c;
     /* 候选列表只是召回 Top-N：只要输入了就并入「所选目的地全库」命中，保证省内可完整检索；
@@ -591,6 +629,7 @@
     else { var s = state.candidates.filter(function (x) { return nodeUid(x) === uid; })[0]; if (s) state.selected.push(s); }
     state.amapSorted = false;
     renderCandidates();
+    persistState();
   };
   function estimateDays() { return Math.max(1, Math.ceil(state.selected.length / 6)); }
   function renderSumm() {
@@ -708,9 +747,10 @@
       '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerCloseBrowse()">✕ 关闭</button></div>' +
       (items || '<div style="font-size:12px;color:var(--color-muted);padding:20px 0;text-align:center">还没有选景点</div>') +
       '<div style="display:flex;gap:8px;margin-top:12px">' +
-      '<button class="btn" style="flex:1" onclick="window.plannerAddCurLoc()">📍 当前位置</button>' +
+      '<button class="btn" style="flex:1" id="browseCurLocBtn" onclick="window.plannerAddCurLoc(this)">📍 当前位置</button>' +
       '<button class="btn" style="flex:1" onclick="window.plannerClearPicks()">🗑 清空</button></div>' +
-      '<button class="btn primary" style="width:100%;margin-top:8px" onclick="window.plannerAmapPlan()">🚗 高德规划行程</button></div>';
+      '<button class="btn primary" style="width:100%;margin-top:8px" id="browsePlanBtn" onclick="window.plannerAmapPlan()">' + (amapPlanning ? '⏳ 距离计算中…' : '🚗 高德规划行程') + '</button></div>';
+    if (amapPlanning) { var pb = m.querySelector('#browsePlanBtn'); if (pb) pb.disabled = true; }
     m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     document.body.appendChild(m);
   };
@@ -721,12 +761,19 @@
     window.plannerOpenBrowse();
   };
   window.plannerClearPicks = function () {
-    state.selected = []; state.amapSorted = false;
-    renderCandidates(); renderSumm();
-    var mk = $id('browseMask'); if (mk) mk.remove();
-    toast('已清空');
+    if (!state.selected.length) return;
+    UI.confirm({ title: '清空已选', text: '将清空当前已选的 ' + state.selected.length + ' 个景点，可撤销。', okText: '清空', danger: true }, function (ok) {
+      if (!ok) return;
+      var snap = state.selected.slice();
+      state.selected = []; state.amapSorted = false;
+      renderCandidates(); renderSumm();
+      var mk = $id('browseMask'); if (mk) mk.remove();
+      UI.toast('已清空 ' + snap.length + ' 个选择', 5000, { text: '撤销', fn: function () { state.selected = snap; renderCandidates(); renderSumm(); } });
+    });
   };
-  window.plannerAddCurLoc = function () {
+  window.plannerAddCurLoc = function (btn) {
+    var restore = function () { if (btn) { btn.disabled = false; btn.textContent = '📍 当前位置'; } };
+    if (btn) { btn.disabled = true; btn.textContent = '定位中…'; }
     var add = function (lat, lng) {
       var dup = state.selected.some(function (x) { return x.__cur; });
       if (dup) { toast('当前位置已在列表中'); return; }
@@ -736,9 +783,9 @@
       window.plannerOpenBrowse();
       toast('已加入当前位置');
     };
-    if (!navigator.geolocation) { toast('当前环境不支持定位'); return; }
-    navigator.geolocation.getCurrentPosition(function (p) { add(p.coords.latitude, p.coords.longitude); },
-      function () { toast('定位失败，可在地图收藏点或手动添加'); }, { timeout: 8000 });
+    if (!navigator.geolocation) { restore(); toast('当前环境不支持定位'); return; }
+    navigator.geolocation.getCurrentPosition(function (p) { restore(); add(p.coords.latitude, p.coords.longitude); },
+      function () { restore(); toast('定位失败：请检查定位权限是否授予「行迹」，或在地图收藏点后手动添加'); }, { timeout: 8000 });
   };
 
   /* ---------- 高德真实导航路线（按段拉取，缓存，失败降级直线） ---------- */
@@ -760,7 +807,7 @@
             st.polyline.split(';').forEach(function (p) { var c = p.split(','); if (c.length >= 2) pts.push([parseFloat(c[1]), parseFloat(c[0])]); });
           });
         }
-        if (pts.length > 1) { try { localStorage.setItem(ck, JSON.stringify(pts)); } catch (e) {} cb(pts); } else cb(null);
+        if (pts.length > 1) { try { localStorage.setItem(ck, JSON.stringify(pts)); rememberCacheKey(ck); } catch (e) {} cb(pts); } else cb(null);
       })
       .catch(function () { clearTimeout(to2); cb(null); });
   }
@@ -784,7 +831,7 @@
       .then(function (j) {
         clearTimeout(to1);
         var km = (j && j.status === '1' && j.route && j.route.paths && j.route.paths[0]) ? (parseFloat(j.route.paths[0].distance) / 1000) : null;
-        if (km != null && isFinite(km)) { try { localStorage.setItem(ck, String(km)); } catch (e) {} cb(km); } else cb(null);
+        if (km != null && isFinite(km)) { try { localStorage.setItem(ck, String(km)); rememberCacheKey(ck); } catch (e) {} cb(km); } else cb(null);
       })
       .catch(function () { clearTimeout(to1); cb(null); });
   }
@@ -853,22 +900,25 @@
     next();
   }
   /* 浏览弹层：【高德规划行程】— 真实道路距离排序 + 直出排期 */
+  var amapPlanning = false;
   window.plannerAmapPlan = function () {
+    if (amapPlanning) return;
     if (state.selected.length < 2) { toast('至少选 2 个景点才能规划'); return; }
     var key = getAmapKey();
     if (!key) { toast('未配置高德 Key，无法用高德规划行程（设置页可配置）'); return; }
-    var btn = null;
+    amapPlanning = true;
     var mk = $id('browseMask');
-    if (mk) { btn = mk.querySelector('button[onclick*="plannerAmapPlan"]'); if (btn) { btn.disabled = true; btn.textContent = '规划中…'; } }
+    if (mk) { var pb = mk.querySelector('#browsePlanBtn'); if (pb) { pb.disabled = true; pb.textContent = '⏳ 距离计算中…'; } }
     fetchDistMatrix(state.selected, function (dist, failed) {
-      if (failed && !Object.keys(dist).length) { toast('高德路线获取失败，已改用本地直线距离排序'); }
+      var allFail = failed && !Object.keys(dist).length;
+      amapPlanning = false;
       var ordered = orderByMatrix(state.selected, state.start, dist);
       state.selected = ordered;
       state.amapSorted = true;
       renderCandidates(); renderSumm();
       if (mk) mk.remove();
       window.plannerOpenBrowse();
-      toast(failed && !Object.keys(dist).length ? '已按高德真实道路距离排序（部分缺失已直线兜底），点「开始排期」出行程' : '已按高德真实道路距离排序，点「开始排期」出行程');
+      toast(allFail ? '高德距离获取失败，已改用直线距离排序，点「开始排期」出行程' : '已按高德真实道路距离排序，点「开始排期」出行程');
     });
   };
 
@@ -940,7 +990,7 @@
     t.id = t.id || ('p' + Date.now());
     var list = loadTrips();
     list.unshift(t);
-    try { localStorage.setItem('tn_trips', JSON.stringify(list)); } catch (e) {}
+    if (!lsSet('tn_trips', JSON.stringify(list))) return;
     toast('已保存行程「' + t.name + '」');
     renderTrips();
     /* 滚动到已保存行程区，让用户立即看到 */
@@ -1049,7 +1099,7 @@
     var t = state.trip; if (!t || !t.id) return;
     var list = loadTrips();
     for (var i = 0; i < list.length; i++) if (list[i].id === t.id) { list[i] = t; break; }
-    try { localStorage.setItem('tn_trips', JSON.stringify(list)); } catch (e) {}
+    try { localStorage.setItem('tn_trips', JSON.stringify(list)); } catch (e) { toast('存储空间已满，行程修改未能保存'); }
   }
   /* ---------- 排期编辑：移除 / 上下移 / 重新排期（保留手工顺序，仅重新切分） ---------- */
   function resplitTrip() {
@@ -1125,9 +1175,15 @@
     state.trip = list[i]; showStage('stageResult'); renderResult();
   };
   window.plannerDelTrip = function (i) {
-    var list = loadTrips(); list.splice(i, 1);
-    try { localStorage.setItem('tn_trips', JSON.stringify(list)); } catch (e) {}
-    renderTrips();
+    UI.confirm({ title: '删除行程', text: '删除后可在 5 秒内撤销，之后不可恢复。', okText: '删除', danger: true }, function (ok) {
+      if (!ok) return;
+      var list = loadTrips();
+      var removed = list[i];
+      list.splice(i, 1);
+      if (!lsSet('tn_trips', JSON.stringify(list))) return;
+      renderTrips();
+      if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); renderTrips(); } });
+    });
   };
 
   /* ---------- 主流程 ---------- */
@@ -1153,7 +1209,11 @@
       }
     };
     if (!state.regions.length && getAILevel() === 'full' && window.Ai.hasKey()) {
+      var gb = $id('genBtn');
+      if (gb) { gb.disabled = true; gb.textContent = '识别中…'; }
+      var unbusy = function () { if (gb) { gb.disabled = false; gb.textContent = '开始规划'; } };
       aiParseIntent(text, function (j) {
+        unbusy();
         if (j && j.regions.length) { state.regions = j.regions; if (j.days) state.days = j.days; toast('AI 已识别目的地：' + j.regions.join('、')); }
         else toast('没识别到目的地，试试「川西」「云南」或「长沙」');
         proceed();
@@ -1245,6 +1305,7 @@
     if (bak) bak.onclick = function () { if (w.step > 1) { w.step--; renderWizard(); } };
     if (can) can.onclick = function () { $id('wizardBox').style.display = 'none'; renderCandidates(); showStage('stagePick'); var c2 = $id('stagePick').querySelectorAll('.card'); for (var j = 0; j < c2.length; j++) c2[j].style.display = ''; var sb2 = $id('summbar'); if (sb2 && state.selected.length >= 2) sb2.style.display = ''; };
     if (don) don.onclick = doSchedule;
+    persistState();
   }
 
   window.plannerGenerate = doGenerate;
@@ -1290,7 +1351,18 @@
     for (var i = 0; i < aiBtns.length; i++) aiBtns[i].onclick = function () { setAILevel(this.getAttribute('data-level')); };
     $id('scheduleBtn').onclick = wizardOpen;
     var cf = $id('candFilter');
-    if (cf) cf.oninput = function () { state.candFilter = this.value; renderCandidates(); };
+    if (cf) { var cfT = null; cf.oninput = function () { var v = this.value; clearTimeout(cfT); cfT = setTimeout(function () { state.candFilter = v; renderCandidates(); }, 250); }; }
+    /* 恢复上次规划进度（WebView 返回键/刷新丢失后） */
+    try {
+      var snap = JSON.parse(sessionStorage.getItem(SS_KEY) || 'null');
+      if (snap && snap.candidates && snap.candidates.length && (snap.stage === 'stagePick' || snap.stage === 'stageResult')) {
+        Object.keys(snap).forEach(function (k) { if (k !== 'stage') state[k] = snap[k]; });
+        renderIntent();
+        if (snap.stage === 'stageResult' && snap.trip) { renderResult(); showStage('stageResult'); }
+        else { renderCandidates(); showStage('stagePick'); }
+        toast('已恢复上次规划进度');
+      }
+    } catch (e) {}
     try { if (window.TravelNotes && TravelNotes.init) TravelNotes.init({}); } catch (e) {}
     /* 从「想去清单」跳来：自动带入未打卡心愿，消除两步跳转 */
     try {

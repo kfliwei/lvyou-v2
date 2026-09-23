@@ -10,7 +10,10 @@
 window.Wish = (function () {
   var KEY = 'tn_wishlist';
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
-  function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
+  function save(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); return true; }
+    catch (e) { if (window.UI && UI.toast) UI.toast('本地存储已满，想去清单本次未保存成功'); return false; }
+  }
   function find(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function uid(s) { return String((s.name || s.label || '') + '|' + (s.lat || 0) + '|' + (s.lng || 0)); }
   /* 添加/移除，返回是否已加入 */

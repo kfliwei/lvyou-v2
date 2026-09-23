@@ -406,10 +406,22 @@
       .then(function (d) {
         var ph = '';
         try { if (d && d.status === '1' && d.pois && d.pois[0] && d.pois[0].photos && d.pois[0].photos[0]) ph = d.pois[0].photos[0].url; } catch (e) {}
-        if (ph) { try { localStorage.setItem('tn_photo_' + s.name, JSON.stringify({ ts: Date.now(), u: ph })); } catch (e) {} cb && cb(ph); }
+        if (ph) { try { localStorage.setItem('tn_photo_' + s.name, JSON.stringify({ ts: Date.now(), u: ph })); pruneKV('tn_photo_', 200); } catch (e) {} cb && cb(ph); }
         else cb && cb(null);
       })
       .catch(function () { cb && cb(null); });
+  }
+
+  /* 带时间戳的缓存按前缀限量（LRU 淘汰最旧），防 localStorage 无界膨胀 */
+  function pruneKV(prefix, max) {
+    try {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(prefix) === 0) keys.push(k); }
+      if (keys.length <= max) return;
+      var ages = keys.map(function (k) { var t = 0; try { t = (JSON.parse(localStorage.getItem(k)) || {}).ts || 0; } catch (e) {} return [k, t]; });
+      ages.sort(function (a, b) { return a[1] - b[1]; });
+      ages.slice(0, ages.length - max).forEach(function (x) { localStorage.removeItem(x[0]); });
+    } catch (e) {}
   }
 
   function loadWeather(lat, lng, cb) {
@@ -423,7 +435,7 @@
           var w = d && d.current_weather;
           if (!w) { cb && cb(null); return; }
           var out = { code: w.weathercode, temp: Math.round(w.temperature), wind: Math.round(w.windspeed) };
-          try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), d: out })); } catch (e) {}
+          try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), d: out })); pruneKV('tn_weather_', 150); } catch (e) {}
           cb && cb(out);
         }).catch(function () { cb && cb(null); });
     } catch (e) { cb && cb(null); }
@@ -528,6 +540,7 @@
     showTripToast('已加入行程 · 我的位置');
   }
   function showTripToast(msg) {
+    if (window.UI && UI.toast) { UI.toast(msg); return; }
     var t = $('tripToast');
     if (!t) { t = document.createElement('div'); t.id = 'tripToast'; t.className = 'toast'; document.body.appendChild(t); }
     t.textContent = msg; t.classList.add('show');
@@ -897,6 +910,10 @@
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));
     }, function () {}, { enableHighAccuracy: true, maximumAge: 10000 });
   }
+  /* 离开页面即停持续定位，防后台耗电 */
+  window.addEventListener('pagehide', function () {
+    try { if (watchId != null && navigator.geolocation) { navigator.geolocation.clearWatch(watchId); watchId = null; } } catch (e) {}
+  });
   function showPickHint() { $('pickHint').style.display = 'block'; }
   function hidePickHint() { $('pickHint').style.display = 'none'; }
   function enterPickMode() { pickMode = true; if (!$('map').classList.contains('active')) switchTab('map'); showPickHint(); }
@@ -912,7 +929,13 @@
       if (manual) enterPickMode();
     }, { enableHighAccuracy: true, timeout: 10000 });
   }
-  function autoLocate() { if (locateTried) return; locateTried = true; if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(locateSuccess, function () {}, { enableHighAccuracy: true, timeout: 8000 }); }
+  function autoLocate() {
+    if (locateTried) return; locateTried = true;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(locateSuccess, function () {
+      try { if (!localStorage.getItem('tn_loc_hint_done')) { localStorage.setItem('tn_loc_hint_done', '1'); showTripToast('定位未成功：请在系统设置授予「行迹」定位权限'); } } catch (e) {}
+    }, { enableHighAccuracy: true, timeout: 8000 });
+  }
 
   /* ================= 区域统计（规范 §32） ================= */
   var statEl = null, statTimer = null;
@@ -1237,11 +1260,16 @@
     // 交互绑定
     document.querySelectorAll('.tabbar button').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
     $('locBtn').onclick = function () { if (userLatLng) { map.setView(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12)); if (userMarker) userMarker.openPopup(); } else locate(true); };
-    $('search').oninput = function (e) { state.q = e.target.value; renderAll(); };
+    $('search').oninput = (function () { var t = null; return function (e) { var v = e.target.value; clearTimeout(t); t = setTimeout(function () { state.q = v; renderAll(); }, 250); }; })();
     (function () { var m = location.search.match(/[?&]q=([^&]+)/); if (m) { var q = decodeURIComponent(m[1]); var s = $('search'); if (s) { s.value = q; state.q = q; renderAll(); } } })();
     $('sortSel').onchange = function (e) { state.sort = e.target.value; renderAll(); };
     $('pickHint').onclick = function () { pickMode = false; hidePickHint(); };
-    $('tripClear').onclick = function () { trip = []; saveTrip(); renderTripBar(); refreshSheet(); };
+    $('tripClear').onclick = function () {
+      if (!trip.length) return;
+      var go = function () { trip = []; saveTrip(); renderTripBar(); refreshSheet(); };
+      if (window.UI && UI.confirm) UI.confirm({ title: '清空行程', text: '将清空当前加入的 ' + trip.length + ' 个地点。', okText: '清空', danger: true }, function (ok) { if (ok) go(); });
+      else go();
+    };
     $('tripSort').onclick = sortTripNN;
     $('tripGo').onclick = openArrive;
     $('arVoice').onclick = function () { closeArrive(); if (trip.length) window.TravelNotes.openPanel(trip[0]); else showTripToast('先加入地点'); };

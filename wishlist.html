@@ -44,10 +44,10 @@
   /* 覆盖 map.css 的全屏地图页 body 锁定（本页为普通滚动页，body 不可被 overflow:hidden 裁剪） */
   html,body{height:auto;min-height:100%}
   body{display:block;overflow:auto}
-  /* 顶栏按钮防挤压：固定宽度不收缩，标题区自适应 */
-  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 10px}
-  /* v3 CINEMATIC LAYER */
-  .t-row .wl-btn{min-height:32px;padding:0 11px;font-size:12px;border-radius:999px;font-weight:500}
+  /* 顶栏按钮防挤压：固定宽度不收缩，标题区自适应；单一主操作=规划行程 */
+  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 11px;min-height:34px;font-size:12px;border-radius:999px;font-weight:500}
+  .t-row .wl-btn+.wl-btn{margin-left:6px}
+  .t-row .wl-btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(172,78,45,.28)}
   .t-row .title{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .wl-empty p{color:var(--color-ink-soft)}
   .wl-item{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-soft);transition:transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
@@ -82,10 +82,10 @@
   <div class="t-row">
     <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
     <div class="title">想去清单 <small id="cntLabel"></small></div>
-    <button class="wl-btn" style="min-height:34px" id="wlMapBtn">地图</button>
-    <a class="wl-btn" style="min-height:34px;margin-left:6px;display:inline-flex;align-items:center;text-decoration:none" href="planner.html?from=wish">规划行程</a>
-    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="window.copyWishlist()">复制清单</button>
-    <button class="wl-btn" style="min-height:34px;margin-left:6px" onclick="location.href='explore-map.html'">去探索</button>
+    <button class="wl-btn" id="wlMapBtn">地图</button>
+    <a class="wl-btn primary" href="planner.html?from=wish" style="display:inline-flex;align-items:center;text-decoration:none">规划行程</a>
+    <button class="wl-btn" onclick="window.copyWishlist()">复制</button>
+    <button class="wl-btn" onclick="location.href='explore-map.html'">探索</button>
   </div>
 </header>
 <div class="wrap">

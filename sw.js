@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v35';
+var CACHE = 'trace-v36';
 var TILES = 'trace-tiles-v1';
 var TILE_MAX_ENTRIES = 800;   /* 瓦片缓存上限（约 800 张，防爆 Storage） */
 var TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com', 'tile.opentopomap.org', 'is.autonavi.com'];

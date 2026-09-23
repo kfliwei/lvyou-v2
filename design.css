@@ -76,6 +76,9 @@
   --fs-2xl:2rem; --fs-xl:1.5rem; --fs-lg:1.125rem; --fs-md:0.9375rem; --fs-sm:0.8125rem; --fs-xs:0.6875rem;
   --lh-head:1.35; --lh-body:1.8;
 
+  /* 层级体系（悬浮底栏 90px 占位，页面 sticky 条需避让至 --z-nav 之下） */
+  --z-topbar:600; --z-nav:1050; --z-sheet:1100; --z-modal:9700; --z-toast:9800;
+
   /* 间距 8pt */
   --sp-1:0.25rem; --sp-2:0.5rem; --sp-3:0.75rem; --sp-4:1rem; --sp-6:1.5rem; --sp-8:2rem; --sp-12:3rem;
 
@@ -498,6 +501,12 @@ img{max-width:100%;display:block}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+/* 骨架屏工具类：列表/卡片加载占位统一使用 */
+.skeleton{position:relative;overflow:hidden;background:linear-gradient(90deg,var(--color-bg-soft) 25%,rgba(255,255,255,.6) 50%,var(--color-bg-soft) 75%);background-size:200% 100%;animation:shimmer 1.3s linear infinite;border-radius:12px}
+.theme-dark .skeleton{background:linear-gradient(90deg,var(--color-bg-soft) 25%,rgba(255,255,255,.07) 50%,var(--color-bg-soft) 75%);background-size:200% 100%}
+.sk-row{height:56px;margin-bottom:10px}
+/* 触控目标即时响应：禁双击缩放 */
+button,a,.chip,.btn,.tabbar button,.bottom-nav__item,.bottom-nav__fab{touch-action:manipulation}
 
 /* ============================================================
    印章盖章微动效
@@ -663,7 +672,7 @@ img{max-width:100%;display:block}
 
 /* ---- 底部导航（v2 毛玻璃胶囊，替代 .tabbar 视觉） ---- */
 .bottom-nav{
-  position:fixed;z-index:100;left:50%;bottom:14px;
+  position:fixed;z-index:var(--z-nav,1050);left:50%;bottom:14px;
   width:min(calc(100% - 24px),480px);height:76px;
   transform:translateX(-50%);
   display:grid;grid-template-columns:repeat(5,1fr);padding:8px;
@@ -1095,9 +1104,12 @@ html.font-lg{font-size:17.5px}
 /* ============================================================
    ui.js global components: toast + confirm dialog + focus
    ============================================================ */
-.ui-toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translate(-50%,-8px);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18);max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .28s var(--ease-standard, ease),transform .28s var(--ease-standard, ease);pointer-events:none}
+.ui-toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translate(-50%,-8px);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:var(--z-toast,9800);box-shadow:0 8px 24px rgba(30,30,28,.18);max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .28s var(--ease-standard, ease),transform .28s var(--ease-standard, ease);pointer-events:none}
 .ui-toast.show{opacity:1;transform:translate(-50%,0)}
-.ui-modal-mask{position:fixed;inset:0;background:rgba(32,32,29,.42);display:flex;z-index:9700;opacity:0;transition:opacity .22s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 0;box-sizing:border-box}
+.ui-toast.act{display:flex;align-items:center;gap:12px;pointer-events:auto;white-space:normal;text-overflow:clip;max-width:calc(100vw - 32px)}
+.ui-toast-act{border:0;background:none;color:var(--color-gold-bright,#DCAE5E);font-weight:700;font-size:13px;padding:2px 4px;cursor:pointer;font-family:var(--font-sans,sans-serif);white-space:nowrap}
+.theme-dark .ui-toast-act{color:var(--color-primary-dark,#A94C2D)}
+.ui-modal-mask{position:fixed;inset:0;background:rgba(32,32,29,.42);display:flex;z-index:var(--z-modal,9700);opacity:0;transition:opacity .22s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 0;box-sizing:border-box}
 .ui-modal-mask.show{opacity:1}
 .ui-modal{width:min(calc(100% - 48px),340px);margin:auto;background:var(--color-surface,#fffdf8);border:1px solid var(--color-line,#e3ded2);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:22px 20px 16px;transform:scale(.94);transition:transform .22s var(--ease-standard, ease)}
 .ui-modal-mask.show .ui-modal{transform:scale(1)}

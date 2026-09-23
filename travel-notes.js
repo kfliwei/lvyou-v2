@@ -824,7 +824,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(list, '#tnExpBtn').onclick = exportNotes;
     $X(list, '#tnImpBtn').onclick = importNotes;
     $X(list, '#tnSetBtn').onclick = function () { location.href = 'settings.html'; };
-    $X(list, '#tnSearch').oninput = renderList;
+    (function () { var el = $X(list, '#tnSearch'); var t = null; el.oninput = function () { var v = el.value; clearTimeout(t); t = setTimeout(renderList, 250); }; })();
     $X(list, '#tnViewTrip').onclick = function () { viewMode = 'trip'; setViewTabs(); renderList(); };
     $X(list, '#tnViewTime').onclick = function () { viewMode = 'timeline'; setViewTabs(); renderList(); };
     $X(list, '#tnViewCal').onclick = function () { viewMode = 'calendar'; setViewTabs(); renderList(); };
@@ -2198,47 +2198,47 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
   /* ---- 头部：印章 + 标题 ---- */
   var head = document.createElement('div');
   head.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 2px 10px';
-  head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid #C86D4B;border-radius:8px;color:#C86D4B;font-family:&quot;Songti SC&quot;,serif;font-size:14px;transform:rotate(-4deg);flex:0 0 auto">记</span>' +
+  head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--color-primary);border-radius:8px;color:var(--color-primary);font-family:&quot;Songti SC&quot;,serif;font-size:14px;transform:rotate(-4deg);flex:0 0 auto">记</span>' +
     '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:17px;font-weight:600;color:var(--color-ink);letter-spacing:.03em">记录地点</b>' +
     '<small style="color:var(--color-muted);font-size:11px;letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
     '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">✕</button>';
   /* ---- 当前位置卡片 ---- */
   var cur = document.createElement('div');
   cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';
-  cur.innerHTML = '<span style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#D97E58,#B4543A);color:#fff;flex:0 0 auto;box-shadow:0 6px 14px rgba(200,109,75,.3)">' + pinSvg + '</span>' +
+  cur.innerHTML = '<span style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--grad-primary);color:#fff;flex:0 0 auto;box-shadow:0 6px 14px rgba(200,109,75,.3)">' + pinSvg + '</span>' +
     '<span style="flex:1;min-width:0"><b style="display:block;font-size:15px;font-weight:600;color:var(--color-ink)">当前位置</b>' +
-    '<small style="color:var(--color-muted);font-size:11.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +
-    '<span style="font-size:11px;font-weight:600;color:#C86D4B;border:1px solid rgba(200,109,75,.3);border-radius:999px;padding:5px 12px;flex:0 0 auto">使用</span>';
+    '<small style="color:var(--color-muted);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +
+    '<span style="font-size:12px;font-weight:600;color:var(--color-primary-dark);border:1px solid rgba(200,109,75,.3);border-radius:999px;padding:5px 12px;flex:0 0 auto">使用</span>';
   cur.onclick = function () { mask.remove(); if (onPick) onPick({ label: '当前位置（GPS）', lat: lat, lng: lng }); };
   /* ---- POI 列表 ---- */
   var list = document.createElement('div');
   list.style.cssText = 'overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch';
   var opt = function (p) {
     var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid rgba(38,36,31,.05);cursor:pointer';
-    row.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#C86D4B;flex:0 0 auto;box-shadow:0 0 0 3px rgba(200,109,75,.12)"></span>' +
-      '<span style="flex:1;min-width:0"><b style="display:block;font-size:14.5px;font-weight:600;color:#26241F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.label) + '</b>' +
-      (p.addr ? '<small style="color:#8F8A7D;font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">' + esc(p.addr) + '</small>' : '') + '</span>' +
-      (p.dist > 0 ? '<span style="flex:0 0 auto;font-size:10.5px;color:#B4543A;background:rgba(200,109,75,.08);border:1px solid rgba(200,109,75,.16);border-radius:999px;padding:2px 9px">约 ' + Math.round(p.dist) + ' 米</span>' : '') +
-      '<span style="color:#C9C2B4;font-size:13px;flex:0 0 auto">' + navSvg + '</span>';
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--color-line);cursor:pointer';
+    row.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--color-primary);flex:0 0 auto;box-shadow:0 0 0 3px rgba(200,109,75,.12)"></span>' +
+      '<span style="flex:1;min-width:0"><b style="display:block;font-size:14.5px;font-weight:600;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.label) + '</b>' +
+      (p.addr ? '<small style="color:var(--color-muted);font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">' + esc(p.addr) + '</small>' : '') + '</span>' +
+      (p.dist > 0 ? '<span style="flex:0 0 auto;font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);border:1px solid rgba(200,109,75,.16);border-radius:999px;padding:2px 9px">约 ' + Math.round(p.dist) + ' 米</span>' : '') +
+      '<span style="color:var(--color-faint);font-size:13px;flex:0 0 auto">' + navSvg + '</span>';
     row.onclick = function () { mask.remove(); if (onPick) onPick({ label: p.label, lat: p.lat, lng: p.lng }); };
     return row;
   };
   if (pois.length) {
     var sec = document.createElement('div');
-    sec.style.cssText = 'font-size:10.5px;color:#AAA59B;letter-spacing:.14em;padding:10px 4px 6px;font-weight:600';
+    sec.style.cssText = 'font-size:11px;color:var(--color-muted);letter-spacing:.14em;padding:10px 4px 6px;font-weight:600';
     sec.textContent = '附近地点 · 按距离';
     list.appendChild(sec);
     pois.forEach(function (p) { list.appendChild(opt(p)); });
   } else {
     var empty = document.createElement('div');
-    empty.style.cssText = 'padding:22px 4px;font-size:12.5px;color:#8F8A7D;text-align:center';
+    empty.style.cssText = 'padding:22px 4px;font-size:13px;color:var(--color-faint);text-align:center';
     empty.textContent = '附近没有找到地点，用当前位置记录吧';
     list.appendChild(empty);
   }
   /* ---- 底部取消 ---- */
   var cancel = document.createElement('button');
-  cancel.style.cssText = 'width:100%;min-height:46px;margin-top:12px;border:1px solid rgba(38,36,31,.1);border-radius:999px;background:rgba(255,255,255,.5);color:#6B665C;font-size:14px;cursor:pointer;font-weight:600';
+  cancel.style.cssText = 'width:100%;min-height:46px;margin-top:12px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-bg-soft);color:var(--color-ink-soft);font-size:14px;cursor:pointer;font-weight:600';
   cancel.textContent = '取消';
   cancel.onclick = function () { mask.remove(); if (onCancel) onCancel(); };
   sheet.appendChild(head);

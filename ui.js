@@ -4,17 +4,26 @@
  *   UI.confirm({title:'删除', text:'确定？', okText:'删除', danger:true}, function(ok){ if(ok) ... })
  */
 (function () {
-  function toast(msg, ms) {
+  function toast(msg, ms, action) {
     var d = document.createElement('div');
     d.className = 'ui-toast';
     d.setAttribute('role', 'status');
-    d.textContent = msg;
+    d.appendChild(document.createTextNode(msg));
+    if (action && action.text) {
+      d.classList.add('act');
+      var b = document.createElement('button');
+      b.className = 'ui-toast-act';
+      b.type = 'button';
+      b.textContent = action.text;
+      b.onclick = function () { d.remove(); if (action.fn) action.fn(); };
+      d.appendChild(b);
+    }
     document.body.appendChild(d);
     requestAnimationFrame(function () { d.classList.add('show'); });
     setTimeout(function () {
       d.classList.remove('show');
       setTimeout(function () { d.remove(); }, 320);
-    }, ms || 2600);
+    }, ms || (action && action.text ? 5000 : 2600));
   }
 
   function confirm(o, cb) {
@@ -36,18 +45,28 @@
     ok.textContent = o.okText || '确定';
     cancel.textContent = o.cancelText || '取消';
     if (o.danger) ok.classList.add('danger');
+    var opener = document.activeElement;
     function close(rs) {
       m.remove();
       document.removeEventListener('keydown', kd);
+      try { if (opener && opener.focus) opener.focus(); } catch (e) {}
       if (cb) cb(rs);
     }
-    function kd(e) { if (e.key === 'Escape') close(false); }
+    function kd(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(false); return; }
+      if (e.key === 'Tab') { /* 焦点圈定在对话框内 */
+        var f = m.querySelectorAll('button');
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
     ok.onclick = function () { close(true); };
     cancel.onclick = function () { close(false); };
     m.onclick = function (e) { if (e.target === m) close(false); };
     document.addEventListener('keydown', kd);
     document.body.appendChild(m);
-    requestAnimationFrame(function () { m.classList.add('show'); });
+    requestAnimationFrame(function () { m.classList.add('show'); ok.focus(); });
   }
 
   function tileWarn(layer, name) {

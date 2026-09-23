@@ -49,7 +49,6 @@
   .md-item .thumbs{display:flex;gap:6px;margin-top:10px;overflow:hidden}
   .md-item .thumbs img{width:50px;height:50px;object-fit:cover;border-radius:10px;flex:0 0 auto}
   .sec{border-top:1px solid var(--color-line);padding:16px 2px}
-  .sec-title{font-family:var(--font-serif);font-size:16px;font-weight:400;color:var(--color-ink);margin-bottom:10px}
   .monthbar{display:flex;align-items:flex-end;gap:5px;height:120px;padding:0 2px;overflow-x:auto}
   .monthbar .mb{flex:0 0 34px;display:flex;flex-direction:column;align-items:center;gap:4px}
   .monthbar .mb i{display:block;width:100%;border-radius:4px 4px 0 0;background:var(--color-primary);opacity:.85;min-height:2px}
@@ -119,7 +118,7 @@
    ============================================================ */
 .sec-title{
   display:flex;align-items:center;gap:9px;
-  font-family:var(--font-serif);font-size:18px;font-weight:600;
+  font-family:var(--font-serif);font-size:18px;font-weight:600;color:var(--color-ink);
   letter-spacing:.04em;margin-bottom:12px;
 }
 .sec-title::before{content:"";width:4px;height:17px;border-radius:99px;background:var(--grad-primary);flex:0 0 auto}
@@ -141,21 +140,21 @@
 .ws-item .ws-ic{
   width:40px;height:40px;border-radius:12px;
   background:linear-gradient(135deg,rgba(219,125,83,.16),rgba(169,76,45,.08));
-  color:var(--color-primary-deep,#A94C2D);
+  color:var(--color-primary-dark);
 }
 .ws-item .ws-arr{
   width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
   background:var(--color-bg-soft);font-size:15px;
 }
-.ws-item:hover .ws-arr{background:var(--color-primary-soft);color:var(--color-primary-deep,#A94C2D)}
+.ws-item:hover .ws-arr{background:var(--color-primary-soft);color:var(--color-primary-dark)}
 /* 日历 */
 .cal-card{border-radius:20px;padding:16px}
 .cal-head b{font-weight:600;font-size:17px;letter-spacing:.03em}
 .cal-head .nav button{background:var(--color-bg);border-color:rgba(33,26,19,.08);transition:transform .14s,background .2s}
-.cal-head .nav button:hover{background:var(--color-primary-soft);color:var(--color-primary-deep)}
+.cal-head .nav button:hover{background:var(--color-primary-soft);color:var(--color-primary-dark)}
 .cal-cell.has{
   background:linear-gradient(135deg,rgba(219,125,83,.2),rgba(169,76,45,.1));
-  color:var(--color-primary-deep,#A94C2D);
+  color:var(--color-primary-dark);
 }
 .cal-cell.has .dot{background:var(--color-ember-deep)}
 .cal-cell.today{border-color:var(--color-gold-bright);box-shadow:inset 0 0 0 1px rgba(220,174,94,.5)}
@@ -164,17 +163,17 @@
 .md-item:hover{box-shadow:var(--shadow-medium);border-color:rgba(200,109,75,.22)}
 .md-item h3{font-weight:600}
 /* 成就 / 分布 */
-.prov{background:var(--grad-primary);box-shadow:0 2px 8px rgba(200,109,75,.18)}
-.monthbar .mb i{background:var(--grad-primary)}
-.prof-th .th-bar i{background:var(--grad-primary)}
+.prov{background:var(--grad-gold);color:#2a1f08;box-shadow:0 2px 8px rgba(186,117,23,.18)}
+.monthbar .mb i{background:var(--grad-gold)}
+.prof-th .th-bar i{background:var(--grad-gold)}
 /* 日历：圆点已表示有记录，隐藏角标计数，避免与日期数字重叠 */
 .cal-cell.has .cnt{display:none}
 /* 旅行画像：线性 SVG 图标 */
 .prof-th .th-name{display:inline-flex;align-items:center;gap:6px}
 .prof-th .th-ico{display:inline-flex;color:var(--color-ember-deep)}
 .prof-rec .pr-ic svg{width:16px;height:16px}
-.tagcloud span{background:rgba(200,109,75,.1);color:var(--color-primary-deep,#A94C2D);font-weight:600}
-.md-item .tags span{background:rgba(200,109,75,.1);color:var(--color-primary-deep,#A94C2D);font-weight:600}
+.tagcloud span{background:rgba(220,174,94,.14);color:var(--color-gold);font-weight:600}
+.md-item .tags span{background:rgba(220,174,94,.14);color:var(--color-gold);font-weight:600}
 .report-dlg{border-radius:26px}
 .report-dlg .acts button{background:var(--grad-primary);box-shadow:var(--glow-ember);font-family:var(--font-sans)}
 .report-dlg .acts button.x{background:var(--color-bg-soft);color:var(--color-muted);box-shadow:none}

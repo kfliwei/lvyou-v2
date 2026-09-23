@@ -10,7 +10,7 @@
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
   .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
-  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14.5px;color:var(--color-ink);height:34px}
+  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:16px;color:var(--color-ink);height:36px}
   .sbar .mic{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:15px;cursor:pointer}
   .sbar .mic:active{transform:scale(.92)}
   .sbar .mic.rec{background:var(--color-primary);color:#fff;animation:mic-pulse 1.2s ease-in-out infinite}
@@ -101,7 +101,10 @@
       REGS=Object.keys(m).sort(function(a,b){return m[b]-m[a];});
       buildChips(); loaded=true; cb();
     };
-    s.onerror=function(){ loaded=true; REGS=[]; $r.innerHTML=''; render(); };
+    s.onerror=function(){ loaded=true; REGS=[]; $sk.style.display='none';
+      $r.innerHTML='<div class="empty" style="padding:30px 20px;text-align:center"><span>搜索索引加载失败，可能是网络或缓存异常</span><br><button id="idxRetry" style="margin-top:12px;min-height:38px;padding:0 22px;border:0;border-radius:999px;background:var(--grad-primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer">点击重试</button></div>';
+      var r=document.getElementById('idxRetry'); if(r) r.onclick=function(){ location.reload(); };
+    };
     document.head.appendChild(s);
   }
   function buildChips(){
