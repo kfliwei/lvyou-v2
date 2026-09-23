@@ -26,10 +26,8 @@
     f.textContent = msg; document.body.appendChild(f);
     setTimeout(function () { f.remove(); }, 2400);
   }
-  function aiKey() { try { return localStorage.getItem('tn_aiKey'); } catch (e) { return ''; } }
-  function aiModel() { var m = localStorage.getItem('tn_model') || 'deepseek-v4-flash'; var a = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' }; return a[m] || m; }
   function aiCall(messages, cb, stream) {
-    if (!(window.Ai && Ai.hasKey())) { if (cb) cb(null, '未配置 AI key，请到 设置 → AI 润色 填入 DeepSeek key 后重试'); return; }
+    if (!(window.Ai && Ai.hasKey())) { if (cb) cb(null, '未配置 AI，请到 设置 → AI 助手 选择站点并填入 Key'); return; }
     if (stream === false) {
       Ai.chat(messages).then(function (t) { cb(t); }).catch(function (e) { cb(null, String(e && e.message || e)); });
       return;

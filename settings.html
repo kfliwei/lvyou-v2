@@ -81,20 +81,30 @@
 
   <div class="content">
 
-    <!-- AI 润色 -->
+    <!-- AI 助手：①选站点 → ②填 Key → ③选模型 → ④测试 -->
     <div class="group">
-      <div class="group-title">AI 润色</div>
-      <div class="group-sub">「整理一下」与讲解功能使用的密钥。只保存在本机。</div>
+      <div class="group-title">AI 助手</div>
+      <div class="group-sub">游记润色、行程叙事与意图识别使用。Key 只保存在本机。</div>
       <div class="row">
-        <div class="row-label">DeepSeek API Key</div>
+        <div class="row-label">① 选择站点</div>
+        <div class="chips" id="chSite"></div>
+      </div>
+      <div class="row" id="rowBase" style="display:none">
+        <div class="row-label">接口地址（完整 chat/completions URL）</div>
+        <input type="text" id="inBase" placeholder="https://…/v1/chat/completions" autocomplete="off">
+      </div>
+      <div class="row">
+        <div class="row-label">② API Key <span id="keyHint" style="font-weight:400;color:var(--color-faint);font-size:11px"></span></div>
         <input type="password" id="inKey" placeholder="sk-…" autocomplete="off">
       </div>
       <div class="row">
-        <div class="row-label">模型</div>
-        <div class="chips" id="chModel">
-          <button data-m="deepseek-v4-flash">V4-Flash</button>
-          <button data-m="deepseek-v4-pro">V4-Pro</button>
-        </div>
+        <div class="row-label">③ 选择模型</div>
+        <div class="chips" id="chModel"></div>
+        <input type="text" id="inModel" placeholder="手动输入模型 ID" autocomplete="off" style="margin-top:8px;display:none">
+      </div>
+      <div class="row">
+        <button class="btn-secondary" id="btnTest" style="width:100%;min-height:46px;border-radius:999px;font-size:14px">④ 测试连接</button>
+        <div id="testResult" style="margin-top:8px;font-size:12px;line-height:1.7;color:var(--color-muted)"></div>
       </div>
     </div>
 
@@ -281,9 +291,7 @@
     el.style.color = (last.indexOf('授权') >= 0) ? 'var(--color-primary-dark)' : 'var(--color-muted)';
   }
   function loadSettings(){
-    document.getElementById('inKey').value = localStorage.getItem('tn_aiKey') || '';
-    var m = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
-    document.querySelectorAll('#chModel button').forEach(function(b){ b.classList.toggle('on', b.dataset.m === m); });
+    renderAiUi();
     var v = localStorage.getItem('tn_vad') || '5000';
     document.querySelectorAll('#chVad button').forEach(function(b){ b.classList.toggle('on', b.dataset.v === v); });
     var keep = localStorage.getItem('tn_keepAudio') !== '0';
@@ -306,19 +314,73 @@
     var dark = localStorage.getItem('tn_dark') || 'auto';
     document.querySelectorAll('#chDark button').forEach(function(b){ b.classList.toggle('on', b.dataset.d === dark); });
   }
-  (function () {
-    /* 即时保存（审核修复）：Key 输入即存、模型/VAD 点击即存，避免返回丢配置 */
-    var ik = document.getElementById('inKey');
-    if (ik) ik.oninput = function () { var k = this.value.trim(); if (k) lsSave('tn_aiKey', k); else localStorage.removeItem('tn_aiKey'); };
-    ['#chModel button', '#chVad button'].forEach(function (sel) {
-      document.querySelectorAll(sel).forEach(function (b) {
-        b.onclick = function () {
-          document.querySelectorAll(sel).forEach(function (x) { x.classList.toggle('on', x === b); });
-          if (b.dataset.m) lsSave('tn_model', b.dataset.m);
-          if (b.dataset.v) lsSave('tn_vad', b.dataset.v);
-        };
-      });
+  /* ===== AI 助手四步向导：站点 → Key → 模型 → 测试 ===== */
+  function renderAiUi() {
+    if (!window.Ai) return;
+    var s = Ai.site();
+    var cs = document.getElementById('chSite');
+    cs.innerHTML = Ai.SITES.map(function (x) {
+      return '<button data-s="' + x.id + '"' + (x.id === s.id ? ' class="on"' : '') + '>' + x.name + '</button>';
+    }).join('');
+    cs.querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () { Ai.setSite(b.dataset.s); renderAiUi(); };
     });
+    document.getElementById('rowBase').style.display = s.id === 'custom' ? '' : 'none';
+    var ib = document.getElementById('inBase');
+    ib.value = (function () { try { return localStorage.getItem('tn_aiBase') || ''; } catch (e) { return ''; } })();
+    document.getElementById('keyHint').textContent = '（' + s.keyHint + '）';
+    document.getElementById('inKey').value = Ai.key();
+    var cm = document.getElementById('chModel'), cur = Ai.model();
+    cm.innerHTML = s.models.map(function (m) {
+      return '<button data-m="' + m.id + '"' + (m.id === cur ? ' class="on"' : '') + '>' + m.label + '</button>';
+    }).join('') + '<button data-m="__custom"' + (cur && !s.models.some(function (m) { return m.id === cur; }) ? ' class="on"' : '') + '>其他…</button>';
+    var showCustom = false;
+    cm.querySelectorAll('button').forEach(function (b) {
+      b.onclick = function () {
+        cm.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        if (b.dataset.m === '__custom') { showCustom = true; im.style.display = ''; im.focus(); }
+        else { showCustom = false; im.style.display = 'none'; Ai.setModel(b.dataset.m); testResult(''); }
+      };
+    });
+    var im = document.getElementById('inModel');
+    showCustom = cur && !s.models.some(function (m) { return m.id === cur; });
+    im.style.display = showCustom ? '' : 'none';
+    im.value = showCustom ? cur : '';
+    testResult('');
+  }
+  function testResult(html, color) {
+    var el = document.getElementById('testResult');
+    el.innerHTML = html || '';
+    el.style.color = color || 'var(--color-muted)';
+  }
+  function friendlyAiError(err) {
+    var m = String(err || '');
+    if (/http 401|http 403/.test(m)) return 'Key 无效或未授权（401/403），请检查 Key 与站点是否匹配';
+    if (/http 429/.test(m)) return '触发限流（429），稍后再试或换模型';
+    if (/http 404/.test(m)) return '模型不存在（404），请检查模型 ID';
+    if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return '网络不通或站点不支持浏览器直连（CORS 限制），可换站点试试';
+    return m || '未知错误';
+  }
+  (function () {
+    var ik = document.getElementById('inKey');
+    if (ik) ik.oninput = function () { window.Ai && Ai.setKey(this.value.trim()); testResult(''); };
+    var ib = document.getElementById('inBase');
+    if (ib) ib.oninput = function () { window.Ai && Ai.setCustomBase(this.value.trim()); testResult(''); };
+    var im = document.getElementById('inModel');
+    if (im) im.oninput = function () { window.Ai && Ai.setModel(this.value.trim()); testResult(''); };
+    var bt = document.getElementById('btnTest');
+    if (bt) bt.onclick = function () {
+      if (!window.Ai) return;
+      if (!Ai.hasKey()) { testResult('请先选好站点并填入 Key', 'var(--color-primary-dark)'); return; }
+      bt.disabled = true; bt.textContent = '测试中…';
+      testResult('正在请求 ' + Ai.site().name + ' · ' + Ai.model() + ' …');
+      Ai.test(function (r) {
+        bt.disabled = false; bt.textContent = '④ 测试连接';
+        if (r.ok) testResult('✓ 连接成功 · ' + (r.ms / 1000).toFixed(1) + 's · 模型回复「' + (r.echo || '') + '」', 'var(--color-primary-dark)');
+        else testResult('✗ ' + friendlyAiError(r.err), '#B4543A');
+      });
+    };
   })();
   function toggle(id, k){
     var el = document.getElementById(id);
@@ -391,17 +453,11 @@
     };
   })();
 
-  document.querySelector('#chModel').addEventListener('click', function(e){
-    if (e.target.tagName === 'BUTTON') {
-      this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
-      e.target.classList.add('on');
-    }
-  });
   document.querySelector('#chVad').addEventListener('click', function(e){
-    if (e.target.tagName === 'BUTTON') {
-      this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
-      e.target.classList.add('on');
-    }
+    if (e.target.tagName !== 'BUTTON') return;
+    this.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
+    e.target.classList.add('on');
+    if (e.target.dataset.v) lsSave('tn_vad', e.target.dataset.v);
   });
   document.querySelector('#chDark').addEventListener('click', function(e){
     if (e.target.tagName !== 'BUTTON') return;

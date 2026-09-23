@@ -249,8 +249,8 @@
   function genDesc() {
     var name = document.getElementById('nmName').value.trim();
     if (!name) { UI.toast('先填写名称再生成介绍'); return; }
-    var key = localStorage.getItem('tn_aiKey');
-    if (!key) { UI.toast('请先在设置页配置 AI Key（DeepSeek）'); return; }
+    var key = window.Ai && Ai.hasKey();
+    if (!key) { UI.toast('请先在「设置 → AI 助手」配置站点与 Key'); return; }
     var city = document.getElementById('nmCity').value.trim();
     var cat = document.getElementById('nmCat').value.trim();
     var btn = document.getElementById('nmGenDesc');
@@ -434,9 +434,8 @@
       tip('已添加「' + name + '」' + (rec.lat != null ? '' : '（未匹配坐标，可地图点选补位）'));
       try { refreshMine(); } catch (e) {}
     };
-    /* AI 优先（配置了 Key），失败降级规则 */
-    var key = ''; try { key = localStorage.getItem('tn_aiKey') || ''; } catch (e) {}
-    if (key && window.Ai && Ai.chat) {
+    /* AI 优先（已配置站点+Key），失败降级规则 */
+    if (window.Ai && Ai.hasKey()) {
       Ai.chat([
         { role: 'system', content: '你是旅行地点编辑助手。从用户一句话中提取地点信息，只输出 JSON：{"name":"景点名","province":"省","city":"市","category":"分类","desc":"30字内简介"}。分类从：古城/古镇/寺庙/博物馆/纪念馆/故居/遗址/园林/公园/自然风光/湖泊/雪山/草原/峡谷/瀑布/温泉/民俗/美食/街区/其他 中选。无法识别景点名时输出 {"name":""}。' },
         { role: 'user', content: text }

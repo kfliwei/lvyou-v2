@@ -1,13 +1,60 @@
-/* ===== Ai 统一调用模块（审核收口 ③）：DeepSeek chat/stream，全站唯一入口 ===== */
+/* ===== Ai 统一调用模块：多站点 OpenAI 兼容 chat/stream，全站唯一入口 =====
+ * 站点/Key/模型存 localStorage：tn_aiSite、tn_key_<site>、tn_model_<site>
+ * 旧配置（tn_aiKey/tn_model 单 DeepSeek）自动迁移到 deepseek 站点 */
 window.Ai = (function () {
+  var SITES = [
+    { id: 'deepseek', name: '深度求索', endpoint: 'https://api.deepseek.com/chat/completions',
+      keyHint: 'platform.deepseek.com 创建', models: [
+        { id: 'deepseek-v4-flash', label: 'V4-Flash 快·省' }, { id: 'deepseek-v4-pro', label: 'V4-Pro 强推理' } ] },
+    { id: 'bailian', name: '阿里百炼', endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+      keyHint: 'bailian.console.aliyun.com 免费领额度', models: [
+        { id: 'qwen-turbo', label: '千问-Turbo 快·省' }, { id: 'qwen-plus', label: '千问-Plus 推荐' }, { id: 'qwen-max', label: '千问-Max 强' } ] },
+    { id: 'zhipu', name: '智谱', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+      keyHint: 'open.bigmodel.cn 申请', models: [
+        { id: 'glm-4-flash', label: 'GLM-Flash 免费' }, { id: 'glm-4-plus', label: 'GLM-Plus 推荐' } ] },
+    { id: 'kimi', name: 'Kimi', endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+      keyHint: 'platform.moonshot.cn 申请', models: [
+        { id: 'moonshot-v1-8k', label: 'V1-8K 快' }, { id: 'moonshot-v1-32k', label: 'V1-32K 长文' } ] },
+    { id: 'siliconflow', name: '硅基流动', endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+      keyHint: 'cloud.siliconflow.cn 注册送额度', models: [
+        { id: 'deepseek-ai/DeepSeek-V3', label: 'DeepSeek-V3' }, { id: 'Qwen/Qwen3-32B', label: 'Qwen3-32B' } ] },
+    { id: 'openrouter', name: 'OpenRouter', endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+      keyHint: 'openrouter.ai 一把 Key 用全球模型', models: [
+        { id: 'deepseek/deepseek-chat', label: 'DeepSeek' }, { id: 'openai/gpt-4o-mini', label: 'GPT-4o-mini' } ] },
+    { id: 'custom', name: '自定义', endpoint: '', keyHint: '填完整 chat/completions 地址', models: [] }
+  ];
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === '') localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+  function site() {
+    var id = ls('tn_aiSite') || 'deepseek';
+    for (var i = 0; i < SITES.length; i++) if (SITES[i].id === id) return SITES[i];
+    return SITES[0];
+  }
+  function endpoint() { var s = site(); return s.id === 'custom' ? (ls('tn_aiBase') || '') : s.endpoint; }
+  function key() { var k = ls('tn_key_' + site().id); if (k !== null) return k; return site().id === 'deepseek' ? (ls('tn_aiKey') || '') : ''; }
   var ALIAS = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' };
-  function key() { try { return localStorage.getItem('tn_aiKey') || ''; } catch (e) { return ''; } }
-  function model() { var r = localStorage.getItem('tn_model') || 'deepseek-v4-flash'; return ALIAS[r] || r; }
+  function model() {
+    var s = site(), m = ls('tn_model_' + s.id);
+    if (m === null && s.id === 'deepseek') m = ls('tn_model');
+    m = m || (s.models[0] ? s.models[0].id : '');
+    return ALIAS[m] || m;
+  }
+  function migrate() {
+    /* 旧版单站点配置一次性归位到 deepseek（保留旧键不删，读取端已兜底） */
+    var old = ls('tn_aiKey');
+    if (old && ls('tn_key_deepseek') === null) ls('tn_key_deepseek', old);
+    var om = ls('tn_model');
+    if (om && ls('tn_model_deepseek') === null) ls('tn_model_deepseek', ALIAS[om] || om);
+  }
   function head() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key() }; }
+  function bodyOf(messages, extra) {
+    var b = { model: model(), messages: messages, temperature: 0.7 };
+    if (model().indexOf('v4-pro') >= 0) b.reasoning_effort = 'high';
+    if (extra) for (var k in extra) b[k] = extra[k];
+    return b;
+  }
   function chat(messages) {
-    var body = { model: model(), messages: messages, temperature: 0.7 };
-    if (model() === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-    return fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: head(), body: JSON.stringify(body) })
+    if (!endpoint()) throw new Error('请先在设置中选择站点并填写接口地址');
+    return fetch(endpoint(), { method: 'POST', headers: head(), body: JSON.stringify(bodyOf(messages)) })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (d) {
         var t = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
@@ -16,9 +63,8 @@ window.Ai = (function () {
       });
   }
   function stream(messages, onDelta) {
-    var body = { model: model(), messages: messages, temperature: 0.7, stream: true };
-    if (model() === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-    return fetch('https://api.deepseek.com/chat/completions', { method: 'POST', headers: head(), body: JSON.stringify(body) })
+    if (!endpoint()) throw new Error('请先在设置中选择站点并填写接口地址');
+    return fetch(endpoint(), { method: 'POST', headers: head(), body: JSON.stringify(bodyOf(messages, { stream: true })) })
       .then(function (r) {
         if (!r.ok) throw new Error('http ' + r.status);
         var reader = r.body.getReader(), decoder = new TextDecoder(), buf = '', text = '';
@@ -38,7 +84,24 @@ window.Ai = (function () {
         return pump();
       });
   }
-  return { chat: chat, stream: stream, hasKey: function () { return !!key(); } };
+  function test(cb) {
+    var t0 = Date.now();
+    try {
+      chat([{ role: 'user', content: '回复"OK"两个字母即可' } ])
+        .then(function (t) { cb({ ok: true, ms: Date.now() - t0, echo: String(t).slice(0, 20) }); })
+        .catch(function (e) { cb({ ok: false, ms: Date.now() - t0, err: String(e && e.message || e) }); });
+    } catch (e) { cb({ ok: false, ms: Date.now() - t0, err: String(e && e.message || e) }); }
+  }
+  migrate();
+  return {
+    SITES: SITES, site: site, endpoint: endpoint, key: key, model: model,
+    setSite: function (id) { ls('tn_aiSite', id); },
+    setKey: function (v) { ls('tn_key_' + site().id, v || ''); },
+    setModel: function (v) { ls('tn_model_' + site().id, v || ''); },
+    setCustomBase: function (v) { ls('tn_aiBase', v || ''); },
+    chat: chat, stream: stream, test: test,
+    hasKey: function () { return !!key() && !!endpoint(); }
+  };
 })();
 
 ﻿/* =========================================================
@@ -51,7 +114,6 @@ window.Ai = (function () {
  * ========================================================= */
 (function () {
   var KEY = 'travelNotes';      // 游记库
-  var AI_KEY = 'tn_aiKey';      // DeepSeek key
   var STYLES = [
     { id: 'prose',    name: '散文游记',   icon: '📖', rec: true,
       system: '你是资深旅行作家。把用户的语音口述润色成一篇文学化、有画面感的散文游记，保留真实细节与感受，适当融入该景点背景，200-400字，分段落，不加小标题。' },
@@ -69,8 +131,6 @@ window.Ai = (function () {
   var notes = [], tnLayer = null;
   var rec = null;               // 网页降级用 SpeechRecognition
   var state = { site: null, phase: 'idle', raw: '', partial: '', photos: [], audio: '' };
-  var MODEL_ALIAS = { 'deepseek-chat': 'deepseek-v4-flash', 'deepseek-reasoner': 'deepseek-v4-pro' };
-  var MODEL_LIST = [['deepseek-v4-flash', '⚡ V4-Flash'], ['deepseek-v4-pro', '🚀 V4-Pro']];
   var tagFilter = '';
   var viewMode = 'trip';        // trip=旅程聚合 | timeline=年月折叠
   var tripOpen = {};            // 展开的旅程 id
@@ -653,21 +713,13 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     }
     // 调用 DeepSeek 生成相关名言（诗/词/文章），结果渲染为可点选卡片
     function aiGenQuotes(kw){
-      var key = localStorage.getItem(AI_KEY);
-      if(!key){ openSettings(); flash('请先设置 DeepSeek API key'); return; }
+      if (!Ai.hasKey()) { openSettings(); flash('请先在「设置 → AI 助手」配置站点与 Key'); return; }
       qlist.innerHTML = '<div class="empty">正在为你检索「'+esc(kw)+'」检索名句…</div>';
-      var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
-      var model = MODEL_ALIAS[rawM] || rawM;
-      var body = {
-        model: model,
-        messages: [
-          { role: 'system', content: '你是古典文学与名人名言专家。根据用户给的地点或关键词，输出 4~6 条与该地点/主题最贴切的古诗、词或名句。只输出 JSON 数组，不要任何多余文字，格式：[{"t":"诗句或名句","a":"作者","s":"出处或篇名"}]，每条 t 要完整。' },
-          { role: 'user', content: kw }
-        ],
-        temperature: 0.8
-      };
-      if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-      Ai.chat(body.messages).then(function (txt) {
+      var msgs = [
+        { role: 'system', content: '你是古典文学与名人名言专家。根据用户给的地点或关键词，输出 4~6 条与该地点/主题最贴切的古诗、词或名句。只输出 JSON 数组，不要任何多余文字，格式：[{"t":"诗句或名句","a":"作者","s":"出处或篇名"}]，每条 t 要完整。' },
+        { role: 'user', content: kw }
+      ];
+      Ai.chat(msgs).then(function (txt) {
         var list = [];
         try { list = JSON.parse(txt.replace(/\`\`\`json|\`\`\`/g,'').trim()); }
         catch(e){ list = []; }
@@ -764,8 +816,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     function startGuide(iOrSite){
       var site = typeof iOrSite === 'object' ? iOrSite : (GETSITE ? GETSITE(iOrSite) : null);
       if (!site) { flash('未找到该景点'); return; }
-      var key = localStorage.getItem(AI_KEY);
-      if (!key) { guide.style.display = 'none'; openSettings(); flash('配置 DeepSeek API Key 即可 AI 讲解（platform.deepseek.com 免费申请）'); return; }
+      if (!Ai.hasKey()) { guide.style.display = 'none'; openSettings(); flash('在「设置 → AI 助手」配置站点与 Key 即可 AI 讲解'); return; }
       stopGuideSpeech();
       gLoad.style.display = 'block';
       gBody.style.display = 'none';
@@ -774,19 +825,15 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       guide.style.display = 'flex';
       if (ui.panel) ui.panel.style.display = 'none';
       if (ui.mask) ui.mask.style.display = 'none';
-      var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
-      var model = MODEL_ALIAS[rawM] || rawM;
       var prompt = '你是专业的景区讲解员。请用亲切口语化的中文，为游客讲解「' + (site.label||site.name||'') + '」'
         + '（地点：' + (site.city||site.county||'') + '，类型：' + (site.ty||'') + '，年代：' + (site.dy||'') + '）。'
         + '介绍它最值得看的地方、背后的历史或故事，200-350字，语气自然像现场导览，可分两三段，不要用列表编号，不要编造不确定的史实。';
-      var body = { model: model, messages: [
+      var msgs = [
         { role: 'system', content: '你是资深景区讲解员，讲解生动准确、口语自然、有画面感。' },
         { role: 'user', content: prompt }
-      ], temperature: 0.7 };
-      if (model === 'deepseek-v4-pro') body.reasoning_effort = 'high';
-      body.stream = true;
+      ];
       var text = '';
-      Ai.stream(body.messages, function (delta) {
+      Ai.stream(msgs, function (delta) {
         text += delta;
         gBody.textContent = text;
         gBody.scrollTop = gBody.scrollHeight;
@@ -1103,8 +1150,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       $X(ui.panel, '#tnNote').textContent = '已采用原文（未润色）';
       return;
     }
-    var key = localStorage.getItem(AI_KEY);
-    if (!key) {
+    if (!Ai.hasKey()) {
       /* 无 Key 本地兜底：直接采用原文，不让用户空手而归 */
       var r3 = getRaw();
       ai.style.display = 'block';
@@ -1114,11 +1160,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       var p3 = $X(ui.panel, '#tnPolish');
       p3.style.display = 'block';
       p3.textContent = '↻ 换风格重润';
-      $X(ui.panel, '#tnNote').textContent = '未配置 AI Key，已采用原文（可到设置页配置后重润）';
+      $X(ui.panel, '#tnNote').textContent = '未配置 AI，已采用原文（可在「设置 → AI 助手」配置后重润）';
       return;
     }
-    var rawM = localStorage.getItem('tn_model') || 'deepseek-v4-flash';
-    var model = MODEL_ALIAS[rawM] || rawM;
     var msgs = [
       { role: 'system', content: st.system },
       { role: 'user', content: '请润色以下语音口述（地点：' + (state.site ? state.site.label : '未知') + '）：\n' + raw }

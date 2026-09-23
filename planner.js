@@ -120,7 +120,7 @@
     return v;
   }
   function setAILevel(l) {
-    if (l === 'narrate' || l === 'full') { if (!window.Ai.hasKey()) { toast('请先在「设置」里配置 AI Key'); return; } }
+    if (l === 'narrate' || l === 'full') { if (!window.Ai.hasKey()) { toast('请先在「设置 → AI 助手」配置站点与 Key'); return; } }
     try { localStorage.setItem(AI_KEY, l); } catch (e) {}
     renderAISwitch();
   }

@@ -662,10 +662,6 @@ function toast(msg){
 }
 document.getElementById('aiReport').onclick=function(){
   if(!notes.length){ toast('还没有游记'); return; }
-  var key=localStorage.getItem('tn_aiKey');
-  var model=localStorage.getItem('tn_model')||'deepseek-v4-flash';
-  var alias={'deepseek-chat':'deepseek-v4-flash','deepseek-reasoner':'deepseek-v4-pro'};
-  model=alias[model]||model;
   var list=notes.slice().sort(function(a,b){return a.ts-b.ts;});
   var provs={},sites={};
   list.forEach(function(n){ if(n.province)provs[n.province]=1; if(n.lat!=null)sites[n.lat.toFixed(4)+','+n.lng.toFixed(4)]=1; });
@@ -696,18 +692,16 @@ document.getElementById('aiReport').onclick=function(){
       '',
       list.slice(0,5).map(function(n){ return '· '+(n.date||'').slice(0,10)+' '+(n.siteName||'某处')+' — '+String(n.text||n.raw||'').slice(0,46); }).join('\n')+(list.length>5?'\n… 还有 '+(list.length-5)+' 段记忆没有写在这里。':''),
       '',
-      reason||'在设置里填上 DeepSeek API key，下次就能请 AI 把这一年写成散文。'
+      reason||'在「设置 → AI 助手」配好站点与 Key，下次就能请 AI 把这一年写成散文。'
     ];
     dlg.querySelector('.txt').textContent=lines.join('\n');
   }
-  if(!key){ fallbackLocal('（未配置 AI 密钥，先为你生成本地版年度回顾。）'); return; }
-  var body={model:model,messages:[
+  if(!(window.Ai && Ai.hasKey())){ fallbackLocal('（未配置 AI，先在「设置 → AI 助手」选站点填 Key，下次就能请 AI 把这一年写成散文。）'); return; }
+  var msgs=[
     {role:'system',content:'你是资深旅行作家。把用户一年的游记时间线写成一篇完整、有画面感与情感的年度旅行回顾散文。'},
     {role:'user',content:prompt}
-  ],temperature:0.7};
-  if(model==='deepseek-v4-pro') body.reasoning_effort='high';
-  body.stream=true;
-  Ai.stream(body.messages, function (delta) {
+  ];
+  Ai.stream(msgs, function (delta) {
     var el = dlg.querySelector('.txt');
     el.textContent += delta;
   }).then(function (full) {
