@@ -410,6 +410,129 @@
     }).catch(function () {});
   }
 
+  /* ---------- AI 精选路线：目的地+天数+方式+偏好 → 5 条备选 → 选用后复用排期编辑 ---------- */
+  var arData = null; // {dest,days,trans,pref,regions,routes:[{name,why,days:[[景点名]]}]}
+  function arFlagged(s, pref) {
+    var f = s.flag || '';
+    if (pref === '必去') return f.indexOf('m') >= 0;
+    if (pref === '网红') return f.indexOf('h') >= 0;
+    return true;
+  }
+  function arGrounding(regions, pref) {
+    buildDicts();
+    function rank(s) { var f = s.flag || ''; return (f.indexOf('m') >= 0 ? 2 : 0) + (f.indexOf('h') >= 0 ? 1 : 0); }
+    var byRank = function (a, b) { return rank(b) - rank(a); };
+    var base = regions.length ? parseIndex().filter(function (s) { return regions.indexOf(s.region) >= 0; }) : parseIndex();
+    var hit = base.filter(function (s) { return arFlagged(s, pref); }).sort(byRank);
+    if (hit.length < 8) hit = base.slice().sort(byRank); /* 省内该偏好太少：放宽为全省热门，防无米下锅 */
+    return hit.slice(0, 70).map(function (s) { return s.name + '（' + (s.city || s.region) + '）'; }).join('、');
+  }
+  function aiPlanRoutes(dest, days, trans, pref, cb) {
+    var grounding = arGrounding(arData_regions(dest), pref);
+    var prompt = '你是资深旅行规划师，熟悉全网热门旅行攻略与游记。请参考这些热门行程，为「' + dest + '」设计 5 条互相不重复的 ' + days + ' 天' + trans + '线路，景点偏好：' + pref + '。'
+      + (grounding ? '景点请优先从以下真实景点中选择：' + grounding + '。' : '')
+      + '要求：1) 每天 2~4 个顺路景点，按地理顺序排，避免当天来回折返；2) 景点必须真实存在于「' + dest + '」，禁止编造；3) 5 条线路主题各异（如经典环线、小众深度、亲子休闲等）。'
+      + '输出 JSON：{"routes":[{"name":"线路主题名(10字内)","why":"一句话亮点(20字内)","days":[["景点A","景点B"],["景点C"]]}]}，days 数组长度必须等于 ' + days + '。只输出 JSON。';
+    window.Ai.chat([{ role: 'user', content: prompt }]).then(function (txt) {
+      var j = null; try { j = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch (e) {}
+      var routes = (j && j.routes ? j.routes : []).filter(function (r) { return r && r.name && r.days && r.days.length; }).slice(0, 5);
+      cb(routes.length ? routes : null);
+    }).catch(function () { cb(null); });
+  }
+  function arData_regions(dest) { return matchRegions(dest || ''); }
+  /* 景点名 → 带坐标节点：本地索引精确/模糊匹配，未命中走高德 POI 兜底 */
+  function arResolve(name, regions, cb) {
+    buildDicts();
+    var bare = String(name || '').replace(/[（(].*?[）)]/g, '').trim();
+    if (!bare) { cb(null); return; }
+    var idx = parseIndex();
+    function find(arr) {
+      var i;
+      for (i = 0; i < arr.length; i++) if (arr[i].name === bare) return arr[i];
+      for (i = 0; i < arr.length; i++) if (arr[i].name.indexOf(bare) >= 0 || bare.indexOf(arr[i].name) >= 0) return arr[i];
+      return null;
+    }
+    var hit = (regions.length ? find(idx.filter(function (s) { return regions.indexOf(s.region) >= 0; })) : null) || find(idx);
+    if (hit) { cb(hit); return; }
+    amapPoi(bare, regions[0] || '', function (pois) {
+      cb(pois && pois.length ? { name: bare, label: bare, region: regions[0] || '', city: '', county: '', theme: '其他', flag: '', lat: pois[0].lat, lng: pois[0].lng, gcj: true, __poi: true } : null);
+    });
+  }
+  /* 按 AI 分日构建天数结构（口径与 splitIntoDays 一致） */
+  function buildAiDays(dayLists, start) {
+    var prev = start && start.lat != null ? start : null;
+    return dayLists.filter(function (l) { return l.length; }).map(function (stops) {
+      var d = { stops: [], driveKm: 0, driveH: 0, playH: 0 };
+      stops.forEach(function (s) {
+        var leg = prev ? legEst(prev, s) : { km: 0, h: 0 };
+        d.stops.push(s); d.driveKm += leg.km; d.driveH += leg.h; d.playH += playH(s);
+        prev = s;
+      });
+      d.totalH = d.driveH + d.playH + (d.stops.length - 1) * 0.5 + 2.5;
+      return d;
+    });
+  }
+  function renderAiRoutes() {
+    var box = $id('aiRouteOut');
+    if (!arData) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = 'block';
+    box.innerHTML = arData.routes.map(function (r, i) {
+      var lines = r.days.map(function (stops, di) {
+        return '<div class="dayline"><b>D' + (di + 1) + '</b>' + esc((stops || []).join(' → ')) + '</div>';
+      }).join('');
+      return '<div class="card aroute"><div class="sec-title">' + esc(r.name) + '</div>'
+        + (r.why ? '<div class="why">' + esc(r.why) + '</div>' : '')
+        + lines
+        + '<button class="btn primary" style="width:100%;margin-top:12px" onclick="window.plannerUseAiRoute(' + i + ')">选用此路线</button></div>';
+    }).join('')
+      + '<div style="font-size:11px;color:var(--color-muted);line-height:1.7;margin:2px 2px 10px">共 ' + arData.routes.length + ' 条 · 选一条进入排期，之后可随时增减景点或换一条重新生成。</div>'
+      + '<button class="btn ghost" style="width:100%" onclick="window.plannerAiRoutesAgain()">↻ 换一批路线</button>';
+  }
+  window.plannerAiRoutesAgain = function () {
+    var b = $id('arBtn'); if (b && !b.disabled && arData) b.click();
+  };
+  window.plannerUseAiRoute = function (i) {
+    var r = arData && arData.routes[i]; if (!r) return;
+    var out = $id('aiRouteOut');
+    out.innerHTML = '<div class="card" style="text-align:center;color:var(--color-muted);font-size:13px;padding:22px">⏳ 正在匹配景点坐标…</div>';
+    var slots = [];
+    r.days.forEach(function (d, di) { (d || []).forEach(function (nm) { slots.push({ name: nm, day: di, node: null }); }); });
+    var pos = 0;
+    function step() {
+      if (pos >= slots.length) { done(); return; }
+      var sl = slots[pos++];
+      arResolve(sl.name, arData.regions, function (node) { sl.node = node; setTimeout(step, 0); });
+    }
+    function done() {
+      var miss = 0, seen = {};
+      var dayLists = r.days.map(function () { return []; });
+      slots.forEach(function (sl) {
+        if (!sl.node) { miss++; return; }
+        var u = nodeUid(sl.node);
+        if (seen[u]) return;
+        seen[u] = 1;
+        dayLists[Math.min(sl.day, dayLists.length - 1)].push(sl.node);
+      });
+      var flatAll = [].concat.apply([], dayLists);
+      if (flatAll.length < 2) {
+        out.innerHTML = '';
+        toast('这条路线的景点没能匹配到位置，换一条试试' + (getAmapKey() ? '' : '（配置高德 Key 可兜底定位）'));
+        return;
+      }
+      state.regions = arData.regions.slice();
+      state.days = dayLists.length;
+      state.prefs = []; state.autoPrefs = []; state.fromWish = false; state.startDate = '';
+      state.selected = flatAll.slice();
+      state.amapSorted = true; /* 尊重 AI/后续手动顺序：重排期不再打乱 */
+      state.candidates = flatAll.slice();
+      state.trip = { name: (arData.dest || '') + ' · ' + r.name + ' ' + dayLists.length + ' 日' + arData.trans + '之旅', createdAt: Date.now(), start: state.start, end: state.end, startDate: '', aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start), narrative: null };
+      renderAiRoutes(); /* 返回输入页时备选卡仍在，可直接换一条 */
+      showStage('stageResult'); renderResult();
+      if (miss) toast('已跳过 ' + miss + ' 处无法定位的景点');
+    }
+    step();
+  };
+
   /* ========================================================= */
   /*  渲染                                                       */
   /* ========================================================= */
@@ -1350,6 +1473,34 @@
     var aiBtns = $id('aiSwitch').querySelectorAll('button');
     for (var i = 0; i < aiBtns.length; i++) aiBtns[i].onclick = function () { setAILevel(this.getAttribute('data-level')); };
     $id('scheduleBtn').onclick = wizardOpen;
+    /* AI 精选路线：表单绑定 + 生成 */
+    (function () {
+      var b = $id('arBtn'); if (!b) return;
+      ['arTrans', 'arPref'].forEach(function (id) {
+        var box = $id(id);
+        box.addEventListener('click', function (e) {
+          var c = e.target.closest ? e.target.closest('.chip') : null; if (!c) return;
+          box.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c); });
+        });
+      });
+      b.onclick = function () {
+        if (!window.Ai.hasKey()) { toast('请先在「设置 → AI 助手」配置站点与 Key'); return; }
+        var dest = $id('arDest').value.trim();
+        if (!dest) { toast('先告诉 AI 想去哪个省或城市'); return; }
+        var days = parseInt($id('arDays').value, 10) || 5;
+        days = Math.max(1, Math.min(15, days));
+        var trans = ($id('arTrans').querySelector('.chip.on') || { getAttribute: function () { return '自驾'; } }).getAttribute('data-t');
+        var pref = ($id('arPref').querySelector('.chip.on') || { getAttribute: function () { return '必去'; } }).getAttribute('data-p');
+        b.disabled = true; b.textContent = '🌐 AI 上网检索中…';
+        aiPlanRoutes(dest, days, trans, pref, function (routes) {
+          b.disabled = false; b.textContent = '✨ 上网查询 · 生成 5 条备选路线';
+          if (!routes) { toast('AI 没有返回有效路线，换个目的地或稍后再试'); return; }
+          arData = { dest: dest, days: days, trans: trans, pref: pref, regions: matchRegions(dest), routes: routes };
+          renderAiRoutes();
+          $id('aiRouteOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      };
+    })();
     var cf = $id('candFilter');
     if (cf) { var cfT = null; cf.oninput = function () { var v = this.value; clearTimeout(cfT); cfT = setTimeout(function () { state.candFilter = v; renderCandidates(); }, 250); }; }
     /* 恢复上次规划进度（WebView 返回键/刷新丢失后） */

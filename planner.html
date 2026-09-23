@@ -123,6 +123,10 @@
   .theme-dark .stop.warn .lbl,.theme-dark .stop .warn-ic{color:#E8A18D}
   #candFilter{border-radius:12px!important}
   #candFilter:focus{outline:none;border-color:rgba(200,109,75,.5)!important;box-shadow:0 0 0 3px rgba(200,109,75,.12)!important}
+  /* AI 精选路线 */
+  .aroute .dayline{font-size:12.5px;line-height:2;color:var(--color-ink-soft)}
+  .aroute .dayline b{display:inline-block;min-width:28px;color:var(--color-primary-dark);font-family:var(--font-serif);font-weight:600}
+  .aroute .why{font-size:12px;color:var(--color-muted);margin:-4px 0 10px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -151,6 +155,19 @@
         <button class="btn primary" id="genBtn">开始规划</button>
       </div>
     </div>
+
+    <div class="card" id="aiRouteCard">
+      <div class="ph">AI 精选路线</div>
+      <div class="fld"><label>目的地（哪个省 / 城市）</label><input type="text" id="arDest" placeholder="如：贵州、川西、长沙" autocomplete="off"></div>
+      <div class="fld"><label>游玩天数</label><div class="row"><input type="number" id="arDays" min="1" max="15" value="5" style="width:84px;flex:0 0 auto"><span style="font-size:12px;color:var(--color-muted)">1-15 天</span></div></div>
+      <div class="fld"><label>出行方式</label><div class="chips" id="arTrans">
+        <span class="chip on" data-t="自驾">自驾</span><span class="chip" data-t="公共交通">公共交通</span><span class="chip" data-t="其他出行方式">其他</span></div></div>
+      <div class="fld"><label>景点偏好</label><div class="chips" id="arPref">
+        <span class="chip on" data-p="必去">必去</span><span class="chip" data-p="网红">网红</span><span class="chip" data-p="推荐">推荐</span></div></div>
+      <button class="btn primary" id="arBtn" style="width:100%">✨ 上网查询 · 生成 5 条备选路线</button>
+      <div style="font-size:11px;color:var(--color-muted);margin-top:9px;line-height:1.7">AI 参考全网热门行程出 5 条方案；选一条后可继续增减景点、重新排期（与下方手动规划同一套编辑）。</div>
+    </div>
+    <div id="aiRouteOut" style="display:none"></div>
 
     <div class="ph">或从一个念头开始</div>
     <div class="seeds">
