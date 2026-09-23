@@ -430,7 +430,14 @@
     nodes.forEach(function (u) {
       if (u.lat == null) return;
       var k = (+u.lat).toFixed(3) + ',' + (+u.lng).toFixed(3);
-      var dup = state.candidates.some(function (c) { return c.lat != null && (+c.lat).toFixed(3) + ',' + (+c.lng).toFixed(3) === k; });
+      var nm = (u.name || '').trim();
+      var near = function (c) {
+        if (c.lat == null) return false;
+        if ((+c.lat).toFixed(3) + ',' + (+c.lng).toFixed(3) === k) return true;
+        /* 同名且距离 <~5km（GCJ 偏移）也算重复，如「鹳雀楼」库内已有则不再加我的节点 */
+        return nm && (c.name || c.label) === nm && Math.abs(c.lat - u.lat) < 0.05 && Math.abs(c.lng - u.lng) < 0.05;
+      };
+      var dup = state.candidates.some(near) || (!nm ? false : parseIndex().some(function (s) { return near(s); }));
       if (!dup) state.candidates.push({ name: u.name, label: u.name, region: u.province || '其他', city: u.city || '', county: '', theme: u.category || '其他', flag: '', lat: +u.lat, lng: +u.lng, gcj: !!u.gcj, __mine: true });
     });
     renderCandidates();
@@ -525,10 +532,20 @@
     if (q) {
       var idx = parseIndex(), seenU = {};
       c.forEach(function (s) { seenU[nodeUid(s)] = 1; });
-      var missHit = function (s) { return !seenU[nodeUid(s)] && candHit(s); };
+      var missHit = function (s) {
+        if (seenU[nodeUid(s)] || !candHit(s)) return false;
+        /* 与已有候选（如「我的节点」）同名同位置的不重复上屏 */
+        return !c.some(function (x) {
+          return x.name === s.name && Math.abs(x.lat - s.lat) < 0.05 && Math.abs(x.lng - s.lng) < 0.05;
+        });
+      };
       var base = state.regions.length ? idx.filter(function (s) { return state.regions.indexOf(s.region) >= 0; }) : idx;
       var extra = base.filter(missHit);
-      if (!list.length && state.regions.length) extra = extra.concat(idx.filter(missHit).slice(0, 200));
+      if (!list.length && !extra.length && state.regions.length) {
+        var inExtra = {};
+        extra.forEach(function (s) { inExtra[nodeUid(s)] = 1; });
+        extra = extra.concat(idx.filter(function (s) { return !inExtra[nodeUid(s)] && missHit(s); }).slice(0, 200));
+      }
       if (extra.length) {
         extra.forEach(function (s) { s.__searchAdd = true; });
         state.candidates = c = c.concat(extra);

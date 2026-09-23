@@ -1199,6 +1199,12 @@
   function loadUserNodes() { try { return JSON.parse(localStorage.getItem(USER_KEY) || '[]'); } catch (e) { return []; } }
   function mergeUserNodes() {
     loadUserNodes().forEach(function (u) {
+      /* 与既有景点同名且距离 <~3km 视为重复（用户节点多为高德 GCJ 坐标，与库内坐标有偏移），不再重复上屏 */
+      var nm = (u.name || '').trim();
+      if (nm && SITES.some(function (s) {
+        if ((s.name || s.label || '') !== nm) return false;
+        return Math.abs(s.lat - u.lat) < 0.05 && Math.abs(s.lng - u.lng) < 0.05;
+      })) return;
       SITES.push({
         id: 'u' + u.id, name: u.name, label: u.name, region: u.province || '其他',
         city: u.city || '', county: '', theme: u.category || '其他', desc: u.desc || '',
