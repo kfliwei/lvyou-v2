@@ -189,6 +189,28 @@ window.Ai = (function () {
         : '存储占用 ' + mb.toFixed(1) + 'MB：可在设置里导出备份';
       setTimeout(function () { flash(tip); }, 600);
     }
+    syncCard();
+  }
+  /* ---- 桌面「行迹卡片」（Android 外壳）：推送 统计 + 最近一撇 ---- */
+  function syncCard() {
+    try {
+      if (!(window.AndroidCard && window.AndroidCard.updateCard)) return;
+      var cs = {}, latest = null;
+      notes.forEach(function (n) {
+        if (n.city) cs[n.city] = 1;
+        if (!latest || (n.ts || 0) > (latest.ts || 0)) latest = n;
+      });
+      var wishes = 0;
+      try {
+        if (window.Wish && Wish.list) wishes = Wish.list().filter(function (x) { return !x.visited; }).length;
+      } catch (e) {}
+      var place = latest ? ((latest.site || latest.city || '在路上') + ' · ' + (latest.date || '')) : '';
+      var quote = latest ? String(latest.text || '').replace(/\s+/g, ' ').trim() : '';
+      window.AndroidCard.updateCard(JSON.stringify({
+        cities: Object.keys(cs).length, notes: notes.length, wishes: wishes,
+        place: place, quote: quote
+      }));
+    } catch (e) {}
   }
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
@@ -1983,6 +2005,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     loadNotes(function () {
       if (MAP) renderTNLayer();
       window.__tnVoiceCount = notes.length;
+      syncCard();
       if (window.TravelNotes._onReady) window.TravelNotes._onReady();
     });
   }
