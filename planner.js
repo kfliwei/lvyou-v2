@@ -518,7 +518,21 @@
     if (!c.length) { card.style.display = 'none'; bar.style.display = 'none'; return; }
     card.style.display = 'block';
     var q = (state.candFilter || '').trim().toLowerCase();
-    var list = q ? c.filter(function (s) { return (s.name + ' ' + s.theme + ' ' + s.city + ' ' + s.region + ' ' + (s.county || '')).toLowerCase().indexOf(q) >= 0; }) : c;
+    var candHit = function (s) { return (s.name + ' ' + s.theme + ' ' + s.city + ' ' + s.region + ' ' + (s.county || '')).toLowerCase().indexOf(q) >= 0; };
+    var list = q ? c.filter(candHit) : c;
+    /* 候选列表只是召回 Top-N，输入的名字可能被截断掉了：直搜全库补进候选（先限定所选目的地，再放开全国） */
+    if (q && !list.length) {
+      var idx = parseIndex(), seenU = {};
+      c.forEach(function (s) { seenU[nodeUid(s)] = 1; });
+      var inRegion = state.regions.length ? function (s) { return state.regions.indexOf(s.region) >= 0; } : function () { return true; };
+      var extra = idx.filter(function (s) { return inRegion(s) && candHit(s) && !seenU[nodeUid(s)]; }).slice(0, 50);
+      if (!extra.length && state.regions.length) extra = idx.filter(function (s) { return candHit(s) && !seenU[nodeUid(s)]; }).slice(0, 50);
+      if (extra.length) {
+        extra.forEach(function (s) { s.__searchAdd = true; });
+        state.candidates = c = c.concat(extra);
+        list = c.filter(candHit);
+      }
+    }
     var cond = [];
     if (state.regions.length) cond.push(state.regions.join('/'));
     if (state.prefs.length) cond.push(state.prefs.join('·'));
