@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>设置 · 行迹</title>
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
@@ -39,6 +38,19 @@
   .data-danger{width:100%;min-height:46px;border:1px solid var(--color-line-strong);border-radius:999px;background:transparent;color:var(--color-primary-dark);font-size:14px;cursor:pointer;font-family:var(--font-sans)}
   .data-danger:active{background:var(--color-primary-soft)}
   body{padding-bottom:80px}
+
+  /* ============================================================
+   v3 CINEMATIC LAYER · 设置
+   ============================================================ */
+  .group{border-radius:20px;padding:18px}
+  .group-title{font-size:16px;font-weight:600;letter-spacing:.03em;display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .group-title::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--grad-gold-line)}
+  input[type=text],input[type=password]{border-radius:14px;background:var(--color-surface);transition:border-color .2s,box-shadow .2s}
+  input:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.10)}
+  .chips button{border-radius:999px;transition:transform .15s var(--ease-out),box-shadow .15s}
+  .chips button.on{background:var(--grad-primary);border-color:transparent;box-shadow:0 5px 14px -4px rgba(172,78,45,.5)}
+  .sw{background:var(--grad-primary);box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+  .data-acts .btn-primary,.savebar .btn-primary{background:var(--grad-primary)}
 
 /* ============================================================
    TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）
@@ -109,7 +121,7 @@
     <div class="group">
       <div class="group-title">游记</div>
       <div class="switchrow">
-        <div><div class="sw-label">地图显示游记节点</div><div class="sw-sub">在专题地图上显示 📝 游记节点</div></div>
+        <div><div class="sw-label">地图显示游记节点</div><div class="sw-sub">在专题地图上显示游记节点</div></div>
         <div class="sw" id="swTheme" onclick="toggle('swTheme','tn_themeNotes')"></div>
       </div>
     </div>

@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>示例数据 · 行迹</title>
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
@@ -19,6 +18,11 @@
   .btn-primary{width:100%;min-height:52px;border-radius:999px;font-size:15px;font-family:var(--font-sans);box-shadow:0 10px 28px rgba(200,109,75,.3);margin-top:6px}
   .btn-secondary{width:100%;min-height:48px;border-radius:999px;font-size:14px;font-family:var(--font-sans);margin-top:10px}
   .status{margin-top:14px;font-size:12.5px;color:var(--color-muted);text-align:center;font-family:var(--font-sans);min-height:18px}
+/* v3 CINEMATIC LAYER */
+.group{border-radius:20px}
+.group h2{font-size:19px;font-weight:600;display:flex;align-items:center;gap:9px}
+.group h2::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--grad-gold-line)}
+.btn-primary{background:var(--grad-primary)}
   .linkrow{display:flex;gap:16px;justify-content:center;margin-top:12px}
   .linkrow a{font-size:13px;color:var(--color-primary-dark);text-decoration:none;font-family:var(--font-sans)}
 

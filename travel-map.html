@@ -2,14 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>我的游记地图</title>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  /* 硬保险：任何子元素超宽也不允许扩张布局视口（否则 fixed 面板会跟着变宽） */
+  html,body{overflow-x:clip}
   /* 顶栏：薄黛青 + 鎏金底边 */
 
   /* 顶栏按钮：与专题页同款（.t-row 体系） */
@@ -133,11 +134,11 @@
   }
   /* 空状态：顶部小提示卡（不挡地图中央），可关闭 */
   .emptyTip{
-    position:absolute;left:50%;top:42%;transform:translateX(-50%) translateY(-50%);z-index:950;
+    position:absolute;left:12px;right:12px;top:42%;transform:translateY(-50%);z-index:950;
     background:rgba(250,248,243,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
     border:1px solid rgba(32,32,29,.07);border-radius:16px;
     box-shadow:var(--shadow-medium);padding:10px 14px;display:none;
-    align-items:center;gap:10px;max-width:calc(100vw - 28px);
+    align-items:center;gap:10px;justify-content:center;max-width:calc(100vw - 28px);
   }
   .emptyTip .em{font-size:22px;font-family:var(--font-serif);color:var(--color-primary);animation:tnfloat 3.2s ease-in-out infinite;flex:0 0 auto}
   @keyframes tnfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
@@ -246,6 +247,18 @@
   .theme-dark .laymenu .ck{color:var(--color-primary)}
   .theme-dark .leaflet-control-attribution{background:rgba(29,28,25,.8);color:var(--color-muted)}
   .theme-dark .leaflet-control-attribution a{color:var(--color-primary-dark)}
+
+  /* v3 CINEMATIC LAYER */
+  .topbar{background:rgba(248,244,236,.82);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+  .t-row .act{background:var(--grad-primary);border-color:transparent;box-shadow:0 8px 20px -8px rgba(172,78,45,.6)}
+  .tl-trip.active{background:var(--grad-primary);border-color:transparent}
+  .mem-badge{background:var(--grad-primary)}
+  .ms-item__arr{width:26px;height:26px;border-radius:50%;background:var(--color-bg-soft);place-items:center}
+  .ms-tags span{background:rgba(200,109,75,.10);color:var(--color-ember-deep)}
+  .ms-photos img{border-radius:14px}
+  .ctl{border-radius:16px}
+  .laymenu{border-radius:18px}
+  .theme-dark .topbar{background:rgba(27,23,19,.82)}
 </style>
 </head>
 <body>

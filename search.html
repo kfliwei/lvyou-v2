@@ -2,9 +2,8 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>搜索 · 行迹</title>
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="design.css">
 <style>
@@ -41,6 +40,22 @@
   .empty span{display:block;margin-top:6px;font-size:12.5px;color:var(--color-muted)}
   .skel{height:56px;border-radius:14px;background:linear-gradient(90deg,var(--color-bg-soft),var(--color-surface),var(--color-bg-soft));background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:8px}
   @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  /* v3 CINEMATIC LAYER */
+  .sbar{border:1.5px solid rgba(33,26,19,.08);box-shadow:var(--shadow-soft);background:rgba(255,255,255,.82);transition:box-shadow .2s,border-color .2s}
+  .sbar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
+  .sbar .mic{background:linear-gradient(145deg,rgba(219,125,83,.20),rgba(169,76,45,.09));color:var(--color-ember-deep)}
+  .sbar .mic.rec{background:var(--grad-primary);color:#fff}
+  .chip{border-radius:999px;transition:transform .15s var(--ease-out),box-shadow .15s}
+  .chip.on{background:var(--grad-primary);border-color:transparent;box-shadow:0 6px 14px -4px rgba(172,78,45,.5)}
+  .sec-t{margin:18px 2px 9px}
+  .sec-t b{font-family:var(--font-serif);font-size:15px;font-weight:600;color:var(--color-ink);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+  .sec-t b::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grad-gold-line)}
+  .item{border-radius:16px;padding:13px 15px;margin-bottom:10px;transition:transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+  @media(hover:hover){.item:hover{transform:translateY(-2px);box-shadow:var(--shadow-medium)}}
+  .item .arr{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);font-size:13px}
+  .item .dot{box-shadow:0 0 0 3px rgba(212,113,74,.10)}
+  .empty .em{opacity:.85}
+  .theme-dark .sbar{background:rgba(255,255,255,.06)}
 </style>
 </head>
 <body>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行迹 TRACE · 打磨收尾清单（2026-08-17）</title>
+<style>
+  :root{--ink:#20201D;--sub:#7D7970;--paper:#FAF8F3;--card:#FFFFFF;--line:#E8E4DB;--zhu:#C0392B;--ok:#3E7C4F;--warn:#B7791F;--soft:#F4F1EA}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Songti SC","Noto Serif SC",Georgia,serif;background:var(--paper);color:var(--ink);line-height:1.7;padding:32px 16px}
+  .wrap{max-width:760px;margin:0 auto}
+  header{text-align:center;margin-bottom:28px}
+  header h1{font-size:26px;letter-spacing:.06em}
+  header p{color:var(--sub);font-size:13px;margin-top:6px}
+  .seal{display:inline-block;border:2px solid var(--zhu);color:var(--zhu);padding:2px 10px;font-size:13px;letter-spacing:.2em;margin-bottom:10px;border-radius:3px}
+  .metrics{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+  .metric{flex:1;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+  .metric b{display:block;font-size:24px}
+  .metric span{font-size:12px;color:var(--sub)}
+  .metric.ok b{color:var(--ok)} .metric.warn b{color:var(--warn)} .metric.zhu b{color:var(--zhu)}
+  section{margin-bottom:26px}
+  h2{font-size:18px;margin-bottom:12px;padding-left:10px;border-left:3px solid var(--zhu)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px}
+  .card h3{font-size:15px;margin-bottom:6px}
+  .card p{font-size:13.5px;color:#55524A}
+  .tag{display:inline-block;font-size:11px;border-radius:20px;padding:1px 10px;margin-left:8px;vertical-align:2px}
+  .tag.p1{background:#FBE9E7;color:var(--zhu)}
+  .tag.p2{background:#FDF3E1;color:var(--warn)}
+  .tag.p3{background:#E9F2EC;color:var(--ok)}
+  .done{opacity:.82}
+  .done h3{color:#6E6A61}
+  .done .tag{background:#EFECE4;color:#8A857B}
+  .hr{border:none;border-top:1px dashed var(--line);margin:22px 0}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--line);font-size:13.5px}
+  th{background:var(--soft);text-align:left;padding:10px 12px;font-weight:600}
+  td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+  footer{text-align:center;color:var(--sub);font-size:12px;margin-top:30px}
+  code{background:var(--soft);border-radius:4px;padding:0 5px;font-size:12px;font-family:Consolas,monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="seal">行迹 TRACE</div>
+    <h1>打磨收尾清单</h1>
+    <p>基于 2026-08-11 至 08-16 五轮审核遗留项 + 2026-08-17 代码逐条复核 · 个人自用语境</p>
+  </header>
+
+  <div class="metrics">
+    <div class="metric ok"><b>9/12</b><span>链路完全闭环</span></div>
+    <div class="metric ok"><b>3/3</b><span>08-16 功能审核项已修</span></div>
+    <div class="metric zhu"><b>3</b><span>Android 壳层遗留（原封未动）</span></div>
+    <div class="metric warn"><b>39MB</b><span>release APK 体积</span></div>
+  </div>
+
+  <section>
+    <h2>一、已验证已修复（8/16 审核遗留全部落地）</h2>
+    <div class="card done"><h3>AI 无 Key 本地兜底<span class="tag p3">已修</span></h3>
+      <p>润色 →「未配置 Key，已采用原文」；旅程故事 → <code>localStory()</code> 时间线叙事；定制路书 → <code>localItinerary()</code> 贪心排程。三处均提示「配置 Key 可获得更优效果」，不再报错空转。</p></div>
+    <div class="card done"><h3>想去清单 → 行程规划一步带入<span class="tag p3">已修</span></h3>
+      <p>wishlist 跳转带 <code>?from=wish</code>，planner.js 自动读取并 <code>seedFromWish()</code>，toast「已带入 N 处心愿，可直接排期」；不足 2 处时明确提示。</p></div>
+    <div class="card done"><h3>回顾页成果工坊补「定制路书」入口<span class="tag p3">已修</span></h3>
+      <p>review.html 已挂 <code>Results.itinerary()</code>，无专题数据时回退用「带坐标游记」串路线。</p></div>
+    <div class="card done"><h3>搜索跳转 / desc 匹配 / 分词 / 主题筛选<span class="tag p3">已修</span></h3>
+      <p>省份简称→全称映射修复；索引扩至含 desc 字段；8050 站点介绍清零；「必去/网红」标识 562 → 1764。</p></div>
+  </section>
+
+  <section>
+    <h2>二、仍开放事项（按优先级）</h2>
+    <table>
+      <tr><th style="width:60px">优先级</th><th>事项</th><th style="width:110px">成本</th></tr>
+      <tr><td><b>P1</b></td><td><b>冷启动清缓存</b>：<code>MainActivity</code> 每次 <code>clearCache(true)</code> 清空瓦片 HTTP 缓存，首屏每次重下地图，自驾弱网场景直接受损。改「按版本号变化清理一次」。</td><td>低</td></tr>
+      <tr><td><b>P1</b></td><td><b>WebView 泄漏</b>：<code>onDestroy</code> 未调用 <code>webView.destroy()</code>，频繁进出累积内存。补两行即可。</td><td>低</td></tr>
+      <tr><td><b>P1</b></td><td><b>权限拒绝静默</b>：无 <code>onRequestPermissionsResult</code>，拒绝定位后地图无提示。补回调 + JS 桥提示。</td><td>低</td></tr>
+      <tr><td><b>P2</b></td><td><b>APK 体积 39MB</b>：<code>minifyEnabled false</code> + 双 ABI + 无资源压缩。开 R8 + <code>abiFilters 'arm64-v8a'</code> + shrinkResources，预期压到 10MB 内（需写 proguard keep 讯飞/JS 桥）。</td><td>中</td></tr>
+      <tr><td><b>P2</b></td><td><b>搜索无拼音/首字母</b>：搜「xs」「ys」找不到香山、云冈（8/16 查询审核 A3 残留）。加拼音映射列或懒加载拼音表。</td><td>中</td></tr>
+      <tr><td><b>P3</b></td><td><b>design.css 卫生</b>：旧 <code>.tabbar</code>/<code>.navbar</code> 死代码仍在；13 处硬编码浅色底 <code>rgba(250,248,243…)</code> 未走变量，深色模式隐患。</td><td>低</td></tr>
+      <tr><td><b>P3</b></td><td><b>真机回归</b>：8/13 以来一批交互（打卡/删除、规划 ↑↓ 调整、搜索加载更多、首启引导只现一次、弱网瓦片 toast）仅 puppeteer 验证，未上真机。</td><td>中</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>三、明确搁置（不建议投入）</h2>
+    <div class="card"><h3>SPA 路由改造<span class="tag p3">搁置</span></h3>
+      <p>50+ 页面多页架构，全量重构风险高、收益有限；真机加载速度尚可接受。如未来上架商店再评估 hash 渐进式。</p></div>
+    <div class="card"><h3>瓦片离线缓存<span class="tag p2">有条件提级</span></h3>
+      <p>自驾去山区/高原是真场景，但应先做 P1 的 clearCache 修复（保住现有缓存），再考虑 leaflet.offline 级别方案。</p></div>
+  </section>
+
+  <hr>
+  <footer>结论：功能层已完工，剩余为「Android 壳层收尾 + 体积优化 + 死代码清理 + 真机回归」一轮低成本清单 · 复核日期 2026-08-17</footer>
+</div>
+</body>
+</html>

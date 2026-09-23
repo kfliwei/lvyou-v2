@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>行迹 TRACE · 首页</title>
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="images/icon-192.png">
 <script src="theme.js"></script>
 <style>
@@ -18,7 +17,16 @@
   .app-page{width:min(100%,520px);margin:0 auto;position:relative;overflow-x:clip;padding-bottom:120px}
 
   /* ---- Hero ---- */
-  .hero{padding:18px 20px 14px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
+  .hero{padding:calc(env(safe-area-inset-top,0px) + 22px) 22px calc(env(safe-area-inset-bottom,0px) + 112px);min-height:92dvh;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
+  .hero__brandrow{margin-top:8px}
+  .hero__title{margin-top:clamp(38px,8vh,76px) !important;font-size:clamp(40px,11.5vw,62px) !important}
+  .hero__sub{margin-top:12px;font-size:14px}
+  .hero__meta{margin-top:22px}
+  .hero__lower{margin-top:auto;width:100%;padding-top:28px}
+  .hero__btnrow{display:flex;align-items:center;gap:12px;margin-top:22px}
+  .hero__mini-seal{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;border:1px solid rgba(220,174,94,.5);color:var(--color-gold-bright);font-family:var(--font-serif);font-size:13px;line-height:1;flex:0 0 auto}
+  .hero__cta-main .arr{transition:transform var(--duration-normal) var(--ease-standard)}
+  .hero__cta-main:hover .arr{transform:translateX(4px)}
   /* 呼吸节点（稀疏、缓慢呼吸 — 规范：地图节点稀疏、缓慢呼吸） */
   .hn{position:absolute;border-radius:50%;background:var(--color-ink);border:2.5px solid rgba(255,255,255,.85);animation:hnBreathe 3.4s ease-in-out infinite;pointer-events:none}
   .hn:nth-of-type(1){width:7px;height:7px;left:22%;top:16%}
@@ -92,7 +100,7 @@
   .season-item__arr{color:var(--color-faint);flex:0 0 auto}
 
   /* ---- 最近的旅行 ---- */
-  .trip-feature__img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block;background:linear-gradient(150deg,#B8B09B,#5C6B60)}
+  .trip-feature__img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;display:block;background:radial-gradient(120% 90% at 72% 18%,rgba(220,174,94,.5),transparent 52%),radial-gradient(90% 70% at 30% 90%,rgba(212,113,74,.34),transparent 60%),linear-gradient(155deg,#3A3028,#1B1713)}
   .trip-feature__title{margin-top:16px;font-family:var(--font-serif);font-size:30px;font-weight:400;line-height:1.2}
   .trip-feature__dates{margin-top:6px;color:var(--color-muted);font-size:13px;letter-spacing:.05em}
   .trip-feature__meta{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--color-muted);font-size:0.8125rem}
@@ -147,13 +155,58 @@
   .ha-btn.line{background:var(--color-surface);color:var(--color-ink);border:1px solid var(--color-line-strong)}
 
 </style>
+<style id="v3-home">
+  /* ===== TRACE v3 · 首页电影感覆盖层（在原样式之后，自然胜出，无 !important） ===== */
+  .hero__map{display:none}
+  .hero__art{height:50%}
+  .hero__search{height:56px;border-radius:20px;margin-top:0}
+  .home-section .eyebrow{margin-bottom:12px}
+  /* 时令序号 → 鎏金 */
+  .season-item__no{background:linear-gradient(150deg,rgba(220,174,94,.24),rgba(220,174,94,.05));border-color:rgba(185,136,62,.42);color:#9A6E2E;box-shadow:inset 0 1px 3px rgba(220,174,94,.12)}
+  /* 专题印章卡 → 更大、鎏金描边 */
+  .story-item__stamp{width:78px;height:78px;border-radius:20px;border:1px solid rgba(185,136,62,.32);box-shadow:var(--shadow-soft)}
+  .story-item__stamp span{font-size:12px}
+  .story-item .story-item__n{color:#9A6E2E;letter-spacing:.08em;font-weight:500}
+  /* 引号鎏金 */
+  .quote-block__mark{background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* 旅程主图 */
+  .trip-feature__img{border-radius:16px}
+  .trip-route-svg{border-radius:12px}
+  /* 收尾色带：旧规则清零交给 .cine-band */
+  .home-end{padding:0;border-top:0}
+  .home-end .home-end__t{font-size:clamp(26px,7vw,34px);line-height:1.55}
+  .home-actions{padding-top:20px}
+</style>
 </head>
 <body>
 <div id="bootSplash" aria-hidden="true"><div class="bs-seal">迹</div><div class="bs-name">行迹 TRACE</div><div class="bs-sub">My Journey Map</div></div>
 <div class="app-page">
 
   <!-- ============ HERO ============ -->
-  <section class="hero">
+  <section class="hero hero--cine">
+    <div class="hero__art" aria-hidden="true">
+      <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="hSun" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#E68B52" stop-opacity=".95"/>
+            <stop offset="55%" stop-color="#C8623F" stop-opacity=".38"/>
+            <stop offset="100%" stop-color="#C8623F" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="62" cy="58" r="1.6" fill="#DCAE5E" opacity=".7"/>
+        <circle cx="118" cy="40" r="1.2" fill="#DCAE5E" opacity=".45"/>
+        <circle cx="208" cy="70" r="1.4" fill="#DCAE5E" opacity=".55"/>
+        <circle cx="288" cy="126" r="76" fill="url(#hSun)"/>
+        <circle cx="288" cy="126" r="25" fill="#E6955E" opacity=".85"/>
+        <path d="M0 168 L58 138 L118 158 L180 126 L244 152 L308 128 L400 156 L400 260 L0 260 Z" fill="#DCAE5E" opacity=".15"/>
+        <path d="M0 192 L70 166 L140 186 L208 158 L276 184 L340 164 L400 182 L400 260 L0 260 Z" fill="#DCAE5E" opacity=".10"/>
+        <path d="M-10 214 Q 120 192 210 212 T 420 204" stroke="#DCAE5E" stroke-width="1" fill="none" opacity=".22"/>
+        <path d="M-4 228 L64 198 L132 220 L202 192 L268 218 L332 200 L404 216 L404 260 L-4 260 Z" fill="#0C0907" opacity=".92"/>
+        <path d="M-4 248 L96 228 L190 244 L296 226 L404 242 L404 260 L-4 260 Z" fill="#000" opacity=".55"/>
+      </svg>
+    </div>
+    <div class="cine-grain"></div>
+    <canvas class="hero-particles" id="heroParticles" aria-hidden="true"></canvas>
     <div class="hero__map">
       <svg viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <path d="M-20 300 Q 80 250 170 290 T 420 260" stroke="#7d7970" stroke-width="1.6" fill="none"/>
@@ -166,27 +219,32 @@
     </div>
     <span class="hn"></span><span class="hn"></span><span class="hn"></span>
 
-    <div class="hero__brand fade-up">TRACE</div>
-    <div class="hero__en fade-up" style="animation-delay:60ms">行迹</div>
+    <div class="hero__brandrow fade-up">
+      <span class="hero__seal">迹</span>
+      <span class="hero__brandtext"><b>行迹</b><small>TRACE · MY JOURNEY MAP</small></span>
+    </div>
     <h1 class="hero__title fade-up" style="animation-delay:120ms">今天，<br>去哪里？</h1>
-    <p class="hero__sub fade-up" style="animation-delay:200ms">Discover somewhere.</p>
-
-    <div class="hero__search fade-up" style="animation-delay:280ms" onclick="goFullSearch()" role="button" tabindex="0" aria-label="搜索全部景点">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5" stroke-linecap="round"/></svg>
-      <input id="homeSearch" type="search" placeholder="搜索全部景点（7833 处）" autocomplete="off" readonly onfocus="goFullSearch()">
+    <p class="hero__sub fade-up" style="animation-delay:200ms">Discover Somewhere · 山川湖海，皆可抵达</p>
+    <div class="hero__meta fade-up" style="animation-delay:260ms">
+      <span><b>34</b> 省</span><i></i><span><b>7,833</b> 处山川</span><i></i><span><b>36</b> 专题地图</span>
     </div>
 
-    <div class="hero__cta fade-up" style="animation-delay:360ms;gap:30px">
-      <span onclick="location.href='planner.html'" role="button" tabindex="0" style="cursor:pointer">行程规划 <span class="arr">→</span></span>
-      <span class="hero-note" onclick="__tnAnywhere()" role="button" tabindex="0" aria-label="随手记语音记录">
-        <span class="hero-note__seal">记</span> 随手记
-      </span>
+    <div class="hero__lower">
+      <div class="hero__search fade-up" style="animation-delay:280ms" onclick="goFullSearch()" role="button" tabindex="0" aria-label="搜索全部景点">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5" stroke-linecap="round"/></svg>
+        <input id="homeSearch" type="search" placeholder="搜索全部景点（7833 处）" autocomplete="off" readonly onfocus="goFullSearch()">
+      </div>
+
+      <div class="hero__btnrow fade-up" style="animation-delay:360ms">
+        <a class="hero__cta-main" href="planner.html">行程规划 <span class="arr">→</span></a>
+        <button class="hero__cta-ghost" type="button" onclick="__tnAnywhere()" aria-label="随手记语音记录"><span class="hero__mini-seal">记</span>随手记</button>
+      </div>
     </div>
   </section>
 
   <!-- ============ 这个季节，去哪？ ============ -->
   <section class="home-section">
-    <p class="eyebrow fade-up">Recent Journey</p>
+    <p class="eyebrow fade-up"><span class="chap-no">壹</span>RECENT JOURNEY</p>
     <h2 class="section-title fade-up">最近的旅行</h2>
     <div id="tripbar" style="display:none">
       <div id="tripFull" style="display:none">
@@ -210,13 +268,9 @@
         <span class="text-link" style="font-size:14px" onclick="location.href='travel-map.html'">我的足迹 <span class="arr">→</span></span>
       </div>
     </div>
-    <div id="tripbarEmpty" class="trip-empty" style="display:none">
-      世界还很大。<br>你的第一段旅程，还没有开始。<br>
-      <span class="text-link" style="font-size:14px;margin-top:12px" onclick="location.href='travel-map.html'">我的足迹 <span class="arr">→</span></span>
-    </div>
   </section>
 <section class="home-section" style="padding-top:48px">
-    <p class="eyebrow fade-up">In Season</p>
+    <p class="eyebrow fade-up"><span class="chap-no">贰</span>IN SEASON</p>
     <h2 class="section-title fade-up" id="seasonTitle">这个季节，去哪？</h2>
     <div class="season-list fade-up" id="seasonList" style="margin-top:14px;animation-delay:80ms"></div>
   </section>
@@ -226,82 +280,9 @@
 
   <!-- ============ 附近，有什么故事？（四大专题） ============ -->
   <section class="home-section" style="padding-top:20px">
-    <p class="eyebrow fade-up">Nearby Stories</p>
+    <p class="eyebrow fade-up"><span class="chap-no">叁</span>NEARBY STORIES</p>
     <h2 class="section-title fade-up">附近，有什么故事？</h2>
-    <div class="story-list fade-up" style="animation-delay:100ms">
-      <a class="story-item" href="topic.html?p=cz" data-seal="cz">
-        <div class="story-item__main">
-          <div class="story-item__title">红军长征</div>
-          <div class="story-item__loc">江西 · 贵州 · 四川 · 甘肃 · 陕西</div>
-          <div class="story-item__desc">战役、会议与纪念地，四条行军路线，一段走得最远的路。</div>
-          <div class="story-item__n" id="cntCz"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-changzheng.svg" alt=""><span>征</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=gy" data-seal="gy">
-        <div class="story-item__main">
-          <div class="story-item__title">广西云南</div>
-          <div class="story-item__loc">桂林 · 阳朔 · 大理 · 西双版纳</div>
-          <div class="story-item__desc">山水与烟火之间，七条推荐路线，慢慢走。</div>
-          <div class="story-item__n" id="cntGy"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-yunnan.svg" alt=""><span>滇</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=qt" data-seal="qt">
-        <div class="story-item__main">
-          <div class="story-item__title">青藏风光</div>
-          <div class="story-item__loc">唐蕃古道 · 山南 · 阿里 · 新藏线</div>
-          <div class="story-item__desc">进藏路线与人文地理，越往西走，天地越开阔。</div>
-          <div class="story-item__n" id="cntQt"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-tibet.svg" alt=""><span>藏</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=sx" data-seal="sx">
-        <div class="story-item__main">
-          <div class="story-item__title">山西古建</div>
-          <div class="story-item__loc">大同 · 太原 · 平遥 · 运城</div>
-          <div class="story-item__desc">国保古建，四条探访路线，梁柱之间是一千年的风雨。</div>
-          <div class="story-item__n" id="cntSx"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-shanxi.svg" alt=""><span>晋</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=sc" data-seal="sc">
-        <div class="story-item__main">
-          <div class="story-item__title">四川</div>
-          <div class="story-item__loc">九寨沟 · 峨眉山 · 稻城亚丁 · 成都</div>
-          <div class="story-item__desc">天府之国，雪山古镇与火锅，十条路线，慢慢吃慢慢走。</div>
-          <div class="story-item__n" id="cntSc"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-sc.svg" alt=""><span>川</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=gs" data-seal="gs">
-        <div class="story-item__main">
-          <div class="story-item__title">甘肃</div>
-          <div class="story-item__loc">敦煌 · 嘉峪关 · 张掖 · 甘南</div>
-          <div class="story-item__desc">河西走廊与丝路佛光，七彩丹霞与草原秘境，九条路线走遍陇原。</div>
-          <div class="story-item__n" id="cntGs"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-gs.svg" alt=""><span>陇</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=xj" data-seal="xj">
-        <div class="story-item__main">
-          <div class="story-item__title">新疆</div>
-          <div class="story-item__loc">喀纳斯 · 伊犁 · 喀什 · 独库公路</div>
-          <div class="story-item__desc">大美西域，雪山草原与丝路古城，九条路线走遍天山南北。</div>
-          <div class="story-item__n" id="cntXj"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-xj.svg" alt=""><span>疆</span></div>
-      </a>
-      <a class="story-item" href="topic.html?p=gz" data-seal="gz">
-        <div class="story-item__main">
-          <div class="story-item__title">贵州</div>
-          <div class="story-item__loc">黄果树 · 荔波 · 西江 · 梵净山</div>
-          <div class="story-item__desc">多彩黔境，瀑布溶洞与苗乡侗寨，九条路线看尽山水人文。</div>
-          <div class="story-item__n" id="cntGz"></div>
-        </div>
-        <div class="story-item__stamp"><img src="art/topic-gz.svg" alt=""><span>黔</span></div>
-      </a>
-    </div>
+    <div class="story-list fade-up" id="topicList" style="animation-delay:100ms"></div>
   </section>
 
   <!-- ============ 有人走过 ============ -->
@@ -313,11 +294,13 @@
     </div>
   </section>
 
-  <!-- ============ 结尾 ============ -->
-  <section class="home-end">
-    <div class="home-end__t fade-up">世界还很大。<br>去走走吧。</div>
-    <div class="home-end__s fade-up" style="animation-delay:80ms">Explore further</div>
-    <div class="home-end__cta fade-up" style="animation-delay:160ms" onclick="location.href='explore-map.html'">探索地图 <span>→</span></div>
+  <!-- ============ 结尾 · 夜墨色带（与开场呼应） ============ -->
+  <section class="home-end cine-band">
+    <div class="cine-grain"></div>
+    <p class="eyebrow fade-up" style="justify-content:center;color:var(--color-gold-bright);letter-spacing:.3em">THE ROAD AWAITS</p>
+    <div class="home-end__t fade-up" style="margin-top:18px">世界还很大。<br>去走走吧。</div>
+    <div class="home-end__s fade-up" style="animation-delay:80ms">EXPLORE FURTHER · 34 PROVINCES</div>
+    <a class="home-end__cta fade-up" style="animation-delay:160ms" href="explore-map.html">探索地图 <span>→</span></a>
   </section>
 
   <!-- ============ 底部操作（保留功能） ============ -->
@@ -331,6 +314,7 @@
 <!-- ============ 底部导航（4 Tab：探索/地图/旅途/我的） ============ -->
 <div id="bnav"></div><script src="nav.js" data-active="index"></script>
 
+<script src="topic-catalog.js"></script>
 <script src="geo.js"></script>
 <script src="quotes.js"></script>
 <script src="topic-counts.js"></script>
@@ -348,10 +332,8 @@
     if (!all.length) {
       document.getElementById('tripFull').style.display = 'none';
       document.getElementById('tripEmpty').style.display = 'block';
-      document.getElementById('tripbarEmpty').style.display = 'none';
       return;
     }
-    document.getElementById('tripbarEmpty').style.display = 'none';
     document.getElementById('tripEmpty').style.display = 'none';
     document.getElementById('tripFull').style.display = 'block';
     var sites = new Set(all.filter(function (n) { return n.lat != null; }).map(function (n) { return n.lat.toFixed(4) + ',' + n.lng.toFixed(4); }));
@@ -367,7 +349,7 @@
       ph.style.backgroundSize = 'cover';
       ph.style.backgroundPosition = 'center';
     } else {
-      ph.style.background = 'linear-gradient(150deg,#B8B09B,#5C6B60)';
+      ph.style.background = 'radial-gradient(120% 90% at 72% 18%,rgba(220,174,94,.5),transparent 52%),radial-gradient(90% 70% at 30% 90%,rgba(212,113,74,.34),transparent 60%),linear-gradient(155deg,#3A3028,#1B1713)';
     }
   }
   function drawRoute() {
@@ -427,26 +409,24 @@
       else fb();
     } catch (e) { fb(); }
   };
-  // 专题地点数（保留原计数逻辑）
+  // 附近故事：由 topic-catalog.js 渲染精选专题（feat:true），计数走 topic-counts.js
   function fmtN(n){return '凡'+(''+n).replace(/./g,function(c){return '〇一二三四五六七八九'[c]||c})+'处';}
   var TC = window.TOPIC_COUNTS || {};
   function cntOf(id, def) { return TC[id] ? fmtN(TC[id]) : def; }
-  var ce=document.getElementById('cntCz');
-  if(ce) ce.textContent=cntOf('cz','凡若干处');
-  ce=document.getElementById('cntGy');
-  if(ce) ce.textContent=cntOf('gy','凡若干处');
-  ce=document.getElementById('cntQt');
-  if(ce) ce.textContent=cntOf('qt','凡若干处');
-  ce=document.getElementById('cntSx');
-  if(ce) ce.textContent=cntOf('sx','凡若干处');
-  ce=document.getElementById('cntSc');
-  if(ce) ce.textContent=cntOf('sc','凡若干处');
-  ce=document.getElementById('cntGs');
-  if(ce) ce.textContent=cntOf('gs','凡若干处');
-  ce=document.getElementById('cntXj');
-  if(ce) ce.textContent=cntOf('xj','凡若干处');
-  ce=document.getElementById('cntGz');
-  if(ce) ce.textContent=cntOf('gz','凡若干处');
+  (function () {
+    var box = document.getElementById('topicList');
+    if (!box || !window.TOPIC_CATALOG) return;
+    box.innerHTML = window.TOPIC_CATALOG.filter(function (t) { return t.feat; }).map(function (t) {
+      return '<a class="story-item" href="topic.html?p=' + t.id + '" data-seal="' + t.id + '">' +
+        '<div class="story-item__main">' +
+        '<div class="story-item__title">' + t.title + '</div>' +
+        '<div class="story-item__loc">' + t.loc + '</div>' +
+        '<div class="story-item__desc">' + t.desc + '</div>' +
+        '<div class="story-item__n">' + cntOf(t.id, '凡若干处') + '</div></div>' +
+        '<div class="story-item__stamp"><img src="art/' + t.img + '.svg" alt=""><span>' + t.ch + '</span></div>' +
+        '</a>';
+    }).join('');
+  })();
 
   // 有人走过：quotes.js 随机一句（条目结构 {k,t,a,s,y}）
   function renderQuote(){
@@ -519,19 +499,10 @@
 
 <script>
 (function(){
-  if(window.Wish && Wish.checkNearby && localStorage.getItem('tn_onboarded')==='1'){
-    setTimeout(function(){
-      Wish.checkNearby(function(near){
-        var s = near[0];
-        var d = document.createElement('div');
-        d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+104px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
-        d.innerHTML='<span style="flex:1">你已在 <b>'+s.label+'</b> 附近（3km 内），记录一下？</span><button id="tnNGo" style="flex:0 0 auto;border:0;border-radius:999px;background:#C86D4B;color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去打卡</button>';
-        document.body.appendChild(d);
-        document.getElementById('tnNGo').onclick=function(){ d.remove(); location.href='wishlist.html'; };
-        setTimeout(function(){ d.remove(); }, 10000);
-      });
-    }, 3500);
-  }
+  try{
+    /* 附近想去打卡提示（共享实现见 wishlist.js Wish.nearbyNudge） */
+    if(window.Wish && Wish.nearbyNudge && localStorage.getItem('tn_onboarded')==='1') Wish.nearbyNudge(3500);
+  }catch(e){}
 })();
 </script>
 
@@ -540,10 +511,15 @@
 (function(){
   try{
     if(localStorage.getItem('tn_onboarded')) return;
+    var OB_IC = {
+      map: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L3 6 V20 L9 18 L15 20 L21 18 V4 L15 6 Z"/><path d="M9 4 V18 M15 6 V20"/></svg>',
+      mic: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>',
+      star: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linejoin="round"><path d="M12 3 L14.8 8.9 L21 9.6 L16.5 13.8 L17.6 20 L12 16.9 L6.4 20 L7.5 13.8 L3 9.6 L9.2 8.9 Z"/></svg>'
+    };
     var steps=[
-      {t:'探索全国', d:'7833 处景点 · 34 省 · 36 专题地图 · 搜索直达，山川湖海一键抵达', i:'🗺️'},
-      {t:'语音随手记', d:'景点详情页点「记录」，语音生成游记，足迹自动落上地图', i:'🎙️'},
-      {t:'想去就打卡', d:'♡ 收藏想去清单，到了现场一键打卡，行程自动规划', i:'⭐'}
+      {t:'探索全国', d:'7833 处景点 · 34 省 · 36 专题地图 · 搜索直达，山川湖海一键抵达', i:OB_IC.map},
+      {t:'语音随手记', d:'景点详情页点「记录」，语音生成游记，足迹自动落上地图', i:OB_IC.mic},
+      {t:'想去就打卡', d:'♡ 收藏想去清单，到了现场一键打卡，行程自动规划', i:OB_IC.star}
     ];
     var idx=0;
     var st=document.createElement('style');
@@ -567,5 +543,121 @@
 /* 启动遮罩淡出 */
 (function(){var bs=document.getElementById('bootSplash');if(!bs)return;var t=setTimeout(function(){bs.classList.add('hide');setTimeout(function(){bs.remove();},600);clearTimeout(t);},900);})();
 </script>
-</body>
-</html>
+<script>
+/* 键盘可达：role=button 的非按钮元素支持 Enter/Space 激活 */
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var t = e.target;
+  if (t && t.getAttribute && t.getAttribute('role') === 'button' && !/^(BUTTON|A|INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) {
+    e.preventDefault(); t.click();
+  }
+});
+</script>
+<script>
+/* Hero 动态粒子：暮色中上浮的鎏金余烬（自包含；canvas 仅作装饰层，不拦截事件，不参与布局） */
+(function () {
+  var cv = document.getElementById('heroParticles');
+  var hero = cv && cv.closest('.hero--cine');
+  if (!cv || !hero || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var W = 0, H = 0, parts = [], raf = 0, running = false, visible = true, t0 = 0;
+
+  /* 预渲染柔光精灵（避免每粒子 shadowBlur 的开销）：金 / 余烬两种 */
+  function makeSprite(rgb) {
+    var s = 32, c = document.createElement('canvas');
+    c.width = c.height = s;
+    var g = c.getContext('2d');
+    var rg = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    rg.addColorStop(0, 'rgba(' + rgb + ',.95)');
+    rg.addColorStop(0.28, 'rgba(' + rgb + ',.42)');
+    rg.addColorStop(1, 'rgba(' + rgb + ',0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, s, s);
+    return c;
+  }
+  var SPR = [makeSprite('220,174,94'), makeSprite('230,139,82')];
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function makeP(initial) {
+    return {
+      x: rand(0, W),
+      baseX: 0,
+      y: initial ? rand(0, H) : H + rand(6, 40),
+      r: rand(0.7, 2.3),
+      vy: rand(7, 20),                 /* px/s，缓慢上浮 */
+      amp: rand(4, 16),                /* 横向摇摆幅度 */
+      sway: rand(0.35, 0.9),
+      a: rand(0.25, 0.95),
+      tw: rand(0.6, 1.8),              /* 明灭速度 */
+      ph: rand(0, Math.PI * 2),
+      spr: Math.random() < 0.24 ? 1 : 0 /* 少量余烬色，多数鎏金 */
+    };
+  }
+  function resize() {
+    W = hero.clientWidth; H = hero.clientHeight;
+    if (!W || !H) return;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.max(20, Math.min(64, Math.round(W * H / 15000)));
+    parts = [];
+    for (var i = 0; i < n; i++) { var p = makeP(true); p.baseX = p.x; parts.push(p); }
+  }
+  function frame(ts) {
+    if (!running) return;
+    if (!t0) t0 = ts;
+    var dt = Math.min(0.05, (ts - t0) / 1000); t0 = ts;
+    var t = ts / 1000;
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      p.y -= p.vy * dt;
+      if (p.y < -14) { var np = makeP(false); np.baseX = np.x; parts[i] = np; p = np; }
+      var x = p.baseX + Math.sin(t * p.sway + p.ph) * p.amp;
+      var alpha = p.a * (0.55 + 0.45 * Math.sin(t * p.tw + p.ph));
+      if (alpha < 0.04) continue;
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      var d = p.r * 7;   /* 精灵绘制直径（柔光远大于光点本体） */
+      ctx.drawImage(SPR[p.spr], x - d / 2, p.y - d / 2, d, d);
+    }
+    ctx.globalAlpha = 1;
+    raf = requestAnimationFrame(frame);
+  }
+  function staticFrame() {
+    resize();
+    ctx.clearRect(0, 0, W, H);
+    parts.forEach(function (p) {
+      ctx.globalAlpha = p.a * 0.7;
+      var d = p.r * 7;
+      ctx.drawImage(SPR[p.spr], p.x - d / 2, p.y - d / 2, d, d);
+    });
+    ctx.globalAlpha = 1;
+  }
+  function start() { if (running || reduced) return; running = true; t0 = 0; raf = requestAnimationFrame(frame); }
+  function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+  resize();
+  if (reduced) { staticFrame(); }
+  else {
+    start();
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        visible = es[0].isIntersecting;
+        if (visible) start(); else stop();
+      }, { threshold: 0.02 }).observe(hero);
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop(); else if (visible) start();
+    });
+    var rt;
+    if ('ResizeObserver' in window) {
+      rt = new ResizeObserver(function () { resize(); if (visible && !running) start(); });
+      rt.observe(hero);
+    } else {
+      window.addEventListener('resize', resize);
+    }
+  }
+})();
+</script>
+</body></html>

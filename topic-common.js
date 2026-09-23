@@ -305,13 +305,13 @@
     ? '<img src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">'
     : '<div class="ls-img-ph"><span class="ls-img-ph-ch">' + esc((s.label || '景').charAt(0)) + '</span><i>实景照加载中…</i></div>') + '</div>';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
-      '<div class="ls-loc">' + (M.themeIcons[tk(s)] || '') + ' ' + esc(tk(s)) + ' · ' + esc(s.region) + esc(s.city) + (s.county ? (' · ' + esc(s.county)) : '') + '</div>' +
+      '<div class="ls-loc"><span class="ls-thdot" style="background:' + colorOf(s) + '"></span>' + esc(tk(s)) + ' · ' + locParts(s).join(' · ') + '</div>' +
       (s.elev ? '<div class="ls-elev">' + elevSvg(s) + '</div>' : '') +
       '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
-      (s.best ? '<div class="ls-hist">🗓 最佳季节 · ' + esc(s.best) + '</div>' : '') +      '<div class="ls-actions">' +
+      (s.best ? '<div class="ls-hist"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5H20.5M8 3v4M16 3v4"/></svg><span>最佳季节 · ' + esc(s.best) + '</span></div>' : '') +      '<div class="ls-actions">' +
             '<button class="btn-primary" aria-label="听讲解" style="min-height:46px;font-size:13px;padding:0 14px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.explain(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10 V14 M8 7 V17 M12 4 V20 M16 7 V17 M20 10 V14"/></svg>听讲解</button>' +
       '<button class="btn-secondary" aria-label="语音记录" style="min-height:46px;font-size:13px;padding:0 12px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.openPanel(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
       '<span class="ls-morebtn" aria-label="更多操作" onclick="window.TopicEngine.toggleMore(this)">更多 <b style="font-size:10px">▾</b></span>' +
@@ -320,7 +320,7 @@
       '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
       '<span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span>' +
       '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
-      '<span onclick="window.TopicEngine.customItinerary()">🧭 定制路书</span>' +
+      '<span onclick="window.TopicEngine.customItinerary()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>定制路书</span>' +
       '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
   }
   /* ---------- 海拔标尺（SVG 迷你地形可视化，纯本地） ---------- */
@@ -619,33 +619,43 @@
   }
 
   /* ---------- 列表 ---------- */
-  function detHtml(s) {
-    var g = [["best", "最佳季节"], ["desc", "看点"]];
-    var h = "";
-    g.forEach(function (kv) { var k = kv[0], lab = kv[1]; if (s[k]) h += '<div class="grp"><span class="lab">' + lab + '</span>' + s[k] + '</div>'; });
-    return h;
+  /* 行政地名去重：单省专题省略省名；市/县同名只保留一个（北京·北京·东城 → 北京·东城） */
+  function locParts(s) {
+    var single = (M.regionShort && Object.keys(M.regionShort).length === 1) ? Object.keys(M.regionShort)[0] : '';
+    var parts = [];
+    if (s.region && !(single && s.region === single)) parts.push(s.region);
+    if (s.city && s.city !== s.region && !(single && s.city === single)) parts.push(s.city);
+    if (s.county && s.county !== s.city && s.county !== s.region) parts.push(s.county);
+    if (!parts.length && s.region) parts.push(s.region);
+    return parts.map(esc);
   }
+  var SVG_CAL = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5H20.5M8 3v4M16 3v4"/></svg>';
+  var SVG_PIN = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-10.4A6.5 6.5 0 0 1 18.5 10.6C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10.5" r="2.3"/></svg>';
+  var SVG_ALERT = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21.5 20H2.5Z"/><path d="M12 10v4.5M12 17.2v.1"/></svg>';
+  var SVG_CHEV = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
   function makeCard(s) {
     var rp = refPoint();
     var c = colorOf(s);
+    var theme = tk(s);
     var card = document.createElement('div');
     card.className = 'card'; card.dataset.i = s.__i;
-    var km = (rp && s._d != null) ? '<span class="km">📍 ' + s._d.toFixed(0) + ' km</span>' : '';
-    var alt = (s.elev && +s.elev >= 5000) ? '<span class="tag" style="background:var(--cinnabar-500)">⚠ 极高海拔</span>' : '';
-    var dh = detHtml(s);
-    card.innerHTML = '<div class="ph"><div class="bar" style="background:' + c + '"></div>' + alt +
-      '<img loading="lazy" src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">' +
-      '<span class="tag">' + (M.themeIcons[tk(s)] || '') + ' ' + tk(s) + '</span></div>' +
-      '<div class="body"><div class="nm">' + esc(s.label) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + '</div>' +
-      '<div class="meta">' + s.region + ' · ' + s.city + (s.county ? (' · ' + s.county) : '') + (s.elev ? (' · 海拔' + s.elev + 'm') : '') + '</div>' +
-      '<div class="ds">' + esc(s.desc) + (s.best ? ('　· 最佳 ' + esc(s.best)) : '') + '</div>' +
-      '<div class="detail">' + dh + '</div>' + km + '</div>' +
-      '<div class="arr">›</div>';
-    card.onclick = function () {
-      flyToSite(s.__i);
-      var d = card.querySelector('.detail');
-      if (d && d.innerHTML.trim()) { d.classList.toggle('sh'); card.querySelector('.arr').textContent = d.classList.contains('sh') ? '˄' : '›'; }
-    };
+    var src = imgSrc(s);
+    var badges = (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') +
+      (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '');
+    var chips = '';
+    if (s.best) chips += '<span class="cc cc-best">' + SVG_CAL + esc(s.best) + '</span>';
+    if (s.elev && +s.elev >= 5000) chips += '<span class="cc cc-high">' + SVG_ALERT + Math.round(+s.elev) + 'm</span>';
+    if (rp && s._d != null) chips += '<span class="cc cc-km">' + SVG_PIN + s._d.toFixed(0) + ' km</span>';
+    card.innerHTML =
+      '<div class="ph' + (src ? '' : ' is-ph') + '" style="--tint:' + c + '">' +
+      (src ? '<img loading="lazy" src="' + src + '" alt="' + esc(s.label) + '" onerror="this.parentNode.classList.add(\'is-ph\');this.style.display=\'none\'">' : '') +
+      '<span class="ph-ch">' + esc((s.label || '景').charAt(0)) + '</span></div>' +
+      '<div class="body"><div class="nm">' + esc(s.label) + badges + '</div>' +
+      '<div class="meta"><span class="mt-seg"><i class="mt-dot" style="background:' + c + '"></i>' + esc(theme) + '</span><span class="mt-seg">' + locParts(s).join(' · ') + '</span>' + (s.elev ? '<span class="mt-seg">海拔 ' + Math.round(+s.elev) + 'm</span>' : '') + '</div>' +
+      (s.desc ? '<div class="ds">' + esc(s.desc) + '</div>' : '') +
+      (chips ? '<div class="cchips">' + chips + '</div>' : '') + '</div>' +
+      '<div class="arr">' + SVG_CHEV + '</div>';
+    card.onclick = function () { flyToSite(s.__i); };
     return card;
   }
   /* 批量插入卡片（分批防卡） */
@@ -716,7 +726,7 @@
       var items = list.filter(function (s) { return tk(s) === th; }); if (!items.length) return;
       var sec = document.createElement('div'); sec.className = 'tl-era'; sec.dataset.th = th;
       var head = document.createElement('div'); head.className = 'tl-head';
-      head.innerHTML = '<span class="d" style="background:' + M.themes[th] + '"></span><h3>' + th + ' ' + (M.themeIcons[th] || '') + '</h3><span class="cnt">' + items.length + ' 处</span><span class="tl-arr">▾</span>';
+      head.innerHTML = '<span class="d" style="background:' + M.themes[th] + '"></span><h3>' + th + '</h3><span class="cnt">' + items.length + ' 处</span><span class="tl-arr">▾</span>';
       var body = document.createElement('div'); body.className = 'tl-body';
       items.forEach(function (s) {
         var row = document.createElement('div'); row.className = 'tl-row';
@@ -841,7 +851,7 @@
   else if (all.length) map.fitBounds(all, { padding: [40, 40] });
     switchTab('map');
     var banner = $('routeBanner');
-    banner.style.display = 'block'; banner.textContent = '🗺️ ' + rt.name + '  ✕';
+    banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px;opacity:.75">✕</span>';
     banner.title = '点击清除路线';
     banner.onclick = clearRoute;
     var dl = $('dayLegend');
@@ -1005,8 +1015,8 @@
   /* ---------- 筛选 chips ---------- */
   function mkChip(label, on, dot) {
     var c = document.createElement('button'); c.className = 'chip'; c.dataset.f = label;
-    if (dot) c.style.borderColor = dot;
-    c.innerHTML = (dot ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + dot + ';margin-right:5px"></span>' : '') + label;
+    if (dot) c.style.setProperty('--dot', dot);
+    c.innerHTML = (dot ? '<span class="chip-dot"></span>' : '') + label;
     if (on) c.classList.add('on');
     return c;
   }
@@ -1042,7 +1052,7 @@
     mkFlag('h', '网红', '#FF7A50');
     if (M.themeChips !== false) {
       (M.themeOrder || []).forEach(function (th) {
-        var cc = mkChip((M.themeIcons[th] || '') + ' ' + th, false, M.themes[th]);
+        var cc = mkChip(th, false, M.themes[th]);
         cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); };
         dynChips.appendChild(cc);
       });
@@ -1084,7 +1094,7 @@
       if (!SITES.some(function (s) { return tk(s) === th; })) return;
       var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
       var cnt = SITES.filter(function (s) { return tk(s) === th; }).length;
-      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + (M.themeIcons[th] || '') + ' ' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + cnt + '</span>';
+      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + cnt + '</span>';
       /* 图例即标签：点击切换该主题筛选（与顶部 chips 联动） */
       r.onclick = function () {
         state.theme = (state.theme === th ? '' : th);

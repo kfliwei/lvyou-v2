@@ -194,7 +194,7 @@ window.Ai = (function () {
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
-  function uid() { return 'tn_' + Date.now(); }
+  function uid() { return 'tn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
   function fmtDay(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
   /* 从景点对象推导省/市/县（供保存游记归档；途终点无匹配则留空） */
   var CITY_PROV = {
@@ -285,7 +285,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-save:disabled{opacity:.4;box-shadow:none}\
 .tn-repolish{background:#efe9dc;color:#26241f;border:1px solid #d5cdb9}\
 .tn-note{font-size:11.5px;color:#7d7a6e;margin-top:10px;text-align:center;line-height:1.8}\
-.tn-list{position:fixed;inset:0;z-index:9000;display:none;flex-direction:column;background:var(--bg)}\
+.tn-list{position:fixed;inset:0;z-index:9000;display:none;flex-direction:column;background:var(--bg);overflow:hidden}\
 .tn-listbar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px)+6px) 16px 8px;background:var(--b7);color:#efe9dc;border-bottom:2px solid var(--a3)}\
 .tn-listbar .tn-x{background:rgba(255,255,255,.1);width:40px;height:40px}\
 .tn-listbar b{font-family:var(--fd);font-size:17px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em}\
@@ -334,7 +334,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-statbox{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:9px 2px;text-align:center;box-shadow:var(--sm)}\
 .tn-statbox b{display:block;font-size:19px;font-weight:700;color:var(--b6);font-family:var(--fd)}\
 .tn-statbox span{font-size:10px;color:var(--i5)}\
-.tn-listbody{flex:1;overflow-y:auto;padding:4px 16px 24px;background:var(--bg)}\
+.tn-listbody{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px 24px;background:var(--bg)}\
 .tn-timeline{position:relative;padding-left:26px}\
 .tn-timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--a3);opacity:.35}\
 .tn-tl-date{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-size:15px;font-weight:700;color:var(--b7);margin:16px 0 11px;position:relative;letter-spacing:.06em}\
@@ -342,9 +342,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-tl-date small{font-family:var(--fb);font-weight:400;color:var(--i5);font-size:11px;letter-spacing:0}\
 .tn-item{background:var(--sf);border-radius:12px;box-shadow:var(--sm);padding:12px 14px;margin-bottom:9px;border:1px solid var(--ln);transition:var(--tn)}\
 .tn-item:active{transform:scale(.985)}\
-.tn-item h4{margin:0 0 3px;font-family:var(--fd);font-size:15.5px;color:var(--i9);letter-spacing:.03em}\
+.tn-item h4{margin:0 0 3px;font-family:var(--fd);font-size:15.5px;color:var(--i9);letter-spacing:.03em;overflow-wrap:anywhere}\
 .tn-item .tm{font-size:11px;color:var(--i5);margin-bottom:5px;line-height:1.7}\
-.tn-item .tx{font-size:14px;color:var(--i7);line-height:1.8;white-space:pre-wrap;max-height:120px;overflow:hidden;cursor:pointer;position:relative}\
+.tn-item .tx{font-size:14px;color:var(--i7);line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:hidden;cursor:pointer;position:relative}\
 .tn-item .tx.open{max-height:none;overflow:visible}\
 .tn-item .tx:not(.open)::after{content:"… 点此展开全文";position:absolute;right:0;bottom:0;left:0;text-align:right;background:linear-gradient(90deg,transparent,var(--sf) 40%);color:var(--b6);font-size:11px;padding:2px 6px}\
 .tn-item .tags{display:flex;gap:5px;margin:7px 0 0;flex-wrap:wrap}\
@@ -352,7 +352,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-item .pics{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}\
 .tn-item .pics img{width:76px;height:76px;border-radius:3px;object-fit:cover;cursor:pointer;box-shadow:var(--sm)}\
 .tn-item audio{width:100%;margin-top:9px;height:36px}\
-.tn-item .tg{display:flex;gap:4px;margin-top:12px;flex-wrap:nowrap}\
+.tn-item .tg{display:flex;gap:4px;margin-top:12px;flex-wrap:wrap}\
 .tn-item .tg button{flex:1;min-height:40px;padding:0 4px;border:1px solid var(--ln);background:var(--sf2);border-radius:3px;font-size:12px;font-weight:700;color:var(--b7);cursor:pointer;transition:var(--tf);white-space:nowrap;letter-spacing:0}\
 .tn-item .tg button:active{transform:scale(.96)}\
 .tn-item .tg button.danger{background:transparent;color:var(--color-primary)}\

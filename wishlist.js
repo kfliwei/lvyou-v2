@@ -74,5 +74,22 @@ window.Wish = (function () {
       if (near.length && cb) cb(near);
     }, function () {}, { timeout: 8000, maximumAge: 60000 });
   }
-  return { toggle: toggle, isWished: isWished, checkin: checkin, uncheckin: uncheckin, list: list, remove: remove, count: count, uid: uid, checkNearby: checkNearby };
+  /* 附近打卡横幅（index/topic 共用）：延时检测定位，命中弹底部提示条 */
+  function nearbyNudge(delay) {
+    setTimeout(function () {
+      try {
+        checkNearby(function (near) {
+          var s = near[0];
+          var d = document.createElement('div');
+          d.style.cssText = 'position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px)+86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+          d.innerHTML = '<span style="flex:1">你已在 <b></b> 附近（3km 内），记录一下？</span><button style="flex:0 0 auto;border:0;border-radius:999px;background:var(--color-primary,#C86D4B);color:#fff;padding:8px 16px;font-size:12.5px;cursor:pointer">去打卡</button>';
+          d.querySelector('b').textContent = s.label;  /* label 用户可控，走 textContent 防注入 */
+          d.querySelector('button').onclick = function () { d.remove(); location.href = 'wishlist.html'; };
+          document.body.appendChild(d);
+          setTimeout(function () { if (d.parentNode) d.remove(); }, 10000);
+        });
+      } catch (e) {}
+    }, delay || 3500);
+  }
+  return { toggle: toggle, isWished: isWished, checkin: checkin, uncheckin: uncheckin, list: list, remove: remove, count: count, uid: uid, checkNearby: checkNearby, nearbyNudge: nearbyNudge };
 })();

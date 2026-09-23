@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MD 库 · 行迹</title>
 <link rel="stylesheet" href="design.css">
-<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
@@ -105,6 +104,25 @@
   .edit-chip{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-muted);background:var(--color-bg-soft);border:1px dashed var(--color-line-strong);padding:6px 12px;border-radius:999px;cursor:pointer}
   .edit-chip:active{background:var(--color-primary-soft)}
   .hide{display:none!important}
+  /* v3 CINEMATIC LAYER */
+  .stats{border-radius:20px}
+  .stats div{position:relative}
+  .stats div + div::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:var(--color-line)}
+  .stats b{font-size:22px;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--color-gold-bright)}
+  .search-bar{border-radius:999px;border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft)}
+  .search-bar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
+  .chips button.on{background:var(--grad-primary);border-color:transparent}
+  .month b{font-size:18px;font-weight:600}
+  .md-item{border-radius:20px;padding:18px;transition:transform .2s var(--ease-out),box-shadow .2s var(--ease-out)}
+  @media(hover:hover){.md-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-medium)}}
+  .md-item .tags span,.fm-card .tags-r span{background:rgba(200,109,75,.10);color:var(--color-ember-deep);font-weight:500}
+  .md-item .thumbs img{border-radius:12px}
+  .footbar .btn-primary{background:var(--grad-primary)}
+  .footbar button{white-space:nowrap;font-size:13px}
+  .detail-bar{background:rgba(248,244,236,.85);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+  .d-exp,.ed-save{background:var(--grad-primary)}
+  .article h1.art-title{font-size:28px}
+  .theme-dark .detail-bar{background:rgba(27,23,19,.85)}
 </style>
 </head>
 <body>
