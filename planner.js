@@ -663,14 +663,14 @@
     var oldM = $id('browseMask'); if (oldM) oldM.remove();
     var m = document.createElement('div');
     m.id = 'browseMask';
-    m.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(20,16,12,.45);display:flex;align-items:flex-end;justify-content:center';
+    m.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(20,16,12,.45);display:flex;align-items:flex-end;justify-content:center';
     var items = state.selected.map(function (s, i) {
       return '<div style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--color-line)">' +
         '<span style="min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--color-primary);color:#fff;font-size:11px">' + (i + 1) + '</span>' +
         '<span style="flex:1;font-size:13.5px">' + esc(s.name || s.label) + '<span style="display:block;font-size:11px;color:var(--color-muted)">' + esc(s.city || s.region || '') + (s.__cur ? ' · 当前位置' : '') + '</span></span>' +
         '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerRemovePick(' + i + ')">删除</button></div>';
     }).join('');
-    m.innerHTML = '<div style="width:100%;max-width:430px;max-height:78vh;overflow:auto;background:var(--color-surface,#FBF6EC);border-radius:18px 18px 0 0;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.25)">' +
+    m.innerHTML = '<div style="width:100%;max-width:430px;max-height:78vh;overflow:auto;background:var(--color-surface,#FBF6EC);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25)">' +
       '<div style="display:flex;align-items:center;margin-bottom:8px"><b style="font-size:15px">已选景点（' + state.selected.length + '）</b><span style="flex:1"></span>' +
       '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerCloseBrowse()">✕ 关闭</button></div>' +
       (items || '<div style="font-size:12px;color:var(--color-muted);padding:20px 0;text-align:center">还没有选景点</div>') +
