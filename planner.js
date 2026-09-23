@@ -520,13 +520,15 @@
     var q = (state.candFilter || '').trim().toLowerCase();
     var candHit = function (s) { return (s.name + ' ' + s.theme + ' ' + s.city + ' ' + s.region + ' ' + (s.county || '')).toLowerCase().indexOf(q) >= 0; };
     var list = q ? c.filter(candHit) : c;
-    /* 候选列表只是召回 Top-N，输入的名字可能被截断掉了：直搜全库补进候选（先限定所选目的地，再放开全国） */
-    if (q && !list.length) {
+    /* 候选列表只是召回 Top-N：只要输入了就并入「所选目的地全库」命中，保证省内可完整检索；
+       省内外都零命中时才放开全国兜底 */
+    if (q) {
       var idx = parseIndex(), seenU = {};
       c.forEach(function (s) { seenU[nodeUid(s)] = 1; });
-      var inRegion = state.regions.length ? function (s) { return state.regions.indexOf(s.region) >= 0; } : function () { return true; };
-      var extra = idx.filter(function (s) { return inRegion(s) && candHit(s) && !seenU[nodeUid(s)]; }).slice(0, 50);
-      if (!extra.length && state.regions.length) extra = idx.filter(function (s) { return candHit(s) && !seenU[nodeUid(s)]; }).slice(0, 50);
+      var missHit = function (s) { return !seenU[nodeUid(s)] && candHit(s); };
+      var base = state.regions.length ? idx.filter(function (s) { return state.regions.indexOf(s.region) >= 0; }) : idx;
+      var extra = base.filter(missHit);
+      if (!list.length && state.regions.length) extra = extra.concat(idx.filter(missHit).slice(0, 200));
       if (extra.length) {
         extra.forEach(function (s) { s.__searchAdd = true; });
         state.candidates = c = c.concat(extra);
