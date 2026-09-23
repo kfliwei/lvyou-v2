@@ -32,7 +32,6 @@ var SHELL = [
   './topic-catalog.js',
   './site-images.js',
   './nav.js',
-  './tn-key.js',
   './topic-common.js',
   './wishlist.js',
   './geo.js',
