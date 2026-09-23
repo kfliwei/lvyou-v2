@@ -769,7 +769,7 @@ body .tn-panel .tn-acts button:active{opacity:.55;transform:none}
 body .tn-panel .tn-acts button:disabled{opacity:.38}
 /* 操作不是导航：去掉互斥高亮（.on 不再有特殊样式） */
 body .tn-panel .tn-acts button.on{background:none;color:var(--color-primary-dark)}
-body .tn-panel #tnSave{display:none !important}
+body .tn-panel #tnSave:disabled{display:none}
 
 /* ============================================================
    TRACE v2 语音界面重构 — 全屏居中沉浸式（ui-v2/03-voice）

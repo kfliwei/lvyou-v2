@@ -478,6 +478,46 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-cfm .tc-btns button{flex:1;min-height:42px;border:0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fb)}\
 .tn-cfm .tc-no{background:#efe9dc;color:#6b665c}\
 .tn-cfm .tc-ok{background:#c0392b;color:#fff}\
+/* =========================================================\
+   v4 三屏质感（2026-09-23）：录制→编辑→完成，强聚焦/克制用色/状态动效\
+   ========================================================= */\
+/* 屏切换过渡：环形钮缩放、区域显隐不再"蹦"出来 */\
+.tn-ring,.tn-mic,.tn-now,.tn-prompt,.tn-recbox,.tn-miclabel{transition:all .32s cubic-bezier(.2,.9,.3,1)}\
+/* 麦克风恒居声波环中心（原仅 is-done 态居中，idle 态偏左上） */\
+.tn-ring{display:flex;align-items:center;justify-content:center}\
+/* —— 录制屏：实时字幕感，转写框收窄贴着钮 —— */\
+.tn-panel.is-idle .tn-recbox{min-height:74px;max-height:120px;opacity:.92;padding:12px 14px}\
+.tn-panel.is-idle .tn-recbox textarea{min-height:44px}\
+.tn-panel.is-idle .tn-more{display:none}\
+/* —— 编辑屏：转写卡=绝对主角 —— */\
+.tn-panel.is-done .tn-recbox{background:#fffdf8;border:1px solid rgba(200,109,75,.22);border-radius:18px;padding:16px 16px 18px;box-shadow:0 10px 30px rgba(84,66,32,.12)}\
+.tn-panel.is-done .tn-recbox b{color:var(--color-primary);letter-spacing:1.5px}\
+.tn-panel.is-done .tn-recbox textarea{min-height:38vh;font-size:17px;line-height:1.9}\
+/* 元信息折叠条 */\
+.tn-more{width:100%;margin-top:6px}\
+.tn-more>summary{list-style:none;display:flex;align-items:center;min-height:40px;font-family:var(--fb);font-size:12px;letter-spacing:.04em;color:var(--color-muted);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}\
+.tn-more>summary::-webkit-details-marker{display:none}\
+.tn-more>summary::before{content:"▸";color:var(--color-primary);margin-right:6px;font-size:11px;transition:transform .22s ease}\
+.tn-more[open]>summary::before{transform:rotate(90deg)}\
+.tn-more[open]>summary{color:var(--color-ink-soft)}\
+/* 文风选择：275px 下每行 3 个，不再竖排换字 */\
+.tn-style{flex-wrap:wrap;gap:7px}\
+.tn-style button{flex:1 1 30%;min-width:0;min-height:54px;padding:6px 2px;line-height:1.5}\
+/* AI 润色稿：浮现 + 明示"保存时自动采用"，不再无声出现 */\
+@keyframes tnFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}\
+.tn-ai{animation:tnFadeUp .38s ease both}\
+.tn-ai::before{content:"✦ 润色稿 · 保存时自动采用这一版";display:block;font-family:var(--fb);font-size:10px;letter-spacing:1px;color:var(--color-primary);margin-bottom:8px}\
+.tn-loading{animation:tnFadeUp .3s ease both}\
+/* 底栏层级：辅助=文字链接一行，保存=独占主胶囊 */\
+.tn-acts button{min-height:48px;flex:0 1 auto}\
+.tn-repolish{background:transparent;border:0;color:var(--color-muted);font-weight:500;text-decoration:underline;text-decoration-color:rgba(140,130,115,.4);text-underline-offset:5px}\
+.tn-repolish:active{color:var(--color-primary)}\
+.tn-panel.is-done .tn-acts{flex-wrap:wrap;gap:6px 30px;padding:0 20px}\
+.tn-panel.is-done .tn-save{flex:0 0 100%;order:3;min-height:50px;justify-content:center;display:inline-flex;background:linear-gradient(135deg,#D97E58,#B4543A);color:#fff;font-size:15px;font-weight:700;letter-spacing:.08em;border-radius:999px;box-shadow:0 8px 22px rgba(200,109,75,.28);text-decoration:none}\
+.tn-panel.is-done .tn-save::after{display:none}\
+/* 保存后短暂"完成态"呼吸：确认提示出现时主钮给一次金色回响 */\
+@keyframes tnsavePulse{0%{box-shadow:0 6px 18px rgba(200,109,75,.32)}40%{box-shadow:0 6px 26px rgba(220,174,94,.55)}100%{box-shadow:0 6px 18px rgba(200,109,75,.32)}}\
+.tn-save.pulse{animation:tnsavePulse .9s ease}\
 ';
 
   /* ---------- UI 构建 ---------- */
@@ -499,11 +539,13 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   <div class="tn-ring" id="tnRing"></div>\
   <div class="tn-miclabel" id="tnMicLabel">点按，开始 · <b>慢慢说，说完稍等</b></div>\
   <div class="tn-recbox" id="tnRaw"><b>语音转写 · 可说一段话，说完稍等即可</b></div>\
+  <details class="tn-more"><summary>补充 · 题目 / 标签 / 文风 / 照片</summary>\
   <input class="tn-tags" id="tnTitle" placeholder="题目（可自拟，留空则用景点名）">\
   <input class="tn-tags" id="tnTags" placeholder="标签（空格分隔，如：日出 美食 徒步）">\
   <div class="tn-style" id="tnStyle"></div>\
   <div class="tn-photos" id="tnPhotos"></div>\
   <input type="file" id="tnFile" accept="image/*" multiple style="display:none">\
+  </details>\
   <div class="tn-loading" id="tnLoading">正在整理这段旅程……</div>\
   <div class="tn-ai" id="tnAI"></div>\
 </div>\
@@ -1256,6 +1298,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     notes.push(note);
     persist();
     renderTNLayer();
+    /* 完成态回响：主按钮闪一次金色脉冲（纯视觉，不影响状态机复位） */
+    var _sb = $X(ui.panel, '#tnSave');
+    if (_sb) { _sb.classList.remove('pulse'); void _sb.offsetWidth; _sb.classList.add('pulse'); }
     if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
     if (!note.province && note.lat != null) {
       reverseGeo(note.lat, note.lng, function (g) {
