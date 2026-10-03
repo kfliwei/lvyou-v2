@@ -1312,6 +1312,10 @@ header.topbar{
   font-weight:700;
 }
 
+/* 聚合胶囊避让态（ui.js capsuleAvoid）：mini=紧凑数字徽章；hide=淡化保留可点 */
+.lod-cl.lod-mini{gap:0;padding:0 9px}
+.lod-cl.lod-mini .lod-cl__t,.lod-cl.lod-mini .lod-cl__m{display:none}
+.lod-cl.lod-hide{opacity:.16}
 /* ---------- 详情 Sheet ---------- */
 .location-sheet{
   border-radius:28px 28px 22px 22px;

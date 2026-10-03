@@ -138,6 +138,7 @@
 
 <script src="travel-notes.js"></script>
 <script src="album.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
@@ -206,7 +207,7 @@
   function openPicker(title, cellsHtml) {
     var m = document.createElement('div');
     m.className = 'picker';
-    m.innerHTML = '<div class="panel"><div class="phead"><b>' + esc(title) + '</b><button class="pclose">✕</button></div>'
+    m.innerHTML = '<div class="panel"><div class="phead"><b>' + esc(title) + '</b><button class="pclose">'+TI('close', 14)+'</button></div>'
       + '<div class="pbody">' + cellsHtml + '</div></div>';
     document.body.appendChild(m);
     function close(){ m.remove(); }
@@ -321,7 +322,7 @@
       photosHtml = ch.photos.map(function (p, pi) {
         return '<div class="eph"><img src="' + p + '" alt="" onerror="this.remove()">'
           + '<button class="btn" data-act="swap" data-pi="' + pi + '">换</button>'
-          + '<button class="btn rm" data-act="rmph" data-pi="' + pi + '">✕</button></div>';
+          + '<button class="btn rm" data-act="rmph" data-pi="' + pi + '">'+TI('close', 12)+'</button></div>';
       }).join('');
     } else {
       photosHtml = '<div class="eph eph-empty" data-act="addph">＋ 加照片</div>';
@@ -339,7 +340,7 @@
       + '<span class="ech-grip">⋮⋮</span>'
       + '<div class="ech-body"><div class="ech-num">Chapter ' + String(i + 1).padStart(2, '0') + '</div>'
       + '<input class="ech-title" value="' + esc(ch.title || '') + '" placeholder="章节标题"></div>'
-      + '<button class="ech-del danger" data-act="del" title="删除章节">✕</button>'
+      + '<button class="ech-del danger" data-act="del" title="删除章节">'+TI('close', 14)+'</button>'
       + '</div>'
       + '<div class="ech-photos">' + photosHtml + '</div>'
       + '<div class="ech-layout"><span class="lb">布局</span>' + layHtml + '</div>'

@@ -93,7 +93,7 @@
   <div id="wlBody"></div>
   <div class="wl-empty" id="wlEmpty" style="display:none">
     <div class="em">想去的地方，<br>先记在这里。</div>
-    <p>在专题地图或全国地图点开景点详情，<br>点「♡ 想去」就会出现在这里。<br>到了之后一键打卡，直接开始语音游记。</p>
+    <p>在专题地图或全国地图点开景点详情，<br>点「想去」就会出现在这里。<br>到了之后一键打卡，直接开始语音游记。</p>
     <a href="explore-map.html">去地图看看 →</a>
   </div>
 </div>
@@ -101,6 +101,7 @@
 <script src="geo.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
@@ -196,7 +197,7 @@
           ? '<button class="wl-btn done" onclick="undoCheckin(' + i + ')">撤销打卡</button>'
           : '<button class="wl-btn primary" onclick="doCheckin(' + i + ')">打卡并记录</button>') +
       '</div>' +
-      '<button class="wl-remove" aria-label="移除" onclick="doRemove(' + i + ')">✕</button>' +
+      '<button class="wl-remove" aria-label="移除" onclick="doRemove(' + i + ')">'+TI('close', 14)+'</button>' +
     '</div>';
   }
   /* 省分组渲染：未打卡按省折叠分组，已打卡单独一组 */

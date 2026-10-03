@@ -160,7 +160,7 @@
     if (!C) return;
     var list = C.list ? C.list() : [];
     if (C.onClear) C.onClear();
-    if (!list || !list.length) { C.layer.clearLayers(); return; }
+    if (!list || !list.length) { C.layer.clearLayers(); if (C.onRendered) C.onRendered(); return; }
 
     levelCache = levelCache || deriveLevels(list);
     var z = C.map.getZoom();
@@ -296,10 +296,12 @@
         });
         layer.addLayer(m);
       });
+      if (C.onRendered) C.onRendered();   /* 渲染完成钩子：供胶囊避让紧跟重排 */
       return;
     }
 
     renderNodes();
+    if (C.onRendered) C.onRendered();
   }
 
   function schedule() {

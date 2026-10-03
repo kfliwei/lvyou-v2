@@ -274,7 +274,7 @@
   <!-- TRACE v2 Memory Sheet -->
   <div id="memSheet">
     <div class="sheet__handle" onclick="closeMemSheet()"></div>
-    <button class="ms-close" onclick="closeMemSheet()">✕</button>
+    <button class="ms-close" onclick="closeMemSheet()"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
     <div id="msBody"></div>
   </div>
   <!-- 右上控制组：图层 + 缩放 -->
@@ -294,14 +294,14 @@
     </div>
     <button class="tbBtn" id="shareBtn" onclick="shareTrack()" style="display:none;flex:0 0 auto">制图分享</button>
     <button class="tbBtn" id="playBtn" onclick="togglePlay()" style="display:none;flex:0 0 auto">▶ 回放</button>
-    <button class="statClose" id="statClose" title="收起统计">✕</button>
+    <button class="statClose" id="statClose" title="收起统计"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
   </div>
   <button class="statOpen" id="statOpen" title="查看游记统计"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20 V14"/><path d="M12 20 V8"/><path d="M19 20 V11"/></svg></button>
   <div class="emptyTip" id="emptyTip">
     <img src="art/empty-memory.svg" alt="" style="width:44px;height:auto;flex:0 0 auto">
     <b>尚无游记</b>
     <span>去专题页或点「随手记」记录第一篇旅程</span>
-    <button class="emClose" id="emptyClose" title="不再提示">✕</button>
+    <button class="emClose" id="emptyClose" title="不再提示"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
   </div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
@@ -310,6 +310,7 @@
 <script src="travel-notes.js"></script>
 <script src="results.js"></script>
 <script src="vault.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 let useGCJ = true;
@@ -342,7 +343,7 @@ const BASE_LAYERS=[
 const layMenu=document.getElementById('layMenu');
 BASE_LAYERS.forEach(b=>{
   const li=document.createElement('div'); li.className='li'+(b.layer===amapStreet?' on':''); li.dataset.id=b.id;
-  li.innerHTML='<span class="sw" style="background:'+b.sw+'"></span>'+b.name+'<span class="ck" style="display:'+(b.layer===amapStreet?'':'none')+'">✓</span>';
+  li.innerHTML='<span class="sw" style="background:'+b.sw+'"></span>'+b.name+'<span class="ck" style="display:'+(b.layer===amapStreet?'':'none')+ '">' + TI('check', 11) + '</span>';
   li.onclick=()=>{
     BASE_LAYERS.forEach(x=>{ if(map.hasLayer(x.layer)) map.removeLayer(x.layer); });
     b.layer.addTo(map);
@@ -601,7 +602,7 @@ document.getElementById('statOpen').onclick=function(){
   document.getElementById('statBar').style.display='flex';
   document.getElementById('statOpen').style.display='none';
 };
-// 空状态提示：✕ 关闭后永久不再显示（记录在 localStorage）
+// 空状态提示：点关闭按钮后永久不再显示（记录在 localStorage）
 document.getElementById('emptyClose').onclick=function(){
   document.getElementById('emptyTip').style.display='none';
   localStorage.setItem('tn_emptyClosed','1');

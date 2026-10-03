@@ -95,7 +95,7 @@
       var isOn = b.id === savedLayer;
       if (isOn) initialLayer = b;
       var li = document.createElement('div'); li.className = 'li' + (isOn ? ' on' : ''); li.dataset.id = b.id;
-      li.innerHTML = '<span class="sw" style="background:' + b.sw + '"></span>' + b.name + '<span class="ck" style="display:' + (isOn ? '' : 'none') + '">✓</span>';
+      li.innerHTML = '<span class="sw" style="background:' + b.sw + '"></span>' + b.name + '<span class="ck" style="display:' + (isOn ? '' : 'none') + '">' + TI('check', 11) + '</span>';
       li.onclick = function () {
         BASE_LAYERS.forEach(function (x) { if (map.hasLayer(x.layer)) map.removeLayer(x.layer); });
         b.layer.addTo(map);
@@ -142,6 +142,8 @@
     /* 区域统计：全专题生效（规范 §32） */
     map.on('moveend', scheduleRegionStats);
     map.on('zoomend', scheduleRegionStats);
+    /* 聚合胶囊避让：平移/缩放后重测屏幕占位（node-lod 重渲染是异步的，延迟一拍） */
+    map.on('moveend zoomend', function () { clearTimeout(capsuleAvoid._t); capsuleAvoid._t = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); }, 170); });
     /* 空白区域提示 */
     map.on('moveend', scheduleEmptyHint);
     map.on('zoomend', scheduleEmptyHint);
@@ -174,9 +176,9 @@
       nearBar.id = 'nearBar';
       nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(250,248,243,.96);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:5px 6px;z-index:1200;backdrop-filter:blur(16px);max-width:calc(100vw - 24px)';
       nearBar.innerHTML = [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:6px 9px;border-radius:999px;font-size:12px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans);white-space:nowrap">' + k + 'km</span>'; }).join('') +
-        '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer;flex-shrink:0">✕</span>';
+        '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer;flex-shrink:0">' + TI('close', 12) + '</span>';
       document.getElementById('mapEl').appendChild(nearBar);
-      /* 关键：禁止 nearBar 的点击冒泡到地图（否则点半径/✕ 会触发地图 click 重新弹回半径条） */
+      /* 关键：禁止 nearBar 的点击冒泡到地图（否则点半径/关闭按钮会触发地图 click 重新弹回半径条） */
       if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearBar);
       nearBar.querySelectorAll('.nk').forEach(function (c) {
         c.onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); nearQuery(nearP[0], nearP[1], +c.dataset.k); };
@@ -206,13 +208,13 @@
         nm.addTo(nearNodeLayer);
       }
     });
-    showTripToast('📍 附近 ' + km + 'km · ' + hits.length + ' 处（高亮显示，点击地图其他位置恢复）');
+    showTripToast('附近 ' + km + 'km · ' + hits.length + ' 处（高亮显示，点击地图其他位置恢复）');
   }
 
   /* ---------- 随手记 ---------- */
   function spotRec(lat, lng) {
-    var m = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))">🎙️</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 22] }) }).addTo(map);
-    m.bindPopup('<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div><div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div><div class="pfoot"><button class="addtrip tnvo" onclick="window.__tnSpot(' + lat + ',' + lng + ')">🎙 在此语音记录</button></div></div>', { maxWidth: 260, className: 'trippop', autoPan: true }).openPopup();
+    var m = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))">' + TI('mic', 22) + '</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 22] }) }).addTo(map);
+    m.bindPopup('<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div><div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div><div class="pfoot"><button class="addtrip tnvo" onclick="window.__tnSpot(' + lat + ',' + lng + ')">' + TI('mic', 13) + '在此语音记录</button></div></div>', { maxWidth: 260, className: 'trippop', autoPan: true }).openPopup();
     m.on('popupclose', function () { if (map.hasLayer(m)) map.removeLayer(m); });
   }
   window.__tnSpot = function (lat, lng) { window.TravelNotes.openPanel({ label: '途经点', lat: lat, lng: lng }); };
@@ -228,7 +230,7 @@
     };
     var fallback = function () {
       if (userLatLng) { open({ lat: userLatLng[0], lng: userLatLng[1] }); }
-      else { if (!$('map').classList.contains('active')) switchTab('map'); tip('⚠️ 无法获取位置：可点 📍 定位，或直接在地图上点想记录的地点'); }
+      else { if (!$('map').classList.contains('active')) switchTab('map'); tip('无法获取位置：可点「定位」按钮，或直接在地图上点想记录的地点'); }
     };
     try {
       if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { open({ lat: p.coords.latitude, lng: p.coords.longitude }); }, fallback, { enableHighAccuracy: true, timeout: 6000, maximumAge: 15000 });
@@ -271,7 +273,7 @@
     lastMarkerList = list;
     /* 标签避让（2026-08-15）：重叠隐藏低优先级 */
     clearTimeout(renderMarkers._av);
-    renderMarkers._av = setTimeout(function () { if (window.labelAvoid) labelAvoid('#mapEl'); }, 120);
+    renderMarkers._av = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); if (window.labelAvoid) labelAvoid('#mapEl'); }, 120);
     /* LOD 重渲染：清理「查附近」补画节点层（残留高亮 marker 会盖住重画节点并拦截点击） */
     if (nearNodeLayer) { try { nearNodeLayer.clearLayers(); } catch (e) {} }
     /* TRACE v2 统一分层分级（node-lod.js 引擎）：
@@ -288,6 +290,7 @@
       colorOf: colorOf,
       onNode: function (s) { openSheet(s.__i); },
       majorOf: isMajorSite,
+      onRendered: function () { clearTimeout(window.__cavT); window.__cavT = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); if (window.labelAvoid) labelAvoid('#mapEl'); }, 80); },
       regionOf: function (s) { return s.region; },
       cityOf: function (s) { return s.city; },
       countyOf: function (s) { return s.county; },
@@ -311,15 +314,15 @@
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
-      (s.best ? '<div class="ls-hist"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5H20.5M8 3v4M16 3v4"/></svg><span>最佳季节 · ' + esc(s.best) + '</span></div>' : '') +      '<div class="ls-actions">' +
+      '<div class="ls-hist" id="lsTicket" style="display:none"></div>' + (s.best ? '<div class="ls-hist"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5H20.5M8 3v4M16 3v4"/></svg><span>最佳季节 · ' + esc(s.best) + '</span></div>' : '') +      '<div class="ls-actions">' +
             '<button class="btn-primary" aria-label="听讲解" style="min-height:46px;font-size:13px;padding:0 14px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.explain(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10 V14 M8 7 V17 M12 4 V20 M16 7 V17 M20 10 V14"/></svg>听讲解</button>' +
       '<button class="btn-secondary" aria-label="语音记录" style="min-height:46px;font-size:13px;padding:0 12px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.openPanel(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
       '<span class="ls-morebtn" aria-label="更多操作" onclick="window.TopicEngine.toggleMore(this)">更多 <b style="font-size:10px">▾</b></span>' +
       '</div>' +
       '<div class="ls-more" id="lsMore">' +
-      '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? '✓ 已加入行程' : '+ 加入行程') + '</span>' +
+      '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? TI('check', 12) + ' 已加入行程' : TI('plus', 12) + ' 加入行程') + '</span>' +
       '<span onclick="window.TopicEngine.flyToSite(' + i + ',true)">在地图查看</span>' +
-      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</span>' +
+      '<span class="ls-wish' + (window.Wish && Wish.isWished(s) ? ' done' : '') + '" onclick="window.TopicEngine.toggleWish(' + i + ')">' + (window.Wish && Wish.isWished(s) ? TI('check', 12) + ' 已想去' : TI('plus', 12) + ' 想去') + '</span>' +
       '<span onclick="window.TopicEngine.customItinerary()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>定制路书</span>' +
       '<span onclick="window.TopicEngine.closeSheet()">收起</span></div>';
   }
@@ -339,7 +342,7 @@
         '<text x="' + (W - padR + 6) + '" y="' + (yOf(r[0]) + 3) + '" font-size="9" fill="var(--color-muted)" font-family="var(--font-sans)">' + r[1] + '</text>';
     });
     var ey = yOf(e);
-    var zone = e >= 4500 ? '<div class="elev-zone" style="color:var(--cinnabar-500)">⚠ 高海拔 · 注意高原反应</div>'
+    var zone = e >= 4500 ? '<div class="elev-zone" style="color:var(--cinnabar-500)">' + TI('warn', 12) + '高海拔 · 注意高原反应</div>'
       : (e >= 2500 ? '<div class="elev-zone" style="color:var(--gold-700)">海拔不低 · 适量活动</div>' : '<div class="elev-zone" style="color:var(--color-muted)">低海拔 · 舒适</div>');
     g += '<line x1="' + padL + '" y1="' + ey.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + ey.toFixed(1) + '" stroke="var(--color-primary)" stroke-width="2"/>' +
       '<circle cx="' + padL + '" cy="' + ey.toFixed(1) + '" r="4" fill="var(--color-primary)" stroke="#fff" stroke-width="1.5"/>' +
@@ -385,7 +388,7 @@
   }
   /* ---------- 节点天气（Open-Meteo，免 Key，30 分钟缓存） ---------- */
   var WMO = { 0: '晴', 1: '多云', 2: '多云', 3: '阴', 45: '雾', 48: '雾凇', 51: '毛毛雨', 53: '毛毛雨', 55: '毛毛雨', 56: '冻雨', 57: '冻雨', 61: '小雨', 63: '中雨', 65: '大雨', 66: '冻雨', 67: '冻雨', 71: '小雪', 73: '中雪', 75: '大雪', 77: '雪粒', 80: '阵雨', 81: '阵雨', 82: '强阵雨', 85: '阵雪', 86: '强阵雪', 95: '雷暴', 96: '雷暴冰雹', 99: '雷暴冰雹' };
-  function weatherIcon(code) { var c = +code; if (c === 0) return '☀️'; if (c <= 3) return '⛅'; if (c <= 48) return '🌫️'; if (c <= 67) return '🌧️'; if (c <= 77) return '🌨️'; if (c <= 86) return '🌦️'; return '⛈️'; }
+  function weatherIcon(code) { var c = +code; if (c === 0) return TI('sun', 14); if (c <= 3) return TI('cloudsun', 14); if (c <= 48) return TI('cloud', 14); if (c <= 67) return TI('rain', 14); if (c <= 77) return TI('snow', 14); if (c <= 86) return TI('rain', 14); return TI('bolt', 14); }
   /* 实景照三级获取：静态映射(SITE_IMAGES) → localStorage 7天缓存 → 高德实时拉取 */
   function loadSitePhoto(s, cb) {
     if (!s) { cb && cb(null); return; }
@@ -447,6 +450,21 @@
     if (!k || provLoaded[k] === 2) { if (cb) cb(); return; }
     loadProvince(k, cb);
   }
+  /* 票价/营业时间（site-tickets.js 三级：种子 → 30 天缓存 → 高德 v5） */
+  function loadTicket(s) {
+    if (!s || !s.label || !window.SiteTickets) return;
+    SiteTickets.get(s, function (t) {
+      var el = document.getElementById('lsTicket');
+      if (!el) { return; }
+      if (!t || (!t.h && !t.p)) { el.style.display = 'none'; return; }
+      var parts = [];
+      if (t.h) parts.push(TI('clock', 13) + '<span>' + esc(t.h) + '</span>');
+      if (t.p) parts.push(TI('ticket', 13) + '<span>' + esc(t.p) + '</span>');
+      if (!parts.length) { el.style.display = 'none'; return; }
+      el.innerHTML = parts.map(function (x) { return '<div style="display:flex;align-items:flex-start;gap:6px">' + x + '</div>'; }).join('<span style="display:block;height:4px"></span>') + (t.u ? '<div style="opacity:.55;font-size:10px;margin-top:3px">' + esc(t.u) + '核对</div>' : '');
+      el.style.display = 'block';
+    });
+  }
   function openSheet(i) {
     curSite = i;
     /* 最近浏览记录（2026-08-15）：最近 8 个，搜索页展示 */
@@ -477,6 +495,8 @@
         el.style.display = 'block';
       });
     }
+    /* 票价/营业时间 */
+    if (_s0) loadTicket(_s0);
     /* 实景照按需拉取（静态映射未命中时） */
     if (_s0) {
       loadSitePhoto(_s0, function (u) {
@@ -521,7 +541,7 @@
     curSite = null; setActiveNode(-1);
     if (map) setTimeout(function () { map.panBy([0, 160], { duration: 420 }); }, 80);
   }
-  function refreshSheet() { if (curSite != null && $('locSheet').classList.contains('show')) $('lsBody').innerHTML = buildSheet(curSite); }
+  function refreshSheet() { if (curSite != null && $('locSheet').classList.contains('show')) { $('lsBody').innerHTML = buildSheet(curSite); loadTicket(SITES[curSite]); } }
   function drawTripRoute() {
     if (tripRouteLayer) { tripRouteLayer.remove(); tripRouteLayer = null; }
     if (trip.length < 2) return;
@@ -572,7 +592,7 @@
     trip.forEach(function (i, n) {
       var s = tripSite(i); if (!s) return;
       var c = document.createElement('div'); c.className = 'chip';
-      c.innerHTML = '<span class="no">' + (n + 1) + '</span><span class="nm" style="cursor:pointer">' + s.label + '</span><span class="mv" data-d="up">▲</span><span class="mv" data-d="dn">▼</span><span class="x">✕</span>';
+      c.innerHTML = '<span class="no">' + (n + 1) + '</span><span class="nm" style="cursor:pointer">' + s.label + '</span><span class="mv" data-d="up">▲</span><span class="mv" data-d="dn">▼</span><span class="x">' + TI('close', 12) + '</span>';
       c.querySelector('.nm').onclick = function () { if (i === -1) { map.flyTo(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12), { duration: .6 }); } else flyToSite(i); };
       c.querySelector('[data-d="up"]').onclick = function (e) { e.stopPropagation(); if (n > 0) { trip.splice(n, 1); trip.splice(n - 1, 0, i); saveTrip(); renderTripBar(); } };
       c.querySelector('[data-d="dn"]').onclick = function (e) { e.stopPropagation(); if (n < trip.length - 1) { trip.splice(n, 1); trip.splice(n + 1, 0, i); saveTrip(); renderTripBar(); } };
@@ -586,7 +606,7 @@
   }
   function sortTripNN() {
     if (trip.length < 2) { showTripToast('至少需要 2 个地点才能排序'); return; }
-    if (!userLatLng) { showTripToast('先点 📍 定位，才能按距离排序'); return; }
+    if (!userLatLng) { showTripToast('先点「定位」，才能按距离排序'); return; }
     var rest = trip.slice(), out = [], cur = userLatLng;
     while (rest.length) {
       var bi = 0, bd = 1e12;
@@ -777,7 +797,7 @@
     var pl = lastStop(ri, di - 1), tf = firstStop(ri, di);
     if (!pl || !tf) return '';
     var e = legEst(pl.lat, pl.lng, tf.lat, tf.lng);
-    return '<div class="dayconn" style="border-left:4px solid ' + c + '">🔗 承接 D' + di + ' 终点：<b>' + pl.label + '</b> → <b>' + tf.label + '</b>　约 ' + e.km.toFixed(0) + ' km · 建议预留 ' + fmtDur(e.min) + '（已含在下方导航起点）</div>';
+    return '<div class="dayconn" style="border-left:4px solid ' + c + '">' + TI('link') + '承接 D' + di + ' 终点：<b>' + pl.label + '</b> → <b>' + tf.label + '</b>　约 ' + e.km.toFixed(0) + ' km · 建议预留 ' + fmtDur(e.min) + '（已含在下方导航起点）</div>';
   }
   function renderRoutes() {
     var box = $('routes'); box.innerHTML = '';
@@ -792,15 +812,15 @@
         var names = dayNames(ri, di);
         var stopsHtml = names.map(function (nm) {
           var s = resolveStop(nm);
-          return s ? '<div class="stop"><div class="num" style="background:' + c + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + s.theme + ' · ' + s.region + s.county + ' · ' + (s.elev ? ('海拔' + s.elev + 'm') : '') + '</div></div></div>'
+          return s ? '<div class="stop"><div class="num" style="background:' + c + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + [s.theme, s.region + (s.county || ''), s.elev ? ('海拔' + s.elev + 'm') : ''].filter(Boolean).join(' · ') + '</div></div></div>'
             : '<div class="stop"><div class="num" style="background:' + c + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + nm + '</div><div class="sd">（未收录）</div></div></div>';
         }).join('');
         var connHtml = dayConnectHtml(ri, di, c);
-        daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + c + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">💡 ' + d.tip + '</div>' + stopsHtml +
-          '<div class="dayacts"><button class="dbtn" data-sort="' + ri + ':' + di + '">↻ 按距离排序</button><button class="dbtn send" data-send="' + ri + ':' + di + '">🚗 发高德导航</button></div></div>';
+        daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + c + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">' + TI('info', 12) + ' ' + d.tip + '</div>' + stopsHtml +
+          '<div class="dayacts"><button class="dbtn" data-sort="' + ri + ':' + di + '">↻ 按距离排序</button><button class="dbtn send" data-send="' + ri + ':' + di + '">'+ TI('car') + '发高德导航</button></div></div>';
       });
       el.innerHTML = '<div class="rh" style="border-left-color:' + rt.color + '"><span class="rh-dot" style="background:' + rt.color + '"></span><h3>' + rt.name + '</h3><p>⏱ ' + rt.days.length + ' 天 ｜ ' + total + ' 站 ｜ ' + rt.desc + '</p><div class="dkey"><span class="dkey-label">每日轨迹色</span>' + keyHtml + '</div></div><div class="stops">' + daysHtml + '</div>' +
-        '<div class="acts"><button class="btn" data-show="' + ri + '">🗺️ 在地图查看（按天配色）</button><button class="btn alt" data-route="' + ri + '">📋 生成路线清单</button></div>';
+        '<div class="acts"><button class="btn" data-show="' + ri + '">' + TI('map') + '在地图查看（按天配色）</button><button class="btn alt" data-route="' + ri + '">' + TI('copy') + '生成路线清单</button></div>';
       box.appendChild(el);
     });
     box.querySelectorAll('[data-show]').forEach(function (b) { b.onclick = function () { showRouteOnMap(+b.dataset.show); }; });
@@ -864,7 +884,7 @@
   else if (all.length) map.fitBounds(all, { padding: [40, 40] });
     switchTab('map');
     var banner = $('routeBanner');
-    banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px;opacity:.75">✕</span>';
+    banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px;opacity:.75">' + TI('close', 12) + '</span>';
     banner.title = '点击清除路线';
     banner.onclick = clearRoute;
     var dl = $('dayLegend');
@@ -904,7 +924,7 @@
     userLatLng = [pos.coords.latitude, pos.coords.longitude];
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker(gxy(userLatLng[0], userLatLng[1]), { icon: userDotIcon(), zIndexOffset: 1000 }).addTo(map);
-    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">📍 我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:#C86D4B;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
+    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:#C86D4B;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
     if (!watchId && navigator.geolocation) watchId = navigator.geolocation.watchPosition(function (p) {
       userLatLng = [p.coords.latitude, p.coords.longitude];
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));
@@ -922,10 +942,10 @@
     if (manual) $('locBtn').textContent = '⏳'; $('locBtn').className = 'fab loading';
     navigator.geolocation.getCurrentPosition(function (p) {
       locateSuccess(p);
-      $('locBtn').className = 'fab ok'; setTimeout(function () { $('locBtn').className = 'fab'; }, 1500); $('locBtn').textContent = '📍';
+      $('locBtn').className = 'fab ok'; setTimeout(function () { $('locBtn').className = 'fab'; }, 1500); $('locBtn').innerHTML = TI('locate', 18);
       if (manual) { if ($('map').classList.contains('active')) map.setView(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 11)); else switchTab('map'); }
     }, function (e) {
-      $('locBtn').textContent = '📍';
+      $('locBtn').innerHTML = TI('locate', 18);
       if (manual) enterPickMode();
     }, { enableHighAccuracy: true, timeout: 10000 });
   }
@@ -1160,11 +1180,11 @@
       var card = document.createElement('div'); card.className = 'fcard';
       card.innerHTML = '<div class="fh"><span class="fic">' + ic + '</span><span class="ft" style="background:' + col + '">' + d.type + '</span></div>' +
         '<div class="fn">' + d.name + '</div>' +
-        '<div class="floc">📍 ' + d.city + (d.county ? (' · ' + d.county) : '') + '</div>' +
+        '<div class="floc">' + TI('pin', 12) + ' ' + d.city + (d.county ? (' · ' + d.county) : '') + '</div>' +
         '<div class="fdesc">' + d.desc + '</div>' +
         '<div class="fmore">▾ 特色 / 配着吃</div>' +
         '<div class="fdetail">' + (d.feature ? ('<b>特色：</b>' + d.feature + '<br>') : '') + (d.with ? ('<b>配着吃：</b>' + d.with) : '') + '</div>' +
-        '<button class="fgo">🗺️ 同市景点 ' + nSites + ' 处 · 去逛逛</button>';
+        '<button class="fgo">' + TI('map') + '同市景点 ' + nSites + ' 处 · 去逛逛</button>';
       card.querySelector('.fmore').onclick = function () {
         var det = card.querySelector('.fdetail'); var open = det.style.display === 'block';
         det.style.display = open ? 'none' : 'block';

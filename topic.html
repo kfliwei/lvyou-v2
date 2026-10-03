@@ -8,7 +8,13 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="map.css">
 <script src="theme.js"></script>
-<style>.pop{max-width:200px;font-size:12px}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
+<style>/* 导航标题恢复两行堆叠：.t-row .title 的通用 nowrap/ellipsis 规则会命中此处，
+   把「共 N 处」小字挤进行内被省略号吞掉（2026-10-03 审核发现） */
+.t-row .title{display:flex;flex-direction:column;justify-content:center;overflow:visible}
+.t-row .title .topic-title{font-size:var(--fs-md,16px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.t-row .title small{font-family:var(--font-body);font-size:0.5938rem;opacity:.8;font-weight:400;letter-spacing:.08em;white-space:nowrap}
+.theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
+.pop{max-width:200px;font-size:12px}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
 .pop .pm{color:var(--color-muted);margin-top:6px;font-size:0.6875rem}.pop .pfoot{margin-top:10px;display:flex;gap:8px}
 .pop .pa{line-height:1.6}
 @media (min-width:760px){.pop{max-width:280px}}</style>
@@ -33,7 +39,7 @@
     <button id="locBtn" class="fab" title="定位我的位置" aria-label="定位我的位置"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21"/><circle cx="12" cy="12" r="4"/></svg></button>
     <div class="routeBanner" id="routeBanner"></div>
     <div class="legend" id="legend">
-      <button class="tg" id="legTg" title="关闭图例">✕</button>
+      <button class="tg" id="legTg" title="关闭图例"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
       <h4>景观类型色谱</h4>
       <div class="body" id="legBody"></div>
     </div>
@@ -51,7 +57,7 @@
     <div class="pickHint" id="pickHint" style="display:none">点击地图任意位置，设为「我的位置」</div>
     <button class="tripfab" id="tripFab" aria-label="我的行程"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M15.8 8.2 L13 13 L8.2 15.8 L11 11 Z"/></svg><span class="badge" id="tripBadge">0</span></button>
     <div class="tripbar" id="tripBar">
-      <div class="th"><span class="tt">我的行程</span><span class="cnt" id="tripCnt">0</span><button class="clr" id="tripClear">清空</button><button class="cls" id="tripClose">✕</button></div>
+      <div class="th"><span class="tt">我的行程</span><span class="cnt" id="tripCnt">0</span><button class="clr" id="tripClear">清空</button><button class="cls" id="tripClose"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button></div>
       <div class="row" id="tripRow"></div>
       <button class="sortb" id="tripSort">帮我排一下顺序</button>
       <button class="go" id="tripGo">开始今天的旅行</button>
@@ -118,7 +124,9 @@
 <script src="topic-meta.js"></script>
 <script src="site-images.js"></script>
 <script src="wishlist.js"></script>
+<script src="site-tickets.js"></script>
 <script src="topic-common.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 /* 启动器：?p=sc → 载入 sc-data.js(+sc-food.js) → TopicEngine.init() */

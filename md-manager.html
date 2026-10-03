@@ -179,6 +179,7 @@
 </div>
 
 <script src="vault.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
@@ -468,7 +469,7 @@
       '<h1 class="art-title">' + esc(n.title || n.siteName || '未命名') + '</h1>' +
       '<div class="art-meta">' + esc((n.date || '').slice(0, 10) || '') + (n.siteName && n.siteName !== n.title ? ' · ' + esc(n.siteName) : '') + '</div>' +
       fmHtml + bodyHtml + audioHtml + wallHtml +
-      '<div class="edit-chip" onclick="toggleEdit()">✎ 编辑这篇游记（改标题/正文/标签）</div>' +
+      '<div class="edit-chip" onclick="toggleEdit()"><svg class="ti" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-edit"/></svg> 编辑这篇游记（改标题/正文/标签）</div>' +
       '<div id="editBox" class="hide">' +
         '<input class="art-edit" id="edTitle" placeholder="标题">' +
         '<textarea class="art-edit" id="edText" placeholder="正文"></textarea>' +

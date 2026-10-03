@@ -1,3 +1,5 @@
+/* 禁 WebView 字体自动放大：真机（尤其 Android WebView + 系统字体缩放）布局确定性依赖此项 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* ============================================================
    古建地图 · 移动优先设计系统
    ------------------------------------------------------------
@@ -1135,7 +1137,8 @@ html.font-lg{font-size:17.5px}
 .region-stats{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1100;display:flex;align-items:center;gap:6px;background:rgba(32,32,29,.92);color:#fff;border-radius:999px;padding:7px 12px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:92vw;overflow-x:auto;scrollbar-width:none}
 .region-stats .rs-total{white-space:nowrap;color:#D8D2C4}
 .region-stats .rs-total b{color:#fff;font-weight:700}
-.region-stats .rs-chip{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:3px 10px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.ti{display:inline-block;vertical-align:-0.2em;margin-right:4px;flex:0 0 auto}
+.region-stats .rs-chip{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:6px 12px;min-height:36px;display:inline-flex;align-items:center;font-size:11.5px;cursor:pointer;white-space:nowrap}
 .region-stats .rs-chip.on{background:var(--color-primary,#c86d4b);border-color:var(--color-primary,#c86d4b);font-weight:600}
 .nm-fab{position:fixed;right:16px;bottom:150px;z-index:1150;width:52px;height:52px;border-radius:50%;border:0;background:var(--color-primary,#c86d4b);color:#fff;font-size:24px;line-height:1;box-shadow:0 10px 26px rgba(200,109,75,.38);cursor:pointer;display:grid;place-items:center}
 .nm-fab:active{transform:scale(.94)}

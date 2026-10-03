@@ -624,7 +624,7 @@
     h += '<div class="fld"><label>目的地（可增删，留空=不限）</label><div class="chips" id="intentRegions"></div></div>';
     h += '<div class="fld"><label>天数</label><div class="row"><input type="number" id="intentDays" min="1" max="30" value="' + (state.days || 5) + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
     h += '<div id="intentProvThemes" style="display:none;margin-top:6px"></div>';
-    h += '<div class="chips" style="margin-top:4px"><span class="chip mine" onclick="window.plannerAddMine()">📌 我的节点</span></div>';
+    h += '<div class="chips" style="margin-top:4px"><span class="chip mine" onclick="window.plannerAddMine()">'+TI('pin')+'我的节点</span></div>';
 
 
     h += '<div class="fld"><label>出发日期（用于季节提醒，可空）</label><input type="date" id="intentDate" value="' + esc(state.startDate || '') + '"></div>';
@@ -735,13 +735,13 @@
     var condTxt = cond.length ? ' · ' + cond.join(' · ') : '';
     $id('candTitle').textContent = '候选景点' + condTxt + ' · ' + (q ? list.length + ' / ' + c.length : c.length) + ' 处';
     var hint = $id('candHint');
-    if (hint) { if (state.widenMsg) { hint.style.display = 'block'; hint.textContent = 'ℹ️ ' + state.widenMsg; } else hint.style.display = 'none'; }
+    if (hint) { if (state.widenMsg) { hint.style.display = 'block'; hint.innerHTML = TI('info') + state.widenMsg; } else hint.style.display = 'none'; }
     $id('candList').innerHTML = list.map(function (s) {
       var on = isSelected(s);
       return '<div class="cand' + (on ? ' on' : '') + '" onclick="window.plannerToggleCand(\'' + esc(nodeUid(s)) + '\')">' +
-        '<span class="ck">' + (on ? '✓' : '') + '</span>' +
+        '<span class="ck">' + (on ? TI('check', 11) : '') + '</span>' +
         '<span class="dot" style="background:' + themeColor(s.theme) + '"></span>' +
-        '<span class="main"><b>' + esc(s.name) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + (s.__novelty ? '<span class="bdg bdg-n">✨换个不一样的</span>' : '') + (s.__poi ? '<span class="bdg" style="background:var(--color-muted);color:#fff">临时</span>' : '') + '</b>' +
+        '<span class="main"><b>' + esc(s.name) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + (s.__novelty ? '<span class="bdg bdg-n">' + TI('sparkles', 12) + '换个不一样的</span>' : '') + (s.__poi ? '<span class="bdg" style="background:var(--color-muted);color:#fff">临时</span>' : '') + '</b>' +
         '<small>' + esc([s.region, s.city].filter(Boolean).join(' · ')) + (s.theme ? ' · ' + esc(s.theme) : '') + '</small></span></div>';
     }).join('');
     renderSumm();
@@ -773,23 +773,23 @@
       var over = d.totalH > 12;
       h += '<div class="day-card"><div class="dhead"><b style="color:' + DAY_COLORS[di % DAY_COLORS.length] + '">D' + (di + 1) + '</b>' +
         '<span>' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' +
-        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerNavDay(' + di + ')">🚗 导航</button></div>';
-      if (over) h += '<div class="warnline">⚠️ 该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
+        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
+      if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
       d.stops.forEach(function (s, si) {
         var det = detailCache[s.name];
         var warn = seasonWarn(det && det.best, trip.startDate);
         var meta = [];
         if (det && det.best) meta.push('<span class="meta">适合 ' + esc(det.best) + '</span>');
-        if (warn) meta.push('<span class="warn-ic" title="' + esc(warn) + '">⚠️</span>');
+        if (warn) meta.push('<span class="warn-ic" title="' + esc(warn) + '">' + TI('warn') + '</span>');
         meta.push('<span class="meta">游玩 ' + playH(s) + 'h</span>');
         var acts = '';
         if (state.travelMode) acts += '<button class="btn mini" onclick="window.plannerCheckinStop(' + di + ',' + si + ')">' + (s.done ? '已打卡' : '记一笔') + '</button>';
         acts += '<span class="ops">' +
           '<button class="mv" aria-label="上移" onclick="window.plannerMoveStop(' + di + ',' + si + ',-1)">↑</button>' +
           '<button class="mv" aria-label="下移" onclick="window.plannerMoveStop(' + di + ',' + si + ',1)">↓</button>' +
-          '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">✕</button></span>';
+          '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">'+TI('close', 14)+'</button></span>';
         h += '<div class="stop' + (warn ? ' warn' : '') + (s.done ? ' done' : '') + '">' +
-          '<div class="stop-name"><span class="n">' + (si + 1) + '</span><span class="lbl">' + (s.done ? '✓ ' : '') + esc(s.name) + '</span></div>' +
+          '<div class="stop-name"><span class="n">' + (si + 1) + '</span><span class="lbl">' + (s.done ? TI('check') + ' ' : '') + esc(s.name) + '</span></div>' +
           '<div class="stop-meta">' + meta.join('') + '</div>' +
           '<div class="stop-acts">' + acts + '</div>' +
           '</div>';
@@ -824,15 +824,15 @@
     renderDaysBody();
     $id('actRow').innerHTML =
       '<button class="btn" onclick="window.plannerStartTrip()">▶ 开始旅行</button>' +
-      '<button class="btn" onclick="window.plannerSaveTrip()">💾 保存行程</button>' +
-      '<button class="btn" onclick="window.plannerAddAllWish()">⭐ 加入想去清单</button>' +
-      '<button class="btn" onclick="window.plannerCopyPlan()">📋 复制计划</button>' +
+      '<button class="btn" onclick="window.plannerSaveTrip()">'+TI('save')+'保存行程</button>' +
+      '<button class="btn" onclick="window.plannerAddAllWish()">'+TI('star')+'加入想去清单</button>' +
+      '<button class="btn" onclick="window.plannerCopyPlan()">'+TI('copy')+'复制计划</button>' +
       '<button class="btn" onclick="window.plannerExportGPX()">导出 GPX</button>' +
-      '<button class="btn" onclick="window.plannerBuildBook()">📖 导出路书</button>' +
-      '<button class="btn" onclick="window.plannerBuildAlbum()">📔 生成纪念册</button>' +
+      '<button class="btn" onclick="window.plannerBuildBook()">'+TI('book')+'导出路书</button>' +
+      '<button class="btn" onclick="window.plannerBuildAlbum()">'+TI('gallery')+'生成纪念册</button>' +
       '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button>' +
-      '<button class="btn ghost" onclick="window.plannerEditPick()">✏️ 编辑选点</button>' +
-      '<button class="btn ghost" onclick="window.plannerOpenFootprint()">🗺 足迹地图</button>';
+      '<button class="btn ghost" onclick="window.plannerEditPick()">'+TI('edit')+'编辑选点</button>' +
+      '<button class="btn ghost" onclick="window.plannerOpenFootprint()">'+TI('map')+'足迹地图</button>';
     renderMap();
     var nb = $id('narrBox');
     nb.style.display = 'block';
@@ -867,12 +867,12 @@
     }).join('');
     m.innerHTML = '<div style="width:100%;max-width:430px;max-height:78vh;overflow:auto;background:var(--color-surface,#FBF6EC);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25)">' +
       '<div style="display:flex;align-items:center;margin-bottom:8px"><b style="font-size:15px">已选景点（' + state.selected.length + '）</b><span style="flex:1"></span>' +
-      '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerCloseBrowse()">✕ 关闭</button></div>' +
+      '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerCloseBrowse()">'+TI('close')+'关闭</button></div>' +
       (items || '<div style="font-size:12px;color:var(--color-muted);padding:20px 0;text-align:center">还没有选景点</div>') +
       '<div style="display:flex;gap:8px;margin-top:12px">' +
-      '<button class="btn" style="flex:1" id="browseCurLocBtn" onclick="window.plannerAddCurLoc(this)">📍 当前位置</button>' +
-      '<button class="btn" style="flex:1" onclick="window.plannerClearPicks()">🗑 清空</button></div>' +
-      '<button class="btn primary" style="width:100%;margin-top:8px" id="browsePlanBtn" onclick="window.plannerAmapPlan()">' + (amapPlanning ? '⏳ 距离计算中…' : '🚗 高德规划行程') + '</button></div>';
+      '<button class="btn" style="flex:1" id="browseCurLocBtn" onclick="window.plannerAddCurLoc(this)">'+TI('locate')+'当前位置</button>' +
+      '<button class="btn" style="flex:1" onclick="window.plannerClearPicks()">'+TI('trash')+'清空</button></div>' +
+      '<button class="btn primary" style="width:100%;margin-top:8px" id="browsePlanBtn" onclick="window.plannerAmapPlan()">' + (amapPlanning ? TI('hourglass') + '距离计算中…' : TI('car') + '高德规划行程') + '</button></div>';
     if (amapPlanning) { var pb = m.querySelector('#browsePlanBtn'); if (pb) pb.disabled = true; }
     m.addEventListener('click', function (e) { if (e.target === m) { m.remove(); } });
     document.body.appendChild(m);
@@ -895,7 +895,7 @@
     });
   };
   window.plannerAddCurLoc = function (btn) {
-    var restore = function () { if (btn) { btn.disabled = false; btn.textContent = '📍 当前位置'; } };
+    var restore = function () { if (btn) { btn.disabled = false; btn.innerHTML = TI('locate') + '当前位置'; } };
     if (btn) { btn.disabled = true; btn.textContent = '定位中…'; }
     var add = function (lat, lng) {
       var dup = state.selected.some(function (x) { return x.__cur; });
@@ -1284,7 +1284,7 @@
     var html = list.map(function (t, i) {
       return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
-        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-faint)" onclick="window.plannerDelTrip(' + i + ')">✕</button></div>';
+        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-faint)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
     }).join('');
     /* 结果页（stageResult）底部的已保存行程 */
     var card = $id('tripsCard');
@@ -1325,10 +1325,10 @@
         if (parts.length) bar.innerHTML = '<div style="margin:10px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;background:var(--color-primary-soft);color:var(--color-primary-dark)">' + prefix + esc(parts.join('；')) + '</div>';
       };
       if (getAILevel() === 'full' && window.Ai.hasKey()) {
-        aiEnhance(text, function (j) { if (j) renderEnhBar(j, '✨ AI 补充：'); });
+        aiEnhance(text, function (j) { if (j) renderEnhBar(j, TI('sparkles') + 'AI 补充：'); });
       } else {
         var rj = ruleEnhance(text);
-        if (rj) renderEnhBar(rj, '👪 已识别：');
+        if (rj) renderEnhBar(rj, TI('companions') + '已识别：');
       }
     };
     if (!state.regions.length && getAILevel() === 'full' && window.Ai.hasKey()) {
@@ -1491,9 +1491,9 @@
         days = Math.max(1, Math.min(15, days));
         var trans = ($id('arTrans').querySelector('.chip.on') || { getAttribute: function () { return '自驾'; } }).getAttribute('data-t');
         var pref = ($id('arPref').querySelector('.chip.on') || { getAttribute: function () { return '必去'; } }).getAttribute('data-p');
-        b.disabled = true; b.textContent = '🌐 AI 上网检索中…';
+        b.disabled = true; b.innerHTML = TI('globe') + 'AI 上网检索中…';
         aiPlanRoutes(dest, days, trans, pref, function (routes) {
-          b.disabled = false; b.textContent = '✨ 上网查询 · 生成 5 条备选路线';
+          b.disabled = false; b.innerHTML = TI('sparkles') + '上网查询 · 生成 5 条备选路线';
           if (!routes) { toast('AI 没有返回有效路线，换个目的地或稍后再试'); return; }
           arData = { dest: dest, days: days, trans: trans, pref: pref, regions: matchRegions(dest), routes: routes };
           renderAiRoutes();

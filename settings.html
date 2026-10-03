@@ -14,7 +14,7 @@
   .group{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px}
   .group-title{font-family:var(--font-serif);font-size:15px;color:var(--color-ink);margin-bottom:4px}
   .group-sub{font-size:0.7188rem;color:var(--color-muted);line-height:1.7;margin-bottom:12px;font-family:var(--font-sans)}
-  .row{margin-bottom:14px}
+  .row{margin-bottom:14px;display:block}  /* 本页标签在上、控件在下；design.css 的全局 .row:flex 会把长 chips 行的标签挤成竖排，此处恢复堆叠 */
   .row:last-child{margin-bottom:0}
   .row-label{font-size:12px;color:var(--color-ink-soft);margin-bottom:7px;font-weight:600}
   input[type=text],input[type=password]{width:100%;min-height:46px;padding:0 14px;border:1px solid var(--color-line);border-radius:12px;font-size:14px;background:var(--color-bg-soft);color:var(--color-ink);outline:0;box-sizing:border-box;font-family:var(--font-sans)}
@@ -240,6 +240,7 @@
 <script src="quotes.js"></script>
 <script src="travel-notes.js"></script>
 <script src="vault.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
   function fmtSize(mb){ return mb.toFixed(1) + ' MB'; }
@@ -377,8 +378,8 @@
       testResult('正在请求 ' + Ai.site().name + ' · ' + Ai.model() + ' …');
       Ai.test(function (r) {
         bt.disabled = false; bt.textContent = '④ 测试连接';
-        if (r.ok) testResult('✓ 连接成功 · ' + (r.ms / 1000).toFixed(1) + 's · 模型回复「' + (r.echo || '') + '」', 'var(--color-primary-dark)');
-        else testResult('✗ ' + friendlyAiError(r.err), '#B4543A');
+        if (r.ok) testResult('<svg class="ti" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-check"/></svg> 连接成功 · ' + (r.ms / 1000).toFixed(1) + 's · 模型回复「' + (r.echo || '') + '」', 'var(--color-primary-dark)');
+        else testResult('<svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg> ' + friendlyAiError(r.err), '#B4543A');
       });
     };
   })();

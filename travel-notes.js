@@ -109,21 +109,21 @@ window.Ai = (function () {
  * 设计：途记 Design System v2（霞鹜文楷×思源黑体 / 深色沉浸录音 / 藤蔓时间线 / 毛玻璃）
  * 能力：语音→转写（App内 讯飞/Google / 网页降级 Web Speech）
  *      → DeepSeek V4 三风格润色 → 坐标+时间+天气自动 → 照片/录音留存
- *      → 地图📝标记 → 时间线列表/统计/编辑/导出文档/备份
+ *      → 地图笔记标记 → 时间线列表/统计/编辑/导出文档/备份
  * 用法：TravelNotes.init({map, getSite})  各专题页一行接入
  * ========================================================= */
 (function () {
   var KEY = 'travelNotes';      // 游记库
   var STYLES = [
-    { id: 'prose',    name: '散文游记',   icon: '📖', rec: true,
+    { id: 'prose',    name: '散文游记',   icon: 'book', rec: true,
       system: '你是资深旅行作家。把用户的语音口述润色成一篇文学化、有画面感的散文游记，保留真实细节与感受，适当融入该景点背景，200-400字，分段落，不加小标题。' },
-    { id: 'narrative', name: '述事方式',  icon: '🗣',
+    { id: 'narrative', name: '述事方式',  icon: 'volume',
       system: '你是故事讲述者。把用户的语音口述按时间顺序讲成一个生动的旅行故事，有人物动作、场景推进和情感起伏，像亲口讲给朋友听，口语自然但不啰嗦，250-450字，分段落。' },
-    { id: 'guide',    name: '攻略指南',   icon: '🧭',
+    { id: 'guide',    name: '攻略指南',   icon: 'compass',
       system: '你是旅行攻略编辑。把用户的语音口述整理成实用攻略，包含亮点、游玩建议、注意事项，条理清晰（可用编号），200-300字。' },
-    { id: 'moments',  name: '朋友圈文案', icon: '💬',
+    { id: 'moments',  name: '朋友圈文案', icon: 'chat',
       system: '你是社交媒体文案高手。把用户的语音口述改写成一条80-150字的朋友圈文案，语言活泼有感染力，可适当使用 emoji，结尾可加一句点睛的话。' },
-    { id: 'raw',      name: '原文保留',   icon: '📝',
+    { id: 'raw',      name: '原文保留',   icon: 'note',
       system: '' }
   ];
 
@@ -245,7 +245,7 @@ window.Ai = (function () {
     if (mb > threshold && Math.floor(mb / (hasB64 ? 5 : 20)) > (persist._lastWarn || 0)) {
       persist._lastWarn = Math.floor(mb / (hasB64 ? 5 : 20));
       var tip = hasB64
-        ? '⚠️ 存储占用 ' + mb.toFixed(1) + 'MB（照片/录音以内嵌方式保存，建议尽快导出备份）'
+        ? '存储占用 ' + mb.toFixed(1) + 'MB（照片/录音以内嵌方式保存，建议尽快导出备份）'
         : '存储占用 ' + mb.toFixed(1) + 'MB：可在设置里导出备份';
       setTimeout(function () { flash(tip); }, 600);
     }
@@ -334,12 +334,12 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:16.5px;line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:150px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
 .tn-recbox b{font-family:var(--fb);display:block;font-size:9.5px;color:#9c958a;margin-bottom:7px;font-weight:400;letter-spacing:1px}\
 .tn-recbox textarea{width:100%;background:transparent;border:0;color:#26241f;font-size:16.5px;line-height:1.8;resize:vertical;outline:0;min-height:150px;font-family:var(--fd)}\
-.tn-panel.is-done .tn-prompt{display:none}\
-.tn-panel.is-done .tn-now{display:none}\
-.tn-panel.is-done .tn-ring{width:72px;height:72px;margin-top:2px;display:flex;align-items:center;justify-content:center}\
-.tn-panel.is-done .tn-ringbar{display:none}\
-.tn-panel.is-done .tn-mic{width:56px;height:56px}\
-.tn-panel.is-done .tn-mic svg{width:26px;height:26px}\
+.tn-panel.is-done .tn-prompt,.tn-panel.is-editing .tn-prompt{display:none}\
+.tn-panel.is-done .tn-now,.tn-panel.is-editing .tn-now{display:none}\
+.tn-panel.is-done .tn-ring,.tn-panel.is-editing .tn-ring{width:60px;height:60px;margin-top:2px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}\
+.tn-panel.is-done .tn-ringbar,.tn-panel.is-editing .tn-ringbar{display:none}\
+.tn-panel.is-done .tn-mic,.tn-panel.is-editing .tn-mic{width:44px;height:44px}\
+.tn-panel.is-done .tn-mic svg,.tn-panel.is-editing .tn-mic svg{width:22px;height:22px}\
 .tn-tags{width:100%;margin-top:10px;padding:11px 14px;border:1px solid var(--color-line);border-radius:10px;font-size:14px;box-sizing:border-box;background:#fff;color:#26241f;outline:0;transition:var(--tf)}\
 .tn-tags:focus{border-color:rgba(184,134,11,.6);box-shadow:0 0 0 3px rgba(184,134,11,.15)}\
 .tn-tags::placeholder{color:#9c958a}\
@@ -551,6 +551,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-panel.is-idle .tn-more{display:none}\
 /* —— 编辑屏：转写卡=绝对主角 —— */\
 .tn-panel.is-done .tn-recbox{background:#fffdf8;border:1px solid rgba(200,109,75,.22);border-radius:18px;padding:16px 16px 18px;box-shadow:0 10px 30px rgba(84,66,32,.12)}\
+.tn-panel.is-editing .tn-recbox,.tn-panel.is-done .tn-recbox{display:flex;flex-direction:column}\
+.tn-panel.is-editing .tn-recbox textarea,.tn-panel.is-done .tn-recbox textarea{flex:1 1 auto;min-height:220px;resize:none;height:auto}\
 .tn-panel.is-done .tn-recbox b{color:var(--color-primary);letter-spacing:1.5px}\
 .tn-panel.is-done .tn-recbox textarea{min-height:38vh;font-size:17px;line-height:1.9}\
 /* 元信息折叠条 */\
@@ -566,7 +568,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 /* AI 润色稿：浮现 + 明示"保存时自动采用"，不再无声出现 */\
 @keyframes tnFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}\
 .tn-ai{animation:tnFadeUp .38s ease both}\
-.tn-ai::before{content:"✦ 润色稿 · 保存时自动采用这一版";display:block;font-family:var(--fb);font-size:10px;letter-spacing:1px;color:var(--color-primary);margin-bottom:8px}\
+.tn-ai::before{content:"润色稿 · 保存时自动采用这一版";display:block;font-family:var(--fb);font-size:10px;letter-spacing:1px;color:var(--color-primary);margin-bottom:8px}\
 .tn-loading{animation:tnFadeUp .3s ease both}\
 /* 底栏层级：辅助=文字链接一行，保存=独占主胶囊 */\
 .tn-acts button{min-height:48px;flex:0 1 auto}\
@@ -618,7 +620,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   <div class="tn-confirm" id="tnConfirm" style="display:none"></div>\
   <div class="tn-quotes" id="tnQuotes">\
     <div class="bar"><button class="tn-x" id="tnQuoteBack">←</button><b>名言检索</b></div>\
-    <div class="sr"><input id="tnQuoteSearch" placeholder="搜索关键词（如：云冈 / 山水 / 苍山）"><button class="tn-x" id="tnQuoteClear" style="width:40px;height:40px;background:var(--sf2);color:var(--i5)">✕</button></div>\
+    <div class="sr"><input id="tnQuoteSearch" placeholder="搜索关键词（如：云冈 / 山水 / 苍山）"><button class="tn-x" id="tnQuoteClear" style="width:40px;height:40px;background:var(--sf2);color:var(--i5)">'+TI('close', 14)+'</button></div>\
     <div class="hint" id="tnQuoteHint">检索与当前地点相关的名言，点选一条即可追加到正文</div>\
     <div class="body" id="tnQuoteList"></div>\
   </div>\
@@ -637,7 +639,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     mic.id = 'tnRec';
     ring.appendChild(mic);
     STYLES.forEach(function (st, i) {
-      var b = el('button', i === 0 ? 'on' : '', '<span class="si">' + st.icon + '</span>' + st.name + (st.rec ? '<span class="rec">推荐</span>' : ''));
+      var b = el('button', i === 0 ? 'on' : '', '<span class="si">' + TI(st.icon, 18) + '</span>' + st.name + (st.rec ? '<span class="rec">推荐</span>' : ''));
       b.dataset.id = st.id;
       panel.querySelector('#tnStyle').appendChild(b);
     });
@@ -658,6 +660,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       state.raw = ta.value;
       var has = !!ta.value.trim();
       $X(panel, '#tnSave').disabled = !has;
+      panel.classList.toggle('is-editing', has);
+      panel.classList.toggle('is-idle', !has);   /* 有内容=编辑态（收缩上部），清空回录音聚焦 */
       var p = $X(panel, '#tnPolish');
       if (has && p.style.display === 'none') { p.style.display = 'block'; p.textContent = '整理一下'; }
     });
@@ -775,7 +779,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     // 讲解面板（AI 随行讲解）
     var guide = el('div', 'tn-guide');
     guide.innerHTML = '\
-<div class="bar"><button class="tn-x" id="tnGuideX">✕</button><b id="tnGuideTitle">🎧 随行讲解</b><button class="spk" id="tnGuidePlay">▶ 播放</button></div>\
+<div class="bar"><button class="tn-x" id="tnGuideX">'+TI('close', 14)+'</button><b id="tnGuideTitle">'+TI('headphones')+'随行讲解</b><button class="spk" id="tnGuidePlay">'+TI('play', 13)+' 播放</button></div>\
 <div class="loading" id="tnGuideLoad">正在为你讲解…</div>\
 <div class="body" id="tnGuideBody"></div>\
 <div class="hint" id="tnGuideHint"></div>';
@@ -807,7 +811,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       gLoad.style.display = 'none';
       gBody.style.display = 'block';
       gHint.textContent = '内容由 AI 生成，可能有误差，仅供游览参考 · 点击上方「▶ 播放」可语音朗读';
-      guide.querySelector('#tnGuideTitle').textContent = '🎧 随行讲解 · ' + title;
+      guide.querySelector('#tnGuideTitle').innerHTML = TI('headphones') + '随行讲解 · ' + esc(title);
       guide.style.display = 'flex';
       // 关闭录音面板与弹层，避免遮挡
       if (ui.panel) ui.panel.style.display = 'none';
@@ -821,7 +825,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       gLoad.style.display = 'block';
       gBody.style.display = 'none';
       gHint.textContent = '';
-      guide.querySelector('#tnGuideTitle').textContent = '🎧 随行讲解 · ' + (site.label || site.name || '');
+      guide.querySelector('#tnGuideTitle').innerHTML = TI('headphones') + '随行讲解 · ' + esc(site.label || site.name || '');
       guide.style.display = 'flex';
       if (ui.panel) ui.panel.style.display = 'none';
       if (ui.mask) ui.mask.style.display = 'none';
@@ -949,7 +953,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     setPhase('idle');
   }
   function closePanel() {
-    if (ui) { ui.mask.style.display = 'none'; ui.panel.style.display = 'none'; ui.panel.classList.add('is-idle'); ui.panel.classList.remove('is-done'); }
+    if (ui) { ui.mask.style.display = 'none'; ui.panel.style.display = 'none'; ui.panel.classList.add('is-idle'); ui.panel.classList.remove('is-done'); ui.panel.classList.remove('is-editing'); }
     if (rec) { try { rec.stop(); } catch (e) {} rec = null; }
     if (window.AndroidVoice) { try { AndroidVoice.cancelVoice(); } catch (e) {} }
     setPhase('idle');
@@ -980,7 +984,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         } catch (e2) {}
         AndroidVoice.startVoice(); return;
       }
-      $X(ui.panel, '#tnNote').innerHTML = '⚠️ <b>语音识别服务不可用</b><br>请检查：①设置 → 语言与输入法 → 语音识别，确认已启用语音服务<br>②或到 Play 商店安装/更新「Speech Recognition & Synthesis」';
+      $X(ui.panel, '#tnNote').innerHTML = TI('warn', 14) + '<b>语音识别服务不可用</b><br>请检查：①设置 → 语言与输入法 → 语音识别，确认已启用语音服务<br>②或到 Play 商店安装/更新「Speech Recognition & Synthesis」';
       flash('语音识别服务不可用');
       return;
     }
@@ -1012,6 +1016,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     setMic('live');
     ui.panel.classList.remove('is-idle');
     ui.panel.classList.remove('is-done');
+    ui.panel.classList.remove('is-editing');
     $X(ui.panel, '#tnMicLabel').innerHTML = '正在听。 <b>慢慢说</b>';
     $X(ui.panel, '#tnRaw').innerHTML = '<b>实时转写</b>';
     $X(ui.panel, '#tnNote').textContent = '';
@@ -1042,6 +1047,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     state.phase = 'idle';
     setMic('ok');
     ui.panel.classList.add('is-done');
+    ui.panel.classList.add('is-editing');
     ui.panel.classList.remove('is-idle');
     $X(ui.panel, '#tnMicLabel').innerHTML = '我记住了 · <b>再说一句会自动接在后面</b>';
     $X(ui.panel, '#tnRaw').innerHTML = '<b>转写完成（可编辑）</b><textarea id="tnRawEdit" placeholder="可修改转写内容…">' + esc(finalText) + '</textarea>';
@@ -1073,6 +1079,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     setMic('idle');
     ui.panel.classList.add('is-idle');
     ui.panel.classList.remove('is-done');
+    ui.panel.classList.remove('is-editing');
     $X(ui.panel, '#tnMicLabel').innerHTML = '点按，开始 · <b>慢慢说，说完稍等</b>';
     var map = { no_perm: '未授权麦克风', no_match: '没有听清，请重试', timeout: '超时，请重试', network: '语音服务需要网络', network_timeout: '语音服务网络超时', busy: '识别忙，稍后重试', start_fail: '启动识别失败',
       xf_10118: '没有听清，请重试', xf_10107: '说话超时，请重试', xf_10161: '网络异常，请检查网络', xf_10202: '麦克风不可用', xf_10110: '未检测到语音', xf_10800: '云端服务异常，稍后重试',
@@ -1254,7 +1261,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     box.innerHTML = '';
     if (state.photos) state.photos.forEach(function (b64, i) {
       var d = el('div', 'tn-photo');
-      d.innerHTML = '<img src="' + b64 + '"><span class="rm">✕</span>';
+      d.innerHTML = '<img src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
       d.querySelector('.rm').onclick = function () { state.photos.splice(i, 1); renderPhotos(); };
       box.appendChild(d);
     });
@@ -1375,7 +1382,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var p = $X(ui.panel, '#tnPolish'); p.style.display = 'none'; p.textContent = '整理一下';
     $X(ui.panel, '#tnMicLabel').innerHTML = '点按，开始 · <b>慢慢说，说完稍等</b>';
     setMic('idle');
-    $X(ui.panel, '#tnNote').textContent = '已保存 · 可继续录制下一篇（点 ✕ 退出）';
+    $X(ui.panel, '#tnNote').textContent = '已保存 · 可继续录制下一篇（点「返回」退出）';
     renderPhotos();
   }
 
@@ -1391,7 +1398,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       if (n.lat == null || n.lng == null) return;
       var m = L.marker([n.lat, n.lng], {
         icon: L.divIcon({
-          html: '<div style="font-size:19px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">📝</div>',
+          html: '<div style="font-size:19px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">'+TI('note', 19)+'</div>',
           className: '', iconSize: [20, 20], iconAnchor: [10, 18]
         })
       });
@@ -1649,7 +1656,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       box.innerHTML = '';
       photos.forEach(function (b64, i) {
         var ph = el('div', 'tn-photo');
-        ph.innerHTML = '<img src="' + b64 + '"><span class="rm">✕</span>';
+        ph.innerHTML = '<img src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
         ph.querySelector('.rm').onclick = function () { photos.splice(i, 1); renderEp(); };
         box.appendChild(ph);
       });
@@ -1698,7 +1705,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     });
     var monthHtml = Object.keys(months).sort().reverse().slice(0, 6).map(function (m) { return '<div class="monthline"><span>' + m + '</span><b>' + months[m] + ' 篇</b></div>'; }).join('');
     var d = el('div', 'tn-dlg');
-    d.innerHTML = '<h4>游记统计 <button class="tn-x" id="tnStX" style="font-size:14px">✕</button></h4>' +
+    d.innerHTML = '<h4>游记统计 <button class="tn-x" id="tnStX" style="font-size:14px">'+TI('close', 14)+'</button></h4>' +
       '<div class="statgrid">' +
       '<div><b>' + notes.length + '</b><span>游记</span></div>' +
       '<div><b>' + Object.keys(sites).length + '</b><span>地点</span></div>' +
@@ -1729,7 +1736,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center"><h1 style="margin:0;font-size:26px">我的旅行游记</h1><p style="margin:8px 0 0;font-size:13px;opacity:.85">共 ' + sorted.length + ' 篇 · 记录于 ' + new Date().toLocaleDateString() + '</p></div>' +
       '<div style="max-width:720px;margin:0 auto;padding:16px">' + cards + '</div></body></html>';
     var d = el('div', 'tn-dlg');
-    d.innerHTML = '<h4>导出游记文档 <button class="tn-x" id="tnDocX" style="font-size:14px">✕</button></h4>' +
+    d.innerHTML = '<h4>导出游记文档 <button class="tn-x" id="tnDocX" style="font-size:14px">'+TI('close', 14)+'</button></h4>' +
       '<div id="tnDocPrev" style="border:1px solid var(--ln);border-radius:14px;max-height:44vh;overflow-y:auto;font-size:11px;color:#777;padding:12px;white-space:pre-wrap;background:#fff">' + esc(html.slice(0, 2600)) + '…（共 ' + html.length + ' 字符）</div>' +
       '<button id="tnDocCopy" class="copy">复制 HTML</button>' +
       (window.AndroidVoice ? '<button id="tnDocSave">保存到手机下载</button>' : '') +
@@ -1797,7 +1804,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     function build(json) {
       var m = el('div', 'ui-modal-mask');
       m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
-        + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
+        + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭"'+TI('close', 14)+'</button></div>'
         + '<div class="ui-modal-text" style="margin-bottom:12px">共 ' + notes.length + ' 篇' + (tasks.length ? ' · 含 ' + tasks.length + ' 个录音/照片文件（已内嵌，可完整恢复）' : '') + ' · 建议用「保存为文件」导出 .json。</div>'
         + '<textarea id="tnExpTxt" class="nm-ta" readonly style="min-height:120px">' + esc(json) + '</textarea>'
         + '<div class="ui-modal-acts" style="gap:8px">'
@@ -1849,7 +1856,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   function importNotes() {
     var m = el('div', 'ui-modal-mask');
     m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
-      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导入备份 <button id="tnImpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭">✕</button></div>'
+      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导入备份 <button id="tnImpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer;flex:0 0 auto" aria-label="关闭"'+TI('close', 14)+'</button></div>'
       + '<div class="ui-modal-text" style="margin-bottom:12px">支持粘贴 JSON 或从文件导入（.json），按 id 去重合并。</div>'
       + '<input type="file" id="tnImpFile" accept=".json,application/json" style="display:none">'
       + '<button id="tnImpPick" class="ui-btn" style="width:100%;margin-bottom:8px">选择文件导入</button>'
@@ -1892,7 +1899,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var d = el('div', 'tn-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center;background:rgba(6,17,16,.96);text-align:center;padding:20px';
     d.innerHTML = '<img src="' + src + '" style="max-width:92vw;max-height:86vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)">'
-      + '<button id="tnZoomX" style="position:fixed;top:calc(env(safe-area-inset-top,0px)+12px);right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer;line-height:1">✕</button>';
+      + '<button id="tnZoomX" style="position:fixed;top:calc(env(safe-area-inset-top,0px)+12px);right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer;line-height:1">'+TI('close', 16)+'</button>';
     document.body.appendChild(d);
     d.onclick = function (e) { if (e.target === d) d.remove(); };
     $X(d, '#tnZoomX').onclick = function (e) { e.stopPropagation(); d.remove(); };
@@ -1956,7 +1963,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (viewer) viewer.remove();
     viewer = document.createElement('div');
     viewer.className = 'tn-viewer';
-    viewer.innerHTML = '<button class="tn-viewer-x" id="tvX">✕</button>' +
+    viewer.innerHTML = '<button class="tn-viewer-x" id="tvX">'+TI('close', 16)+'</button>' +
       '<img id="tvImg" src="' + esc(photos[idx]) + '" alt="">' +
       (photos.length > 1 ? '<button class="tn-viewer-nav l" id="tvL">‹</button><button class="tn-viewer-nav r" id="tvR">›</button>' : '') +
       '<div class="tn-viewer-i" id="tvI">' + (idx + 1) + ' / ' + photos.length + '</div>';
@@ -2075,7 +2082,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       var pic = (n.photos && n.photos[0]) ? '<img src="' + esc(n.photos[0]) + '" style="width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin:6px 0">' : '';
       var m = L.marker([n.lat, n.lng], {
         icon: L.divIcon({
-          html: '<div style="font-size:21px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">📝</div>',
+          html: '<div style="font-size:21px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">'+TI('note', 21)+'</div>',
           className: '', iconSize: [22, 22], iconAnchor: [11, 20]
         })
       });
@@ -2245,7 +2252,7 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
   head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--color-primary);border-radius:8px;color:var(--color-primary);font-family:&quot;Songti SC&quot;,serif;font-size:14px;transform:rotate(-4deg);flex:0 0 auto">记</span>' +
     '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:17px;font-weight:600;color:var(--color-ink);letter-spacing:.03em">记录地点</b>' +
     '<small style="color:var(--color-muted);font-size:11px;letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
-    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">✕</button>';
+    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">'+TI('close', 14)+'</button>';
   /* ---- 当前位置卡片 ---- */
   var cur = document.createElement('div');
   cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';

@@ -116,3 +116,34 @@ window.labelAvoid = function (rootSel) {
     else kept.push(el);
   });
 };
+/* 聚合胶囊避让（2026-10-03）：屏幕空间贪心，两级降级——
+ * 第一级收缩为紧凑数字徽章（lod-mini，隐去组名与必去章），
+ * 仍与已保留者重叠则整颗淡化（lod-hide，保留可点，放大后 LOD 重排自然恢复）。
+ * 优先级：必去多 > 数量大。node-lod 胶囊渲染后由 topic-common 调用。 */
+window.capsuleAvoid = function (rootSel) {
+  var root = document.querySelector(rootSel || '#mapEl');
+  if (!root) return;
+  var caps = Array.prototype.slice.call(root.querySelectorAll('.lod-cl'));
+  if (caps.length < 2) return;
+  function prio(el) {
+    var m = el.querySelector('.lod-cl__m'), n = el.querySelector('.lod-cl__n');
+    return (m ? parseInt(m.textContent.replace(/D/g, ''), 10) || 0 : 0) * 1000 + (n ? parseInt(n.textContent, 10) || 0 : 0);
+  }
+  function hit(a, b, pad) { return !(a.right + pad < b.left || a.left - pad > b.right || a.bottom + pad < b.top || a.top - pad > b.bottom); }
+  caps.forEach(function (el) { el.classList.remove('lod-mini', 'lod-hide'); });
+  caps.sort(function (a, b) { return prio(b) - prio(a); });
+  var kept = [];
+  caps.forEach(function (el) {
+    var r = el.getBoundingClientRect();
+    var clash = kept.some(function (k) { return hit(k._r, r, 6); });
+    if (clash) {
+      el.classList.add('lod-mini');
+      var r2 = el.getBoundingClientRect();   /* mini 后实际占位变小，重测 */
+      if (kept.some(function (k) { return hit(k._r, r2, 4); })) {
+        el.classList.remove('lod-mini'); el.classList.add('lod-hide'); return;
+      }
+      kept.push({ _r: r2 });
+    } else kept.push({ _r: r });
+  });
+};
+

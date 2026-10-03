@@ -608,9 +608,9 @@ function renderDay(){
       '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'+
       '<div class="txt">'+esc(n.text||n.raw)+'</div>'+tags+thumbs+'</div>';
   }).join('');
-  var moods=['😀','😐','😭','⛰️','🍜','🧭'];
+  var moods=['😀','😐','😭','⛰️','🍜','🧭'];var MOOD_ICON={'😀':'smile','😐':'meh','😭':'sad','⛰️':'mountain','🍜':'food','🧭':'compass'};   /* 显示层走 TI 图标，data-m 仍存 emoji（老数据兼容） */
   var cur=dayMoods[selDay]||'';
-  var moodRow='<div class="moodrow">'+moods.map(function(m){return '<span class="mk'+(m===cur?' on':'')+'" data-m="'+m+'">'+m+'</span>';}).join('')+'<span class="mk clear" data-m="">✕</span></div>';
+  var moodRow='<div class="moodrow">'+moods.map(function(m){return '<span class="mk'+(m===cur?' on':'')+'" data-m="'+m+'">'+TI(MOOD_ICON[m], 16)+'</span>';}).join('')+'<span class="mk clear" data-m="">✕</span></div>';
   box.innerHTML='<div class="eyebrow">'+selDay+' · '+list.length+' 篇</div>'+moodRow+items;
   box.querySelectorAll('.mk').forEach(function(k){
     k.onclick=function(){

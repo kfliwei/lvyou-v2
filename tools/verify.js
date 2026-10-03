@@ -57,7 +57,7 @@ try {
   const c2 = { window: {}, console };
   vm.createContext(c2);
   const PROV_FILES = ['ah','bj','cq','data','fj','gd','gs','gxyn','gz','ha','hb','he','hi','hk','hlj','hn','jl','js','jx','ln','mo','nmg','nx','qh','sc','sd','sh','sx','tj','tw','xj','xz','zj'];
-  const idxNames = new Set(rows.map(l => l.split('|')[0]));
+  const idxNames = new Set(rows.flatMap(l => { const p = l.split('|'); return [p[0], ...(p[1] || '').split(/[、,，]/)]; }).filter(Boolean));   /* 别名也算覆盖（去重后被并名进 alias 列） */
   let tot = 0, missN = 0;
   PROV_FILES.forEach(pf => {
     try {
@@ -70,6 +70,25 @@ try {
 } catch (e) {}
 console.log('nation-index sites:', n, '| source sites:', srcCount, '| malformed rows:', bad, '| cover miss:', coverMiss);
 if (bad || (coverMiss > 0)) fail++;
+
+/* 7. UI 层 emoji 棘轮：只许减、不许增（2026-10 图标体系上线后的防回潮闸门）。
+   白名单 = 数据层与纯文本场景：travel-notes 的 WMO 天气表（持久化进游记）、
+   topic-common 的 FTYPE_ICON 美食类目与 🧭 下拉项（select 无法渲染 SVG）、
+   review 的 moods 数组（data-m 持久值）、planner 的剪贴板/导出文档文本、
+   wishlist 的 ⭐ 剪贴板文本。预算只准下调；新文件出现 emoji 即 FAIL。 */
+const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu;
+const EMOJI_SKIP = f => f.startsWith('test-') || f.includes('-data.js') || f.startsWith('topic-meta') || f === 'icons.js' || f === 'icons-demo.html';
+const EMOJI_BUDGET = { 'planner.js': 2, 'review.html': 15, 'topic-common.js': 9, 'travel-notes.js': 30, 'wishlist.html': 1 };
+{
+  let emojiFail = 0;
+  for (const f of fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && !EMOJI_SKIP(f))) {
+    const n = (fs.readFileSync(f, 'utf8').match(EMOJI_RE) || []).length;
+    const budget = EMOJI_BUDGET[f] || 0;
+    if (n > budget) { console.log('emoji 棘轮 FAIL: ' + f + ' = ' + n + ' > 预算 ' + budget); emojiFail++; }
+    else if (n < budget) console.log('emoji 棘轮: ' + f + ' ' + n + '/' + budget + '（可下调预算）');
+  }
+  if (emojiFail) fail += emojiFail;
+}
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

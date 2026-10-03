@@ -92,7 +92,7 @@
 </header>
 <div class="nm-tip" id="nmTip"></div>
 <div id="rsSheet">
-  <div class="rs-head"><b>搜索结果</b><button class="x" id="rsClose" aria-label="关闭">✕</button></div>
+  <div class="rs-head"><b>搜索结果</b><button class="x" id="rsClose" aria-label="关闭"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button></div>
   <div id="rsBody"></div>
 </div>
 <div id="infoSheet"><div id="isBody"></div></div>
@@ -108,6 +108,7 @@
 <script src="geo.js"></script>
 <script src="wishlist.js"></script>
 <script src="travel-notes.js"></script>
+<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
@@ -263,7 +264,7 @@
       document.getElementById('nmDesc').value = t.trim();
       UI.toast('介绍已生成，可再手动微调');
     }).catch(function () { UI.toast('生成失败，请检查网络或 Key'); })
-      .then(function () { btn.textContent = '✨ 生成介绍'; btn.disabled = false; });
+      .then(function () { btn.innerHTML = TI('sparkles') + '生成介绍'; btn.disabled = false; });
   }
 
   /* ---------- 关键词加节点：关键词 → 候选列表(内置+高德) → 用户确认 → AI 补全 ---------- */
@@ -454,11 +455,11 @@
     m.className = 'ui-modal-mask nm-mask';
     m.innerHTML =
       '<div class="ui-modal nm-form" role="dialog" aria-modal="true" style="max-width:420px">' +
-      '<div class="ui-modal-title">✨ 加节点</div>' +
+      '<div class="ui-modal-title">' + TI('sparkles') + '加节点</div>' +
       '<div class="ui-modal-text nm-body">' +
       '<div style="display:flex;gap:8px;align-items:center">' +
       '<input id="aiNodeInput" class="nm-in" style="flex:1;min-width:0;margin-bottom:0" placeholder="输入地点或一句话，如：我想加成都武侯祠，三国文化" autocomplete="off">' +
-      '<button id="aiNodeMic" type="button" class="ui-btn" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:18px;line-height:1" aria-label="语音输入">🎤</button>' +
+      '<button id="aiNodeMic" type="button" class="ui-btn" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:18px;line-height:1" aria-label="语音输入">'+TI('mic', 18)+'</button>' +
       '</div>' +
       '<div style="font-size:11.5px;color:var(--color-muted);margin-top:6px;line-height:1.6">一句话（我想加/我要加…）自动识别省市与分类直接添加；或输入关键词列出相近地点点选</div>' +
       '<div style="margin-top:10px"><div style="font-size:11px;color:var(--color-faint);margin-bottom:5px">示例 · 点一下直接搜索</div>' +
@@ -487,10 +488,10 @@
     mic.onclick = function () {
       if (!window.TNVoice) { UI.toast('语音识别不可用（需在 App 内使用）'); return; }
       var started = window.TNVoice.start({
-        onStart: function () { mic.textContent = '🔴'; st.style.display = 'block'; st.textContent = '正在听，慢慢说…'; },
+        onStart: function () { mic.innerHTML = '<span style="width:12px;height:12px;border-radius:50%;background:#D64541;display:inline-block"></span>'; st.style.display = 'block'; st.textContent = '正在听，慢慢说…'; },
         onPartial: function (t) { input.value = t; },
-        onResult: function (t) { mic.textContent = '🎤'; input.value = t; st.style.display = 'none'; UI.toast('已识别，可改同音字后点「搜索」'); },
-        onError: function (code) { mic.textContent = '🎤'; st.style.display = 'none'; UI.toast('识别失败：' + (code || '未知错误')); }
+        onResult: function (t) { mic.innerHTML = TI('mic', 18); input.value = t; st.style.display = 'none'; UI.toast('已识别，可改同音字后点「搜索」'); },
+        onError: function (code) { mic.innerHTML = TI('mic', 18); st.style.display = 'none'; UI.toast('识别失败：' + (code || '未知错误')); }
       });
       if (!started) { UI.toast('语音识别不可用（需在 App 内使用）'); }
     };
@@ -523,7 +524,7 @@
         if (!sub.length && c.theme) sub.push(c.theme);
         var exist = findExistingNode(c);
         html += '<div class="rs-item" data-i="' + i + '">' +
-          '<span class="ic">' + (c.source === 'site' ? '📍' : '🗺️') + '</span>' +
+          '<span class="ic">' + (c.source === 'site' ? TI('pin') : TI('map')) + '</span>' +
           '<div class="main"><div class="nm" style="white-space:normal;line-height:1.4">' + esc(c.name) + (exist ? '<span class="bdg mine">已添加</span>' : '') + '</div>' +
           '<div class="sub">' + esc(sub.join(' · ') || '未知位置') + '</div></div>' +
           '<span class="act"' + (exist ? ' style="color:#5F7A4E"' : '') + '>' + (exist ? '已添加' : '＋ 添加') + '</span></div>';
@@ -626,7 +627,7 @@
         var mine = s.source === 'user';
         var loc = [s.region, s.city].filter(Boolean).join(' · ');
         return '<div class="rs-item" data-k="local" data-i="' + (mine ? 'u' + s.uid : 's' + s.__i) + '">' +
-          '<span class="ic">' + (mine ? '📌' : '📍') + '</span>' +
+          '<span class="ic">' + (mine ? TI('pinned') : TI('pin')) + '</span>' +
           '<div class="main"><div class="nm">' + esc(s.label || s.name) + (mine ? '<span class="bdg mine">我的地点</span>' : '<span class="bdg">已存在</span>') + '</div>' +
           '<div class="sub">' + esc(loc + (s.theme ? ' · ' + s.theme : '')) + '</div></div>' +
           '<span class="act">查看 ›</span></div>';
@@ -639,7 +640,7 @@
         var addr = p.address || '';
         var city = [p.pname, p.cityname || p.adname].filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(' ');
         return '<div class="rs-item" data-k="poi" data-nm="' + esc(nm) + '" data-loc="' + esc(p.location || '') + '" data-city="' + esc(city) + '" data-addr="' + esc(addr) + '">' +
-          '<span class="ic">🗺️</span>' +
+          '<span class="ic">' + TI('map') + '</span>' +
           '<div class="main"><div class="nm">' + esc(nm) + '</div>' +
           '<div class="sub">' + esc(city + (addr ? ' · ' + addr : '')) + '</div></div>' +
           '<span class="act">＋ 添加</span></div>';
@@ -727,7 +728,7 @@
       (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
       '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
       '<div class="is-acts" style="flex-wrap:wrap">' +
-      '<button class="is-btn" onclick="window.NM.sysWish(' + s.__i + ')">' + (window.Wish && Wish.isWished(s) ? '✓ 已想去' : '+ 想去') + '</button>' +
+      '<button class="is-btn" onclick="window.NM.sysWish(' + s.__i + ')">' + (window.Wish && Wish.isWished(s) ? TI('check', 12) + ' 已想去' : TI('plus', 12) + ' 想去') + '</button>' +
       '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.sysRecord(' + s.__i + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
       '<button class="is-btn" onclick="window.NM.flyToSys(' + s.__i + ')">在地图查看</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
@@ -752,9 +753,9 @@
       '<div class="is-coord">' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
       '<div class="is-acts" style="flex-wrap:wrap">' +
       '<button class="is-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
-      '<button class="is-btn" onclick="window.NM.toggleWish(\'' + u.id + '\')">' + (wished ? '✓ 已想去' : '+ 想去') + '</button>' +
-      '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.record(\'' + u.id + '\')">🎙 语音记录</button>' +
-      (notesN ? '<button class="is-btn" onclick="location.href=\'travel-map.html\'">📖 记录 ' + notesN + ' 篇</button>' : '') +
+      '<button class="is-btn" onclick="window.NM.toggleWish(\'' + u.id + '\')">' + (wished ? TI('check', 12) + ' 已想去' : TI('plus', 12) + ' 想去') + '</button>' +
+      '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.record(\'' + u.id + '\')">'+TI('mic', 13)+'语音记录</button>' +
+      (notesN ? '<button class="is-btn" onclick="location.href=\'travel-map.html\'">'+TI('book')+'记录 ' + notesN + ' 篇</button>' : '') +
       '<button class="is-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
     $('infoSheet').classList.add('show');
@@ -823,7 +824,7 @@
       (preset && preset.coverImage ? '<img id="nmPhotoImg" src="' + preset.coverImage + '" style="width:100%;height:100%;object-fit:cover">' : '<span id="nmPhotoTxt">封面<br>照片</span>') +
       '</div>' +
       '<div style="flex:1;min-width:0">' +
-      (preset && preset.lat != null ? '<div class="nm-coord" style="margin-bottom:6px">📍 ' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + (preset.uid ? ' <button id="nmRepick" type="button" style="border:0;background:none;color:var(--color-primary-dark);font-size:11.5px;cursor:pointer;padding:0">移动位置 ›</button>' : '') + '</div>' : '') +
+      (preset && preset.lat != null ? '<div class="nm-coord" style="margin-bottom:6px">'+TI('pin', 12)+'' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + (preset.uid ? ' <button id="nmRepick" type="button" style="border:0;background:none;color:var(--color-primary-dark);font-size:11.5px;cursor:pointer;padding:0">移动位置 ›</button>' : '') + '</div>' : '') +
       '<input id="nmName" class="nm-in" placeholder="名称（必填）" value="' + esc((preset && preset.name) || '') + '">' +
       '<input id="nmCity" class="nm-in" placeholder="城市（如 长沙）" value="' + esc((preset && preset.city) || '') + '">' +
       '</div></div>' +
@@ -834,8 +835,8 @@
       '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">' +
       '<input id="nmElev" class="nm-in" type="number" placeholder="海拔（米，自动获取）" style="flex:1;margin-bottom:0" value="' + esc((preset && preset.elev) || '') + '">' +
       '<button id="nmElevGo" type="button" class="ui-btn" style="min-height:40px;flex:0 0 auto;padding:0 14px" aria-label="重新获取海拔">⟳</button></div>' +
-      '<textarea id="nmDesc" class="nm-ta" placeholder="地点介绍（可 ✨ 自动生成）" rows="3">' + esc((preset && preset.desc) || '') + '</textarea>' +
-      '<div style="text-align:right;margin:-2px 0 8px"><button id="nmGenDesc" type="button" class="ui-btn" style="min-height:34px;padding:0 12px;font-size:12px">✨ 生成介绍</button></div>' +
+      '<textarea id="nmDesc" class="nm-ta" placeholder="地点介绍（可自动生成）" rows="3">' + esc((preset && preset.desc) || '') + '</textarea>' +
+      '<div style="text-align:right;margin:-2px 0 8px"><button id="nmGenDesc" type="button" class="ui-btn" style="min-height:34px;padding:0 12px;font-size:12px">'+TI('sparkles', 13)+'生成介绍</button></div>' +
       '<div class="nm-dup" id="nmDup"></div>' +
       '</div>' +
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmCancel">取消</button><button class="ui-btn ui-btn-primary" id="nmSave">保存</button></div></div>';
@@ -908,7 +909,7 @@
       var v = this.value.trim();
       if (!v || !preset || preset.lat == null) return;
       var hits = findDup(v, preset.lat, preset.lng, preset && preset.uid);
-      dupEl.innerHTML = hits.length ? '<span class="nm-dup-warn">⚠ 附近已有相似地点：' + hits.map(function (h) { return esc(h.label || h.name); }).join('、') + '</span>' : '';
+      dupEl.innerHTML = hits.length ? '<span class="nm-dup-warn">' + TI('warn', 12) + '附近已有相似地点：' + hits.map(function (h) { return esc(h.label || h.name); }).join('、') + '</span>' : '';
     };
     m.querySelector('#nmSave').onclick = function () {
       var name = document.getElementById('nmName').value.trim();
@@ -1019,7 +1020,7 @@
         '<div class="ui-modal nm-menu" role="dialog" aria-modal="true">' +
         '<div class="ui-modal-title">添加 / 管理地点</div>' +
         '<div class="ui-modal-text nm-menu-items">' +
-        '<button class="nm-menu-item" data-a="ai"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px" stroke-linecap="round"><path d="M12 3 L13.5 8.5 L19 10 L13.5 11.5 L12 17 L10.5 11.5 L5 10 L10.5 8.5 Z"/></svg>✨ 一句话加节点</button>' +
+        '<button class="nm-menu-item" data-a="ai"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px" stroke-linecap="round"><path d="M12 3 L13.5 8.5 L19 10 L13.5 11.5 L12 17 L10.5 11.5 L5 10 L10.5 8.5 Z"/></svg>'+TI('sparkles')+'一句话加节点</button>' +
         '<button class="nm-menu-item" data-a="pick"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px"><path d="M12 21 C12 21 5 14.5 5 10 A7 7 0 0 1 19 10 C19 14.5 12 21 12 21 Z"/><circle cx="12" cy="10" r="2.6"/></svg>地图选点</button>' +
         '<button class="nm-menu-item" data-a="cur"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px"><circle cx="12" cy="12" r="2"/><path d="M12 2 V6 M12 18 V22 M2 12 H6 M18 12 H22"/></svg>使用当前位置</button>' +
         '<button class="nm-menu-item" data-a="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="vertical-align:-3px;margin-right:8px" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16 L21 21"/></svg>搜索地点</button>' +
