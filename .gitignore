@@ -33,3 +33,16 @@ img-test/nation-check/
 
 # tools 一次性脚本归档
 tools/archive/
+
+# 视觉闸门：截图本体不入库（体积大且二进制不可审），入库的是
+#   tools/out/visual-baseline.json（基线指纹清单）+ tools/out/visual-report.json（本次比对报告）
+# 基线缺失/指纹不符时 visual-check 判 FAIL，不会静默重建
+tools/out/visual-baseline/
+tools/out/visual-diff/
+# 历史散点截图（无日期目录，非本轮物证）；带日期的物证目录 tools/out/shots/<日期>/ 逐个 git add
+tools/out/shots/after/
+tools/out/shots/before/
+tools/out/shots/audit/
+tools/out/shots/capsule/
+tools/out/shots/icon-demo/
+tools/out/shots/*.png

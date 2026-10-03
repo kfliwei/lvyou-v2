@@ -7,7 +7,7 @@
 ## 核心能力
 
 - 🎙 **语音游记**：说话即可记录，转写 + DeepSeek 润色，自动带坐标/天气/照片/原声，IndexedDB 本地持久化
-- 🗺 **专题地图**：34 省 · 7833 个真实坐标节点，按省懒加载，主题/海拔/必去/网红筛选，实景照按需拉取
+- 🗺 **专题地图**：34 省 · 7794 个真实坐标节点，按省懒加载，主题/海拔/必去/网红筛选，实景照按需拉取
 - ✍️ **对话式行程规划**（`planner.html`）：一句话「我想去川西玩 5 天」→ 真实节点召回 → 贪心排期 + 时间模型 + 季节校验 → 可拖拽调整 → 导航/导出/成册
 - ⭐ **想去清单**：收藏 → 打卡 → 到达提醒，跨页面通用
 - 📈 **旅程回顾**（`review.html`）：月历热力、年度报告、足迹海报、省份色块
@@ -19,7 +19,7 @@
 无构建、无框架，原生 HTML/CSS/JS，`file://` / HTTP（PWA）/ Android WebView 都能跑。
 
 ```
-数据层   *-data.js（分省 window.SITES）· nation-index.js（7833 节点轻量索引）
+数据层   *-data.js（分省 window.SITES）· nation-index.js（7794 节点轻量索引）
          food*.js（美食百科）· routes-data.js（预设路线）· quotes.js（名言）
 引擎     topic-common.js（专题引擎）· geo.js（GCJ-02 纠偏 + haversine）
          planner.js（行程规划）· wishlist.js（想去清单）
@@ -74,16 +74,22 @@ python -m http.server 8125
 
 ## 开发与验证
 
-无测试框架，验证套路：
+无构建、无测试框架，验证靠**可复跑的闸门**。四条独立命令，没有统一入口脚本（`tools/check-release.js` 不存在，别再找它）：
 
 ```bash
-node --check planner.js            # 独立 JS 语法
-node tools/smoke-planner.js        # puppeteer 真实浏览器冒烟（需本机 Chrome）
-node tools/smoke.js                # 全站页面冒烟
-node tools/verify.js               # 编码/语法/残留 alert 检查
+node tools/verify.js            # 提交前闸门（已装成 .git/hooks/pre-commit）：语法/编码/emoji 棘轮/nation-index 覆盖
+node tools/visual-check.js      # 视觉回归：28 态 × 2 视口像素 diff（需本机 Chrome，约 2 分钟）
+node tools/smoke-planner.js     # 行程规划真实浏览器冒烟（36 条断言，桩 fetch + 假 Key）
+node tools/sync-assets.js       # 改完前端必须同步进 android_app/app/src/main/assets
 ```
 
-环境限制见 `docs/` 与项目记忆（模型读不了图，视觉验收交实机；无头 Chrome 深色不生效）。
+- **视觉闸门**：`--update` 才改基线，改完必须人审 `tools/out/visual-diff/`；截图本体（`visual-baseline/`、`visual-diff/`、散点 shots）不入库，入库的是 `tools/out/visual-baseline.json`（基线指纹）与 `tools/out/visual-report.json`（每次比对的 diff 比例与耗时）。基线缺失或指纹不符 → **判 FAIL**，不会静默重建。
+- **点击体检**：`node tools/audit-clicktest.js <页面>`（实点：无反应/被遮/报错）、`node tools/audit-deadclicks.js`（尺寸过小/死引用）、`node tools/audit-states.js`。已知盲区登记在 `改进实施方案与验收标准.md` 末尾「豁免登记」。
+- **其他冒烟**：`tools/smoke.js`（全站页面）、`smoke-nodes` / `smoke-story` / `smoke-album` / `smoke-album-edit-obscure` / `smoke-node-mgr` / `smoke-flag-link`。注意 `smoke-album` 依赖 `python -m http.server 8125` 在跑。
+- **改前端文件的收工动作**：`verify.js` → `visual-check.js` → 相关 smoke → 动过 SW `SHELL` 内文件就 bump `sw.js` 的 `CACHE` → `sync-assets.js`。
+- **UI 验收标准**：必须在真实浏览器里跑通黄金路径与边界态；类型/语法过了不等于验收。
+
+环境限制见 `docs/` 与项目记忆（模型读不了图，视觉验收交实机；无头 Chrome 深色不生效；本机 `./gradlew` 会读超时，用已解包的 gradle 加 `--offline`，详见 `android_app/BUILD.md`）。
 
 ## 里程碑（近期）
 
@@ -91,3 +97,8 @@ node tools/verify.js               # 编码/语法/残留 alert 检查
 - ✅ M2 打磨（theme 归一收口 / full 档 AI 主解析 / 候选收敛）
 - ✅ M3 记忆漏斗（开始旅行逐站打卡 / 一键成册 / 高德 POI 补位）
 - ✅ 排期可编辑（上下移/移除/重新排期）、天数软约束、候选筛选、保存行程再编辑
+- ✅ 多站点模型支持：设置页四步向导（选站点 → 填 Key → 选模型 → 测试），`window.Ai` 收口 provider 差异
+- ✅ 2026-10-03 行程规划口径重构：**一把尺子**——排线、日卡里程、终到段、导出、预计天数全部走同一 `mkLeg(matrix)`（高德真实驾车里程命中时用它，否则 haversine × 1.35）；单日 >9h 的长途拆「赶路日」，日卡封顶 ≤14h 使得「一天 >24 小时」在结构上不可能；向导「按高德路线」改为真取数 + 按选点签名缓存矩阵；修 `fetchDistMatrix` 嵌套闸门锁死、2-opt 无出发地崩溃与 ≤3 站早退
+- ✅ 2026-10-03 发送至高德不再丢途经地：补齐 `vianames`（高德硬性要求 `vian/vialons/vialats/vianames` 四队列数量一致，缺一整组作废）；网页兜底改用文档参数 `via`（`waypoints` 不存在）；单站日不再发送起终点同点
+- ✅ 2026-10-03 视觉基建：统一 SVG 图标体系 `icons.js`（82 字形 sprite + `TraceIcon()`，描边 `currentColor` 随主题）、`icons-demo.html` 画廊、emoji 棘轮闸门（只准降不准增）、`tools/visual-check.js` 视觉回归闸门
+- ⏳ 剩余改进项与节奏见 `改进实施方案与验收标准.md` §0.5 复核表与文末批次表（约 16.5 人日）

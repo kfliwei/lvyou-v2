@@ -1,0 +1,182 @@
+{
+  "ranAt": "2026-10-03T13:21:20.974Z",
+  "mode": "check",
+  "scope": "all",
+  "viewports": [
+    "390x844",
+    "768x1024"
+  ],
+  "states": 28,
+  "fail": 0,
+  "elapsedSec": 78.7,
+  "results": [
+    {
+      "state": "index.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "index.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "topic.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 8
+    },
+    {
+      "state": "topic.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0.035,
+      "limitPct": 8
+    },
+    {
+      "state": "search.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "search.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "wishlist.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "wishlist.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "review.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "review.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "settings.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "settings.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "me.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "me.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "node-manager.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "node-manager.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "album.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "album.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "album-edit.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "album-edit.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "story.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "story.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "planner.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "planner.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "md-manager.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "md-manager.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.5
+    },
+    {
+      "state": "explore-map.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 8
+    },
+    {
+      "state": "explore-map.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 8
+    }
+  ]
+}
