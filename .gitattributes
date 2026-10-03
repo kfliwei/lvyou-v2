@@ -1,0 +1,3 @@
+# 提交前闸门脚本必须是 LF：core.autocrlf=true 的机器 checkout 会写成 CRLF，/bin/sh 直接跑不动
+tools/git-hooks/pre-commit text eol=lf
+*.sh text eol=lf

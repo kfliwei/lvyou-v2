@@ -1,0 +1,20 @@
+#!/bin/sh
+# 行迹 TRACE 提交前闸门（安装：cp tools/git-hooks/pre-commit .git/hooks/pre-commit）
+# 内容 = node tools/verify.js（语法/编码/残留 alert + emoji 棘轮 + nation-index 数据完整性），秒级。
+# 全量回归不进 hook（视觉闸门 + 状态扫描 + 点击探针要跑几分钟）：node tools/visual-check.js
+# 临时跳过一次：git commit --no-verify（不推荐）；卸载：删掉 .git/hooks/pre-commit。
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$repo_root" || exit 0
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: 找不到 node，闸门未能执行——请装 Node 或临时用 --no-verify" >&2
+  exit 1
+fi
+
+node tools/verify.js || {
+  echo "" >&2
+  echo "✗ 提交被闸门拦下。全量回归（视觉 28 状态 + 状态扫描 + 点击探针）：" >&2
+  echo "  node tools/visual-check.js && node tools/audit-states.js && node tools/audit-clicktest.js" >&2
+  exit 1
+}
