@@ -1261,7 +1261,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     box.innerHTML = '';
     if (state.photos) state.photos.forEach(function (b64, i) {
       var d = el('div', 'tn-photo');
-      d.innerHTML = '<img src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
+      d.innerHTML = '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
       d.querySelector('.rm').onclick = function () { state.photos.splice(i, 1); renderPhotos(); };
       box.appendChild(d);
     });
@@ -1456,7 +1456,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (tagFilter) list = list.filter(function (n) { return (n.tags || []).indexOf(tagFilter) >= 0; });
     body.innerHTML = '';
     if (!list.length) {
-      body.innerHTML = '<div class="tn-empty"><div class="em"><img src="art/empty-voice.svg" alt="" style="width:190px;height:auto;max-width:66vw;display:block;margin:0 auto;animation:none"></div><b>还没有游记</b><span>去景点弹窗点「语音游记」，<br>或在地图上随手记录第一篇吧</span></div>';
+      body.innerHTML = '<div class="tn-empty"><div class="em"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-voice.svg" alt="" style="width:190px;height:auto;max-width:66vw;display:block;margin:0 auto;animation:none"></div><b>还没有游记</b><span>去景点弹窗点「语音游记」，<br>或在地图上随手记录第一篇吧</span></div>';
       var wb0 = $X(ui.list, '#tnWallBtn');
       if (wb0) wb0.style.display = 'none';
       return;
@@ -1536,7 +1536,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   /* 单篇卡片（两个视图共用） */
   function renderItem(body, n) {
     var it = el('div', 'tn-item');
-    var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p, pi) { return '<img src="' + esc(p) + '" onclick="TravelNotes.zoomPhotoIdx(\x27' + n.id + '\x27,' + pi + ')" alt="">'; }).join('') + '</div>' : '';
+    var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p, pi) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '" onclick="TravelNotes.zoomPhotoIdx(\x27' + n.id + '\x27,' + pi + ')" alt="">'; }).join('') + '</div>' : '';
     var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
     it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:11.5px;color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
@@ -1591,7 +1591,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       for (var i = 0; i < t.notes.length && !cover; i++) { var ph = (t.notes[i].photos || []); if (ph.length) cover = ph[0]; }
       var startD = fmtDay(t.start), endD = fmtDay(t.end);
       var head = el('div', 'tn-trip-head');
-      head.innerHTML = (cover ? '<img class="tn-trip-cover" src="' + esc(cover) + '">' : '<div class="tn-trip-cover none">游</div>') +
+      head.innerHTML = (cover ? '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" class="tn-trip-cover" src="' + esc(cover) + '">' : '<div class="tn-trip-cover none">游</div>') +
         '<div class="tn-trip-info"><b>' + esc(tripName(t)) + '</b><div class="tt-meta">' + startD + (endD !== startD ? ' ~ ' + endD : '') + ' · <em>' + t.notes.length + '</em> 篇</div></div>' +
         '<div class="tn-trip-arrow">▾</div>';
       card.appendChild(head);
@@ -1656,7 +1656,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       box.innerHTML = '';
       photos.forEach(function (b64, i) {
         var ph = el('div', 'tn-photo');
-        ph.innerHTML = '<img src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
+        ph.innerHTML = '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + b64 + '"><span class="rm">'+TI('close', 12)+'</span>';
         ph.querySelector('.rm').onclick = function () { photos.splice(i, 1); renderEp(); };
         box.appendChild(ph);
       });
@@ -1724,7 +1724,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (!notes.length) { flash('还没有游记'); return; }
     var sorted = notes.slice().sort(function (a, b) { return b.ts - a.ts; });
     var cards = sorted.map(function (n) {
-      var pics = (n.photos && n.photos.length) ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">' + n.photos.map(function (p) { return '<img src="' + p + '" style="max-width:46%;border-radius:10px">'; }).join('') + '</div>' : '';
+      var pics = (n.photos && n.photos.length) ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">' + n.photos.map(function (p) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + p + '" style="max-width:46%;border-radius:10px">'; }).join('') + '</div>' : '';
       var tags = (n.tags && n.tags.length) ? '<div style="margin:8px 0">' + n.tags.map(function (t) { return '<span style="display:inline-block;background:#f2d5d0;color:var(--color-primary);border-radius:999px;font-size:12px;padding:3px 10px;margin-right:6px">#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
       return '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px;margin-bottom:16px">' +
         '<h2 style="margin:0 0 4px;font-size:19px;color:#26241f">' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span style="font-size:13px;color:#6b665c">· ' + esc(n.siteName) + '</span>' : '') + '</h2>' +
@@ -1898,7 +1898,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     /* 全屏图片查看器：避开 WebView 对 backdrop-filter/底部浮层的渲染问题 */
     var d = el('div', 'tn-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center;background:rgba(6,17,16,.96);text-align:center;padding:20px';
-    d.innerHTML = '<img src="' + src + '" style="max-width:92vw;max-height:86vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)">'
+    d.innerHTML = '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + src + '" style="max-width:92vw;max-height:86vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)">'
       + '<button id="tnZoomX" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer;line-height:1">'+TI('close', 16)+'</button>';
     document.body.appendChild(d);
     d.onclick = function (e) { if (e.target === d) d.remove(); };
@@ -1964,7 +1964,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     viewer = document.createElement('div');
     viewer.className = 'tn-viewer';
     viewer.innerHTML = '<button class="tn-viewer-x" id="tvX">'+TI('close', 16)+'</button>' +
-      '<img id="tvImg" src="' + esc(photos[idx]) + '" alt="">' +
+      '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="tvImg" src="' + esc(photos[idx]) + '" alt="">' +
       (photos.length > 1 ? '<button class="tn-viewer-nav l" id="tvL">‹</button><button class="tn-viewer-nav r" id="tvR">›</button>' : '') +
       '<div class="tn-viewer-i" id="tvI">' + (idx + 1) + ' / ' + photos.length + '</div>';
     document.body.appendChild(viewer);
@@ -2079,7 +2079,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     notes.forEach(function (n) {
       if (n.lat == null || n.lng == null) return;
       pts.push([n.lat, n.lng]);
-      var pic = (n.photos && n.photos[0]) ? '<img src="' + esc(n.photos[0]) + '" style="width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin:6px 0">' : '';
+      var pic = (n.photos && n.photos[0]) ? '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(n.photos[0]) + '" style="width:100%;max-height:130px;object-fit:cover;border-radius:10px;margin:6px 0">' : '';
       var m = L.marker([n.lat, n.lng], {
         icon: L.divIcon({
           html: '<div style="font-size:21px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">'+TI('note', 21)+'</div>',

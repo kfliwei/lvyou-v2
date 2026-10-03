@@ -1,0 +1,5 @@
+PASS index: <img> 4 · 破图 0 · 占位 {"cardIsPh":0,"imgFallback":5,"lsPh":0}
+PASS search: <img> 0 · 破图 0 · 占位 {"cardIsPh":0,"imgFallback":0,"lsPh":0}
+PASS topic-cards: <img> 394 · 破图 0 · 占位 {"cardIsPh":110,"imgFallback":0,"lsPh":0}
+PASS topic-sheet: 打开=true · ls-img-ph=1 · 框内破图=0
+=== PASS 断图模拟零破图 ===

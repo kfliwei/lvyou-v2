@@ -124,9 +124,9 @@ function render(){
   var list = curTrip==='all' ? trips.reduce(function(a,t){return a.concat(t.notes);},[]) : (trips[+curTrip]?trips[+curTrip].notes:[]);
   cards=list.slice().sort(function(a,b){return a.ts-b.ts;});
   var box=document.getElementById('cards');
-  if(!cards.length){ box.innerHTML='<div class="story-empty"><img src="art/empty-memory.svg" alt=""><b>还没有带坐标的游记</b><span>先在地图上记录几篇，<br>这里会把它们讲成一段旅程。</span></div>'; return; }
+  if(!cards.length){ box.innerHTML='<div class="story-empty"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-memory.svg" alt=""><b>还没有带坐标的游记</b><span>先在地图上记录几篇，<br>这里会把它们讲成一段旅程。</span></div>'; return; }
   box.innerHTML=cards.map(function(n,i){
-    var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p){return '<img src="'+esc(p)+'" onerror="this.remove()">';}).join('')+'</div>':'';
+    var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p){return '<img loading="lazy" decoding="async" src="'+esc(p)+'" onerror="window.UI&&UI.imgFail(this)">';}).join('')+'</div>':'';
     var tags=(n.tags&&n.tags.length)?'<div class="sc-tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
     return '<div class="story-card" data-i="'+i+'">'
       +'<div class="sc-date">'+esc(n.date||'')+'</div>'

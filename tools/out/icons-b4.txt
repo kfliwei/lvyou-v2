@@ -1,0 +1,36 @@
+index.html/light: sprite 图标 6 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+index.html/dark: sprite 图标 6 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+explore-map.html/light: sprite 图标 10 个（基线样本 1，未收口内联 SVG 1，出屏裁切 0） → OK
+explore-map.html/dark: sprite 图标 10 个（基线样本 1，未收口内联 SVG 1，出屏裁切 0） → OK
+topic.html/light: sprite 图标 1 个（基线样本 1，未收口内联 SVG 13，出屏裁切 0） → OK
+topic.html/dark: sprite 图标 1 个（基线样本 1，未收口内联 SVG 13，出屏裁切 0） → OK
+search.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+search.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+wishlist.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+wishlist.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+review.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 7，出屏裁切 0） → OK
+review.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 7，出屏裁切 0） → OK
+travel-map.html/light: sprite 图标 7 个（基线样本 1，未收口内联 SVG 3，出屏裁切 0） → OK
+travel-map.html/dark: sprite 图标 7 个（基线样本 1，未收口内联 SVG 3，出屏裁切 0） → OK
+planner.html/light: sprite 图标 7 个（基线样本 2，未收口内联 SVG 1，出屏裁切 0） → OK
+planner.html/dark: sprite 图标 7 个（基线样本 2，未收口内联 SVG 1，出屏裁切 0） → OK
+me.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 3，出屏裁切 0） → OK
+me.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 3，出屏裁切 0） → OK
+settings.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+settings.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+node-manager.html/light: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+node-manager.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+md-manager.html/light: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+md-manager.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+album.html/light: sprite 图标 0 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+album.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 0，出屏裁切 0） → OK
+album-edit.html/light: sprite 图标 1 个（基线样本 1，未收口内联 SVG 0，出屏裁切 0） → OK
+album-edit.html/dark: sprite 图标 1 个（基线样本 1，未收口内联 SVG 0，出屏裁切 0） → OK
+story.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+story.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+16px 联络表: 10 个在用字形，无墨 0，低对比 0
+    图: shots/2026-10-03-p01/glyph-16px-sheet.png（认不认识需人审）
+基线样本合计 12 处（阈值 ±2.5px，实测最大 1.59px）
+余量: 最低图标对比 3.05:1（线 3），最小 icon-only 热区 40px（线 40）
+=== 图标审计 ALL OK ===
+ic exit=0

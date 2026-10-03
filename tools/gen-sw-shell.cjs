@@ -14,7 +14,7 @@ const CORE_JS = ['theme.js', 'travel-notes.js', 'results.js', 'vault.js', 'quote
 /* 数据 JS 也在 SHELL 里预缓存（离线全站可查是产品行为，不是疏漏）。
    生成器曾经只列核心 JS，跑一次就把 34 个省的 data/food 从 SHELL 里抹掉——所以这里显式扫回来。 */
 const DATA_JS = fs.readdirSync(dir).filter(f => /\.js$/.test(f) && (
-  /-data\.js$/.test(f) || /-food\.js$/.test(f) || ['data.js', 'topic-catalog.js', 'topic-meta-lite.js', 'site-images.js', 'site-tickets.js'].includes(f)
+  /-data\.js$/.test(f) || /-food\.js$/.test(f) || ['data.js', 'topic-catalog.js', 'topic-meta-lite.js', 'site-images.js', 'site-images-local.js', 'site-tickets.js'].includes(f)
 )).sort();
 /* art 封面 */
 const art = fs.readdirSync(path.join(dir, 'art')).filter(f => /\.svg$/.test(f)).sort().map(f => "'./art/" + f + "'");

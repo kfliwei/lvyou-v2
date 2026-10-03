@@ -326,7 +326,7 @@
       var t = escHtml(line);
       t = t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function (_, alt, s) {
         if (/^audio-/.test(s)) return '';
-        if (/^(data:|blob:|https?:|\/)/.test(s)) return '<img src="' + esc(s) + '" alt="' + esc(alt) + '" loading="lazy">';
+        if (/^(data:|blob:|https?:|\/)/.test(s)) return UI.imgBox(s, alt, { ar: 'cover', phText: '图片不可用' });
         return '';
       });
       t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (_, txt, url) { return '<a href="' + esc2url(url) + '" target="_blank" rel="noopener">' + txt + '</a>'; });
@@ -394,11 +394,11 @@
     });
     if (tagFilter) list = list.filter(function (n) { return (n.tags || []).indexOf(tagFilter) >= 0; });
     if (!notes.length) {
-      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>还没有游记</b><span>去地图或景点页记录几篇，<br>这里会自动生成 Markdown 库。</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-md.svg" alt=""></div><b>还没有游记</b><span>去地图或景点页记录几篇，<br>这里会自动生成 Markdown 库。</span></div>';
       return;
     }
     if (!list.length) {
-      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>没有匹配的游记</b><span>换个关键词或标签试试</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-md.svg" alt=""></div><b>没有匹配的游记</b><span>换个关键词或标签试试</span></div>';
       return;
     }
     /* 月份分组 */
@@ -417,7 +417,7 @@
   function itemFor(n) {
     var it = el('div', 'md-item');
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
-    var thumbs = (n.photos && n.photos.length) ? '<div class="thumbs">' + n.photos.slice(0, 3).map(function (p) { return '<img src="' + esc(p) + '">'; }).join('') + '</div>' : '';
+    var thumbs = (n.photos && n.photos.length) ? '<div class="thumbs">' + n.photos.slice(0, 3).map(function (p) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '">'; }).join('') + '</div>' : '';
     it.innerHTML =
       '<h3>' + esc(n.title || n.siteName || '未命名') + '</h3>' +
       (n.siteName && n.siteName !== n.title ? '<div class="loc">' + esc(n.siteName) + '</div>' : '') +
@@ -464,7 +464,7 @@
     /* 原声 */
     var audioHtml = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
     /* 照片墙 */
-    var wallHtml = (n.photos && n.photos.length) ? '<div class="photo-wall">' + n.photos.map(function (p) { return '<img src="' + esc(p) + '" onclick="zoomPhoto(this.src)">'; }).join('') + '</div>' : '';
+    var wallHtml = (n.photos && n.photos.length) ? '<div class="photo-wall">' + n.photos.map(function (p) { return '<img loading="lazy" decoding="async" src="' + esc(p) + '" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">'; }).join('') + '</div>' : '';
     box.innerHTML =
       '<h1 class="art-title">' + esc(n.title || n.siteName || '未命名') + '</h1>' +
       '<div class="art-meta">' + esc((n.date || '').slice(0, 10) || '') + (n.siteName && n.siteName !== n.title ? ' · ' + esc(n.siteName) : '') + '</div>' +
@@ -632,7 +632,7 @@
     if (kw2) list = list.filter(function (n) { return (String(n.title) + ' ' + String(n.text) + ' ' + (n.tags || []).join(' ')).toLowerCase().indexOf(kw2) >= 0; });
     body.innerHTML = '';
     if (!list.length) {
-      body.innerHTML = '<div class="empty"><div class="em"><img src="art/empty-md.svg" alt=""></div><b>没有外部 MD</b><span>点下方「导入 MD 文件」选择<br>本地的 .md 文件来浏览</span></div>';
+      body.innerHTML = '<div class="empty"><div class="em"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-md.svg" alt=""></div><b>没有外部 MD</b><span>点下方「导入 MD 文件」选择<br>本地的 .md 文件来浏览</span></div>';
       return;
     }
     list.forEach(function (n) {

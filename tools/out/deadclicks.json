@@ -1,0 +1,768 @@
+[
+ {
+  "page": "index.html",
+  "clickable": 24,
+  "scanned": 25,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "topic.html",
+  "clickable": 62,
+  "scanned": 9505,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [
+   {
+    "el": "button.chip",
+    "text": "雪山冰川"
+   },
+   {
+    "el": "button.chip",
+    "text": "高原湖泊"
+   },
+   {
+    "el": "button.chip",
+    "text": "峡谷天堑"
+   },
+   {
+    "el": "button.chip",
+    "text": "江河瀑布"
+   },
+   {
+    "el": "button.chip",
+    "text": "森林草原"
+   },
+   {
+    "el": "button.chip",
+    "text": "溶洞奇观"
+   },
+   {
+    "el": "button.chip",
+    "text": "温泉康养"
+   },
+   {
+    "el": "button.chip",
+    "text": "古建寺院"
+   },
+   {
+    "el": "button.chip",
+    "text": "宗教圣地"
+   },
+   {
+    "el": "button.chip",
+    "text": "古城古镇"
+   },
+   {
+    "el": "button.chip",
+    "text": "民族风情"
+   },
+   {
+    "el": "button.chip",
+    "text": "红色遗迹"
+   },
+   {
+    "el": "button.chip",
+    "text": "遗址陵墓"
+   },
+   {
+    "el": "button.chip",
+    "text": "城市地标"
+   },
+   {
+    "el": "button.chip",
+    "text": "其他"
+   },
+   {
+    "el": "button.chip",
+    "text": "四川省"
+   },
+   {
+    "el": "button.chip",
+    "text": "乐山市"
+   },
+   {
+    "el": "button.chip",
+    "text": "内江市"
+   },
+   {
+    "el": "button.chip",
+    "text": "凉山州"
+   },
+   {
+    "el": "button.chip",
+    "text": "南充市"
+   },
+   {
+    "el": "button.chip",
+    "text": "四川省"
+   },
+   {
+    "el": "button.chip",
+    "text": "宜宾市"
+   },
+   {
+    "el": "button.chip",
+    "text": "巴中市"
+   },
+   {
+    "el": "button.chip",
+    "text": "广元市"
+   },
+   {
+    "el": "button.chip",
+    "text": "广安市"
+   },
+   {
+    "el": "button.chip",
+    "text": "德阳市"
+   },
+   {
+    "el": "button.chip",
+    "text": "成都市"
+   },
+   {
+    "el": "button.chip",
+    "text": "攀枝花市"
+   },
+   {
+    "el": "button.chip",
+    "text": "泸州市"
+   },
+   {
+    "el": "button.chip",
+    "text": "甘孜州"
+   },
+   {
+    "el": "button.chip",
+    "text": "眉山市"
+   },
+   {
+    "el": "button.chip",
+    "text": "绵阳市"
+   },
+   {
+    "el": "button.chip",
+    "text": "自贡市"
+   },
+   {
+    "el": "button.chip",
+    "text": "资阳市"
+   },
+   {
+    "el": "button.chip",
+    "text": "达州市"
+   },
+   {
+    "el": "button.chip",
+    "text": "遂宁市"
+   },
+   {
+    "el": "button.chip",
+    "text": "阿坝州"
+   },
+   {
+    "el": "button.chip",
+    "text": "雅安市"
+   },
+   {
+    "el": "button.rs-chip",
+    "text": "城市地标 49"
+   },
+   {
+    "el": "button.rs-chip",
+    "text": "森林草原 44"
+   }
+  ],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "explore-map.html",
+  "clickable": 43,
+  "scanned": 43,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "travel-map.html",
+  "clickable": 14,
+  "scanned": 37,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "search.html",
+  "clickable": 55,
+  "scanned": 55,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [
+   {
+    "el": "span.chip",
+    "text": "新疆"
+   },
+   {
+    "el": "span.chip",
+    "text": "台湾"
+   },
+   {
+    "el": "span.chip",
+    "text": "广西"
+   },
+   {
+    "el": "span.chip",
+    "text": "西藏"
+   },
+   {
+    "el": "span.chip",
+    "text": "广东"
+   },
+   {
+    "el": "span.chip",
+    "text": "香港"
+   },
+   {
+    "el": "span.chip",
+    "text": "海南"
+   },
+   {
+    "el": "span.chip",
+    "text": "浙江"
+   },
+   {
+    "el": "span.chip",
+    "text": "北京"
+   },
+   {
+    "el": "span.chip",
+    "text": "江苏"
+   },
+   {
+    "el": "span.chip",
+    "text": "河北"
+   },
+   {
+    "el": "span.chip",
+    "text": "安徽"
+   },
+   {
+    "el": "span.chip",
+    "text": "江西"
+   },
+   {
+    "el": "span.chip",
+    "text": "福建"
+   },
+   {
+    "el": "span.chip",
+    "text": "上海"
+   },
+   {
+    "el": "span.chip",
+    "text": "山东"
+   },
+   {
+    "el": "span.chip",
+    "text": "青海"
+   },
+   {
+    "el": "span.chip",
+    "text": "吉林"
+   },
+   {
+    "el": "span.chip",
+    "text": "河南"
+   },
+   {
+    "el": "span.chip",
+    "text": "辽宁"
+   },
+   {
+    "el": "span.chip",
+    "text": "黑龙江"
+   },
+   {
+    "el": "span.chip",
+    "text": "内蒙古"
+   },
+   {
+    "el": "span.chip",
+    "text": "天津"
+   },
+   {
+    "el": "span.chip",
+    "text": "陕西"
+   },
+   {
+    "el": "span.chip",
+    "text": "重庆"
+   },
+   {
+    "el": "span.chip",
+    "text": "湖南"
+   },
+   {
+    "el": "span.chip",
+    "text": "湖北"
+   },
+   {
+    "el": "span.chip",
+    "text": "宁夏"
+   },
+   {
+    "el": "span.chip",
+    "text": "澳门"
+   },
+   {
+    "el": "span.chip",
+    "text": "宗教圣地"
+   },
+   {
+    "el": "span.chip",
+    "text": "古城遗址"
+   },
+   {
+    "el": "span.chip",
+    "text": "名山大川"
+   },
+   {
+    "el": "span.chip",
+    "text": "森林山川"
+   },
+   {
+    "el": "span.chip",
+    "text": "主题公园"
+   },
+   {
+    "el": "span.chip",
+    "text": "海岛海滩"
+   },
+   {
+    "el": "span.chip",
+    "text": "峡谷天堑"
+   },
+   {
+    "el": "span.chip",
+    "text": "草原湿地"
+   },
+   {
+    "el": "span.chip",
+    "text": "民族风情"
+   }
+  ],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "wishlist.html",
+  "clickable": 11,
+  "scanned": 11,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "review.html",
+  "clickable": 51,
+  "scanned": 52,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "settings.html",
+  "clickable": 46,
+  "scanned": 70,
+  "dead": [
+   {
+    "el": "span",
+    "text": "高级设置",
+    "why": "cursor"
+   },
+   {
+    "el": "span",
+    "text": "地图调节与数据迁移",
+    "why": "cursor"
+   },
+   {
+    "el": "span.adv-arr",
+    "text": "▾",
+    "why": "cursor"
+   }
+  ],
+  "deadN": 3,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "me.html",
+  "clickable": 14,
+  "scanned": 14,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "node-manager.html",
+  "clickable": 6,
+  "scanned": 7,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "album.html",
+  "clickable": 2,
+  "scanned": 4,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "album-edit.html",
+  "clickable": 13,
+  "scanned": 13,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "story.html",
+  "clickable": 11,
+  "scanned": 11,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "planner.html",
+  "clickable": 51,
+  "scanned": 71,
+  "dead": [
+   {
+    "el": "div.card",
+    "text": "从哪里开始 开始规划",
+    "why": "class/attr"
+   },
+   {
+    "el": "div#aiRouteCard.card",
+    "text": "AI 精选路线 目的地（哪个省 / 城市） 游玩天数",
+    "why": "class/attr"
+   },
+   {
+    "el": "div#destCard.card",
+    "text": "热门目的地 山西 551四川 532云南 393贵州",
+    "why": "class/attr"
+   },
+   {
+    "el": "div.ph",
+    "text": "从哪里开始",
+    "why": "cursor"
+   },
+   {
+    "el": "div.input-bar",
+    "text": "开始规划",
+    "why": "cursor"
+   },
+   {
+    "el": "div.ph",
+    "text": "AI 精选路线",
+    "why": "cursor"
+   },
+   {
+    "el": "div.fld",
+    "text": "目的地（哪个省 / 城市）",
+    "why": "cursor"
+   },
+   {
+    "el": "div.fld",
+    "text": "游玩天数1-15 天",
+    "why": "cursor"
+   },
+   {
+    "el": "div.row",
+    "text": "1-15 天",
+    "why": "cursor"
+   },
+   {
+    "el": "span",
+    "text": "1-15 天",
+    "why": "cursor"
+   },
+   {
+    "el": "div.fld",
+    "text": "出行方式 自驾公共交通其他",
+    "why": "cursor"
+   },
+   {
+    "el": "div.fld",
+    "text": "景点偏好 必去网红推荐",
+    "why": "cursor"
+   },
+   {
+    "el": "div",
+    "text": "AI 参考全网热门行程出 5 条方案；选一条后可继续",
+    "why": "cursor"
+   },
+   {
+    "el": "div.ph",
+    "text": "热门目的地",
+    "why": "cursor"
+   },
+   {
+    "el": "div#destChips.chips",
+    "text": "山西 551四川 532云南 393贵州 373甘肃",
+    "why": "cursor"
+   }
+  ],
+  "deadN": 15,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ },
+ {
+  "page": "md-manager.html",
+  "clickable": 4,
+  "scanned": 7,
+  "dead": [],
+  "deadN": 0,
+  "tinyN": 0,
+  "tiny": [],
+  "offscreen": [],
+  "inlineBad": [],
+  "caps": {
+   "geolocation": true,
+   "share": true,
+   "clipboard": true,
+   "notify": true,
+   "speech": true,
+   "sw": true,
+   "secure": true,
+   "aiKey": false,
+   "amapKey": false,
+   "native": false
+  },
+  "errs": []
+ }
+]

@@ -221,7 +221,7 @@
     var pool = buildPhotoPool();
     if (!pool.length) { toast('还没有照片：先去游记里添加照片'); return; }
     var cells = '<div class="p-grid">' + pool.map(function (p, i) {
-      return '<div class="p-cell" data-i="' + i + '"><img src="' + p.src + '" alt="" onerror="this.remove()"><span class="pl">' + esc(p.label) + '</span></div>';
+      return '<div class="p-cell" data-i="' + i + '"><img loading="lazy" decoding="async" src="' + p.src + '" alt="" onerror="window.UI&&UI.imgFail(this)"><span class="pl">' + esc(p.label) + '</span></div>';
     }).join('') + '</div>';
     var pk = openPicker('选择一张照片', cells);
     pk.el.querySelectorAll('.p-cell').forEach(function (c) {
@@ -233,7 +233,7 @@
   function pickNote(cb) {
     if (!notes.length) { toast('还没有游记'); return; }
     var items = notes.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).map(function (n) {
-      var th = (n.photos && n.photos[0]) ? '<img src="' + n.photos[0] + '" onerror="this.remove()">' : '<span>记</span>';
+      var th = (n.photos && n.photos[0]) ? '<img loading="lazy" decoding="async" src="' + n.photos[0] + '" onerror="window.UI&&UI.imgFail(this)">' : '<span>记</span>';
       return '<div class="n-item" data-id="' + esc(n.id) + '"><div class="th">' + th + '</div>'
         + '<div class="main"><b>' + esc(n.title || n.siteName || '未命名') + '</b><span>' + esc((n.date || '') + (n.weather ? ' · ' + n.weather : '')) + '</span></div></div>';
     }).join('');
@@ -320,7 +320,7 @@
     var photosHtml = '';
     if (ch.photos && ch.photos.length) {
       photosHtml = ch.photos.map(function (p, pi) {
-        return '<div class="eph"><img src="' + p + '" alt="" onerror="this.remove()">'
+        return '<div class="eph"><img loading="lazy" decoding="async" src="' + p + '" alt="" onerror="window.UI&&UI.imgFail(this)">'
           + '<button class="btn" data-act="swap" data-pi="' + pi + '">换</button>'
           + '<button class="btn rm" data-act="rmph" data-pi="' + pi + '">'+TI('close', 12)+'</button></div>';
       }).join('');

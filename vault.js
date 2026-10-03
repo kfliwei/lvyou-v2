@@ -380,7 +380,7 @@
     var photos = (n.photos || []).map(function (p, i) {
       if (!p) return '';
       var cap = /^data:/.test(p) ? ('照片 ' + (i + 1)) : ('照片 ' + (i + 1) + '（原文件未随文档携带）');
-      return '<figure><img src="' + escH(p) + '" alt="照片 ' + (i + 1) + '"><figcaption>' + cap + '</figcaption></figure>';
+      return '<figure><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + escH(p) + '" alt="照片 ' + (i + 1) + '"><figcaption>' + cap + '</figcaption></figure>';
     }).join('');
     var audio = '';
     if (n.audio) {

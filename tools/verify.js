@@ -182,5 +182,44 @@ const EMOJI_MARK = 'emoji-ok:';
   }
 }
 
+/* 11. 图片加载闸门（P0-2）：任何 <img 输出点必须懒加载 + 出错兜底，永不破图。
+   - 每个含 `<img` 的行必须带 loading="lazy"；确属首屏 LCP 要提前加载的，在同一行注 `img-eager-ok: 理由`
+     （沿用 §7 的显式登记思路：豁免必须留名，不许匿名通过）。
+   - 每个 `<img` 必须带 onerror（品牌占位/切换占位类），裸挂远端图无兜底 = FAIL。
+   - 比例系统 token（--ar-list/--ar-cover/--ar-square/--img-scrim）与 .imgbox/.img-fallback 必须在 design.css 定义，
+     产品 CSS 不再手写 4/3、16/9 字面量。 */
+{
+  let bad = 0;
+  const IMG_FILES = fs.readdirSync('.').filter(x => /\.(js|html)$/.test(x) && !/^test-/.test(x) && x !== 'icons-demo.html');
+  let imgTotal = 0, lazyOk = 0, errOk = 0, registered = 0;
+  const lazyBad = [], errBad = [];
+  for (const f of IMG_FILES) {
+    fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      if (!line.includes('<img')) return;
+      imgTotal++;
+      if (line.includes('img-eager-ok:')) { registered++; if (!/onerror=/.test(line)) errBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60)); return; }
+      if (/loading="lazy"/.test(line)) lazyOk++; else lazyBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60));
+      if (/onerror=/.test(line)) errOk++; else errBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60));
+    });
+  }
+  lazyBad.forEach(l => console.log('图片闸门 FAIL（缺 loading="lazy" 或未登记 img-eager-ok）: ' + l));
+  errBad.forEach(l => console.log('图片闸门 FAIL（缺 onerror 占位兜底）: ' + l));
+  const dcss = fs.readFileSync('design.css', 'utf8');
+  ['--ar-list:', '--ar-cover:', '--ar-square:', '--img-scrim:'].forEach(t => {
+    if (!dcss.includes(t)) { console.log('图片闸门 FAIL: design.css 缺比例 token ' + t); bad++; }
+  });
+  if (!/\.imgbox\{/.test(dcss) || !/\.img-fallback\{/.test(dcss)) { console.log('图片闸门 FAIL: design.css 缺 .imgbox/.img-fallback 容器样式'); bad++; }
+  /* 产品 CSS 内禁止裸写 4/3、16/9 字面量（token 定义行除外） */
+  for (const f of ['design.css', 'map.css']) {
+    fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      if (/aspect-ratio:\s*(4\/3|16\/9|1\/1)/.test(line) && !/--ar-/.test(line)) {
+        console.log('图片闸门 FAIL: ' + f + ':' + (i + 1) + ' 比例应走 var(--ar-*) token'); bad++;
+      }
+    });
+  }
+  console.log('图片闸门: <img 输出点 ' + imgTotal + '，lazy ' + (lazyOk + registered) + '，兜底 ' + (errOk + registered) + '，登记豁免 ' + registered);
+  fail += bad + lazyBad.length + errBad.length;
+}
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

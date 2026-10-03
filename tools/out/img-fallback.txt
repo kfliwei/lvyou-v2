@@ -1,0 +1,4 @@
+批次4 断图模拟取证（audit-imgfallback.js 可复跑）
+所有图片请求回 404（比断网更狠的最坏态）
+结果: PASS 零破图 + 占位显形
+截图: imgfb-index.png / imgfb-search.png / imgfb-topic-cards.png / imgfb-topic-sheet.png

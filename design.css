@@ -132,6 +132,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
   --space-6:24px; --space-7:28px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px;
   --radius-xs:6px; --radius-sm:10px; --radius-md:16px; --radius-lg:24px; --radius-xl:32px; --radius-pill:999px;
+  /* 图片比例系统（P0-2）：容器一律走这三个 token，禁止各页自写宽高比 */
+  --ar-list:4/3; --ar-cover:16/9; --ar-square:1/1;
+  --img-scrim:linear-gradient(180deg,transparent 40%,rgba(20,16,12,.55));
   --shadow-soft:0 1px 2px rgba(33,26,19,.04),0 12px 30px -14px rgba(33,26,19,.14);
   --shadow-medium:0 2px 6px rgba(33,26,19,.05),0 22px 48px -18px rgba(33,26,19,.22);
   --shadow-float:0 4px 14px rgba(33,26,19,.08),0 30px 66px -22px rgba(33,26,19,.32);
@@ -400,7 +403,7 @@ img{max-width:100%;display:block}
 @media (hover:hover){.card:hover::after{opacity:1}}
 .card:active{transform:scale(.985)}
 .card.hl{border-color:var(--cinnabar-500);box-shadow:0 0 0 2px rgba(168,50,42,.15)}
-.card .media{position:relative;width:100%;aspect-ratio:4/3;background:var(--paper-200);overflow:hidden}
+.card .media{position:relative;width:100%;aspect-ratio:var(--ar-list);background:var(--paper-200);overflow:hidden}
 .card .media img{width:100%;height:100%;object-fit:cover}
 .card .tag{
   position:absolute;right:8px;top:8px;z-index:2;
@@ -644,7 +647,7 @@ button,a,.chip,.btn,.tabbar button,.bottom-nav__item,.bottom-nav__fab{touch-acti
 
 /* ---- Memory Card（旅行笔记） ---- */
 .memory-card{padding:0;background:transparent}
-.memory-card__image{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-xs)}
+.memory-card__image{width:100%;aspect-ratio:var(--ar-list);object-fit:cover;border-radius:var(--radius-xs)}
 .memory-card__place{margin-top:1rem;font-family:var(--font-serif);font-size:1.5rem;font-weight:400}
 .memory-card__time{margin-top:0.3125rem;color:var(--color-muted);font-size:0.75rem;letter-spacing:.05em}
 .memory-card__story{margin-top:1rem;font-family:var(--font-serif);font-size:1.125rem;line-height:1.75;color:var(--color-ink-soft)}
@@ -1410,3 +1413,25 @@ h1,h2,h3,h4{text-wrap:balance}
 .text-link:active{opacity:.6}
 .map-node:active .map-node__dot{transform:scale(1.25)}
 body .tn-quotes .web:active{background:var(--color-primary);color:#fff}
+
+/* ============================================================
+   图片容器系统（P0-2）：UI.siteImg / UI.imgBox 输出的宿主样式
+   固定比例防 CLS；出错切宣纸纹占位，全站永不出破图图标
+   ============================================================ */
+.imgbox{position:relative;display:block;width:100%;overflow:hidden;background:var(--color-bg-soft);border-radius:var(--radius-md)}
+.imgbox.ar-list{aspect-ratio:var(--ar-list)}
+.imgbox.ar-cover{aspect-ratio:var(--ar-cover)}
+.imgbox.ar-square{aspect-ratio:var(--ar-square)}
+.imgbox>img{width:100%;height:100%;object-fit:cover;display:block}
+.imgbox .img-scrim{position:absolute;inset:0;background:var(--img-scrim);pointer-events:none}
+.img-fallback{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:4px;text-align:center;
+  background:
+    radial-gradient(120% 90% at 18% 12%,rgba(255,255,255,.5),transparent 55%),
+    repeating-linear-gradient(115deg,rgba(120,108,88,.05) 0 2px,transparent 2px 7px),
+    linear-gradient(135deg,var(--color-bg-soft),var(--color-surface));
+  color:var(--color-muted)}
+.img-fallback[hidden]{display:none}
+.img-fallback.ifb-inline{position:relative;inset:auto;flex:none}
+.img-fallback .ifb-ch{font-family:var(--font-serif);font-size:30px;line-height:1;color:rgba(38,36,31,.22)}
+.img-fallback .ifb-ti{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.05em}
+.theme-dark .img-fallback .ifb-ch{color:rgba(239,233,220,.16)}

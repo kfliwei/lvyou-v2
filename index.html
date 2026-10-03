@@ -263,7 +263,7 @@
         </div>
       </div>
       <div id="tripEmpty" style="display:none">
-        <img src="art/empty-journey.svg" alt="" style="width:240px;max-width:80vw;height:auto;display:block;margin:0 auto 6px">
+        <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-journey.svg" alt="" style="width:240px;max-width:80vw;height:auto;display:block;margin:0 auto 6px">
         <p class="trip-empty" style="text-align:center">世界还很大。<br>你的第一段旅程，还没有开始。</p>
         <span class="text-link" style="font-size:14px" onclick="location.href='travel-map.html'">我的足迹 <span class="arr">→</span></span>
       </div>
@@ -424,7 +424,7 @@
         '<div class="story-item__loc">' + t.loc + '</div>' +
         '<div class="story-item__desc">' + t.desc + '</div>' +
         '<div class="story-item__n">' + cntOf(t.id, '凡若干处') + '</div></div>' +
-        '<div class="story-item__stamp"><img src="art/' + t.img + '.svg" alt=""><span>' + t.ch + '</span></div>' +
+        '<div class="story-item__stamp"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/' + t.img + '.svg" alt=""><span>' + t.ch + '</span></div>' +
         '</a>';
     }).join('');
   })();

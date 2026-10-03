@@ -104,7 +104,7 @@
           '<span class="story-item__arr">' + ARR + '</span></a>';
       }
       return '<a class="story-item" href="topic.html?p=' + t.id + '">' +
-        '<span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px ' + t.ring + '"><img src="art/' + t.img + '.svg" alt=""><span>' + t.ch + '</span></span>' +
+        '<span class="story-item__stamp" style="box-shadow:inset 0 0 0 1.5px ' + t.ring + '"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/' + t.img + '.svg" alt=""><span>' + t.ch + '</span></span>' +
         '<span class="story-item__main">' + main + '</span>' +
         '<span class="story-item__arr">' + ARR + '</span></a>';
     }).join('');

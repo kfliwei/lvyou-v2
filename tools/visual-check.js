@@ -258,6 +258,37 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
     else { console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag); failN++; }
   }
+  /* ---------- 性能预算（P0-2 验收项）：LCP < 2.5s、CLS < 0.05 ----------
+     单独干净页测：不装 CLOCK 桩（performance.now 被钉成常量，时间戳会失真）。
+     390x844 + CDP 4x CPU 节流模拟中端安卓；外部 http 仍拦掉（与像素基线同一口径），
+     页面与实景照镜像都是本地文件，测的是"离线壳+中端机"的首屏，不是 CDN 速度。 */
+  {
+    const pp = await browser.newPage();
+    await pp.setRequestInterception(true);
+    pp.on('request', req => { const u = req.url(); if (/^https?:/i.test(u)) req.abort().catch(() => {}); else req.continue().catch(() => {}); });
+    await pp.evaluateOnNewDocument(() => {
+      try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {}
+      window.__perf = { lcp: 0, lcpEl: '', cls: 0 };
+      try {
+        new PerformanceObserver(function (l) { var es = l.getEntries(); var e = es[es.length - 1]; window.__perf.lcp = e.startTime; window.__perf.lcpEl = (e.element && (e.element.tagName + (e.element.id ? '#' + e.element.id : ''))) || e.url || '?'; }).observe({ type: 'largest-contentful-paint', buffered: true });
+        new PerformanceObserver(function (l) { l.getEntries().forEach(function (e) { if (!e.hadRecentInput) window.__perf.cls += e.value; }); }).observe({ type: 'layout-shift', buffered: true });
+      } catch (e) {}
+    });
+    const cdp = await pp.target().createCDPSession();
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    await pp.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+    for (const pn of ['index.html', 'topic.html']) {
+      await pp.goto(pathToFileURL(path.join(ROOT, pn)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+      await new Promise(r => setTimeout(r, 3000));
+      const perf = await pp.evaluate(() => window.__perf);
+      const ok = perf.lcp > 0 && perf.lcp < 2500 && perf.cls < 0.05;
+      report.push({ state: 'perf.' + pn, status: ok ? 'PASS' : 'FAIL', lcpMs: Math.round(perf.lcp), lcpEl: perf.lcpEl, cls: +perf.cls.toFixed(4) });
+      console.log((ok ? 'PASS' : 'FAIL') + ' 性能预算 ' + pn + ' — LCP ' + Math.round(perf.lcp) + 'ms(<2500) 元素=' + perf.lcpEl + ' | CLS ' + perf.cls.toFixed(4) + '(<0.05)');
+      if (!ok) failN++;
+    }
+    await cdp.detach().catch(() => {});
+    await pp.close();
+  }
   await browser.close();
   const ms = Date.now() - t0;
   /* 单页跑不动改写清单与总报告（只覆盖本次涉及的页，避免半截 --update 把别的基线登记丢掉） */

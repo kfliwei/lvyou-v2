@@ -298,7 +298,7 @@
   </div>
   <button class="statOpen" id="statOpen" title="查看游记统计"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 20 V14"/><path d="M12 20 V8"/><path d="M19 20 V11"/></svg></button>
   <div class="emptyTip" id="emptyTip">
-    <img src="art/empty-memory.svg" alt="" style="width:44px;height:auto;flex:0 0 auto">
+    <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="art/empty-memory.svg" alt="" style="width:44px;height:auto;flex:0 0 auto">
     <b>尚无游记</b>
     <span>去专题页或点「随手记」记录第一篇旅程</span>
     <button class="emClose" id="emptyClose" title="不再提示"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
@@ -420,13 +420,13 @@ function refresh(){
     const photo=first.photos&&first.photos.length?first.photos[0]:null;
     if(isGroup){
       const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
-      const nodeInner=(photo?'<img src="'+photo+'" alt="" onerror="this.remove()">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>')+'<span class="mem-badge">'+items.length+'</span>';
+      const nodeInner=(photo?'<img loading="lazy" decoding="async" src="'+photo+'" alt="" onerror="window.UI&&UI.imgFail(this)">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>')+'<span class="mem-badge">'+items.length+'</span>';
       return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:photo?[44,44]:[26,26], anchor:photo?[22,22]:[13,13], onclick:function(){openGroupSheet(items);} };
     }
     const n=items[0];
     const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
     const nodeInner=photo
-      ?'<img src="'+photo+'" alt="" onerror="this.remove()">'
+      ?'<img loading="lazy" decoding="async" src="'+photo+'" alt="" onerror="window.UI&&UI.imgFail(this)">'
       :((isStart||isEnd)?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':'<span class="mem-dot" style="background:'+tagColor(n)+'"></span>');
     const size=(isStart||isEnd)?[40,40]:(photo?[44,44]:[26,26]);
     const anchor=(isStart||isEnd)?[20,20]:(photo?[22,22]:[13,13]);
@@ -530,7 +530,7 @@ function openGroupSheet(items){
   const listHtml=sorted.map(function(n){
     const d=new Date(n.ts);
     const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    const th=(n.photos&&n.photos.length)?'<img src="'+n.photos[0]+'" onclick="zoomPhoto(this.src)" onerror="this.style.display=\'none\'">':'<span>记</span>';
+    const th=(n.photos&&n.photos.length)?'<img loading="lazy" decoding="async" src="'+n.photos[0]+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">':'<span>记</span>';
     const t=(n.title||n.siteName||'未命名');
     return '<div class="ms-item" onclick="openMemSheetById(\''+n.id+'\')">'
       +'<div class="ms-item__th">'+th+'</div>'
@@ -558,7 +558,7 @@ function openMemSheet(n){
   const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   const place=esc(n.title||n.siteName||'未命名地点');
   const story=esc((n.text||n.raw)||'');
-  const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img src="'+x+'" onclick="zoomPhoto(this.src)" onerror="this.style.display=\'none\'">').join('')+'</div>':'';
+  const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img loading="lazy" decoding="async" src="'+x+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">').join('')+'</div>':'';
   const audioHtml=n.audio?'<div class="ms-audio"><span style="font-size:13px;color:var(--color-primary-dark);font-weight:600">▶ 原声</span><audio controls preload="none" src="'+n.audio+'"></audio></div>':'';
   const tagsHtml=(n.tags&&n.tags.length)?'<div class="ms-tags">'+n.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'';
   const locHtml=n.lat!=null?'<div class="ms-loc">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';

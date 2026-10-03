@@ -325,7 +325,7 @@
       + '<div class="stat"><b>' + s.audio + '</b><span>段录音</span></div>'
       + '</div>';
     var cards = s.notes.slice().sort(function (a, b) { return b.ts - a.ts; }).map(function (n, i) {
-      var pics = (n.photos && n.photos.length) ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">' + n.photos.map(function (p) { return '<img src="' + esc(p) + '" style="max-width:46%;border-radius:10px">'; }).join('') + '</div>' : '';
+      var pics = (n.photos && n.photos.length) ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">' + n.photos.map(function (p) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '" style="max-width:46%;border-radius:10px">'; }).join('') + '</div>' : '';
       var tags = (n.tags && n.tags.length) ? '<div style="margin:8px 0">' + n.tags.map(function (t) { return '<span class="tag">#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
       var q = pickQuote(n.siteName || n.title || '');
       var quoteHtml = q ? '<div class="q">「' + esc(q.t) + '」——' + esc(q.a) + '</div>' : '';
@@ -350,7 +350,7 @@
         var quoteHtml = q ? '<div class="q">「' + esc(q.t) + '」——' + esc(q.a) + '</div>' : '';
         return '<div class="card"><h2>' + esc(name) + '</h2>'
           + '<div class="m">首次探访 ' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
-          + (n.photos && n.photos[0] ? '<div style="margin:10px 0"><img src="' + esc(n.photos[0]) + '" style="max-width:100%;border-radius:12px"></div>' : '')
+          + (n.photos && n.photos[0] ? '<div style="margin:10px 0"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(n.photos[0]) + '" style="max-width:100%;border-radius:12px"></div>' : '')
           + '<div class="t">' + esc((n.text || n.raw || '').slice(0, 220)) + (n.text && n.text.length > 220 ? '…' : '') + '</div>' + quoteHtml + '</div>';
       }).join('');
       var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), cards);

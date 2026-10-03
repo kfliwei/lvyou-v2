@@ -333,15 +333,15 @@
     if (ch.photos && ch.photos.length) {
       if (ch.layout === 'duo' && ch.photos.length >= 2) {
         h.push('<div class="al-duo">'
-          + '<img class="al-ch-img" src="' + ch.photos[0] + '" alt="" onerror="this.remove()">'
-          + '<img class="al-ch-img" src="' + ch.photos[1] + '" alt="" onerror="this.remove()">'
+          + '<img loading="lazy" decoding="async" class="al-ch-img" src="' + ch.photos[0] + '" alt="" onerror="window.UI&&UI.imgFail(this)">'
+          + '<img loading="lazy" decoding="async" class="al-ch-img" src="' + ch.photos[1] + '" alt="" onerror="window.UI&&UI.imgFail(this)">'
           + '</div>');
       } else {
         var cls = ch.layout === 'wide' ? 'al-ch-img al-ch-img--wide' : (ch.layout === 'tall' ? 'al-ch-img al-ch-img--tall' : 'al-ch-img');
-        h.push('<img class="' + cls + '" src="' + ch.photos[0] + '" alt="" onerror="this.remove()">');
+        h.push('<img loading="lazy" decoding="async" class="' + cls + '" src="' + ch.photos[0] + '" alt="" onerror="window.UI&&UI.imgFail(this)">');
         // 多余的图，纵向补排
         for (var k = 1; k < ch.photos.length; k++) {
-          h.push('<img class="al-ch-img" src="' + ch.photos[k] + '" alt="" onerror="this.remove()" style="margin-top:14px">');
+          h.push('<img loading="lazy" decoding="async" class="al-ch-img" src="' + ch.photos[k] + '" alt="" onerror="window.UI&&UI.imgFail(this)" style="margin-top:14px">');
         }
       }
       if (ch.caption) h.push('<div class="al-ch-caption">' + esc(ch.caption) + '</div>');

@@ -1,0 +1,1084 @@
+[
+ {
+  "page": "index.html",
+  "tried": 6,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "div.hero__search.fade-up",
+    "text": "",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button.hero__cta-ghost",
+    "text": "记随手记",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "span.text-link",
+    "text": "我的足迹 →",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button.ha-btn.seal",
+    "text": "随手记",
+    "outcome": "reacted",
+    "blocked": "span",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button.ha-btn.line",
+    "text": "旅程回顾",
+    "outcome": "nav",
+    "blocked": "div",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button#bkGo",
+    "text": "去备份",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "topic.html",
+  "tried": 7,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 10,
+    "el": "button.chip",
+    "text": "江河瀑布",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 21,
+    "el": "button.chip",
+    "text": "其他",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 31,
+    "el": "button.chip",
+    "text": "广安市",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 41,
+    "el": "button.chip",
+    "text": "达州市",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 73,
+    "el": "button#dayLegendBtn.dayLegendBtn",
+    "text": "每日色",
+    "outcome": "reacted",
+    "blocked": "button#legOpen.legOpen",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 259,
+    "el": "button.rs-chip",
+    "text": "森林草原 44",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "travel-map.html",
+  "tried": 8,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button.act",
+    "text": "随手记",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button.act.sec",
+    "text": "游记",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button#layBtn",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button#zoomIn",
+    "text": "+",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 7,
+    "el": "button#zoomOut",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 10,
+    "el": "button#statClose.statClose",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 12,
+    "el": "button#emptyClose.emClose",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "search.html",
+  "tried": 2,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "‹",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button#mic.mic",
+    "text": "语音搜索",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "wishlist.html",
+  "tried": 4,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button#wlMapBtn.wl-btn",
+    "text": "地图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button.wl-btn",
+    "text": "复制",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "清单是空的",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button.wl-btn",
+    "text": "探索",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "review.html",
+  "tried": 14,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button#aiReport.btn-secondary",
+    "text": "年度报告",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button#posterBtnH.btn-secondary",
+    "text": "横版海报",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有带位置的游记，先去记录一段旅程吧",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button#posterCarto.is-btn",
+    "text": "制图海报",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有带位置的游记，先去记录一段旅程吧",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#posterBtn.btn-primary",
+    "text": "足迹海报",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有带位置的游记，先去记录一段旅程吧",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button.ws-item",
+    "text": "旅行图册把游记排成纵向沉浸的杂志式旅行书，可",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button.ws-item",
+    "text": "旅行纪念册全部游记 + 名言，汇成一册可导出",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记，先去记录几篇吧",
+    "err": ""
+   },
+   {
+    "i": 7,
+    "el": "button.ws-item",
+    "text": "个人图鉴探访过的景点，逐个收录成册 ›",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记",
+    "err": ""
+   },
+   {
+    "i": 8,
+    "el": "button.ws-item",
+    "text": "旅程故事把时间线交给 AI，写成一整篇旅行散",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记，先去记录几篇吧",
+    "err": ""
+   },
+   {
+    "i": 9,
+    "el": "button.ws-item",
+    "text": "定制路书把去过的（或专题里的）景点串成每日路",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 10,
+    "el": "button#yrPrev",
+    "text": "‹ 年",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 11,
+    "el": "button#calPrev",
+    "text": "‹",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 12,
+    "el": "button#yrNext",
+    "text": "年 ›",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 13,
+    "el": "button#calNext",
+    "text": "›",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "settings.html",
+  "tried": 14,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button",
+    "text": "阿里百炼",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button",
+    "text": "Kimi",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 7,
+    "el": "button",
+    "text": "自定义",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 9,
+    "el": "button#btnTest.btn-secondary",
+    "text": "④ 测试连接",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 11,
+    "el": "button.on",
+    "text": "5 秒",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 13,
+    "el": "div#swKeep.sw",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 16,
+    "el": "button.on",
+    "text": "标准",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 18,
+    "el": "button",
+    "text": "更密集",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 20,
+    "el": "button",
+    "text": "更稀疏",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 22,
+    "el": "button.btn-secondary",
+    "text": "管理 MD 库",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 25,
+    "el": "button.on",
+    "text": "跟随系统",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "已切换深色模式",
+    "err": ""
+   },
+   {
+    "i": 27,
+    "el": "button",
+    "text": "深色",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "已切换深色模式",
+    "err": ""
+   },
+   {
+    "i": 29,
+    "el": "button.btn-secondary",
+    "text": "导入备份",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "正在打开导入面板…",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "me.html",
+  "tried": 1,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "node-manager.html",
+  "tried": 6,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "a.leaflet-control-zoom-in",
+    "text": "+",
+    "outcome": "unclear",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "a.leaflet-control-zoom-out",
+    "text": "−",
+    "outcome": "unclear",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#qKey.keybtn",
+    "text": "配置高德 Key",
+    "outcome": "unclear",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button#qGo.go",
+    "text": "搜索",
+    "outcome": "unclear",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button.nm-fab",
+    "text": "＋",
+    "outcome": "unclear",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "album.html",
+  "tried": 2,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.al-back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button.btn",
+    "text": "去记录 →",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "album-edit.html",
+  "tried": 12,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.ed-back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button#edDone.ed-done",
+    "text": "完成",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button#cvSwap.ed-cover__btn",
+    "text": "换封面",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有照片：先去游记里添加照片",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button.ech-del.danger",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button.lay-mode",
+    "text": "大图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button.lay-mode",
+    "text": "双图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button.lay-mode",
+    "text": "全宽",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 7,
+    "el": "button.lay-mode.active",
+    "text": "文字",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 8,
+    "el": "button#addPhoto.add-btn",
+    "text": "+添加照片",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有照片：先去游记里添加照片",
+    "err": ""
+   },
+   {
+    "i": 9,
+    "el": "button#addMemory.add-btn",
+    "text": "+添加记忆",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记",
+    "err": ""
+   },
+   {
+    "i": 10,
+    "el": "button#addText.add-btn",
+    "text": "+添加文字",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 11,
+    "el": "button#addMap.add-btn",
+    "text": "+添加地图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有带位置的游记",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "story.html",
+  "tried": 5,
+  "noop": [
+   {
+    "i": 3,
+    "el": "button#snPrev.sn-btn",
+    "text": "‹",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#snNext.sn-btn",
+    "text": "›",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "a.leaflet-control-zoom-in",
+    "text": "+",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "a.leaflet-control-zoom-out",
+    "text": "−",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button#snPrev.sn-btn",
+    "text": "‹",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#snNext.sn-btn",
+    "text": "›",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "planner.html",
+  "tried": 7,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button.on",
+    "text": "关",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#genBtn.btn.primary",
+    "text": "开始规划",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "先告诉我你想去哪、玩几天",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button#arBtn.btn.primary",
+    "text": "上网查询 · 生成 5 条备选路线",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "请先在「设置 → AI 助手」配置站点与 Key",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "span.chip",
+    "text": "山西 551",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 16,
+    "el": "span.chip",
+    "text": "香港",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 17,
+    "el": "span.chip",
+    "text": "上海",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "md-manager.html",
+  "tried": 4,
+  "noop": [
+   {
+    "i": 3,
+    "el": "button.btn-secondary",
+    "text": "导入 MD 文件",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   }
+  ],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button.btn-secondary",
+    "text": "导入 MD 文件",
+    "outcome": "noop",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button#btnExt.btn-secondary",
+    "text": "外部 MD",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button.btn-primary",
+    "text": "导出整库",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记可导出",
+    "err": ""
+   }
+  ]
+ },
+ {
+  "page": "explore-map.html",
+  "tried": 1,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   }
+  ]
+ }
+]

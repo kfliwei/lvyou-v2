@@ -745,7 +745,7 @@
     } catch (e) {}
     var loc = [u.category, u.city].filter(Boolean).join(' · ') + (u.elev ? ' · 海拔 ' + u.elev + 'm' : '') + (u.address ? ' · ' + u.address : '');
     box.innerHTML =
-      (u.coverImage ? '<div style="width:100%;height:150px;border-radius:14px;overflow:hidden;margin-bottom:10px"><img src="' + u.coverImage + '" alt="' + esc(u.name) + '" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
+      (u.coverImage ? '<div style="width:100%;height:150px;border-radius:14px;overflow:hidden;margin-bottom:10px"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + u.coverImage + '" alt="' + esc(u.name) + '" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
       '<div class="is-place">' + esc(u.name) + ' <span style="font-size:11px;color:#5F7A4E;vertical-align:2px">我的地点</span></div>' +
       '<div class="is-loc">' + esc(loc) + '</div>' +
       (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
@@ -821,7 +821,7 @@
       '<div class="ui-modal-text nm-body">' +
       '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">' +
       '<div style="flex:0 0 64px;height:64px;border-radius:12px;overflow:hidden;background:var(--color-bg-soft);display:grid;place-items:center;color:var(--color-faint);font-size:10px;text-align:center;position:relative" id="nmPhotoBox">' +
-      (preset && preset.coverImage ? '<img id="nmPhotoImg" src="' + preset.coverImage + '" style="width:100%;height:100%;object-fit:cover">' : '<span id="nmPhotoTxt">封面<br>照片</span>') +
+      (preset && preset.coverImage ? '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="nmPhotoImg" src="' + preset.coverImage + '" style="width:100%;height:100%;object-fit:cover">' : '<span id="nmPhotoTxt">封面<br>照片</span>') +
       '</div>' +
       '<div style="flex:1;min-width:0">' +
       (preset && preset.lat != null ? '<div class="nm-coord" style="margin-bottom:6px">'+TI('pin', 12)+'' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + (preset.uid ? ' <button id="nmRepick" type="button" style="border:0;background:none;color:var(--color-primary-dark);font-size:11.5px;cursor:pointer;padding:0">移动位置 ›</button>' : '') + '</div>' : '') +
@@ -874,7 +874,7 @@
           c.getContext('2d').drawImage(img, 0, 0, w, h);
           var b64 = c.toDataURL('image/jpeg', 0.7);
           var box = m.querySelector('#nmPhotoBox');
-          box.innerHTML = '<img id="nmPhotoImg" src="' + b64 + '" style="width:100%;height:100%;object-fit:cover">';
+          box.innerHTML = '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="nmPhotoImg" src="' + b64 + '" style="width:100%;height:100%;object-fit:cover">';
           box.dataset.cover = b64;
         };
         img.src = rd.result;
@@ -972,7 +972,7 @@
     box.innerHTML = arr.map(function (u) {
       var _w = window.Wish && Wish.isWished(u);
       return '<div class="nm-item">' +
-        (u.coverImage ? '<div style="flex:0 0 44px;height:44px;border-radius:10px;overflow:hidden"><img src="' + u.coverImage + '" alt="" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
+        (u.coverImage ? '<div style="flex:0 0 44px;height:44px;border-radius:10px;overflow:hidden"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + u.coverImage + '" alt="" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
         '<div class="nm-item-main"><b>' + esc(u.name) + (_w ? ' <span style="font-size:10px;color:var(--color-primary-dark)">想去</span>' : '') + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ') + (u.elev ? ' · ' + u.elev + 'm' : '')) + '</small></div>' +
         '<button class="nm-item-btn" onclick="window.NM.locate(\'' + u.id + '\')">定位</button>' +
         '<button class="nm-item-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +

@@ -85,7 +85,50 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc };
+  /* ---------- 图片容器（P0-2）：比例 token 防 CLS + lazy + 出错切品牌占位，永不破图 ---------- */
+  /* 出错时用等尺寸占位节点原位替换 img（不删不留洞），适配任意容器（imgbox / 裸 img 缩略图） */
+  function imgFail(el) {
+    try {
+      var st = window.getComputedStyle(el);
+      var hh = el.offsetHeight || parseInt(st.height, 10) || 0;
+      var ch = el.getAttribute('data-ch') || '景';
+      var d = document.createElement('div');
+      d.className = 'img-fallback ifb-inline';
+      d.style.width = st.width;
+      d.style.height = st.height;
+      d.style.borderRadius = st.borderRadius;
+      d.style.flex = st.flex;
+      /* 无固定尺寸的裸 img（按内在尺寸撑开）出错后高度为 0，给 4/3 兜底框防止塌陷留洞 */
+      if (hh < 12) { d.style.height = 'auto'; d.style.aspectRatio = '4 / 3'; if (st.width === '0px') d.style.width = '100%'; }
+      d.innerHTML = '<span class="ifb-ch">' + ch + '</span>' +
+        (hh >= 88 && window.TI ? '<span class="ifb-ti">' + TI('pin', 12) + '暂无实景图</span>' : '');
+      el.parentNode && el.parentNode.replaceChild(d, el);
+    } catch (e) { try { el.remove(); } catch (e2) {} }
+  }
+  function imgBox(src, name, opts) {
+    opts = opts || {};
+    var ch = esc((name || '景').charAt(0));
+    var ph = '<div class="img-fallback"><span class="ifb-ch">' + ch + '</span>' +
+      (window.TI ? '<span class="ifb-ti">' + TI('pin', 12) + esc(opts.phText || '暂无实景图') + '</span>' : '') + '</div>';
+    var body = src
+      ? '<img src="' + src + '" alt="' + esc(name || '') + '" loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" data-ch="' + ch + '"' +
+        (opts.imgStyle ? ' style="' + opts.imgStyle + '"' : '') + '>'
+      : ph;
+    return '<div class="imgbox ar-' + (opts.ar || 'list') + (opts.cls ? ' ' + opts.cls : '') + '">' + body + '</div>';
+  }
+  /* 按景点名解析实景照：本地镜像(SITE_IMAGES_LOCAL) → 远端映射(SITE_IMAGES) → 占位 */
+  function siteImg(name, opts) {
+    opts = opts || {};
+    var src = opts.src || '';
+    try {
+      var lm = window.SITE_IMAGES_LOCAL || {};
+      src = lm[name] || src;
+      if (!src) { var m = window.SITE_IMAGES || {}; src = m[name] || ''; }
+    } catch (e) {}
+    return imgBox(src, name, opts);
+  }
+
+  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg };
 })();
 
 /* 标签避让（2026-08-15）：地图名称标签重叠时保留高优先级，低优先级隐藏 */

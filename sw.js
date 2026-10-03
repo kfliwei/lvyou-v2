@@ -1,6 +1,8 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v49';
+var CACHE = 'trace-v50';
 var TILES = 'trace-tiles-v1';
+var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
+var IMG_MAX_ENTRIES = 300;
 var TILE_MAX_ENTRIES = 800;   /* 瓦片缓存上限（约 800 张，防爆 Storage） */
 var TILE_HOSTS = ['tile.openstreetmap.org', 'server.arcgisonline.com', 'tile.opentopomap.org', 'is.autonavi.com'];
 var SHELL = [
@@ -80,6 +82,7 @@ var SHELL = [
   './sc-food.js',
   './sd-data.js',
   './sh-data.js',
+  './site-images-local.js',
   './site-images.js',
   './site-tickets.js',
   './sx-data.js',
@@ -147,17 +150,18 @@ self.addEventListener('install', function (e) {
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
-    return Promise.all(ks.filter(function (k) { return k !== CACHE && k !== TILES; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(ks.filter(function (k) { return k !== CACHE && k !== TILES && k !== SITE_IMGS; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
-/* 瓦片缓存清理：超过上限时删除最早写入的条目 */
-function trimTiles(c) {
+/* 缓存清理：超过上限时删除最早写入的条目 */
+function trimQs(c, max) {
   c.keys().then(function (ks) {
-    if (ks.length <= TILE_MAX_ENTRIES) return;
-    var drop = ks.slice(0, ks.length - TILE_MAX_ENTRIES);
+    if (ks.length <= max) return;
+    var drop = ks.slice(0, ks.length - max);
     Promise.all(drop.map(function (k) { return c.delete(k); }));
   });
 }
+function trimTiles(c) { trimQs(c, TILE_MAX_ENTRIES); }
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
@@ -176,6 +180,19 @@ self.addEventListener('fetch', function (e) {
     return;
   }
   if (url.origin !== location.origin) return;              /* 跨域非瓦片（天气/实景照/API）不拦截 */
+  /* 实景照镜像：cache-first，命中即回，未命中回源后写缓存（LRU 截断） */
+  if (url.pathname.indexOf('/images/sites/') >= 0) {
+    e.respondWith(caches.open(SITE_IMGS).then(function (c) {
+      return c.match(req).then(function (hit) {
+        if (hit) return hit;
+        return fetch(req).then(function (res) {
+          if (res && res.ok) { c.put(req, res.clone()); trimQs(c, IMG_MAX_ENTRIES); }
+          return res;
+        });
+      });
+    }));
+    return;
+  }
   if (req.mode === 'navigate') {                           /* 页面：网络优先，离线回退缓存/首页 */
     e.respondWith(fetch(req).then(function (res) {
       if (res && res.ok) {

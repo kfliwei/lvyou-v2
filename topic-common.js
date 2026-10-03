@@ -240,15 +240,28 @@
 
   /* ---------- 节点 / Sheet ---------- */
   function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0 || (s.flag && s.flag.indexOf('m') >= 0); }
-  /* 实景照映射（tools/gen-site-images.js 生成，高德 POI 图源） */
+  /* 实景照映射（tools/fetch-site-images.js 本地镜像优先，tools/gen-site-images.js 远端兜底，图源高德 POI） */
   function imgSrc(s) {
     try {
-      var m = window.SITE_IMAGES || {};
-      var u = m[s.id] || m[s.name];
+      var lm = window.SITE_IMAGES_LOCAL || {};
+      var u = lm[s.name];
       if (u) return u;
+    } catch (e) {}
+    try {
+      var m = window.SITE_IMAGES || {};
+      var r = m[s.id] || m[s.name];
+      if (r) return r;
     } catch (e) {}
     return s.img || '';
   }
+  /* sheet 图框兜底：加载失败时用品牌占位（首字 + 提示文案），不留空框 */
+  window.SITE_IMG_FAIL = function (el) {
+    try {
+      var box = el.parentNode;
+      if (!box || !box.classList.contains('ls-img')) { el.style.display = 'none'; return; }
+      box.innerHTML = '<div class="ls-img-ph"><span class="ls-img-ph-ch">' + esc(el.dataset.ch || '景') + '</span><i>暂无实景图</i></div>';
+    } catch (e) { try { el.style.display = 'none'; } catch (e2) {} }
+  };
   function nodeIcon(s, active, dim) {
     var f = s.flag || '';
     /* 配色收敛（规范 §47）：地图节点不再按主题 38 色着色，统一中性色 + 重点强调 */
@@ -305,7 +318,7 @@
     var s = SITES[i]; if (!s) return '';
     var inT = inTrip(i);
     var img = '<div class="ls-img" id="lsImgBox">' + (imgSrc(s)
-    ? '<img src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" onerror="this.style.display=\'none\'">'
+    ? '<img loading="lazy" decoding="async" src="' + imgSrc(s) + '" alt="' + esc(s.label) + '" data-ch="' + esc((s.label || '景').charAt(0)) + '" onerror="window.SITE_IMG_FAIL&&SITE_IMG_FAIL(this)">'
     : '<div class="ls-img-ph"><span class="ls-img-ph-ch">' + esc((s.label || '景').charAt(0)) + '</span><i>实景照加载中…</i></div>') + '</div>';
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc"><span class="ls-thdot" style="background:' + colorOf(s) + '"></span>' + esc(tk(s)) + ' · ' + locParts(s).join(' · ') + '</div>' +
@@ -389,10 +402,11 @@
   /* ---------- 节点天气（Open-Meteo，免 Key，30 分钟缓存） ---------- */
   var WMO = { 0: '晴', 1: '多云', 2: '多云', 3: '阴', 45: '雾', 48: '雾凇', 51: '毛毛雨', 53: '毛毛雨', 55: '毛毛雨', 56: '冻雨', 57: '冻雨', 61: '小雨', 63: '中雨', 65: '大雨', 66: '冻雨', 67: '冻雨', 71: '小雪', 73: '中雪', 75: '大雪', 77: '雪粒', 80: '阵雨', 81: '阵雨', 82: '强阵雨', 85: '阵雪', 86: '强阵雪', 95: '雷暴', 96: '雷暴冰雹', 99: '雷暴冰雹' };
   function weatherIcon(code) { var c = +code; if (c === 0) return TI('sun', 14); if (c <= 3) return TI('cloudsun', 14); if (c <= 48) return TI('cloud', 14); if (c <= 67) return TI('rain', 14); if (c <= 77) return TI('snow', 14); if (c <= 86) return TI('rain', 14); return TI('bolt', 14); }
-  /* 实景照三级获取：静态映射(SITE_IMAGES) → localStorage 7天缓存 → 高德实时拉取 */
+  /* 实景照四级获取：本地镜像(SITE_IMAGES_LOCAL) → 远端映射(SITE_IMAGES) → localStorage 7天缓存 → 高德实时拉取；全落空返回 null 由调用方画占位 */
   function loadSitePhoto(s, cb) {
     if (!s) { cb && cb(null); return; }
     var u = imgSrc(s);
+    if (u && u.indexOf('http') !== 0) { cb && cb(u); return; }
     if (u && u.indexOf('http') === 0 && u.indexOf('autonavi') >= 0) { cb && cb(u); return; }
     try {
       var c = JSON.parse(localStorage.getItem('tn_photo_' + s.name) || 'null');
@@ -501,13 +515,18 @@
     if (_s0) {
       loadSitePhoto(_s0, function (u) {
         var box = document.getElementById('lsImgBox');
-        if (!box || !u) return;
+        if (!box) return;
+        if (!u) {
+          var ph = box.querySelector('.ls-img-ph i');
+          if (ph && ph.textContent === '实景照加载中…') ph.textContent = '暂无实景图';
+          return;
+        }
         var img = box.querySelector('img');
         if (!img) {
-          box.innerHTML = '<img src="' + u + '" alt="' + esc(_s0.label) + '" style="width:100%;height:100%;object-fit:cover">';
+          box.innerHTML = '<img loading="lazy" decoding="async" src="' + u + '" alt="' + esc(_s0.label) + '" data-ch="' + esc((_s0.label || '景').charAt(0)) + '" style="width:100%;height:100%;object-fit:cover" onerror="window.SITE_IMG_FAIL&&SITE_IMG_FAIL(this)">';
         } else if (img.getAttribute('src') !== u) {
           img.src = u;
-          img.onerror = function () { img.style.display = 'none'; };
+          img.onerror = function () { window.SITE_IMG_FAIL && SITE_IMG_FAIL(img); };
         }
       });
     }
