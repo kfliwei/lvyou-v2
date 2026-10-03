@@ -42,7 +42,7 @@ const REINDEX = argv.includes('--reindex');
 const SEEDONLY = argv.includes('--seed');
 const onlyPages = argv.filter(a => !a.startsWith('--'));
 
-/* 状态清单：page → 视口列表。地图页（瓦片随时间变化）用宽阈值。
+/* 状态清单：page → 视口列表。地图页不再有宽阈值（拦掉请求后它和普通页一样确定，理由见下方阈值注释）。
  * 两种数据态：
  *   空库态（默认）——全新浏览器档案，localStorage/IDB 皆空，抓的是"新用户第一眼"；
  *   种子态（--seed 或全量跑的后半程）——用项目自带的 test-data.js 灌 8 条示例游记，
@@ -53,18 +53,21 @@ const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'revi
 /* 种子态只跑"内容随游记数据变化"的页。选页判据（实测，不是猜的）：与同页空库态做像素差，
  * 差异可见才算有覆盖增量；wishlist / node-manager 曾入列但差 0.00%（示例数据只写游记库），已剔除。
  * index 也已剔除：它的有数据区（RECENT JOURNEY）在折叠线以下，视口内与空库态差 0.02%，等于白拍。
- * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 三视口覆盖）。 */
+ * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 四视口覆盖）。 */
 const SEED_PAGES = ['review.html', 'album.html', 'story.html', 'travel-map.html'];
 /* 种子态页必须同时在 PAGES 里——否则它的种子基线没有同页空库基线可比，"这态有没有增量"就无从量。 */
-const VIEWPORTS = [[390, 844], [768, 1024], [1440, 900]];
+/* 320 档是批次 7-C 补的：竖排题签这类"一个字宽也要占位"的组件，判不破版的下限就是 320
+   （最小在售安卓机 CSS 宽度）。加一档 = 多 15 个基线，重建要跑 --update。 */
+const VIEWPORTS = [[320, 640], [390, 844], [768, 1024], [1440, 900]];
 const SEED_VIEWPORTS = [[390, 844]];
 /* 阈值按实测噪声定，不是拍脑袋：时间/随机/CSS 动画钉死 + 所有 http(s) 请求拦掉 + 基线在
- * prefers-reduced-motion 下拍之后，49 个状态连跑两遍**每一态都是 0.00%**（日志归档
+ * prefers-reduced-motion 下拍之后，64 个状态连跑两遍**每一态都是 0.00%**（批次 7-D 复跑 293.6s + 282.5s，
+ * 日志 tools/out/b7d-gate-battery.txt；四视口之前是 49 态，那两遍的日志归档
  * tools/out/shots/2026-10-03-visualgate-mutation2/vc-rm-{1,2}.log）。
  * 0.1% 不是贴着噪声留的，是给跨机器留余量：本机零噪声不代表别的字体渲染环境也零噪声。
  * 反向验证（改 --color-primary）实测最小 diff 0.11%，所以这条线再往下收才有意义，先不动。
  * 地图页不再有单独宽松阈值：以前松到 1% 是因为瓦片是外部资源（同代码连跑飘 1–5.5%），
- * 拦掉请求后 topic/explore-map/travel-map 十个态全部 0.00%，"地图页"就只是普通页；
+ * 拦掉请求后 topic/explore-map/travel-map 这三页各态全部 0.00%，"地图页"就只是普通页；
  * 留着那个 if 等于给网络依赖留一道后门——反向验证时 explore-map/travel-map 的 0.11–0.27%
  * 正是被这道后门放过去的（旧基线那次 21 FAIL，删掉特例后同一改动 26 FAIL）。
  * 对照：改阈值前是 0.5%/8%，那时把 --color-primary 整体改色（195 处引用）闸门 49 张全绿——
@@ -153,7 +156,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
    * 代价：动效路径不进像素基线（它本质不可复现），由静帧墨量断言 + 真机/人审覆盖。 */
   await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
 
-  /* 状态矩阵：空库态全量 × 三视口，种子态只跑内容页 × 390；
+  /* 状态矩阵：空库态全量 × 四视口，种子态只跑内容页 × 390；
      带页名参数只跑该页空库态，--seed 只跑种子态（两者分开跑，--update 时清单是合并写入不会丢登记） */
   const states = [];
   if (onlyPages.length) {

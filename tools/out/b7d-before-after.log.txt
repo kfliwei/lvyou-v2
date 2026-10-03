@@ -1,0 +1,38 @@
+   openTrip(.b7-before) → ok
+01-map-pin [before] 探针 {".leaflet-marker-icon":9} · 主题 light · 裁区块 358×388
+   openTrip(lvyou-v2) → ok
+01-map-pin [after] 探针 {".leaflet-marker-icon":9} · 主题 light · 裁区块 358×388
+02-dayseal [before] 探针 {".day-card":6} · 主题 light · 裁区块 320×1575
+02-dayseal [after] 探针 {".day-card":6} · 主题 light · 裁区块 320×1585
+   topic 切 list 页签 → ok
+03-vtitle-topic [before] 探针 {".vtitle":0} · 主题 light · 整屏
+   topic 切 list 页签 → ok
+03-vtitle-topic [after] 探针 {".vtitle":1} · 主题 light · 整屏
+04-vtitle-story [before] 探针 {".vtitle":0} · 主题 light · 整屏
+04-vtitle-story [after] 探针 {".vtitle":1} · 主题 light · 整屏
+05-empty-light [before] 探针 {".empty-art":0,".empty .emoji":0} · 主题 light · 整屏
+05-empty-light [after] 探针 {".empty-art":1,".empty .emoji":0} · 主题 light · 整屏
+05-empty-dark [before] 探针 {".empty-art":0,".empty .emoji":0} · 主题 dark · 整屏
+05-empty-dark [after] 探针 {".empty-art":1,".empty .emoji":0} · 主题 dark · 整屏
+06-splash [both] 资源预览已拍（非真机；圆形=Android 12 自适应蒙版近似）
+PAIR 01-map-pin__pair.jpg 左=改前(716×776) 右=改后(716×776)
+PAIR 02-dayseal__pair.jpg 左=改前(640×1280) 右=改后(640×1280)
+PAIR 03-vtitle-topic__pair.jpg 左=改前(640×1440) 右=改后(640×1440)
+PAIR 04-vtitle-story__pair.jpg 左=改前(640×1440) 右=改后(640×1440)
+PAIR 05-empty-dark__pair.jpg 左=改前(780×1120) 右=改后(780×1120)
+PAIR 05-empty-light__pair.jpg 左=改前(780×1120) 右=改后(780×1120)
+PAIR 06-splash__pair.jpg 左=改前(780×1688) 右=改后(780×1688)
+对比图: 7 组 × 2 侧，拼接 7 组；pageerror 0
+—— 补拍 ONLY=02,06 ——
+02-dayseal [before] 探针 {".day-card":6,".day-seal":0} · 主题 light · 裁区块 320×771 @y619
+02-dayseal [after] 探针 {".day-card":6,".day-seal":6} · 主题 light · 裁区块 320×771 @y619
+06-splash 资源解析：底色 #f6f1e7 · 描边 #8F5D0E · 4 条路径
+06-splash [both] 资源预览已拍（非真机；圆形=Android 12 自适应蒙版近似）
+PAIR 01-map-pin__pair.jpg 左=改前(716×776) 右=改后(716×776)
+PAIR 02-dayseal__pair.jpg 左=改前(640×1540) 右=改后(640×1540)
+PAIR 03-vtitle-topic__pair.jpg 左=改前(640×1440) 右=改后(640×1440)
+PAIR 04-vtitle-story__pair.jpg 左=改前(640×1440) 右=改后(640×1440)
+PAIR 05-empty-dark__pair.jpg 左=改前(780×1120) 右=改后(780×1120)
+PAIR 05-empty-light__pair.jpg 左=改前(780×1120) 右=改后(780×1120)
+PAIR 06-splash__pair.jpg 左=改前(780×1688) 右=改后(780×1688)
+对比图: 7 组 × 2 侧，拼接 7 组；pageerror 0

@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v52';
+var CACHE = 'trace-v54';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -104,9 +104,15 @@ var SHELL = [
   './images/icon.svg',
   './manifest.webmanifest',
   /* ---- 主题插图 ---- */
+  './art/empty-compass.svg',
+  './art/empty-film.svg',
+  './art/empty-footprint.svg',
   './art/empty-journey.svg',
+  './art/empty-letter.svg',
   './art/empty-md.svg',
   './art/empty-memory.svg',
+  './art/empty-mountain.svg',
+  './art/empty-tent.svg',
   './art/empty-voice.svg',
   './art/hero-journey.svg',
   './art/topic-ah.svg',

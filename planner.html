@@ -76,6 +76,7 @@
   .bdg-m{background:var(--grad-gold);color:#2a1f08;font-weight:600}
   .bdg-h{background:var(--color-blue);color:#fff}
   .bdg-n{background:transparent;border:1px solid rgba(186,117,23,.55);color:var(--color-gold)}
+  .bdg-t{background:var(--color-muted);color:var(--color-bg)}
   /* 汇总条：夜墨玻璃，抬升到悬浮底栏之上 */
   .summbar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 98px);z-index:90;display:flex;flex-direction:column;align-items:stretch;gap:10px;background:var(--grad-night);border:1px solid rgba(220,174,94,.28);color:#fff;border-radius:22px;padding:12px 16px;box-shadow:var(--shadow-pop);margin-top:4px}
   .summbar .info{font-size:13px;line-height:1.5}
@@ -88,8 +89,7 @@
   .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow .25s}
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
-  .day-card .dhead b{font-family:var(--font-serif);font-weight:600;font-size:16px;letter-spacing:.03em}
-  .day-card .dhead span{font-size:11px;color:var(--color-muted);flex:1}
+  .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
   .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background .15s}
   .day-card .stop:active{background:var(--color-bg-soft)}
   .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}

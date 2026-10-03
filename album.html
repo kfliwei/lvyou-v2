@@ -171,7 +171,7 @@
 
   function renderEmpty() {
     document.getElementById('albumRoot').innerHTML =
-      '<div class="al-empty"><div class="em">册</div><b>还没有可以成册的游记</b>'
+      '<div class="al-empty"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="信笺线稿"><path d="M24 20 H76 L96 40 V82 H24 Z"/><path d="M76 20 V40 H96" opacity=".55"/><path d="M36 52 H84 M36 62 H84 M36 72 H68" opacity=".7"/><path d="M18 30 L14 12 L28 16" opacity=".45"/></svg><b>还没有可以成册的游记</b>'
       + '<span>出去走一走，记下几段旅程，<br>这里会慢慢长成一本属于你的旅行书。</span>'
       + '<button class="btn" onclick="location.href=\'travel-map.html\'">去记录 →</button></div>';
     document.getElementById('alEdit').style.display = 'none';

@@ -316,7 +316,26 @@ const EMOJI_MARK = 'emoji-ok:';
     ['L', '--color-ink-soft', '--color-surface', 'body', 'UI.errorBox 描述'],
     ['D', '--color-ink-soft', '--color-surface', 'body', '暗色错误卡描述'],
     ['L', '--color-danger', 'rgba(179,74,63,.12) on --color-surface', 'graphic', 'UI.errorBox 图标（danger 压浅 tint，图形档 3:1）'],
-    ['D', '--color-danger', 'rgba(179,74,63,.12) on --color-surface', 'graphic', '暗色错误卡图标']
+    ['D', '--color-danger', 'rgba(179,74,63,.12) on --color-surface', 'graphic', '暗色错误卡图标'],
+    /* P1-7 日卡蜡封章：章内数字 + 金环均走 --day-c*，压在读卡卡面上 */
+    ['L', '--day-c1', '--color-surface', 'body', '.day-seal.ds-1 日卡章数字'],
+    ['L', '--day-c2', '--color-surface', 'body', '.day-seal.ds-2 日卡章数字'],
+    ['L', '--day-c3', '--color-surface', 'body', '.day-seal.ds-3 日卡章数字'],
+    ['L', '--day-c4', '--color-surface', 'body', '.day-seal.ds-4 日卡章数字'],
+    ['L', '--day-c5', '--color-surface', 'body', '.day-seal.ds-5 日卡章数字'],
+    ['L', '--day-c6', '--color-surface', 'body', '.day-seal.ds-6 日卡章数字'],
+    ['D', '--day-c1', '--color-surface', 'body', '暗色日卡章数字 1'],
+    ['D', '--day-c2', '--color-surface', 'body', '暗色日卡章数字 2'],
+    ['D', '--day-c3', '--color-surface', 'body', '暗色日卡章数字 3'],
+    ['D', '--day-c4', '--color-surface', 'body', '暗色日卡章数字 4'],
+    ['D', '--day-c5', '--color-surface', 'body', '暗色日卡章数字 5'],
+    ['D', '--day-c6', '--color-surface', 'body', '暗色日卡章数字 6'],
+    ['L', '--bg', '--color-primary-dark', 'body', '.map-pin 立针序号 / .day-seal.done「游」印（深陶土实底）'],
+    ['D', '--bg', '--color-primary-dark', 'body', '暗色同上（primary-dark 翻亮，纸色字自动翻深）'],
+    ['L', '--bg', '--color-muted', 'body', '.bdg-t 临时节点徽标（批次7 由内联 #fff 收进 token）'],
+    ['D', '--bg', '--color-muted', 'body', '暗色同上（旧 #fff on #969184 只有 2.1:1，实为暗色 bug）'],
+    ['L', '--color-muted', '--color-bg', 'body', '.vtitle 竖排题签（批次7-C）'],
+    ['D', '--color-muted', '--color-bg', 'body', '暗色竖排题签']
   ];
   let bad = 0;
   console.log('对比度审计（WCAG AA：正文 4.5 · 图形 3 · 装饰须登记豁免）');
@@ -396,6 +415,172 @@ const EMOJI_MARK = 'emoji-ok:';
   } else { console.log('状态矩阵 FAIL: 缺文档 ' + DOC); bad++; }
   console.log('状态矩阵闸门: 核心页 ' + CORE.length + '，errorBox 页 ' + REMOTE.length + '，矩阵行 ' + matrixRows);
   fail += bad;
+}
+
+/* 14. 品牌签名闸门（P1-7 · 批次7）。三个签名动作要"落在 CSS 里、挂在页面上、JS 不再内联色"：
+   ① design.css 定义 .empty-art / .day-seal / .map-pin，且 --day-c1..6 在两主题各有一份；
+   ② 空态线稿真挂载 ≥6 处，且必须是 inline <svg stroke="currentColor">：
+      <img src=*.svg> 里 currentColor 解析成 SVG 自己的 black（暗色瞎），
+      CSS mask 取图走 CORS，file:// 页面拿不到图（APK 里整块空态隐形）——两种回潮都要红；
+      旧 emoji 漂浮样式不得回潮；
+   ③ planner.js 日卡走 day-seal、地图标记走 map-pin，且这两类渲染行不得再内联色。 */
+{
+  let bad = 0;
+  const NL = /\r?\n/;
+  const dcss = fs.readFileSync('design.css', 'utf8');
+  const pl = fs.readFileSync('planner.js', 'utf8');
+  const dcssLines = dcss.split(NL);
+  for (const cls of ['.empty-art', '.day-seal', '.map-pin']) {
+    if (!dcss.includes(cls + '{')) { console.log('品牌签名 FAIL: design.css 缺 ' + cls + '{ 组件样式'); bad++; }
+  }
+  const dkIdx = dcssLines.findIndex(l => /^\.theme-dark\s*\{/.test(l.trim()));
+  if (dkIdx < 0) { console.log('品牌签名 FAIL: design.css 找不到 .theme-dark 块'); bad++; }
+  for (let i = 1; i <= 6; i++) {
+    const tk = '--day-c' + i + ':';
+    const inLight = dcssLines.slice(0, dkIdx < 0 ? dcssLines.length : dkIdx).some(l => l.includes(tk));
+    const inDark = dkIdx >= 0 && dcssLines.slice(dkIdx).some(l => l.includes(tk));
+    if (!inLight || !inDark) { console.log('品牌签名 FAIL: --day-c' + i + ' 缺' + (inLight ? '暗色' : '亮色') + '档（日卡章切主题会掉色）'); bad++; }
+  }
+  if (/\.empty \.emoji\s*\{/.test(dcss)) { console.log('品牌签名 FAIL: .empty .emoji 漂浮样式回潮，应走线稿'); bad++; }
+  const flat = dcss.replace(/\s+/g, ' ');
+  if (/\.empty-art\{[^}]*mask:/.test(flat)) { console.log('品牌签名 FAIL: .empty-art 又用 CSS mask 上色（file:// 下取不到 mask 图，APK 里空态隐形）'); bad++; }
+  const LINE_ART = 'mountain|footprint|tent|letter|film|compass';   /* 6 张线稿；旧的渐变插画(journey/md/memory/voice)仍走 <img>，不在此列 */
+  if (/--art:url\(/.test(flat)) { console.log('品牌签名 FAIL: design.css 残留 --art:url( 挂载变量'); bad++; }
+  const MOUNT_FILES = fs.readdirSync('.').filter(x => /\.(js|html)$/.test(x) && !/^test-/.test(x));
+  let mounts = 0, vmounts = 0;
+  for (const f of MOUNT_FILES) {
+    fs.readFileSync(f, 'utf8').split(NL).forEach((line, i) => {
+      const at = f + ':' + (i + 1);
+      if (line.includes('class="vtitle"')) vmounts++;
+      if (new RegExp('<img[^>]*art/empty-(' + LINE_ART + ')\\.svg').test(line)) { console.log('品牌签名 FAIL: ' + at + ' 线稿又用 <img> 挂载（currentColor 不跟主题，暗色=看不见）'); bad++; }
+      if (/--art:url\(art\/empty-/.test(line)) { console.log('品牌签名 FAIL: ' + at + ' 空态又用 --art mask 挂载（file:// 取不到图）'); bad++; }
+      if (!line.includes('class="empty-art"')) return;
+      mounts++;
+      if (!new RegExp('<svg[^>]*class="empty-art"[^>]*viewBox="0 0 120 100"[^>]*fill="none"[^>]*stroke="currentColor"').test(line)) {
+        console.log('品牌签名 FAIL: ' + at + ' 空态线稿不是 inline <svg class="empty-art" … stroke="currentColor">（换 <img>/mask 都会在某些主题或 APK 里瞎）'); bad++;
+      }
+      if (!/aria-label="[^"]*线稿"/.test(line)) { console.log('品牌签名 FAIL: ' + at + ' 空态线稿缺 aria-label="…线稿"'); bad++; }
+      if (/stroke="#|fill="#/.test(line)) { console.log('品牌签名 FAIL: ' + at + ' 空态线稿内联了硬编码色，应走 currentColor'); bad++; }
+    });
+  }
+  if (mounts < 6) { console.log('品牌签名 FAIL: 空态线稿挂载 ' + mounts + ' 处 < 6（六张插画应各有一处落地）'); bad++; }
+  /* 竖排题签（批次7-C）：组件必须在 CSS 里，且 topic 卷首 + story 开篇两处真挂载 */
+  if (!/\.vtitle\{[^}]*writing-mode:vertical-rl/.test(flat)) { console.log('品牌签名 FAIL: design.css 缺 .vtitle{…writing-mode:vertical-rl…} 竖排组件'); bad++; }
+  if (vmounts < 2) { console.log('品牌签名 FAIL: 竖排题签挂载 ' + vmounts + ' 处 < 2（topic 列表卷首 + story 旅程开篇）'); bad++; }
+  /* art/empty-*.svg 是这六张线稿的画稿源；页面里是内联副本，两者必须逐字一致，否则改画稿不会生效 */
+  const ALL_SRC = MOUNT_FILES.map(f => fs.readFileSync(f, 'utf8')).join('\n');
+  const drift = [];
+  for (const k of LINE_ART.split('|')) {
+    const p = 'art/empty-' + k + '.svg';
+    if (!fs.existsSync(p)) { console.log('品牌签名 FAIL: 缺画稿 ' + p); bad++; continue; }
+    const raw = fs.readFileSync(p, 'utf8').trim();
+    const body = raw.slice(raw.indexOf('>') + 1, raw.lastIndexOf('</svg>')).trim();
+    if (!body || !ALL_SRC.includes(body)) drift.push(k);
+  }
+  if (drift.length) { console.log('品牌签名 FAIL: 画稿与内联线稿已漂移 ' + drift.join(',') + '（改 art/*.svg 要同步挂载处，或反过来）'); bad++; }
+  if (/DAY_COLORS/.test(pl)) { console.log('品牌签名 FAIL: planner.js 仍有 DAY_COLORS 硬编码色板'); bad++; }
+  if (!pl.includes('day-seal')) { console.log('品牌签名 FAIL: planner.js 日卡未挂 day-seal 蜡封章'); bad++; }
+  if (!pl.includes('class="map-pin"')) { console.log('品牌签名 FAIL: planner.js 地图标记未走 map-pin 类'); bad++; }
+  pl.split(NL).forEach((line, i) => {
+    if (!/L\.divIcon\(|day-seal|empty-art/.test(line)) return;
+    const inline = line.match(/background:#[0-9A-Fa-f]{3,6}|color:#[0-9A-Fa-f]{3,6}|border:2px solid #/);
+    if (inline) { console.log('品牌签名 FAIL: planner.js:' + (i + 1) + ' 标记/日卡/空态渲染行仍内联色 ' + inline[0]); bad++; }
+  });
+  console.log('品牌签名闸门: 组件类 3，空态内联挂载 ' + mounts + ' 处，画稿对账 ' + (LINE_ART.split('|').length - drift.length) + '/6，竖排挂载 ' + vmounts + ' 处，token 档 12');
+  fail += bad;
+}
+
+/* 15. 启动屏品牌闸门（P1-7 时刻⑤ · 批次7-D）。
+   这一格的产物在外部安卓壳（不受本仓库 git 管理），所以闸门做「源真值对账」而不是数截图：
+   ① 线稿描边色 = design.css 的 --color-gold（壳里另抄一份十六进制迟早漂）；
+   ② 山脊/雪线/地平线/日 的几何 = art/empty-mountain.svg 按 0.5 缩放 + 居中偏移的换算结果
+      （改画稿不同步启动屏，这里直接红）；
+   ③ Android 12+ 走系统启动屏属性，同时 windowBackground 必须退回纯色，否则系统屏结束后
+      又叠一层带图首帧 = logo 闪两次；
+   ④ 同名 style 是整体替换不是合并，values/themes.xml 的每一项都要在 values-v31 里重抄。
+   壳目录不在本机时打 SKIP，把覆盖缺口写明，不假装通过。 */
+{
+  const SHELL = (process.env.TRACE_ANDROID_SHELL || 'F:/MyAi/trace/lvyou-v2-android').replace(/\\/g, '/');
+  const RES = SHELL + '/app/src/main/res';
+  if (!fs.existsSync(RES)) {
+    console.log('启动屏闸门: SKIP（外部壳 ' + SHELL + ' 不在本机，APK 首帧不在本闸门覆盖内）');
+  } else {
+    let bad = 0;
+    const F = m => { console.log('启动屏 FAIL: ' + m); bad++; };
+    const rd = rel => {
+      const p = RES + '/' + rel;
+      if (!fs.existsSync(p)) { F('缺 ' + rel); return ''; }
+      return fs.readFileSync(p, 'utf8');
+    };
+    /* ① 描边色对账 */
+    const gold15 = (fs.readFileSync('design.css', 'utf8').match(/--color-gold:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
+    if (!gold15) F('design.css 读不到 --color-gold 的十六进制值');
+    const cm = (rd('values/colors.xml').match(/name="gold_deep">([^<]+)</) || [])[1];
+    if (!cm) F('壳 colors.xml 没有 gold_deep');
+    else if (gold15 && cm.toUpperCase() !== gold15.toUpperCase()) F('启动屏线稿 ' + cm + ' ≠ design.css --color-gold ' + gold15 + '（品牌色两处漂移）');
+    const vec = rd('drawable/splash_brand.xml');
+    if (/strokeColor="#/.test(vec)) F('splash_brand 内联了硬编码 strokeColor，应走 @color/gold_deep');
+    if (!/strokeColor="@color\/gold_deep"/.test(vec)) F('splash_brand 没引用 @color/gold_deep');
+    /* ② 几何对账：画稿 d → 0.5 缩放 + 居中偏移 (24,29)，与 vector 的 pathData 逐条比 */
+    const svgRaw = fs.readFileSync('art/empty-mountain.svg', 'utf8');
+    const S = 0.5, OX = 24, OY = 29;   /* viewBox 120×100 → 60×50，居中进 108×108 安全区 */
+    const num = v => String(Math.round(v * 1000) / 1000);
+    const scalePath = d => {
+      const t = d.trim().match(/[A-Za-z]|-?\d*\.?\d+/g) || [];
+      const out = []; let cx = 0, cy = 0;
+      for (let i = 0; i < t.length; i++) {
+        const c = t[i];
+        if (!/^[A-Za-z]$/.test(c)) continue;
+        if (c === 'Z') { out.push('Z'); continue; }
+        if (c === 'M' || c === 'L') {
+          cx = parseFloat(t[++i]); cy = parseFloat(t[++i]);
+          if (!isFinite(cx) || !isFinite(cy)) return null;
+          out.push(c + num(cx * S + OX) + ',' + num(cy * S + OY));
+        } else if (c === 'H') {
+          cx = parseFloat(t[++i]); if (!isFinite(cx)) return null;
+          out.push('L' + num(cx * S + OX) + ',' + num(cy * S + OY));   /* 壳里 H 展开成 L（同一画稿的写法差异） */
+        } else if (c === 'V') {
+          cy = parseFloat(t[++i]); if (!isFinite(cy)) return null;
+          out.push('L' + num(cx * S + OX) + ',' + num(cy * S + OY));
+        } else return null;   /* 画稿改用 C/A/Q/S/T 或相对命令，这个换算器就不覆盖了 */
+      }
+      return out.join(' ');
+    };
+    const norm = s => (s || '').replace(/\s+/g, '');
+    const vecDs = (vec.match(/android:pathData="([^"]+)"/g) || []).map(s => norm(s.slice(s.indexOf('="') + 2, -1)));
+    const srcDs = [...svgRaw.matchAll(/<path[^>]*\sd="([^"]+)"/g)].map(m => m[1]);
+    let geoOk = 0, geoTotal = srcDs.length;
+    srcDs.forEach((d, k) => {
+      const want = norm(scalePath(d));
+      if (!want) { F('画稿第 ' + (k + 1) + ' 条路径含换算器不覆盖的命令，启动屏几何无法对账'); return; }
+      if (!vecDs.includes(want)) F('启动屏第 ' + (k + 1) + ' 条几何与 art/empty-mountain.svg 漂移（应为 ' + want + '）');
+      else geoOk++;
+    });
+    const cir = svgRaw.match(/<circle[^>]*cx="([\d.]+)"[^>]*cy="([\d.]+)"/);
+    if (cir) {
+      geoTotal++;
+      const cc = 'M' + num(parseFloat(cir[1]) * S + OX) + ',' + num(parseFloat(cir[2]) * S + OY);
+      if (!vecDs.some(d => d.startsWith(cc))) F('启动屏「日」没跟画稿圆心走（应从 ' + cc + ' 起笔）');
+      else geoOk++;
+    }
+    /* ③④ 主题对账 */
+    const th = rd('values/themes.xml'), th31 = rd('values-v31/themes.xml');
+    if (!/android:windowBackground">@drawable\/splash_bg</.test(th)) F('values/themes.xml 首帧没挂 @drawable/splash_bg（Android 11 及以下仍是白屏）');
+    const bg = rd('drawable/splash_bg.xml');
+    if (!/<layer-list/.test(bg)) F('splash_bg 不是 layer-list');
+    if (!/gravity="center"/.test(bg)) F('splash_bg 线稿没居中');
+    if (!/@drawable\/splash_brand/.test(bg)) F('splash_bg 没引用 splash_brand');
+    if (!/windowSplashScreenBackground">@color\//.test(th31)) F('values-v31 没配 android:windowSplashScreenBackground');
+    if (!/windowSplashScreenAnimatedIcon">@drawable\/splash_brand</.test(th31)) F('values-v31 没配 android:windowSplashScreenAnimatedIcon=@drawable/splash_brand');
+    const wb31 = (th31.match(/android:windowBackground">([^<]+)</) || [])[1];
+    if (!wb31) F('values-v31 没重抄 windowBackground（同名 style 是替换不是合并，缺项=首帧回白）');
+    else if (/@drawable\//.test(wb31)) F('values-v31 的 windowBackground 用了 @drawable，系统启动屏后又叠带图首帧 = logo 闪两次');
+    const namesOf = s => (s.match(/<item name="[^"]+"/g) || []).map(m => m.slice(12, -1));
+    const miss = namesOf(th).filter(n => !namesOf(th31).includes(n));
+    if (miss.length) F('values-v31 漏重抄：' + miss.join(',') + '（同名 style 整体替换，漏一项等于把那项退回系统默认）');
+    console.log('启动屏闸门: 外部壳 ' + SHELL + ' 对账，线稿色 ' + (cm || '-') + '，几何 ' + geoOk + '/' + geoTotal + ' 吻合，v31 首帧双 logo 抑制 ' + (wb31 && !/@drawable\//.test(wb31) ? 'OK' : '红'));
+    fail += bad;
+  }
 }
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');

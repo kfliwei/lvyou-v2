@@ -1,13 +1,18 @@
 /* tools/smoke-states.js — 批次 6 状态组件行为验证。
  * puppeteer 加载 http://127.0.0.1:PORT 各页，触发 offline / online，
  * 检查 UI.offlineBar 出现/消失；触发 UI.errorBox 渲染并点重试回调；
- * 截图入 tools/out/shots/。NODE_PATH 需指到 tools/node_modules。 */
+ * 截图入 tools/out/shots/<日期>-b6-states/。NODE_PATH 需指到 tools/node_modules。 */
 const path = require('path');
 const fs = require('fs');
 const puppeteer = require('puppeteer-core');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(__dirname, 'out', 'shots');
+/* 带日期目录是入库前提：`.gitignore` 忽略 tools/out/shots/*.png，散在根上的截图只活在本地
+ * （批次 6 那 9 张就这么飘了两天，后来手工归位 2026-10-04-b6-states/）。
+ * 日期取本地：toISOString() 是 UTC，凌晨跑会写进昨天的目录。 */
+const _d = new Date();
+const OUT = path.join(__dirname, 'out', 'shots',
+  [_d.getFullYear(), String(_d.getMonth() + 1).padStart(2, '0'), String(_d.getDate()).padStart(2, '0')].join('-') + '-b6-states');
 if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
 
 const CHROME = process.env.CHROME ||

@@ -1,12 +1,13 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-03T18:50:03.893Z",
+  "generatedAt": "2026-10-03T22:59:38.552Z",
   "viewports": [
+    "320x640",
     "390x844",
     "768x1024",
     "1440x900"
   ],
-  "count": 49,
+  "count": 64,
   "files": {
     "album-edit.1440x900.png": {
       "sha": "fbca74577f790404",
@@ -21,16 +22,16 @@
       "bytes": 449237
     },
     "album.1440x900.png": {
-      "sha": "e57f8589da6239d1",
-      "bytes": 70598
+      "sha": "ec9c0646785af944",
+      "bytes": 70231
     },
     "album.390x844.png": {
-      "sha": "8cae984a2bae558e",
-      "bytes": 50821
+      "sha": "9e7c5861b09f3de1",
+      "bytes": 49374
     },
     "album.768x1024.png": {
-      "sha": "19a24b1eb01b4147",
-      "bytes": 60893
+      "sha": "23c24c8223b48a50",
+      "bytes": 58879
     },
     "album.seed.390x844.png": {
       "sha": "1ede680acd7a8276",
@@ -149,20 +150,20 @@
       "bytes": 283000
     },
     "story.1440x900.png": {
-      "sha": "80146d6d65ec62b3",
-      "bytes": 150231
+      "sha": "8a6ee68db389d216",
+      "bytes": 152688
     },
     "story.390x844.png": {
-      "sha": "0d3b9108d105436a",
-      "bytes": 116108
+      "sha": "8dd1bc2193bfab97",
+      "bytes": 118061
     },
     "story.768x1024.png": {
-      "sha": "df25403041b32ce7",
-      "bytes": 149645
+      "sha": "d02b6f3a6f359d9d",
+      "bytes": 141743
     },
     "story.seed.390x844.png": {
-      "sha": "28d43ac0fb0d06c2",
-      "bytes": 173784
+      "sha": "8aa7d27e454982c9",
+      "bytes": 159684
     },
     "topic.1440x900.png": {
       "sha": "94d8c3a9b8e4729e",
@@ -203,6 +204,66 @@
     "wishlist.768x1024.png": {
       "sha": "3b19dc0103cd6e4e",
       "bytes": 153854
+    },
+    "index.320x640.png": {
+      "sha": "104a0aa392777464",
+      "bytes": 660169
+    },
+    "topic.320x640.png": {
+      "sha": "fc3cd121013e4900",
+      "bytes": 197173
+    },
+    "search.320x640.png": {
+      "sha": "b844013a9bd17f64",
+      "bytes": 113313
+    },
+    "wishlist.320x640.png": {
+      "sha": "8077cf1ed7668944",
+      "bytes": 130619
+    },
+    "review.320x640.png": {
+      "sha": "2b6c53996af0dde2",
+      "bytes": 183473
+    },
+    "settings.320x640.png": {
+      "sha": "d1fe7325994773b4",
+      "bytes": 156659
+    },
+    "me.320x640.png": {
+      "sha": "a1d0044fd15b9343",
+      "bytes": 228079
+    },
+    "node-manager.320x640.png": {
+      "sha": "9a196c7d6ac0706a",
+      "bytes": 84834
+    },
+    "album.320x640.png": {
+      "sha": "c098df6b1ff4f409",
+      "bytes": 46680
+    },
+    "album-edit.320x640.png": {
+      "sha": "e0950b54e175a36a",
+      "bytes": 170747
+    },
+    "story.320x640.png": {
+      "sha": "79306b381b9acd53",
+      "bytes": 105774
+    },
+    "planner.320x640.png": {
+      "sha": "aa5e9e7d2c82de98",
+      "bytes": 161009
+    },
+    "md-manager.320x640.png": {
+      "sha": "281396125c80d8b8",
+      "bytes": 85380
+    },
+    "explore-map.320x640.png": {
+      "sha": "c2a7684892635aa9",
+      "bytes": 160582
+    },
+    "travel-map.320x640.png": {
+      "sha": "6e9c23d38fc02379",
+      "bytes": 138164
     }
   }
 }

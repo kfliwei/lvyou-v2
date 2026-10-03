@@ -1,8 +1,15 @@
 /* sync-assets.js — 前端文件同步到 Android assets（html/js/css/vendor/art/images，保留 assets 特有内容） */
 const fs = require('fs');
 const path = require('path');
-const SRC = 'F:/MyAi/Trace';
-const DST = 'F:/MyAi/Trace/android_app/app/src/main/assets';
+/* 原先两行是硬编码 'F:/MyAi/Trace' 与 'F:/MyAi/Trace/android_app/...'，那是仓库搬进 lvyou-v2/ 之前的布局；
+   搬完之后 SRC 指向工作区根（顶层没有任何 html/js/css），验证段第一句 readFileSync 直接 ENOENT 抛错，
+   等于 README 里"改完前端必须同步"这条收工动作早就空转了。现在一律从脚本位置推，交付壳优先。 */
+const REPO = path.resolve(__dirname, '..');
+const SRC = process.env.TRACE_SRC || REPO;
+const SHELL_DST = path.resolve(REPO, '..', 'lvyou-v2-android', 'app', 'src', 'main', 'assets');
+const REPO_DST = path.join(REPO, 'android_app', 'app', 'src', 'main', 'assets');
+const DST = process.env.TRACE_ASSETS_DST || (fs.existsSync(path.dirname(SHELL_DST)) ? SHELL_DST : REPO_DST);
+console.log('sync 目标: ' + DST + (DST === SHELL_DST ? '（交付壳 lvyou-v2-android）' : '（仓库内 android_app，非构建目标）'));
 
 function copyDir(src, dst) {
   if (!fs.existsSync(src)) return 0;

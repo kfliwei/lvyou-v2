@@ -16,7 +16,10 @@ const { PNG } = require('pngjs');
 
 const ROOT = path.join(__dirname, '..');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const DAY = new Date().toISOString().slice(0, 10);
+/* 本地日期：toISOString() 是 UTC，本地 00:00–08:00 之间跑会把物证写进昨天的目录
+   （实测 2026-10-04 07:39 那一轮就盖了 2026-10-03-p01/ 的 7 张图）。 */
+const _d = new Date();
+const DAY = [_d.getFullYear(), String(_d.getMonth() + 1).padStart(2, '0'), String(_d.getDate()).padStart(2, '0')].join('-');
 const SHOTS = path.join(ROOT, 'tools', 'out', 'shots', DAY + '-p01');
 fs.mkdirSync(SHOTS, { recursive: true });
 

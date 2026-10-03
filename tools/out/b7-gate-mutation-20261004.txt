@@ -1,0 +1,28 @@
+MUT-1 地图标记类改名（.map-pin → .map-pinX）
+  文件 design.css:.map-pin{display:grid
+  结果 命中 1 条
+    品牌签名 FAIL: design.css 缺 .map-pin{ 组件样式
+MUT-2 暗色日卡色档缺失（.theme-dark 的 --day-c4 改名）
+  文件 design.css:--day-c4:#D2B489;
+  结果 命中 1 条
+    品牌签名 FAIL: --day-c4 缺暗色档（日卡章切主题会掉色）
+MUT-4 地图标记行重新内联 hex
+  文件 planner.js:<span class="map-pin"><b>
+  结果 命中 1 条
+    品牌签名 FAIL: planner.js:1225 标记/日卡/空态渲染行仍内联色 background:#C86D4B
+MUT-5 删掉一处空态挂载（album）
+  文件 album.html:class="empty-art"
+  结果 命中 1 条
+    品牌签名 FAIL: 空态线稿挂载 5 处 < 6（六张插画应各有一处落地）
+MUT-6 正向日：空态挂载目录写错（search 指向不存在的 svg）
+  文件 search.html:src="art/empty-mountain.svg"
+  结果 命中 1 条
+    品牌签名 FAIL: search.html:204 空态挂载未指向 art/empty-*.svg
+
+还原后复跑：
+  品牌签名闸门: 组件类 3，空态挂载 6 处，token 档 12
+  === ALL CHECKS PASSED ===MUT-3 旧 emoji 漂浮样式回潮（补测：换唯一锚点 .empty h3{）
+  文件 design.css，锚点 .empty h3{
+  结果 命中 1 条
+    品牌签名 FAIL: .empty .emoji 漂浮样式回潮，应走线稿
+  还原后：品牌签名闸门: 组件类 3，空态挂载 6 处，token 档 12 / === ALL CHECKS PASSED ===

@@ -122,6 +122,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --color-blue:#5F6D76;
   --color-gold:#8F5D0E;          /* 鎏金点缀（P0-4：旧 #BA7517 在纸底 3.41:1，压深到 5.15:1） */
   --color-danger:#B34A3F;        /* 破坏性操作（区别于主色陶土橙） */
+  /* P1-7 日卡蜡封章配色：纸底上数字 ≥4.5:1（verify.js §12 逐档核定） */
+  --day-c1:#9E4E30; --day-c2:#57645A; --day-c3:#54626B;
+  --day-c4:#6E5326; --day-c5:#5D564A; --day-c6:#4A565E;
   --map-bg:#E8E5DC;
   --map-road:#F7F4ED;
   --map-road-secondary:#D8D4CB;
@@ -220,6 +223,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --map-bg:#23221E; --map-road:#2E2B26; --map-road-secondary:#3A3731;
   --map-water:#242E30; --map-green:#242B22; --route-color:#D87B56;
   --color-gold:#C9A05C; --color-danger:#DA6E62;
+  /* P1-7 日卡蜡封章配色（暗色档：数字压到 #1D1C19 上 ≥6.9:1） */
+  --day-c1:#D9A183; --day-c2:#AEC0B0; --day-c3:#A9BCC7;
+  --day-c4:#D2B489; --day-c5:#C8BFAE; --day-c6:#B4C4CD;
 }
 
 /* ============================================================
@@ -458,7 +464,11 @@ img{max-width:100%;display:block}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:var(--sp-8) var(--sp-4);text-align:center;
 }
-.empty .emoji{font-size:3rem;margin-bottom:var(--sp-3);animation:float 3.2s ease-in-out infinite}
+/* P1-7 空态线稿：inline <svg> + stroke="currentColor"，笔触随主题继承。
+   不用 <img src=*.svg>（img 文档里 currentColor 恒为黑，暗色看不见）；
+   也不用 CSS mask（Blink 以 CORS 模式取 mask 图，file:// 页面取不到 → APK 里空态整块隐形） */
+.empty-art{display:block;width:120px;height:100px;margin:0 auto var(--sp-3);color:var(--color-muted)}
+.empty-art .lbl{font-family:var(--font-serif)}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .empty h3{font-family:var(--font-display);font-size:var(--fs-lg);color:var(--ink-900);margin-bottom:var(--sp-2)}
 .empty p{font-size:var(--fs-sm);line-height:1.7;color:var(--ink-500);max-width:260px;font-family:var(--font-serif)}
@@ -1483,3 +1493,33 @@ body .tn-quotes .web:active{background:var(--color-primary);color:var(--bg)}
 .img-fallback .ifb-ch{font-family:var(--font-serif);font-size:30px;line-height:1;color:rgba(38,36,31,.22)}
 .img-fallback .ifb-ti{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.05em}
 .theme-dark .img-fallback .ifb-ch{color:rgba(239,233,220,.16)}
+
+/* ============================================================
+   P1-7 品牌签名动作：日卡蜡封章 + 地图立针
+   颜色全部走 --day-c* / --color-* token，JS 侧不再内联硬编码色
+   ============================================================ */
+.day-seal{position:relative;flex:0 0 auto;display:grid;place-items:center;
+  width:31px;height:31px;border-radius:50%;--dc:var(--day-c1);
+  font-family:var(--font-serif);font-size:12.5px;font-weight:700;line-height:1;letter-spacing:.01em;color:var(--dc);
+  background:radial-gradient(120% 120% at 30% 24%,var(--color-surface),var(--color-bg-soft));
+  box-shadow:inset 0 0 0 1.5px var(--dc),inset 0 0 0 3px var(--color-bg),0 1px 4px rgba(32,31,27,.14)}
+.ds-1{--dc:var(--day-c1)}.ds-2{--dc:var(--day-c2)}.ds-3{--dc:var(--day-c3)}
+.ds-4{--dc:var(--day-c4)}.ds-5{--dc:var(--day-c5)}.ds-6{--dc:var(--day-c6)}
+/* 完成态：盖「游」暗金小印（印身走 primary-dark，两主题纸色字均 ≥5.3:1） */
+.day-seal.done{--dc:var(--color-gold)}
+.day-seal.done::after{content:'游';position:absolute;left:-7px;bottom:-3px;width:15px;height:15px;border-radius:50%;
+  display:grid;place-items:center;font-family:var(--font-serif);font-size:9px;font-weight:600;line-height:1;
+  background:var(--color-primary-dark);color:var(--color-bg);border:1px solid var(--color-bg)}
+/* 地图立针：鎏金圈 + 深陶土针身 + 纸色序号（针身用 primary-dark：两主题下序号均 ≥5.3:1） */
+.map-pin{display:grid;place-items:center;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:var(--color-primary-dark);border:1.5px solid var(--color-gold);box-shadow:0 2px 6px rgba(32,31,27,.35)}
+.map-pin b{transform:rotate(45deg);font-family:var(--font-serif);font-size:11px;font-weight:700;line-height:1;color:var(--color-bg)}
+/* 竖排题签：宣纸排版的签名动作（topic 列表卷首 / story 旅程开篇）。
+   竖排列只占一个字宽 + 一条左边线，320px 窄屏不破版（visual-check 320 档已在闸门里）。
+   text-orientation:upright 让「·」等标点也立排，否则横倒。 */
+.vrow{display:flex;align-items:flex-start;gap:var(--sp-3);margin:0 0 var(--sp-2)}
+.vtitle{writing-mode:vertical-rl;text-orientation:upright;flex:0 0 auto;
+  font-family:var(--font-serif);font-size:var(--fs-sm);letter-spacing:.34em;line-height:1;
+  color:var(--color-muted);border-left:1px solid var(--color-line);padding-left:var(--sp-2)}
+.vlead{margin:0;font-family:var(--font-serif);font-size:var(--fs-sm);line-height:1.9;
+  letter-spacing:.1em;color:var(--color-ink-soft)}

@@ -1,0 +1,25 @@
+批次 7-B/7-C · verify.js §14 品牌签名闸门 变异自测（2026-10-04）
+命令：node tools/.b7mutate.cjs（每条变异：改→跑闸门→还原→再跑闸门确认回绿）
+结果：8/8 各命中一条新断言，还原后全部回到 === ALL CHECKS PASSED ===
+闸门基线：node tools/verify.js → 「品牌签名闸门: 组件类 3，空态内联挂载 6 处，画稿对账 6/6，竖排挂载 2 处，token 档 12」
+          对比度审计 62 组配对 / 4 组装饰豁免 / 不达标 0
+
+根因记录（为什么线稿必须 inline，不能 <img> 也不能 CSS mask）：
+  1. <img src="art/empty-*.svg">：SVG 在 img 文档里解析，currentColor = SVG 自己的 black，
+     不继承宿主主题 → 暗色档看不见。批次 7-A 首版即栽在此。
+  2. CSS mask + background:currentColor：Blink 以 CORS 模式取 mask 图；file:// 页面 origin=null，
+     每个 file:// 子资源都算跨源 → 取图失败（实测 3 条 CORS 报错 + net::ERR_FAILED），
+     元素照常占位（120×100）却不着色 → APK（file:///android_asset）里空态整块隐形。
+     加 --allow-file-access-from-files 后 0 报错、正常上色 → 反证成立。
+  3. 定稿：inline <svg class="empty-art" stroke="currentColor">，art/empty-*.svg 留作画稿源，
+     §14 逐字对账（画稿 body 必须出现在页面里）防漂移。
+
+变异清单与命中：
+OK  MUT-A 线稿回退硬编码色 | 品牌签名 FAIL: review.html:607 空态线稿内联了硬编码色，应走 currentColor | 还原 PASSED
+OK  MUT-B 线稿换回 <img> 挂载 | 品牌签名 FAIL: search.html:204 线稿又用 <img> 挂载（currentColor 不跟主题，暗色=看不见） ;; 品牌签名 FAIL: search.html:204 空态线稿不是 inline <svg class="empty-art" … stroke="currentColor">（换 <img>/mask 都会在某些主题或 APK 里瞎） | 还原 PASSED
+OK  MUT-C .empty-art 回到 CSS mask | 品牌签名 FAIL: .empty-art 又用 CSS mask 上色（file:// 下取不到 mask 图，APK 里空态隐形） | 还原 PASSED
+OK  MUT-D 画稿与内联副本漂移 | 品牌签名 FAIL: 画稿与内联线稿已漂移 tent（改 art/*.svg 要同步挂载处，或反过来） | 还原 PASSED
+OK  MUT-E 少一处挂载 | 品牌签名 FAIL: 空态线稿挂载 5 处 < 6（六张插画应各有一处落地） | 还原 PASSED
+OK  MUT-F 线稿缺 aria-label | 品牌签名 FAIL: topic.html:72 空态线稿缺 aria-label="…线稿" | 还原 PASSED
+OK  MUT-G 竖排组件退横排 | 品牌签名 FAIL: design.css 缺 .vtitle{…writing-mode:vertical-rl…} 竖排组件 | 还原 PASSED
+OK  MUT-H 竖排只剩一处挂载 | 品牌签名 FAIL: 竖排题签挂载 1 处 < 2（topic 列表卷首 + story 旅程开篇） | 还原 PASSED

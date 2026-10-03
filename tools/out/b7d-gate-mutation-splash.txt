@@ -1,0 +1,11 @@
+OK  MUT-I 线稿色回退硬编码 strokeColor | 启动屏 FAIL: splash_brand 内联了硬编码 strokeColor，应走 @color/gold_deep | 还原 OK
+OK  MUT-J 壳色值与 design.css token 漂开 | 启动屏 FAIL: 启动屏线稿 #BA7517 ≠ design.css --color-gold #8F5D0E（品牌色两处漂移） | 还原 OK
+OK  MUT-K 启动屏几何与画稿漂移 | 启动屏 FAIL: 启动屏第 1 条几何与 art/empty-mountain.svg 漂移（应为 M27,68L41,50L50,60L61,44L81,68Z） | 还原 OK
+OK  MUT-L v31 首帧又挂带图 drawable | 启动屏 FAIL: values-v31 的 windowBackground 用了 @drawable，系统启动屏后又叠带图首帧 = logo 闪两次 | 还原 OK
+OK  MUT-M Android 12+ 没配动画图标 | 启动屏 FAIL: values-v31 没配 android:windowSplashScreenAnimatedIcon=@drawable/splash_brand | 还原 OK
+OK  MUT-N 老系统首帧没接住 | 启动屏 FAIL: values/themes.xml 首帧没挂 @drawable/splash_bg（Android 11 及以下仍是白屏） | 还原 OK
+OK  MUT-O v31 漏重抄 statusBarColor | 启动屏 FAIL: values-v31 漏重抄：android:statusBarColor（同名 style 整体替换，漏一项等于把那项退回系统默认） | 还原 OK
+OK  MUT-P 画稿新增换算器不覆盖的命令 | 启动屏 FAIL: 画稿第 2 条路径含换算器不覆盖的命令，启动屏几何无法对账 | 连带闸门也红: 品牌签名 FAIL: 画稿与内联线稿已漂移 mountain（改 art/*.svg 要同步挂载处，或反过来） | 还原 OK
+还原校验: 壳 5/5 与备份逐字节一致；art/empty-mountain.svg 一致
+终跑: ALL CHECKS PASSED
+§15 变异自测: 8/8 条各触发且只触发 1 条启动屏 FAIL

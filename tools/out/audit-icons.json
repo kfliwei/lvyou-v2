@@ -292,7 +292,7 @@
   "album.html": {
    "light": {
     "icons": 0,
-    "legacy": 0,
+    "legacy": 1,
     "samples": 0,
     "clipped": 0,
     "covered": [],
@@ -303,7 +303,7 @@
    },
    "dark": {
     "icons": 0,
-    "legacy": 0,
+    "legacy": 1,
     "samples": 0,
     "clipped": 0,
     "covered": [],
@@ -340,7 +340,7 @@
   "story.html": {
    "light": {
     "icons": 5,
-    "legacy": 1,
+    "legacy": 2,
     "samples": 0,
     "clipped": 0,
     "covered": [],
@@ -351,7 +351,7 @@
    },
    "dark": {
     "icons": 5,
-    "legacy": 1,
+    "legacy": 2,
     "samples": 0,
     "clipped": 0,
     "covered": [],

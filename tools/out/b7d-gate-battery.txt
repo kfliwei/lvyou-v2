@@ -1,0 +1,99 @@
+### tools/verify.js
+  正文 D --day-c5              /--color-surface  8.50:1  暗色日卡章数字 5
+  正文 D --day-c6              /--color-surface  8.64:1  暗色日卡章数字 6
+  正文 L --bg                  /--color-primary-dark  5.95:1  .map-pin 立针序号 / .day-seal.done「游」印（深陶土实底）
+  正文 D --bg                  /--color-primary-dark  6.48:1  暗色同上（primary-dark 翻亮，纸色字自动翻深）
+  正文 L --bg                  /--color-muted   5.19:1  .bdg-t 临时节点徽标（批次7 由内联 #fff 收进 token）
+  正文 D --bg                  /--color-muted   5.42:1  暗色同上（旧 #fff on #969184 只有 2.1:1，实为暗色 bug）
+  正文 L --color-muted         /--color-bg      5.19:1  .vtitle 竖排题签（批次7-C）
+  正文 D --color-muted         /--color-bg      5.42:1  暗色竖排题签
+对比度审计: 62 组配对，4 组装饰豁免，不达标 0
+状态矩阵闸门（P1-8）
+状态矩阵闸门: 核心页 8，errorBox 页 4，矩阵行 8
+品牌签名闸门: 组件类 3，空态内联挂载 6 处，画稿对账 6/6，竖排挂载 2 处，token 档 12
+启动屏闸门: 外部壳 F:/MyAi/trace/lvyou-v2-android 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+=== ALL CHECKS PASSED ===
+EXIT=0
+
+### tools/smoke-states.js
+状态组件行为验证（smoke-states.js）
+  PASS index.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS search.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS topic.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS wishlist.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS travel-map.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS album.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS review.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html#ai :: {"errorBoxOnFail":true}
+smoke-states: 9 项，失败 0
+EXIT=0
+
+### tools/audit-clicktest.js
+search.html         实点   2 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+wishlist.html       实点   4 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+review.html         实点  14 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+settings.html       实点  14 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+me.html             实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+node-manager.html   实点   6 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album.html          实点   2 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album-edit.html     实点  12 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+story.html          实点   5 · 无反应   2 · 被遮   0 · 出屏   0 · 报错  0
+planner.html        实点   7 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+md-manager.html     实点   4 · 无反应   1 · 被遮   0 · 出屏   0 · 报错  0
+explore-map.html    实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+
+→ tools/out/clicktest.json
+EXIT=0
+
+### tools/audit-deadclicks.js
+travel-map.html       可点外观   14 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+search.html           可点外观   55 · 零绑定   0 · 过小   0 · 屏外 38 · 死引用 0 · 报错 0
+wishlist.html         可点外观   11 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+review.html           可点外观   51 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+settings.html         可点外观   46 · 零绑定   3 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+me.html               可点外观   14 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+node-manager.html     可点外观    6 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+album.html            可点外观    2 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+album-edit.html       可点外观   13 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+story.html            可点外观   11 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+planner.html          可点外观   51 · 零绑定  15 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+md-manager.html       可点外观    4 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+
+→ tools/out/deadclicks.json
+EXIT=0
+
+### tools/audit-icons.js
+node-manager.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+md-manager.html/light: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+md-manager.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+album.html/light: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+album.html/dark: sprite 图标 0 个（基线样本 0，未收口内联 SVG 1，出屏裁切 0） → OK
+album-edit.html/light: sprite 图标 1 个（基线样本 1，未收口内联 SVG 0，出屏裁切 0） → OK
+album-edit.html/dark: sprite 图标 1 个（基线样本 1，未收口内联 SVG 0，出屏裁切 0） → OK
+story.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 2，出屏裁切 0） → OK
+story.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 2，出屏裁切 0） → OK
+16px 联络表: 10 个在用字形，无墨 0，低对比 0
+    图: shots/2026-10-03-p01/glyph-16px-sheet.png（认不认识需人审）
+基线样本合计 12 处（阈值 ±2.5px，实测最大 1.59px）
+余量: 最低图标对比 3.05:1（线 3），最小 icon-only 热区 40px（线 40）
+=== 图标审计 ALL OK ===
+EXIT=0
+
+### tools/visual-check.js
+PASS explore-map.1440x900.png  diff 0.00%
+PASS travel-map.320x640.png  diff 0.00%
+PASS travel-map.390x844.png  diff 0.00%
+PASS travel-map.768x1024.png  diff 0.00%
+PASS travel-map.1440x900.png  diff 0.00%
+PASS review.seed.390x844.png  diff 0.00%
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1108ms(<2500) 元素=SPAN | CLS 0.0000(<0.05)
+PASS 性能预算 topic.html — LCP 1592ms(<2500) 元素=DIV | CLS 0.0000(<0.05)
+---
+耗时 282.5s（64 张，报告 tools/out/visual-report.json）
+比对 64 张: 64 PASS, 0 FAIL
+EXIT=0
+
