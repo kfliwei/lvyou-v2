@@ -190,6 +190,97 @@ async function wizardDone(p) {
   const real2 = errors2.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile/.test(e));
   ok('矩阵档无 JS 报错', real2.length === 0, real2.slice(0, 3).join(' | '));
 
+  /* 单站日：起点若照抄唯一点位，高德会报「起点与终点相同」而无法导航 */
+  const single = await page2.evaluate(() => {
+    const q = (u, k) => { const m = new RegExp('[?&]' + k + '=([^&]*)').exec(u); return m ? m[1] : null; };
+    const t = JSON.parse(sessionStorage.getItem('tn_planner_state') || '{}').trip;
+    if (!t) return null;
+    for (let i = 0; i < t.days.length; i++) {
+      const d = t.days[i];
+      if (d.stops && d.stops.length === 1) {
+        const u = window.plannerNavUrls(i);
+        if (!u) return null;
+        return { slat: q(u.deep, 'slat'), dlat: q(u.deep, 'dlat') };
+      }
+    }
+    return null;
+  });
+  ok('单站日不出现起终点同点', !single || single.slat === null || single.slat !== single.dlat,
+    single ? 'slat=' + single.slat + ' dlat=' + single.dlat : '无单站日，跳过');
+
+  /* ===== 阶段三：发送至高德的链接必须能被高德接受 =====
+     高德文档要求 vian/vialons/vialats/vianames 四个参数数量一致，缺一即整组途经点被丢弃
+     （表现就是「多站的一天发到高德后不显示途经地」）；新版 web URI 的途经点参数叫 via，
+     waypoints 这个参数名根本不存在，会被静默忽略。
+     桩里程刻意取 20km（一天塞得下 6 站），保证一定出现多站日，不依赖候选的地理分布。 */
+  const page3 = await browser.newPage();
+  await page3.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  const errors3 = [];
+  page3.on('pageerror', e => errors3.push('pageerror: ' + e.message));
+  page3.on('console', m => { if (m.type() === 'error') errors3.push('console: ' + m.text().slice(0, 200)); });
+  await page3.evaluateOnNewDocument(() => {
+    window.__TN_AMAP_KEY__ = 'SMOKE_FAKE_KEY';
+    try { Object.keys(localStorage).filter(k => /^tn_d_|^tn_rt_/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    const realFetch = window.fetch ? window.fetch.bind(window) : null;
+    window.fetch = function (url) {
+      const u = String(url || '');
+      if (u.indexOf('restapi.amap.com') >= 0 && u.indexOf('direction/driving') >= 0) {
+        return Promise.resolve({ json: () => Promise.resolve({ status: '1', infocode: '10000', route: { paths: [{ distance: '20000', steps: [] }] } }) });
+      }
+      return realFetch ? realFetch.apply(window, arguments) : Promise.reject(new Error('fetch unavailable'));
+    };
+  });
+  await page3.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3000);
+  await page3.type('#promptInput', '我想去川西玩1天，喜欢自然风光');
+  await page3.click('#genBtn');
+  await sleep(1500);
+  for (let i = 0; i < 6; i++) {
+    await page3.evaluate(idx => { const els = document.querySelectorAll('#candList .cand'); if (els[idx]) els[idx].click(); }, i);
+    await sleep(150);
+  }
+  await sleep(400);
+  await wizardTo(page3, 3);
+  await wizardDone(page3);
+  await page3.waitForFunction(() => {
+    const t = JSON.parse(sessionStorage.getItem('tn_planner_state') || '{}').trip;
+    return !!(t && t.days && t.days.length);
+  }, { timeout: 20000 }).catch(() => {});
+  const navProbe = await page3.evaluate(() => {
+    const t = JSON.parse(sessionStorage.getItem('tn_planner_state') || '{}').trip;
+    if (!t) return null;
+    const out = [];
+    t.days.forEach((d, i) => {
+      const u = window.plannerNavUrls(i);
+      if (u && d.stops) out.push({ n: d.stops.length, names: d.stops.slice(1, -1).map(s => String(s.name)), deep: u.deep, web: u.web });
+    });
+    return out.length ? out : null;
+  });
+  const maxN = navProbe ? Math.max.apply(null, navProbe.map(p => p.n)) : 0;
+  ok('造出多站日' + (navProbe ? '（最多 ' + maxN + ' 站 / 共 ' + navProbe.length + ' 天可导航）' : ''), !!(navProbe && maxN >= 3));
+  if (navProbe) {
+    const q = (u, k) => { const m = new RegExp('[?&]' + k + '=([^&]*)').exec(u); return m ? m[1] : null; };
+    const list = v => (v == null || v === '' ? [] : v.split('|'));
+    /* 逐日全查：vian 等于中间站数，且 lon/lat/name 三条队列与它同长、名字逐一对得上 */
+    const bad = navProbe.filter(p => {
+      const vian = +(q(p.deep, 'vian') || 0);
+      const names = list(q(p.deep, 'vianames'));
+      const lens = [list(q(p.deep, 'vialons')).length, list(q(p.deep, 'vialats')).length, names.length];
+      const mid = Math.max(0, p.n - 2);
+      return vian !== mid || !lens.every(x => x === vian) ||
+        names.map(decodeURIComponent).join(',') !== p.names.join(',');
+    });
+    ok('每日深链的四参数数量一致且名称对应', bad.length === 0,
+      navProbe.length + ' 天，异常 ' + bad.length + ' 天 [vian=' + bad.map(p => q(p.deep, 'vian')).join(',') + ']');
+    const noViaWeb = navProbe.filter(p => p.n > 2 && (p.web.indexOf('waypoints') >= 0 || !/[?&]via=/.test(p.web)));
+    ok('网页兜底用文档参数 via，不用 waypoints', noViaWeb.length === 0, noViaWeb.length + ' 天异常');
+    ok('链接不含未编码空格或裸中文', navProbe.every(p => !/[ \u4e00-\u9fa5]/.test(p.deep) && !/[ \u4e00-\u9fa5]/.test(p.web)));
+    const sameXY = navProbe.filter(p => { const s = q(p.deep, 'slat'), e = q(p.deep, 'dlat'); return s && s === e; });
+    ok('不存在起终点同点的一天', sameXY.length === 0, sameXY.length + ' 天');
+  }
+  const real3 = errors3.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile/.test(e));
+  ok('导航档无 JS 报错', real3.length === 0, real3.slice(0, 3).join(' | '));
+
   await browser.close();
   console.log(fails ? ('\n' + fails + ' 项失败') : '\n全部通过');
   process.exit(fails ? 1 : 0);
