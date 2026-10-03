@@ -975,7 +975,7 @@
     if (!netHintEl) {
       netHintEl = document.createElement('div');
       netHintEl.id = 'netHint';
-      netHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px)+64px);transform:translateX(-50%);z-index:9400;background:rgba(180,84,58,.92);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      netHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(180,84,58,.92);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
       document.body.appendChild(netHintEl);
     }
     netHintEl.textContent = on ? '网络已断开 · 地图瓦片可能无法加载' : '';
@@ -989,7 +989,7 @@
     if (!emptyHintEl) {
       emptyHintEl = document.createElement('div');
       emptyHintEl.id = 'emptyHint';
-      emptyHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px)+64px);transform:translateX(-50%);z-index:9400;background:rgba(32,32,29,.85);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      emptyHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(32,32,29,.85);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
       document.body.appendChild(emptyHintEl);
     }
     var b = map.getBounds();

@@ -27,7 +27,7 @@
   .topbar{
     position:absolute;left:0;right:0;top:0;z-index:1000;
     display:flex;align-items:center;gap:8px;
-    padding:calc(env(safe-area-inset-top,0px)+8px) 14px 10px;
+    padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px;
     background:rgba(250,248,243,.88);
     backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
     border-bottom:1px solid rgba(32,32,29,.07);
@@ -368,7 +368,7 @@ function esc(s){return window.UI.esc(s);}
 function flash(msg){
   if (window.UI) { UI.toast(msg); return; }
   const d=document.createElement('div');
-  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:9500;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em';
+  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;font-weight:500;z-index:9500;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em';
   d.textContent=msg; document.body.appendChild(d);
   setTimeout(()=>d.remove(),2400);
 }
@@ -720,7 +720,7 @@ window.__tnAnywhere=function(){
   };
   const tip=msg=>{
     const d=document.createElement('div');
-    d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(168,50,42,.95);color:#fff;padding:11px 20px;border-radius:4px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(168,50,42,.95);color:#fff;padding:11px 20px;border-radius:4px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent=msg; document.body.appendChild(d);
     setTimeout(()=>d.remove(),2400);
   };

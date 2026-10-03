@@ -1,0 +1,130 @@
+[
+ {
+  "page": "album-edit.html",
+  "tried": 12,
+  "noop": [],
+  "errors": [],
+  "items": [
+   {
+    "i": 0,
+    "el": "button.ed-back",
+    "text": "←",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": "[object Object]",
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 1,
+    "el": "button#edDone.ed-done",
+    "text": "完成",
+    "outcome": "nav",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 2,
+    "el": "button#cvSwap.ed-cover__btn",
+    "text": "换封面",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有照片：先去游记里添加照片",
+    "err": ""
+   },
+   {
+    "i": 3,
+    "el": "button.ech-del.danger",
+    "text": "",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 4,
+    "el": "button.lay-mode",
+    "text": "大图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 5,
+    "el": "button.lay-mode",
+    "text": "双图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 6,
+    "el": "button.lay-mode",
+    "text": "全宽",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 7,
+    "el": "button.lay-mode.active",
+    "text": "文字",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 8,
+    "el": "button#addPhoto.add-btn",
+    "text": "+添加照片",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有照片：先去游记里添加照片",
+    "err": ""
+   },
+   {
+    "i": 9,
+    "el": "button#addMemory.add-btn",
+    "text": "+添加记忆",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有游记",
+    "err": ""
+   },
+   {
+    "i": 10,
+    "el": "button#addText.add-btn",
+    "text": "+添加文字",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 11,
+    "el": "button#addMap.add-btn",
+    "text": "+添加地图",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "还没有带位置的游记",
+    "err": ""
+   }
+  ]
+ }
+]

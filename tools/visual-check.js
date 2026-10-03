@@ -3,6 +3,8 @@
  *   node tools/visual-check.js              # 全量状态 × 视口，与基线比对
  *   node tools/visual-check.js --update     # 有意改版时更新基线（diff 图保留供人审）
  *   node tools/visual-check.js --seed       # 只跑种子数据态（4 个内容页 × 390）
+ * 注意: --seed 单独跑与全量跑的后半程**不是同一前置态**（全量跑先访问 45 个空库态，
+ *   页面加载会写 localStorage），种子基线一律用全量 --update 拍，别用 --seed --update。
  *   node tools/visual-check.js index.html   # 只跑指定页的空库态
  *   node tools/visual-check.js --reindex    # 把当前基线本体登记进指纹清单（不重新截图）
  * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
@@ -193,7 +195,10 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     if (st.seed) await ensureSeed();
     await pg.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
     await pg.goto(pathToFileURL(path.join(ROOT, p)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
-    await new Promise(r => setTimeout(r, 1400));
+    /* 与 audit-clicktest 同口径：topic/地图页数据链路长，固定 1400ms 在整趟连跑的负载下会抢时机
+       （实测 topic.390 全量跑飘 3.57%、单页跑恒 0.00%）——重页等足 5s，普通页 1.4s 不变。 */
+    const SETTLE = (p === 'topic.html' || p === 'explore-map.html' || p === 'travel-map.html') ? 5000 : 1400;
+    await new Promise(r => setTimeout(r, SETTLE));
     /* 装饰层覆盖断言：钉 reduced-motion 换来的是静帧渲染路径，如果那条路径哪天失效
        （staticFrame 没调用、canvas 尺寸塌成 0），基线会安静地少一层像素、闸门照样绿。这里补一刀。 */
     if (p === 'index.html') {

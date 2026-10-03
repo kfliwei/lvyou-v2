@@ -1,0 +1,52 @@
+PASS index.390x844.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+FAIL topic.390x844.png  diff 6.65% > 0.1%  → tools/out/visual-diff/topic.390x844.png
+FAIL topic.768x1024.png  diff 2.14% > 0.1%  → tools/out/visual-diff/topic.768x1024.png
+FAIL topic.1440x900.png  diff 1.30% > 0.1%  → tools/out/visual-diff/topic.1440x900.png
+PASS search.390x844.png  diff 0.00%
+PASS search.768x1024.png  diff 0.00%
+PASS search.1440x900.png  diff 0.00%
+PASS wishlist.390x844.png  diff 0.00%
+PASS wishlist.768x1024.png  diff 0.00%
+PASS wishlist.1440x900.png  diff 0.00%
+PASS review.390x844.png  diff 0.00%
+PASS review.768x1024.png  diff 0.00%
+PASS review.1440x900.png  diff 0.00%
+PASS settings.390x844.png  diff 0.00%
+PASS settings.768x1024.png  diff 0.00%
+PASS settings.1440x900.png  diff 0.00%
+PASS me.390x844.png  diff 0.00%
+PASS me.768x1024.png  diff 0.00%
+PASS me.1440x900.png  diff 0.00%
+PASS node-manager.390x844.png  diff 0.00%
+PASS node-manager.768x1024.png  diff 0.00%
+PASS node-manager.1440x900.png  diff 0.00%
+PASS album.390x844.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS album-edit.390x844.png  diff 0.00%
+PASS album-edit.768x1024.png  diff 0.00%
+PASS album-edit.1440x900.png  diff 0.00%
+PASS story.390x844.png  diff 0.00%
+PASS story.768x1024.png  diff 0.00%
+PASS story.1440x900.png  diff 0.00%
+PASS planner.390x844.png  diff 0.00%
+PASS planner.768x1024.png  diff 0.00%
+PASS planner.1440x900.png  diff 0.00%
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+FAIL travel-map.390x844.png  diff 4.16% > 0.1%  → tools/out/visual-diff/travel-map.390x844.png
+FAIL travel-map.768x1024.png  diff 1.84% > 0.1%  → tools/out/visual-diff/travel-map.768x1024.png
+FAIL travel-map.1440x900.png  diff 1.12% > 0.1%  → tools/out/visual-diff/travel-map.1440x900.png
+PASS review.seed.390x844.png  diff 0.00%
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+FAIL travel-map.seed.390x844.png  diff 4.16% > 0.05%  → tools/out/visual-diff/travel-map.seed.390x844.png
+---
+耗时 226.9s（49 张，报告 tools/out/visual-report.json）
+比对 49 张: 42 PASS, 7 FAIL

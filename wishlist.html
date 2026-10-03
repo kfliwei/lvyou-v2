@@ -265,7 +265,7 @@
   function flash(msg) {
     if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2400);
   }

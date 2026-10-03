@@ -1,0 +1,17 @@
+index.html          实点   6 · 无反应   0 · 被遮   0 · 出屏   1 · 报错  0
+topic.html          实点   7 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+travel-map.html     实点   8 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+search.html         实点   2 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+wishlist.html       实点   4 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+review.html         实点  14 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+settings.html       实点  14 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+me.html             实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+node-manager.html   实点   6 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album.html          实点   2 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album-edit.html     实点  12 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+story.html          实点   5 · 无反应   2 · 被遮   0 · 出屏   0 · 报错  0
+planner.html        实点   7 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+md-manager.html     实点   4 · 无反应   1 · 被遮   0 · 出屏   0 · 报错  0
+explore-map.html    实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+
+→ tools/out/clicktest.json

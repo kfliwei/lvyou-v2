@@ -1,0 +1,52 @@
+PASS index.390x844.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+FAIL topic.390x844.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：bdc8b22569ee473b → 89b6d79f7673feda
+FAIL topic.768x1024.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：05376b783af7fcf4 → d1e662a6492deda0
+FAIL topic.1440x900.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：9327a69117549888 → 75927e770c5bfb0f
+PASS search.390x844.png  diff 0.00%
+PASS search.768x1024.png  diff 0.00%
+PASS search.1440x900.png  diff 0.00%
+PASS wishlist.390x844.png  diff 0.00%
+PASS wishlist.768x1024.png  diff 0.00%
+PASS wishlist.1440x900.png  diff 0.00%
+PASS review.390x844.png  diff 0.00%
+PASS review.768x1024.png  diff 0.00%
+PASS review.1440x900.png  diff 0.00%
+PASS settings.390x844.png  diff 0.00%
+PASS settings.768x1024.png  diff 0.00%
+PASS settings.1440x900.png  diff 0.00%
+PASS me.390x844.png  diff 0.00%
+PASS me.768x1024.png  diff 0.00%
+PASS me.1440x900.png  diff 0.00%
+PASS node-manager.390x844.png  diff 0.00%
+PASS node-manager.768x1024.png  diff 0.00%
+FAIL node-manager.1440x900.png  diff 0.34% > 0.1%  → tools/out/visual-diff/node-manager.1440x900.png
+PASS album.390x844.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS album-edit.390x844.png  diff 0.00%
+PASS album-edit.768x1024.png  diff 0.00%
+PASS album-edit.1440x900.png  diff 0.00%
+PASS story.390x844.png  diff 0.00%
+PASS story.768x1024.png  diff 0.00%
+PASS story.1440x900.png  diff 0.00%
+PASS planner.390x844.png  diff 0.00%
+PASS planner.768x1024.png  diff 0.00%
+PASS planner.1440x900.png  diff 0.00%
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+FAIL travel-map.390x844.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：da0711966c938eb1 → dda9eb0da2822eb7
+FAIL travel-map.768x1024.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：28db995968ee8212 → b336d4f6897e8797
+FAIL travel-map.1440x900.png — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：779d01069f9d7b4f → 060588a7abf1022a
+PASS review.seed.390x844.png  diff 0.00%
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+FAIL travel-map.seed.390x844.png  diff 4.16% > 0.05%  → tools/out/visual-diff/travel-map.seed.390x844.png
+---
+耗时 237.4s（49 张，报告 tools/out/visual-report.json）
+比对 49 张: 41 PASS, 8 FAIL

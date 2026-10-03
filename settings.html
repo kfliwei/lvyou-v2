@@ -425,7 +425,7 @@
   function toast(msg){
     if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18)';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18)';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function(){ d.remove(); }, 2000);
   }

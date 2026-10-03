@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-03T15:51:09.586Z",
+  "ranAt": "2026-10-03T17:14:52.813Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -9,7 +9,7 @@
   ],
   "states": 49,
   "fail": 0,
-  "elapsedSec": 150.5,
+  "elapsedSec": 220,
   "results": [
     {
       "state": "index.390x844.png",
@@ -38,7 +38,7 @@
     {
       "state": "topic.768x1024.png",
       "status": "PASS",
-      "diffPct": 0.053,
+      "diffPct": 0,
       "limitPct": 0.1
     },
     {

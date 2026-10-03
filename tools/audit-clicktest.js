@@ -27,7 +27,8 @@ const SNAP = `(function(){
   var openDlg = !!document.querySelector('dialog[open]');
   var masks = 0; document.querySelectorAll('.mask,.modal,.overlay,#modalMask,.sheet,.dialog').forEach(function(e){ if(vis(e)) masks++; });
   return { url: location.href, len: (document.body.innerHTML||'').length,
-    txt: (document.body.innerText||'').length, toast: vis(t) ? (t.innerText||'').trim().slice(0,40) : '',
+    txt: (document.body.innerText||'').length, mu: (window.__mu|0),
+    toast: vis(t) ? (t.innerText||'').trim().slice(0,40) : '',
     openDlg: openDlg, masks: masks, ls: JSON.stringify(window.localStorage), idb: '' };
 })()`;
 
@@ -85,6 +86,8 @@ function labelOf(s) { return s.slice(0, 44); }
       const meta = await safe(() => page.evaluate((idx) => {
         var els = Array.prototype.slice.call(document.querySelectorAll('button:not([type=file]),[onclick],[role=button],a.btn,.btn'));
         var e = els[idx]; if (!e) return null;
+        /* 盲区①修复：先滚到可视区再量——不滚动会把折叠线下元素误判成"被底栏遮挡" */
+        try { e.scrollIntoView({ block: 'center', behavior: 'instant' }); } catch (err) {}
         var r = e.getBoundingClientRect(); var cs = getComputedStyle(e);
         return {
           text: (e.textContent || e.value || e.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 22),
@@ -92,6 +95,7 @@ function labelOf(s) { return s.slice(0, 44); }
           tag: e.tagName.toLowerCase(), inline: !!e.getAttribute('onclick'),
           vis: r.width > 4 && r.height > 4 && cs.display !== 'none' && cs.visibility !== 'hidden',
           disabled: !!e.disabled,
+          offscreen: (r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth),
           blocked: (function () {
             var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
             if (!top || top === e || e.contains(top) || top.contains(e)) return '';
@@ -100,7 +104,11 @@ function labelOf(s) { return s.slice(0, 44); }
         };
       }, i), null);
       if (!meta || !meta.vis || meta.disabled) continue;
-      const before = await safe(() => page.evaluate(SNAP), { url: '?', len: -1, txt: -1, toast: '', ls: '', masks: 0 });
+      if (meta.offscreen) { items.push({ i, el: labelOf(meta.tag + (meta.id ? '#' + meta.id : '') + (meta.cls ? '.' + meta.cls : '')), text: meta.text, outcome: 'offscreen', blocked: '', clicked: '-', toast: '', err: '' }); continue; }
+      /* 盲区③修复：类名在等长按钮间切换时 innerHTML 总长不变（album-edit 版式键实测如此），
+         长度判据看不见真反应——补一个 MutationObserver 计数器，属性级变化也算反应。 */
+      await safe(() => page.evaluate('window.__mu=0; new MutationObserver(function(ms){window.__mu+=ms.length;}).observe(document.body,{subtree:true,childList:true,attributes:true,characterData:true}); "ok"'), {});
+      const before = await safe(() => page.evaluate(SNAP), { url: '?', len: -1, txt: -1, toast: '', ls: '', masks: 0, mu: 0 });
       const clicked = await safe(() => page.evaluate((idx) => {
         var els = Array.prototype.slice.call(document.querySelectorAll('button:not([type=file]),[onclick],[role=button],a.btn,.btn'));
         if (!els[idx]) return 'gone';
@@ -109,9 +117,9 @@ function labelOf(s) { return s.slice(0, 44); }
       await new Promise(r => setTimeout(r, 1400));
       let after = await safe(() => page.evaluate(SNAP), null);
       const detached = !after;
-      if (detached) after = { url: 'DETACHED', len: 0, txt: 0, toast: '', ls: '', masks: 0 };
+      if (detached) after = { url: 'DETACHED', len: 0, txt: 0, toast: '', ls: '', masks: 0, mu: 0 };
       const jumped = detached || after.url !== before.url;
-      const domChanged = !jumped && (after.len !== before.len || after.txt !== before.txt);
+      const domChanged = !jumped && (after.len !== before.len || after.txt !== before.txt || after.mu > before.mu);
       const said = !jumped && !!after.toast && after.toast !== before.toast;
       const dlg = !jumped && (after.openDlg || after.masks > before.masks);
       const wrote = !jumped && after.ls !== before.ls;
@@ -126,12 +134,15 @@ function labelOf(s) { return s.slice(0, 44); }
       });
     }
     await page.close();
-    const noop = items.filter(x => x.outcome === 'noop' || x.outcome === 'blocked');
+    /* 盲区②修复：被遮/出屏单独计数，不再混进"无反应"——否则同一批元素被计两次，数字不可信 */
+    const noop = items.filter(x => x.outcome === 'noop');
+    const blocked = items.filter(x => x.outcome === 'blocked');
+    const offscr = items.filter(x => x.outcome === 'offscreen');
     const bad = items.filter(x => x.outcome === 'error');
     report.push({ page: pg, tried: items.length, noop: noop, errors: bad, items: items });
     console.log((pg + ' ').padEnd(20) + '实点 ' + String(items.length).padStart(3) +
-      ' · 无反应 ' + String(noop.length).padStart(3) + ' · 被遮 ' + String(items.filter(x => x.outcome === 'blocked').length).padStart(3) +
-      ' · 报错 ' + String(bad.length).padStart(2));
+      ' · 无反应 ' + String(noop.length).padStart(3) + ' · 被遮 ' + String(blocked.length).padStart(3) +
+      ' · 出屏 ' + String(offscr.length).padStart(3) + ' · 报错 ' + String(bad.length).padStart(2));
   }
 
   await browser.close();

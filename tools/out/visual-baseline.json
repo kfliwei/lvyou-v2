@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-03T15:38:16.558Z",
+  "generatedAt": "2026-10-03T17:07:30.615Z",
   "viewports": [
     "390x844",
     "768x1024",
@@ -8,13 +8,21 @@
   ],
   "count": 49,
   "files": {
+    "album-edit.1440x900.png": {
+      "sha": "bf1e18c7362b2ec1",
+      "bytes": 493938
+    },
     "album-edit.390x844.png": {
-      "sha": "f5327a286aca463b",
+      "sha": "bbdbec7d8cef9135",
       "bytes": 223967
     },
     "album-edit.768x1024.png": {
       "sha": "a484a65bf20827ff",
       "bytes": 449899
+    },
+    "album.1440x900.png": {
+      "sha": "075e8a636dd59740",
+      "bytes": 72979
     },
     "album.390x844.png": {
       "sha": "07a508408cb7497f",
@@ -24,185 +32,177 @@
       "sha": "172df76e2d32d331",
       "bytes": 62190
     },
-    "explore-map.390x844.png": {
-      "sha": "03df3fc234b36915",
-      "bytes": 251027
-    },
-    "explore-map.768x1024.png": {
-      "sha": "55900d2c2ad5d6af",
-      "bytes": 359589
-    },
-    "index.390x844.png": {
-      "sha": "b6ba61f927f160e5",
-      "bytes": 1063191
-    },
-    "index.768x1024.png": {
-      "sha": "0135545ff270d0ca",
-      "bytes": 1774843
-    },
-    "md-manager.390x844.png": {
-      "sha": "d7d3b3ac14e3a9b6",
-      "bytes": 98160
-    },
-    "md-manager.768x1024.png": {
-      "sha": "b0bd6abce406595c",
-      "bytes": 115749
-    },
-    "me.390x844.png": {
-      "sha": "cb1b44d5800c4861",
-      "bytes": 297922
-    },
-    "me.768x1024.png": {
-      "sha": "7ed9fafe0bc33fbe",
-      "bytes": 412856
-    },
-    "node-manager.390x844.png": {
-      "sha": "b7a013b33130fc5b",
-      "bytes": 90904
-    },
-    "node-manager.768x1024.png": {
-      "sha": "63db376062f2de56",
-      "bytes": 102860
-    },
-    "planner.390x844.png": {
-      "sha": "900a5ddcd786d403",
-      "bytes": 244063
-    },
-    "planner.768x1024.png": {
-      "sha": "7d128bf43dafaa22",
-      "bytes": 320981
-    },
-    "review.390x844.png": {
-      "sha": "2102f9612e2688d4",
-      "bytes": 260422
-    },
-    "review.768x1024.png": {
-      "sha": "45b22a6f6383e097",
-      "bytes": 340589
-    },
-    "search.390x844.png": {
-      "sha": "35db430de860e895",
-      "bytes": 121617
-    },
-    "search.768x1024.png": {
-      "sha": "64372edee5dcd3e5",
-      "bytes": 147354
-    },
-    "settings.390x844.png": {
-      "sha": "e91b49d795c3f605",
-      "bytes": 216081
-    },
-    "settings.768x1024.png": {
-      "sha": "d5036790cb1e3f72",
-      "bytes": 292819
-    },
-    "story.390x844.png": {
-      "sha": "5c7a7bdd0b10a9c0",
-      "bytes": 122980
-    },
-    "story.768x1024.png": {
-      "sha": "6eaf2245b88799db",
-      "bytes": 150703
-    },
-    "topic.390x844.png": {
-      "sha": "b83be3f4e5fa4044",
-      "bytes": 254220
-    },
-    "topic.768x1024.png": {
-      "sha": "d1ee9a4118f3ddbf",
-      "bytes": 357659
-    },
-    "wishlist.390x844.png": {
-      "sha": "54e5a3dc29eaf4f4",
-      "bytes": 137911
-    },
-    "wishlist.768x1024.png": {
-      "sha": "9b2f610cca52583c",
-      "bytes": 155942
-    },
-    "index.1440x900.png": {
-      "sha": "b937d4560c52ec1f",
-      "bytes": 1615716
-    },
-    "topic.1440x900.png": {
-      "sha": "22b8367c217699ee",
-      "bytes": 419565
-    },
-    "search.1440x900.png": {
-      "sha": "20d19c1ffc54cf59",
-      "bytes": 162023
-    },
-    "wishlist.1440x900.png": {
-      "sha": "0ea0a455ee4ed640",
-      "bytes": 175603
-    },
-    "review.1440x900.png": {
-      "sha": "993b536959011fea",
-      "bytes": 353096
-    },
-    "settings.1440x900.png": {
-      "sha": "096d50c11df40615",
-      "bytes": 287471
-    },
-    "me.1440x900.png": {
-      "sha": "9f8f4234c16f3652",
-      "bytes": 403025
-    },
-    "node-manager.1440x900.png": {
-      "sha": "efd2d219ed9a5ce1",
-      "bytes": 114730
-    },
-    "album.1440x900.png": {
-      "sha": "075e8a636dd59740",
-      "bytes": 72979
-    },
-    "album-edit.1440x900.png": {
-      "sha": "bf1e18c7362b2ec1",
-      "bytes": 493938
-    },
-    "story.1440x900.png": {
-      "sha": "7110b0830c13b133",
-      "bytes": 152367
-    },
-    "planner.1440x900.png": {
-      "sha": "fc9f95d4304c7a06",
-      "bytes": 326531
-    },
-    "md-manager.1440x900.png": {
-      "sha": "ed1294a5b01af9e4",
-      "bytes": 128667
+    "album.seed.390x844.png": {
+      "sha": "bf6df705f08f4c0b",
+      "bytes": 145232
     },
     "explore-map.1440x900.png": {
-      "sha": "b6e4f7a9aa6fe562",
-      "bytes": 362596
+      "sha": "fa8801996ddb8ab6",
+      "bytes": 353632
+    },
+    "explore-map.390x844.png": {
+      "sha": "a0145f1a33e249d2",
+      "bytes": 243073
+    },
+    "explore-map.768x1024.png": {
+      "sha": "2aac6de73f21fd82",
+      "bytes": 357266
+    },
+    "index.1440x900.png": {
+      "sha": "fe8b8f32659c9203",
+      "bytes": 1559929
+    },
+    "index.390x844.png": {
+      "sha": "fe03c8e65f96b999",
+      "bytes": 1020723
+    },
+    "index.768x1024.png": {
+      "sha": "7f6a3b2ba3ca760e",
+      "bytes": 1705636
+    },
+    "md-manager.1440x900.png": {
+      "sha": "379e80320a4514ce",
+      "bytes": 129084
+    },
+    "md-manager.390x844.png": {
+      "sha": "495d1a8aea235756",
+      "bytes": 98426
+    },
+    "md-manager.768x1024.png": {
+      "sha": "eb0525bd1ed79f7e",
+      "bytes": 115871
+    },
+    "me.1440x900.png": {
+      "sha": "177524f28b24ced7",
+      "bytes": 402960
+    },
+    "me.390x844.png": {
+      "sha": "71c935996487bd8b",
+      "bytes": 294337
+    },
+    "me.768x1024.png": {
+      "sha": "f4d629038bcc4b22",
+      "bytes": 404826
+    },
+    "node-manager.1440x900.png": {
+      "sha": "01fa38f5901246ec",
+      "bytes": 114784
+    },
+    "node-manager.390x844.png": {
+      "sha": "351bdcf696221903",
+      "bytes": 90958
+    },
+    "node-manager.768x1024.png": {
+      "sha": "5142dc1ff08fb516",
+      "bytes": 102908
+    },
+    "planner.1440x900.png": {
+      "sha": "88e1763557afd928",
+      "bytes": 330930
+    },
+    "planner.390x844.png": {
+      "sha": "2d6c44b379559c70",
+      "bytes": 238941
+    },
+    "planner.768x1024.png": {
+      "sha": "94c067d86a43eef4",
+      "bytes": 322237
+    },
+    "review.1440x900.png": {
+      "sha": "c8741cd9676cfca2",
+      "bytes": 341775
+    },
+    "review.390x844.png": {
+      "sha": "6662f661858882f8",
+      "bytes": 249588
+    },
+    "review.768x1024.png": {
+      "sha": "50cdcd849166495a",
+      "bytes": 338102
     },
     "review.seed.390x844.png": {
-      "sha": "d67893b5e060a844",
-      "bytes": 265348
+      "sha": "ffd3c31d97b31cc0",
+      "bytes": 254451
     },
-    "album.seed.390x844.png": {
-      "sha": "258059ed43073d09",
-      "bytes": 131102
+    "search.1440x900.png": {
+      "sha": "e6169370723052fc",
+      "bytes": 162481
+    },
+    "search.390x844.png": {
+      "sha": "1f879a7f69ebe17d",
+      "bytes": 122206
+    },
+    "search.768x1024.png": {
+      "sha": "9e8ff9ea36a90dec",
+      "bytes": 147711
+    },
+    "settings.1440x900.png": {
+      "sha": "59843300a16f6e5f",
+      "bytes": 286936
+    },
+    "settings.390x844.png": {
+      "sha": "34b413a9c3d533ce",
+      "bytes": 215463
+    },
+    "settings.768x1024.png": {
+      "sha": "2c88b35c6cf9c97d",
+      "bytes": 286144
+    },
+    "story.1440x900.png": {
+      "sha": "6f4c55a20d74bbe0",
+      "bytes": 151848
+    },
+    "story.390x844.png": {
+      "sha": "b3a8f8c57e4c9ac1",
+      "bytes": 116122
+    },
+    "story.768x1024.png": {
+      "sha": "2d1d2329d2b81d0e",
+      "bytes": 150671
     },
     "story.seed.390x844.png": {
-      "sha": "abc3a4d094b5dccc",
-      "bytes": 181748
+      "sha": "c04c07049c8f9cc6",
+      "bytes": 173911
     },
-    "travel-map.seed.390x844.png": {
-      "sha": "5546cd8b1b5f03c7",
-      "bytes": 152894
+    "topic.1440x900.png": {
+      "sha": "75927e770c5bfb0f",
+      "bytes": 396066
     },
-    "travel-map.390x844.png": {
-      "sha": "f95047e9b3ce3fe7",
-      "bytes": 152992
+    "topic.390x844.png": {
+      "sha": "89b6d79f7673feda",
+      "bytes": 246841
     },
-    "travel-map.768x1024.png": {
-      "sha": "2e773eca63b821cd",
-      "bytes": 185563
+    "topic.768x1024.png": {
+      "sha": "184c23f1b12303d8",
+      "bytes": 339127
     },
     "travel-map.1440x900.png": {
-      "sha": "000a069f9d7c6e60",
-      "bytes": 203852
+      "sha": "060588a7abf1022a",
+      "bytes": 187977
+    },
+    "travel-map.390x844.png": {
+      "sha": "dda9eb0da2822eb7",
+      "bytes": 150519
+    },
+    "travel-map.768x1024.png": {
+      "sha": "b336d4f6897e8797",
+      "bytes": 171375
+    },
+    "travel-map.seed.390x844.png": {
+      "sha": "e09121912bd8506b",
+      "bytes": 151611
+    },
+    "wishlist.1440x900.png": {
+      "sha": "2fc842c0160728d8",
+      "bytes": 176093
+    },
+    "wishlist.390x844.png": {
+      "sha": "0ae2850b08f501a8",
+      "bytes": 137860
+    },
+    "wishlist.768x1024.png": {
+      "sha": "a8cf80681a49c43e",
+      "bytes": 156363
     }
   }
 }

@@ -22,7 +22,7 @@
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   function flash(msg) {
     var f = document.createElement('div');
-    f.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:700;z-index:9500;box-shadow:0 6px 24px rgba(30,30,28,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    f.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:700;z-index:9500;box-shadow:0 6px 24px rgba(30,30,28,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     f.textContent = msg; document.body.appendChild(f);
     setTimeout(function () { f.remove(); }, 2400);
   }
@@ -73,7 +73,7 @@
   /* 保存 HTML 文档（App 下载 / 浏览器下载 / 复制） */
   function saveDoc(name, html) {
     var d = el('div', 'rz-dlg');
-    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px)+20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:0 -10px 40px rgba(30,30,28,.18);display:block';
+    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:0 -10px 40px rgba(30,30,28,.18);display:block';
     d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:17px;color:var(--color-ink)">' + esc(name) + ' <button id="rzX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:15px;cursor:pointer"'+TI('close', 14)+'</button></div>'
       + '<div id="rzPrev" style="border:1px solid var(--color-line);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:10.5px;color:var(--color-muted);padding:12px;white-space:pre-wrap;background:var(--color-surface)">' + esc(html.slice(0, 2000)) + (html.length > 2000 ? '…（共 ' + html.length + ' 字符）' : '') + '</div>'
       + '<button id="rzSave" class="btn-primary" style="width:100%;margin-top:12px">保存文档</button>'
