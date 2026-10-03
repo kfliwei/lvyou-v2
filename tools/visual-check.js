@@ -2,10 +2,13 @@
  * 用法:
  *   node tools/visual-check.js              # 全量状态 × 视口，与基线比对
  *   node tools/visual-check.js --update     # 有意改版时更新基线（diff 图保留供人审）
- *   node tools/visual-check.js index.html   # 只跑指定页
- * 原理: 固定视口 + 清空存储 + 冻结时钟截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
- * 阈值: 差异像素 > 0.5% 判 FAIL。地图页瓦片属外部资源，基线比对时容忍瓦片差异（视口内蒙层不比对不可行，
- *       故地图页以 DOM 检查为主、截图为辅——比对时地图页差异阈值放宽到 8%，瓦片漂移不会误报交互层回归）。
+ *   node tools/visual-check.js --seed       # 只跑种子数据态（4 个内容页 × 390）
+ *   node tools/visual-check.js index.html   # 只跑指定页的空库态
+ *   node tools/visual-check.js --reindex    # 把当前基线本体登记进指纹清单（不重新截图）
+ * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
+ * 阈值: 普通页 > 0.1% FAIL；种子态 > 0.05%；地图页（瓦片为外部资源）> 1%。数值按实测噪声定，见 THRESH 注释。
+ * 稳定性: 时钟、performance.now、rAF 时间戳、Math.random、CSS 动画全部钉死，49 状态连跑两遍
+ *         非地图页最大噪声 0.01%——所以阈值能收得这么紧（收不紧的闸门守不住改色）。
  * 入库策略: 截图本体（visual-baseline/ 与 visual-diff/ 的 PNG）不入库（见 .gitignore），
  *   入库的是 tools/out/visual-baseline.json（基线指纹清单）与 tools/out/visual-report.json（本次比对报告）。
  *   ⇒ 基线缺失时**判 FAIL 并报错**，不静默重建——否则新克隆上闸门会拿当前的坏状态当真相，永远绿。 */
@@ -32,15 +35,41 @@ const sha = buf => crypto.createHash('sha256').update(buf).digest('hex').slice(0
 const argv = process.argv.slice(2);
 const UPDATE = argv.includes('--update');
 const REINDEX = argv.includes('--reindex');
+const SEEDONLY = argv.includes('--seed');
 const onlyPages = argv.filter(a => !a.startsWith('--'));
 
-/* 状态清单：page → 视口列表。地图页（瓦片随时间变化）用宽阈值。 */
+/* 状态清单：page → 视口列表。地图页（瓦片随时间变化）用宽阈值。
+ * 两种数据态：
+ *   空库态（默认）——全新浏览器档案，localStorage/IDB 皆空，抓的是"新用户第一眼"；
+ *   种子态（--seed 或全量跑的后半程）——用项目自带的 test-data.js 灌 8 条示例游记，
+ *   抓的是"有数据时"的列表/统计/地图。两态基线分文件命名（*.seed.WxH.png），互不覆盖。 */
 const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'review.html',
   'settings.html', 'me.html', 'node-manager.html', 'album.html', 'album-edit.html',
-  'story.html', 'planner.html', 'md-manager.html', 'explore-map.html'];
-const MAP_PAGES = new Set(['topic.html', 'explore-map.html']);
-const VIEWPORTS = [[390, 844], [768, 1024]];
-const THRESH = 0.005, THRESH_MAP = 0.08;
+  'story.html', 'planner.html', 'md-manager.html', 'explore-map.html', 'travel-map.html'];
+/* 种子态只跑"内容随游记数据变化"的页。选页判据（实测，不是猜的）：与同页空库态做像素差，
+ * 差异可见才算有覆盖增量；wishlist / node-manager 曾入列但差 0.00%（示例数据只写游记库），已剔除。
+ * index 也已剔除：它的有数据区（RECENT JOURNEY）在折叠线以下，视口内与空库态差 0.02%，等于白拍。
+ * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 三视口覆盖）。 */
+const SEED_PAGES = ['review.html', 'album.html', 'story.html', 'travel-map.html'];
+/* 种子态页必须同时在 PAGES 里——否则它的种子基线没有同页空库基线可比，"这态有没有增量"就无从量。 */
+const MAP_PAGES = new Set(['topic.html', 'explore-map.html', 'travel-map.html']);
+const VIEWPORTS = [[390, 844], [768, 1024], [1440, 900]];
+const SEED_VIEWPORTS = [[390, 844]];
+/* 阈值按实测噪声定，不是拍脑袋：时间/随机/CSS 动画钉死后，49 个状态连跑两遍
+ * 非地图页最大噪声 0.01%（album.seed），地图页 0.04%（topic.768，瓦片）。
+ * 留 ≥5× 余量 ⇒ 普通页 0.1%、种子态 0.05%、地图页 1%。
+ * 对照：改阈值前是 0.5%/8%，那时把 --color-primary 整体改色（195 处引用）闸门 49 张全绿——
+ * 阈值松到守不住品牌色，等于没有闸门。 */
+const THRESH = 0.001, THRESH_MAP = 0.01;
+/* 种子态用严阈值：它要守的是"数据有没有渲染出来"，而这类内容往往只占视口一小块
+ * （review 种子态与空库态差 0.16%，用 0.5% 阈值等于数据全丢也不会 FAIL）。 */
+const THRESH_SEED = 0.0005;
+
+/* 配置自检：种子态页若不在 PAGES 里，就没有同页空库基线可比，"增量"无法验证；
+   视口/清单打错也是同类静默失效。宁可开跑前炸，不要拍出一堆没人能判读的图。 */
+for (const p of SEED_PAGES) {
+  if (!PAGES.includes(p)) { console.error('配置错误: ' + p + ' 在 SEED_PAGES 但不在 PAGES（种子态缺同页空库基线）'); process.exit(1); }
+}
 
 function readManifest() {
   try { return JSON.parse(fs.readFileSync(MANIFEST, 'utf8')); } catch (e) { return null; }
@@ -55,10 +84,19 @@ function writeManifest(files) {
   }, null, 2));
 }
 
-/* 冻结时钟：首页问候语/时间戳不再影响 diff */
-const CLOCK = `Date.now = () => new Date('2026-10-03T10:00:00+08:00').getTime();
-  const _d = new Date('2026-10-03T10:00:00+08:00');
-  Date = new Proxy(Date, { construct(t, a) { return a.length ? new t(...a) : _d; } });`;
+/* 把"会动的东西"全部钉死，否则 diff 里混的是时钟噪声而不是改版信号：
+ *   Date / performance.now / rAF 时间戳 —— 首页问候语、粒子场、CSS 动画进度
+ *   Math.random —— 首页星尘粒子用随机撒点（index.html:583/596），不钉种子则每次截屏都是另一张图
+ * 实测：只冻 Date 时首页噪声 0.41%（三档视口都非 0，比一次全局改色的信号还大）；
+ *   补齐随机种子 + animations:'disabled' 后，49 态连跑两遍最大噪声 0.04%（地图瓦片）/0.01%（其余）。 */
+const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
+  Date.now = () => __T;
+  const _d = new Date(__T);
+  Date = new Proxy(Date, { construct(t, a) { return a.length ? new t(...a) : _d; } });
+  performance.now = () => 1000;
+  const _raf = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = function (cb) { return _raf(function () { cb(1000); }); };
+  Math.random = (function () { var s = 20261003; return function () { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; })();`;
 
 (async () => {
   /* --reindex：把当前基线本体（已人审过的）登记进指纹清单，不重新截图。
@@ -84,56 +122,96 @@ const CLOCK = `Date.now = () => new Date('2026-10-03T10:00:00+08:00').getTime();
 
   for (const page of await browser.pages()) await page.close();
   const pg = await browser.newPage();
+  /* 首启引导蒙层（z-index 9990）盖在所有内容之上：不跳过它就等于把蒙层截成"页面基线"，
+     此后页面真改版闸门也不会动。与 audit-clicktest.js:52 同一口径，必须在文档加载前写入。
+     代价：蒙层本身不进视觉基线——它由 tools/smoke.js 的 tn_onboarded 断言 + 点击探针覆盖。 */
+  await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {} });
+  await pg.evaluateOnNewDocument(CLOCK);
 
-  for (const p of pages) {
-    if (!PAGES.includes(p)) { console.log('SKIP(不在状态清单): ' + p); continue; }
-    for (const [W, H] of VIEWPORTS) {
-      const tag = p.replace('.html', '') + '.' + W + 'x' + H + '.png';
-      const baseF = path.join(BASE, tag);
-      await pg.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
-      await pg.evaluateOnNewDocument(CLOCK);
-      await pg.goto(pathToFileURL(path.join(ROOT, p)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
-      await new Promise(r => setTimeout(r, 1400));
-      const buf = await pg.screenshot({ type: 'png' });
-      testN++;
-
-      if (UPDATE) {
-        fs.writeFileSync(baseF, buf);
-        manifest[tag] = { sha: sha(buf), bytes: buf.length };
-        baseN++;
-        console.log('UPD 基线 ' + tag);
-        continue;
-      }
-      if (!fs.existsSync(baseF)) {
-        /* 基线缺失绝不能静默重建：那会让坏状态变成"新的真相"，闸门从此永远绿 */
-        console.log('FAIL ' + tag + ' — 基线文件不存在（闸门失效，非视觉问题）。跑 node tools/visual-check.js --update 重建并人审 diff 后提交清单');
-        report.push({ state: tag, status: 'no-baseline' });
-        failN++; continue;
-      }
-      const cur = sha(fs.readFileSync(baseF));
-      if (manifest[tag] && manifest[tag].sha !== cur) {
-        console.log('FAIL ' + tag + ' — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：' + manifest[tag].sha + ' → ' + cur);
-        report.push({ state: tag, status: 'baseline-drift', manifestSha: manifest[tag].sha, actualSha: cur });
-        failN++; continue;
-      }
-      if (!manifest[tag]) console.log('NOTE ' + tag + ' — 基线在但清单没登记（--update 时会补上）');
-      const a = PNG.sync.read(fs.readFileSync(baseF));
-      const b = PNG.sync.read(buf);
-      if (a.width !== b.width || a.height !== b.height) {
-        console.log('FAIL ' + tag + ' — 尺寸变化 ' + a.width + 'x' + a.height + ' → ' + b.width + 'x' + b.height);
-        report.push({ state: tag, status: 'size-change', from: a.width + 'x' + a.height, to: b.width + 'x' + b.height });
-        failN++; continue;
-      }
-      const diffPng = new PNG({ width: a.width, height: a.height });
-      const diffPx = match(a.data, b.data, diffPng.data, a.width, a.height, { threshold: 0.12 });
-      const ratio = diffPx / (a.width * a.height);
-      const lim = MAP_PAGES.has(p) ? THRESH_MAP : THRESH;
-      const ok = ratio <= lim;
-      fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
-      report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2) });
-      if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
-      else { console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag); failN++; }
+  /* 状态矩阵：空库态全量 × 三视口，种子态只跑内容页 × 390；
+     带页名参数只跑该页空库态，--seed 只跑种子态（两者分开跑，--update 时清单是合并写入不会丢登记） */
+  const states = [];
+  if (onlyPages.length) {
+    for (const p of pages) {
+      if (!PAGES.includes(p)) { console.log('SKIP(不在状态清单): ' + p); continue; }
+      for (const [W, H] of VIEWPORTS) states.push({ p, W, H, seed: false });
     }
+  } else {
+    if (!SEEDONLY) for (const p of PAGES) for (const [W, H] of VIEWPORTS) states.push({ p, W, H, seed: false });
+    for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) states.push({ p, W, H, seed: true });
+  }
+
+  /* 全量 --update 时清掉"配置里已经没有的状态"的登记，否则从 SEED_PAGES 摘掉的页会留下幽灵条目，
+     清单条数与实际状态数从此对不上，也没人知道哪个是真。 */
+  if (UPDATE && !onlyOne) {
+    const valid = new Set();
+    for (const p of PAGES) for (const [W, H] of VIEWPORTS) valid.add(p.replace('.html', '') + '.' + W + 'x' + H + '.png');
+    for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) valid.add(p.replace('.html', '') + '.seed.' + W + 'x' + H + '.png');
+    for (const k of Object.keys(manifest)) if (!valid.has(k)) { delete manifest[k]; console.log('PRUNE 清单已摘除的状态: ' + k); }
+  }
+
+  let seeded = false;
+  const ensureSeed = async () => {
+    if (seeded) return;
+    /* 用项目自己的载入函数，不手抄存储键——键名/双写口径变了会在这里暴露，而不是悄悄拍到旧数据 */
+    await pg.goto(pathToFileURL(path.join(ROOT, 'index.html')).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+    await pg.addScriptTag({ path: path.join(ROOT, 'test-data.js') });
+    await pg.evaluate(async () => {
+      const r = window.loadTestData && window.loadTestData();
+      if (r && r.idb) { try { await r.idb; } catch (e) {} }
+    });
+    seeded = true;
+  };
+
+  for (const st of states) {
+    const { p, W, H } = st;
+    const tag = p.replace('.html', '') + (st.seed ? '.seed' : '') + '.' + W + 'x' + H + '.png';
+    const baseF = path.join(BASE, tag);
+    if (st.seed) await ensureSeed();
+    await pg.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
+    await pg.goto(pathToFileURL(path.join(ROOT, p)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+    await new Promise(r => setTimeout(r, 1400));
+    /* animations:'disabled' 让 puppeteer 在截屏前把 CSS 动画/过渡定格到终态，
+       否则首页 .hn 的呼吸光晕（infinite keyframes）每帧都在动，JS 冻时钟管不住它。 */
+    const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
+    testN++;
+
+    if (UPDATE) {
+      fs.writeFileSync(baseF, buf);
+      manifest[tag] = { sha: sha(buf), bytes: buf.length };
+      baseN++;
+      console.log('UPD 基线 ' + tag);
+      continue;
+    }
+    if (!fs.existsSync(baseF)) {
+      /* 基线缺失绝不能静默重建：那会让坏状态变成"新的真相"，闸门从此永远绿 */
+      console.log('FAIL ' + tag + ' — 基线文件不存在（闸门失效，非视觉问题）。跑 node tools/visual-check.js --update 重建并人审 diff 后提交清单');
+      report.push({ state: tag, status: 'no-baseline' });
+      failN++; continue;
+    }
+    const cur = sha(fs.readFileSync(baseF));
+    if (manifest[tag] && manifest[tag].sha !== cur) {
+      console.log('FAIL ' + tag + ' — 基线本体与入库清单指纹不符（被人手替换或半截 --update）：' + manifest[tag].sha + ' → ' + cur);
+      report.push({ state: tag, status: 'baseline-drift', manifestSha: manifest[tag].sha, actualSha: cur });
+      failN++; continue;
+    }
+    if (!manifest[tag]) console.log('NOTE ' + tag + ' — 基线在但清单没登记（--update 时会补上）');
+    const a = PNG.sync.read(fs.readFileSync(baseF));
+    const b = PNG.sync.read(buf);
+    if (a.width !== b.width || a.height !== b.height) {
+      console.log('FAIL ' + tag + ' — 尺寸变化 ' + a.width + 'x' + a.height + ' → ' + b.width + 'x' + b.height);
+      report.push({ state: tag, status: 'size-change', from: a.width + 'x' + a.height, to: b.width + 'x' + b.height });
+      failN++; continue;
+    }
+    const diffPng = new PNG({ width: a.width, height: a.height });
+    const diffPx = match(a.data, b.data, diffPng.data, a.width, a.height, { threshold: 0.02 });
+    const ratio = diffPx / (a.width * a.height);
+    const lim = MAP_PAGES.has(p) ? THRESH_MAP : (st.seed ? THRESH_SEED : THRESH);
+    const ok = ratio <= lim;
+    fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
+    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2) });
+    if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
+    else { console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag); failN++; }
   }
   await browser.close();
   const ms = Date.now() - t0;

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-03T14:15:15.387Z",
+  "ranAt": "2026-10-03T14:12:03.070Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -8,25 +8,25 @@
     "1440x900"
   ],
   "states": 49,
-  "fail": 0,
-  "elapsedSec": 149,
+  "fail": 21,
+  "elapsedSec": 149.2,
   "results": [
     {
       "state": "index.390x844.png",
-      "status": "PASS",
-      "diffPct": 0.01,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "index.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "index.1440x900.png",
       "status": "PASS",
-      "diffPct": 0.001,
+      "diffPct": 0.072,
       "limitPct": 0.1
     },
     {
@@ -38,7 +38,7 @@
     {
       "state": "topic.768x1024.png",
       "status": "PASS",
-      "diffPct": 0.015,
+      "diffPct": 0.027,
       "limitPct": 1
     },
     {
@@ -49,110 +49,110 @@
     },
     {
       "state": "search.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "search.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "search.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "wishlist.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "wishlist.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "wishlist.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "review.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "review.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "review.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "settings.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "settings.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "settings.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "me.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "me.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "me.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "node-manager.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.61,
       "limitPct": 0.1
     },
     {
       "state": "node-manager.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.255,
       "limitPct": 0.1
     },
     {
       "state": "node-manager.1440x900.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.155,
       "limitPct": 0.1
     },
     {
@@ -193,38 +193,38 @@
     },
     {
       "state": "story.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "story.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "story.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
       "state": "planner.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.1
     },
     {
       "state": "planner.768x1024.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.118,
       "limitPct": 0.1
     },
     {
       "state": "planner.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 0.1
     },
     {
@@ -248,61 +248,61 @@
     {
       "state": "explore-map.390x844.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.28,
       "limitPct": 1
     },
     {
       "state": "explore-map.768x1024.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.118,
       "limitPct": 1
     },
     {
       "state": "explore-map.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 1
     },
     {
       "state": "travel-map.390x844.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.28,
       "limitPct": 1
     },
     {
       "state": "travel-map.768x1024.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.118,
       "limitPct": 1
     },
     {
       "state": "travel-map.1440x900.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.071,
       "limitPct": 1
     },
     {
       "state": "review.seed.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.05
     },
     {
       "state": "album.seed.390x844.png",
       "status": "PASS",
-      "diffPct": 0.007,
+      "diffPct": 0.033,
       "limitPct": 0.05
     },
     {
       "state": "story.seed.390x844.png",
-      "status": "PASS",
-      "diffPct": 0,
+      "status": "FAIL",
+      "diffPct": 0.28,
       "limitPct": 0.05
     },
     {
       "state": "travel-map.seed.390x844.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.28,
       "limitPct": 1
     }
   ]

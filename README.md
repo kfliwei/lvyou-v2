@@ -78,12 +78,12 @@ python -m http.server 8125
 
 ```bash
 node tools/verify.js            # 提交前闸门（已装成 .git/hooks/pre-commit）：语法/编码/emoji 棘轮/nation-index 覆盖
-node tools/visual-check.js      # 视觉回归：28 态 × 2 视口像素 diff（需本机 Chrome，约 2 分钟）
+node tools/visual-check.js      # 视觉回归：49 态像素 diff（15 页 × 390/768/1440 + 4 张种子态，约 149s）
 node tools/smoke-planner.js     # 行程规划真实浏览器冒烟（36 条断言，桩 fetch + 假 Key）
 node tools/sync-assets.js       # 改完前端必须同步进 android_app/app/src/main/assets
 ```
 
-- **视觉闸门**：`--update` 才改基线，改完必须人审 `tools/out/visual-diff/`；截图本体（`visual-baseline/`、`visual-diff/`、散点 shots）不入库，入库的是 `tools/out/visual-baseline.json`（基线指纹）与 `tools/out/visual-report.json`（每次比对的 diff 比例与耗时）。基线缺失或指纹不符 → **判 FAIL**，不会静默重建。
+- **视觉闸门**：`--update` 才改基线，改完必须人审 `tools/out/visual-diff/`；截图本体（`visual-baseline/`、`visual-diff/`、散点 shots）不入库，入库的是 `tools/out/visual-baseline.json`（基线指纹）与 `tools/out/visual-report.json`（每次比对的 diff 比例与耗时）。基线缺失或指纹不符 → **判 FAIL**，不会静默重建。截图前把会动的东西全钉死（`Date`/`performance.now`/rAF 时间戳/`Math.random` 种子/CSS 动画 + 跳过首启引导蒙层），实测非地图页噪声 ≤0.01%，所以阈值敢收到普通页 0.1%、种子态 0.05%、地图页 1%——旧阈值 0.5%/8% 下把 `--color-primary`（195 处引用）整体改色，49 张全绿。`--seed` 跑种子数据态（`test-data.js` 灌 8 条），`--reindex` 只重登记指纹。
 - **点击体检**：`node tools/audit-clicktest.js <页面>`（实点：无反应/被遮/报错）、`node tools/audit-deadclicks.js`（尺寸过小/死引用）、`node tools/audit-states.js`。已知盲区登记在 `改进实施方案与验收标准.md` 末尾「豁免登记」。
 - **其他冒烟**：`tools/smoke.js`（全站页面）、`smoke-nodes` / `smoke-story` / `smoke-album` / `smoke-album-edit-obscure` / `smoke-node-mgr` / `smoke-flag-link`。注意 `smoke-album` 依赖 `python -m http.server 8125` 在跑。
 - **改前端文件的收工动作**：`verify.js` → `visual-check.js` → 相关 smoke → 动过 SW `SHELL` 内文件就 bump `sw.js` 的 `CACHE` → `sync-assets.js`。
@@ -101,4 +101,5 @@ node tools/sync-assets.js       # 改完前端必须同步进 android_app/app/sr
 - ✅ 2026-10-03 行程规划口径重构：**一把尺子**——排线、日卡里程、终到段、导出、预计天数全部走同一 `mkLeg(matrix)`（高德真实驾车里程命中时用它，否则 haversine × 1.35）；单日 >9h 的长途拆「赶路日」，日卡封顶 ≤14h 使得「一天 >24 小时」在结构上不可能；向导「按高德路线」改为真取数 + 按选点签名缓存矩阵；修 `fetchDistMatrix` 嵌套闸门锁死、2-opt 无出发地崩溃与 ≤3 站早退
 - ✅ 2026-10-03 发送至高德不再丢途经地：补齐 `vianames`（高德硬性要求 `vian/vialons/vialats/vianames` 四队列数量一致，缺一整组作废）；网页兜底改用文档参数 `via`（`waypoints` 不存在）；单站日不再发送起终点同点
 - ✅ 2026-10-03 视觉基建：统一 SVG 图标体系 `icons.js`（82 字形 sprite + `TraceIcon()`，描边 `currentColor` 随主题）、`icons-demo.html` 画廊、emoji 棘轮闸门（只准降不准增）、`tools/visual-check.js` 视觉回归闸门
-- ⏳ 剩余改进项与节奏见 `改进实施方案与验收标准.md` §0.5 复核表与文末批次表（约 16.5 人日）
+- ✅ 2026-10-03 视觉闸门补齐（P0-0 收口）：三视口 49 态 + `test-data.js` 种子数据态；截图前钉死时钟/随机/动画并跳过首启引导蒙层（此前 index 三档基线拍的全是遮罩，等于首页无闸门）；阈值按实测噪声重定，反向验证「改品牌色 → 21 FAIL」留痕
+- ⏳ 剩余改进项与节奏见 `改进实施方案与验收标准.md` §0.5 复核表与文末批次表（批次 0–1 已清，约 16 人日）
