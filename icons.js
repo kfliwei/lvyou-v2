@@ -1,6 +1,6 @@
 /* icons.js - 行迹 TRACE 图标库（由 tools/gen-icons.js 生成，勿手改）
  * 源: lucide-static v1.51.0 (ISC License) - 24x24 网格 / 2px 圆头描边 / currentColor
- * 重新生成: node tools/gen-icons.js    图形清单: 82 个
+ * 重新生成: node tools/gen-icons.js    图形清单: 83 个
  * 用法: TI("mic") 返回 <svg><use> 字符串; TI("mic",20,"lg") 可调尺寸与附加类名 */
 (function () {
   var SYMS = {
@@ -85,7 +85,8 @@
     "sad": "<path d=\"M15 10V9\" /> <path d=\"M9 10V9\" /> <path d=\"M9 16a5 5 0 016 0\" /> <circle cx=\"12\" cy=\"12\" r=\"10\" />",
     "gauge": "<path d=\"m12 14 4-4\" /> <path d=\"M3.34 19a10 10 0 1 1 17.32 0\" />",
     "pinned": "<path d=\"M18 8c0 3.613-3.869 7.429-5.393 8.795a1 1 0 01-1.214 0C9.87 15.429 6 11.613 6 8a6 6 0 0112 0\" /> <path d=\"M4.474 15h-.197a1 1 0 00-.969.753l-1.097 4.35a1.5 1.5 0 001.444 1.898L20.344 22a1.5 1.5 0 001.446-1.897l-1.098-4.35a1 1 0 00-.969-.753h-.197\" /> <circle cx=\"12\" cy=\"8\" r=\"2\" />",
-    "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /> <path d=\"M13 5v2\" /> <path d=\"M13 17v2\" /> <path d=\"M13 11v2\" />"
+    "ticket": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /> <path d=\"M13 5v2\" /> <path d=\"M13 17v2\" /> <path d=\"M13 11v2\" />",
+    "chevron": "<path d=\"m9 18 6-6-6-6\" />"
   };
   var SPRITE = '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">'
     + Object.keys(SYMS).map(function (n) { return '<symbol id="ti-' + n + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + SYMS[n] + '</symbol>'; }).join('')
@@ -97,5 +98,5 @@
     var s = size || 16;
     return '<svg class="ti ' + (cls || '') + '" aria-hidden="true" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-' + name + '"/></svg>';
   };
-  window.TI_NAMES = ["back","close","copy","search","settings","star","heart","camera","map","pin","plus","minus","play","pause","save","export","import","hourglass","warn","check","sync","sun","cloud","rain","snow","cloudsun","bolt","car","train","plane","hotel","food","budget","companions","calendar","stats","gallery","compass","note","mic","trash","edit","link","home","moon","clock","cut","eye","sparkles","landmark","route","bookmark","share","wifioff","loader","trophy","book","palette","mountain","footprints","user","list","grid","flag","info","lock","globe","navigation","locate","layers","filter","pen","journal","volume","headphones","chat","smile","meh","sad","gauge","pinned","ticket"];
+  window.TI_NAMES = ["back","close","copy","search","settings","star","heart","camera","map","pin","plus","minus","play","pause","save","export","import","hourglass","warn","check","sync","sun","cloud","rain","snow","cloudsun","bolt","car","train","plane","hotel","food","budget","companions","calendar","stats","gallery","compass","note","mic","trash","edit","link","home","moon","clock","cut","eye","sparkles","landmark","route","bookmark","share","wifioff","loader","trophy","book","palette","mountain","footprints","user","list","grid","flag","info","lock","globe","navigation","locate","layers","filter","pen","journal","volume","headphones","chat","smile","meh","sad","gauge","pinned","ticket","chevron"];
 })();

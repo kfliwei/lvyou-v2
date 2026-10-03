@@ -6,9 +6,11 @@
  *   node tools/visual-check.js index.html   # 只跑指定页的空库态
  *   node tools/visual-check.js --reindex    # 把当前基线本体登记进指纹清单（不重新截图）
  * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
- * 阈值: 普通页 > 0.1% FAIL；种子态 > 0.05%；地图页（瓦片为外部资源）> 1%。数值按实测噪声定，见 THRESH 注释。
- * 稳定性: 时钟、performance.now、rAF 时间戳、Math.random、CSS 动画全部钉死，49 状态连跑两遍
- *         非地图页最大噪声 0.01%——所以阈值能收得这么紧（收不紧的闸门守不住改色）。
+ * 阈值: 普通页 > 0.1% FAIL；种子态 > 0.05%。数值按实测噪声定，见 THRESH 注释。
+ * 稳定性: 时钟、performance.now、rAF 时间戳、Math.random、CSS 动画全部钉死，所有 http(s) 请求拦掉
+ *         （瓦片一类的外部内容不进基线），并统一在 prefers-reduced-motion 下拍（hero 粒子的
+ *         IntersectionObserver 重启会补跳步，同代码连跑能飘 0.35%）——49 状态连跑两遍每态 0.00%。
+ *         所以阈值能收得这么紧（收不紧的闸门守不住改色）。
  * 入库策略: 截图本体（visual-baseline/ 与 visual-diff/ 的 PNG）不入库（见 .gitignore），
  *   入库的是 tools/out/visual-baseline.json（基线指纹清单）与 tools/out/visual-report.json（本次比对报告）。
  *   ⇒ 基线缺失时**判 FAIL 并报错**，不静默重建——否则新克隆上闸门会拿当前的坏状态当真相，永远绿。 */
@@ -52,15 +54,20 @@ const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'revi
  * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 三视口覆盖）。 */
 const SEED_PAGES = ['review.html', 'album.html', 'story.html', 'travel-map.html'];
 /* 种子态页必须同时在 PAGES 里——否则它的种子基线没有同页空库基线可比，"这态有没有增量"就无从量。 */
-const MAP_PAGES = new Set(['topic.html', 'explore-map.html', 'travel-map.html']);
 const VIEWPORTS = [[390, 844], [768, 1024], [1440, 900]];
 const SEED_VIEWPORTS = [[390, 844]];
-/* 阈值按实测噪声定，不是拍脑袋：时间/随机/CSS 动画钉死后，49 个状态连跑两遍
- * 非地图页最大噪声 0.01%（album.seed），地图页 0.04%（topic.768，瓦片）。
- * 留 ≥5× 余量 ⇒ 普通页 0.1%、种子态 0.05%、地图页 1%。
+/* 阈值按实测噪声定，不是拍脑袋：时间/随机/CSS 动画钉死 + 所有 http(s) 请求拦掉 + 基线在
+ * prefers-reduced-motion 下拍之后，49 个状态连跑两遍**每一态都是 0.00%**（日志归档
+ * tools/out/shots/2026-10-03-visualgate-mutation2/vc-rm-{1,2}.log）。
+ * 0.1% 不是贴着噪声留的，是给跨机器留余量：本机零噪声不代表别的字体渲染环境也零噪声。
+ * 反向验证（改 --color-primary）实测最小 diff 0.11%，所以这条线再往下收才有意义，先不动。
+ * 地图页不再有单独宽松阈值：以前松到 1% 是因为瓦片是外部资源（同代码连跑飘 1–5.5%），
+ * 拦掉请求后 topic/explore-map/travel-map 十个态全部 0.00%，"地图页"就只是普通页；
+ * 留着那个 if 等于给网络依赖留一道后门——反向验证时 explore-map/travel-map 的 0.11–0.27%
+ * 正是被这道后门放过去的（旧基线那次 21 FAIL，删掉特例后同一改动 26 FAIL）。
  * 对照：改阈值前是 0.5%/8%，那时把 --color-primary 整体改色（195 处引用）闸门 49 张全绿——
  * 阈值松到守不住品牌色，等于没有闸门。 */
-const THRESH = 0.001, THRESH_MAP = 0.01;
+const THRESH = 0.001;
 /* 种子态用严阈值：它要守的是"数据有没有渲染出来"，而这类内容往往只占视口一小块
  * （review 种子态与空库态差 0.16%，用 0.5% 阈值等于数据全丢也不会 FAIL）。 */
 const THRESH_SEED = 0.0005;
@@ -122,11 +129,27 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
 
   for (const page of await browser.pages()) await page.close();
   const pg = await browser.newPage();
+  /* 闸门不许依赖网络：瓦片（OSM/高德/天地图）与任何 CDN 请求一律拦掉。
+     之前没拦，topic/node-manager 四个态在同一份代码连跑两次就飘 1-5.5%（瓦片到没到、到哪张），
+     "确定性"其实只在有缓存的机器上成立。拦掉后地图页只剩矢量覆盖物，是可复现的。 */
+  await pg.setRequestInterception(true);
+  pg.on('request', req => {
+    const u = req.url();
+    if (/^https?:/i.test(u)) { req.abort().catch(() => {}); return; }
+    req.continue().catch(() => {});
+  });
   /* 首启引导蒙层（z-index 9990）盖在所有内容之上：不跳过它就等于把蒙层截成"页面基线"，
      此后页面真改版闸门也不会动。与 audit-clicktest.js:52 同一口径，必须在文档加载前写入。
      代价：蒙层本身不进视觉基线——它由 tools/smoke.js 的 tn_onboarded 断言 + 点击探针覆盖。 */
   await pg.evaluateOnNewDocument(() => { try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {} });
   await pg.evaluateOnNewDocument(CLOCK);
+  /* 钉在 prefers-reduced-motion 上拍基线——这是应用自己的一等渲染模式（design.css:235、
+   * travel-notes.js:308 的全局降级、index.html staticFrame 静帧路径），不是为测试造的假态。
+   * 原因是首页 hero 粒子：它每帧按真实 rAF 时间戳推进，时钟桩把每帧 dt 压成 0，
+   * 但 IntersectionObserver 每次 stop→start 会把 t0 清零，下一帧就补一个 0.05s 的跳步——
+   * 跳几次取决于截图前那 1.4s 真实窗口里触发了几轮，同代码连跑 768 档实测 0.00%↔0.35% 乱跳。
+   * 代价：动效路径不进像素基线（它本质不可复现），由静帧墨量断言 + 真机/人审覆盖。 */
+  await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
 
   /* 状态矩阵：空库态全量 × 三视口，种子态只跑内容页 × 390；
      带页名参数只跑该页空库态，--seed 只跑种子态（两者分开跑，--update 时清单是合并写入不会丢登记） */
@@ -171,6 +194,23 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     await pg.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
     await pg.goto(pathToFileURL(path.join(ROOT, p)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
     await new Promise(r => setTimeout(r, 1400));
+    /* 装饰层覆盖断言：钉 reduced-motion 换来的是静帧渲染路径，如果那条路径哪天失效
+       （staticFrame 没调用、canvas 尺寸塌成 0），基线会安静地少一层像素、闸门照样绿。这里补一刀。 */
+    if (p === 'index.html') {
+      const ink = await pg.evaluate(() => {
+        const cv = document.getElementById('heroParticles');
+        if (!cv || !cv.getContext || !cv.width) return -1;
+        const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+        let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 8) n++;
+        return n;
+      });
+      if (ink <= 0) {
+        testN--;
+        console.log('FAIL ' + tag + ' — hero 粒子静帧无墨（ink=' + ink + '），装饰层没进基线');
+        report.push({ state: tag, status: 'FAIL', reason: 'decoration-blank', ink });
+        failN++; continue;
+      }
+    }
     /* animations:'disabled' 让 puppeteer 在截屏前把 CSS 动画/过渡定格到终态，
        否则首页 .hn 的呼吸光晕（infinite keyframes）每帧都在动，JS 冻时钟管不住它。 */
     const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
@@ -206,7 +246,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     const diffPng = new PNG({ width: a.width, height: a.height });
     const diffPx = match(a.data, b.data, diffPng.data, a.width, a.height, { threshold: 0.02 });
     const ratio = diffPx / (a.width * a.height);
-    const lim = MAP_PAGES.has(p) ? THRESH_MAP : (st.seed ? THRESH_SEED : THRESH);
+    const lim = st.seed ? THRESH_SEED : THRESH;
     const ok = ratio <= lim;
     fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
     report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2) });

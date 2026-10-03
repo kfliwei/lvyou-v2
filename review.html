@@ -31,9 +31,10 @@
   .cal-cell.has{background:var(--color-primary-soft);color:var(--color-primary-dark);font-weight:600}
   .cal-cell.has .dot{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--color-primary)}
   .cal-cell .cnt{position:absolute;top:3px;right:5px;font-size:9px;color:var(--color-primary-dark)}
-  .cal-cell .mood{position:absolute;top:2px;left:6px;font-size:11px;line-height:1}
+  .cal-cell .mood{position:absolute;top:2px;left:6px;line-height:0;color:var(--color-primary-dark)}
   .moodrow{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .moodrow .mk{width:34px;height:34px;border:1px solid var(--color-line);border-radius:999px;display:grid;place-items:center;font-size:16px;cursor:pointer;background:var(--color-surface)}
+  /* 40×40：icon-only 圆形热区最小触控尺寸（Material/鸿蒙同口径），原来的 34 是照着视觉格子定的，没管手指 */
+  .moodrow .mk{width:40px;height:40px;border:1px solid var(--color-line);border-radius:999px;display:grid;place-items:center;font-size:16px;cursor:pointer;background:var(--color-surface)}
   .moodrow .mk.on{border-color:var(--color-primary);background:var(--color-primary-soft)}
   .moodrow .mk:active{transform:scale(.92)}
   .moodrow .mk.clear{font-size:12px;color:var(--color-muted)}
@@ -282,12 +283,16 @@
 <script src="results.js"></script>
 <script src="poster.js"></script>
 <script src="ui.js"></script>
+<script src="icons.js"></script>
 <script>
 /* 旅程回顾页：月历热力 + 当日游记 + 年鉴数据 */
 function esc(s){return window.UI.esc(s);}
 function pad(n){return (n<10?'0':'')+n;}
 var notes=[], dayMap={}, curYm='', _init=false, selDay='';
 var dayMoods={};
+/* 心情：data-m 存 emoji（老数据兼容，不改存储），显示层一律走 sprite 图标。
+   提到模块作用域是因为日历格与日详情两处都要用，之前只在 renderDay 里声明，日历格只能直接吐 emoji。 */
+var MOOD_ICON={'😀':'smile','😐':'meh','😭':'sad','⛰️':'mountain','🍜':'food','🧭':'compass'};   /* emoji-ok: 同上，仅作映射键 */
 try{ dayMoods=JSON.parse(localStorage.getItem('tn_dayMoods')||'{}'); }catch(e){ dayMoods={}; }
 function saveMoods(){ try{ localStorage.setItem('tn_dayMoods',JSON.stringify(dayMoods)); }catch(e){} }
 function dayOf(n){return (n.day||(n.date||'').slice(0,10)||'').slice(0,10);}
@@ -589,7 +594,7 @@ function renderCal(){
   for(var d=1;d<=dim;d++){
     var dd=curYm+'-'+pad(d),list=dayMap[dd]||[];
     var cls='cal-cell'+(list.length?' has':'')+(d===td?' today':'');
-    html+='<div class="'+cls+'" data-d="'+dd+'">'+d+(list.length?'<span class="dot"></span><span class="cnt">'+list.length+'</span>':'')+(dayMoods[dd]?'<span class="mood">'+dayMoods[dd]+'</span>':'')+'</div>';
+    html+='<div class="'+cls+'" data-d="'+dd+'">'+d+(list.length?'<span class="dot"></span><span class="cnt">'+list.length+'</span>':'')+(dayMoods[dd]?'<span class="mood">'+TI(MOOD_ICON[dayMoods[dd]]||'smile',12)+'</span>':'')+'</div>';
   }
   var grid=document.getElementById('calGrid');
   grid.innerHTML=html;
@@ -608,9 +613,9 @@ function renderDay(){
       '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'+
       '<div class="txt">'+esc(n.text||n.raw)+'</div>'+tags+thumbs+'</div>';
   }).join('');
-  var moods=['😀','😐','😭','⛰️','🍜','🧭'];var MOOD_ICON={'😀':'smile','😐':'meh','😭':'sad','⛰️':'mountain','🍜':'food','🧭':'compass'};   /* 显示层走 TI 图标，data-m 仍存 emoji（老数据兼容） */
+  var moods=Object.keys(MOOD_ICON);
   var cur=dayMoods[selDay]||'';
-  var moodRow='<div class="moodrow">'+moods.map(function(m){return '<span class="mk'+(m===cur?' on':'')+'" data-m="'+m+'">'+TI(MOOD_ICON[m], 16)+'</span>';}).join('')+'<span class="mk clear" data-m="">✕</span></div>';
+  var moodRow='<div class="moodrow">'+moods.map(function(m){return '<span class="mk'+(m===cur?' on':'')+'" data-m="'+m+'">'+TI(MOOD_ICON[m], 16)+'</span>';}).join('')+'<span class="mk clear" data-m="" aria-label="清除心情">'+TI('close', 14)+'</span></div>';
   box.innerHTML='<div class="eyebrow">'+selDay+' · '+list.length+' 篇</div>'+moodRow+items;
   box.querySelectorAll('.mk').forEach(function(k){
     k.onclick=function(){

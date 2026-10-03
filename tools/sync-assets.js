@@ -33,13 +33,12 @@ if (fs.existsSync(path.join(SRC, 'manifest.webmanifest'))) {
   total += copyDir(path.join(SRC, d), path.join(DST, d));
 });
 console.log('synced files:', total);
-/* 验证关键文件 */
-const checks = [
-  ['explore-map.html', '7833 处'],
-  ['topic-common.js', "statEl.style.display = (tab === 'map')"],
-  ['travel-notes.js', "color:var(--color-ink);letter-spacing:.04em"]
-];
-checks.forEach(([f, mark]) => {
-  const s = fs.readFileSync(path.join(DST, f), 'utf8');
-  console.log(f, '→', s.includes(mark) ? 'OK' : 'STALE');
+/* 验证关键文件：直接和源文件比字节。
+   以前是「在目标里找一个特征串」，特征串写的是当时的文案（'7833 处'），站点数一改就永远报 STALE，
+   等于把一个假故障钉进了构建流程。 */
+['explore-map.html', 'index.html', 'review.html', 'nav.js', 'icons.js', 'sw.js', 'topic-common.js', 'travel-notes.js'].forEach(f => {
+  const a = fs.readFileSync(path.join(DST, f));
+  const b = fs.readFileSync(path.join(SRC, f));
+  console.log(f, '→', a.equals(b) ? 'OK（与源一致）' : 'STALE（与源不一致）');
+  if (!a.equals(b)) process.exitCode = 1;
 });

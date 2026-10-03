@@ -594,7 +594,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     // 录音面板（深色沉浸）
     var panel = el('div', 'tn-panel');
     panel.innerHTML = '\
-<div class="tn-head"><button class="tn-x" id="tnX">←</button><div class="tn-title"><b>留下这一刻</b><small class="tn-site" id="tnSite"></small></div><span class="tn-pause">🎙 5 秒停顿</span></div>\
+<div class="tn-head"><button class="tn-x" id="tnX">←</button><div class="tn-title"><b>留下这一刻</b><small class="tn-site" id="tnSite"></small></div><span class="tn-pause">' + TI('mic', 13) + ' 5 秒停顿</span></div>\
 <div class="tn-body">\
   <div class="tn-now" id="tnNow"></div>\
   <div class="tn-prompt" id="tnPrompt">你到了这里。<br>如果愿意，说说现在看到的。</div>\
@@ -1271,9 +1271,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   }
 
   /* ---------- 天气自动记录（Open-Meteo 免费无 key） ---------- */
-  var WMO = { 0:'☀️ 晴',1:'🌤 晴间多云',2:'⛅ 多云',3:'☁️ 阴',45:'🌫 雾',48:'🌫 雾凇',51:'🌦 毛毛雨',53:'🌦 毛毛雨',55:'🌧 毛毛雨',61:'🌧 小雨',63:'🌧 中雨',65:'🌧 大雨',71:'🌨 小雪',73:'🌨 中雪',75:'❄️ 大雪',77:'🌨 雪粒',80:'🌦 阵雨',81:'🌧 阵雨',82:'⛈ 强阵雨',85:'🌨 阵雪',86:'❄️ 强阵雪',95:'⛈ 雷暴',96:'⛈ 雷暴冰雹',99:'⛈ 强雷暴' };
+  var WMO = { 0:'☀️ 晴',1:'🌤 晴间多云',2:'⛅ 多云',3:'☁️ 阴',45:'🌫 雾',48:'🌫 雾凇',51:'🌦 毛毛雨',53:'🌦 毛毛雨',55:'🌧 毛毛雨',61:'🌧 小雨',63:'🌧 中雨',65:'🌧 大雨',71:'🌨 小雪',73:'🌨 中雪',75:'❄️ 大雪',77:'🌨 雪粒',80:'🌦 阵雨',81:'🌧 阵雨',82:'⛈ 强阵雨',85:'🌨 阵雪',86:'❄️ 强阵雪',95:'⛈ 雷暴',96:'⛈ 雷暴冰雹',99:'⛈ 强雷暴' };   /* emoji-ok: 天气文案会持久化写进游记记录，换字形等于改写历史数据 */
   function weatherStr(code, tmax, tmin) {
-    var s = WMO[code] || ('🌡 天气码' + code);
+    var s = WMO[code] || ('🌡 天气码' + code);   /* emoji-ok: 同上一行 WMO 表的兜底文案 */
     if (tmax != null) s += ' ' + tmax + '°' + (tmin != null ? '/' + tmin + '°' : '');
     return s;
   }

@@ -884,7 +884,7 @@
   else if (all.length) map.fitBounds(all, { padding: [40, 40] });
     switchTab('map');
     var banner = $('routeBanner');
-    banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px;opacity:.75">' + TI('close', 12) + '</span>';
+    banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px">' + TI('close', 13) + '</span>';   /* 不再叠 opacity：12px + .75 透明在暗底上只剩 2.36:1 */
     banner.title = '点击清除路线';
     banner.onclick = clearRoute;
     var dl = $('dayLegend');
@@ -1154,7 +1154,7 @@
   }
 
   /* ---------- 美食 ---------- */
-  var FTYPE_ICON = { "面食": "🍜", "小吃": "🥟", "硬菜": "🍲", "宴席": "🍱", "特产": "🎁", "饮品": "🍶" };
+  var FTYPE_ICON = { "面食": "🍜", "小吃": "🥟", "硬菜": "🍲", "宴席": "🍱", "特产": "🎁", "饮品": "🍶" };   /* emoji-ok: 美食类目彩色徽章；lucide 单色描边表达不了"面食/小吃/硬菜/宴席/特产/饮品"的类目差异 */
   var FTYPE_COLOR = { "面食": "#C86D4B", "小吃": "#71806C", "硬菜": "#C86D4B", "宴席": "#8C7B66", "特产": "#6D7D88", "饮品": "#71806C" };
   function foodCountInCity(city) { return SITES.filter(function (s) { return s.city === city; }).length; }
   function getFoodFiltered() {
@@ -1175,7 +1175,7 @@
     if (!list.length) { grid.innerHTML = '<div class="empty">没有匹配的美食，换个关键词试试。</div>'; return; }
     grid.innerHTML = '';
     list.forEach(function (d) {
-      var ic = FTYPE_ICON[d.type] || "🍽️", col = FTYPE_COLOR[d.type] || "#7D7970";
+      var ic = FTYPE_ICON[d.type] || "🍽️", col = FTYPE_COLOR[d.type] || "#7D7970";   /* emoji-ok: 同上一行 FTYPE_ICON 的未知类目兜底徽章 */
       var nSites = foodCountInCity(d.city);
       var card = document.createElement('div'); card.className = 'fcard';
       card.innerHTML = '<div class="fh"><span class="fic">' + ic + '</span><span class="ft" style="background:' + col + '">' + d.type + '</span></div>' +
@@ -1330,7 +1330,7 @@
     // 路线
     renderRoutes();
     var routeSel = $('routeSel');
-    (M.routes || []).forEach(function (rt, ri) { var o = document.createElement('option'); o.value = ri; o.textContent = '🧭 ' + rt.name; routeSel.appendChild(o); });
+    (M.routes || []).forEach(function (rt, ri) { var o = document.createElement('option'); o.value = ri; o.textContent = '🧭 ' + rt.name; routeSel.appendChild(o); });   /* emoji-ok: option 文本里渲染不了 SVG 图标 */
     routeSel.onchange = function () {
       var ri = +routeSel.value;
       if (!isFinite(ri) || ri < 0) return;

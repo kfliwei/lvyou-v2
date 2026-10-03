@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-03T14:15:15.387Z",
+  "ranAt": "2026-10-03T15:51:09.586Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -9,12 +9,12 @@
   ],
   "states": 49,
   "fail": 0,
-  "elapsedSec": 149,
+  "elapsedSec": 150.5,
   "results": [
     {
       "state": "index.390x844.png",
       "status": "PASS",
-      "diffPct": 0.01,
+      "diffPct": 0,
       "limitPct": 0.1
     },
     {
@@ -26,26 +26,26 @@
     {
       "state": "index.1440x900.png",
       "status": "PASS",
-      "diffPct": 0.001,
+      "diffPct": 0,
       "limitPct": 0.1
     },
     {
       "state": "topic.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "topic.768x1024.png",
       "status": "PASS",
-      "diffPct": 0.015,
-      "limitPct": 1
+      "diffPct": 0.053,
+      "limitPct": 0.1
     },
     {
       "state": "topic.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "search.390x844.png",
@@ -249,37 +249,37 @@
       "state": "explore-map.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "explore-map.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "explore-map.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "travel-map.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "travel-map.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "travel-map.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.1
     },
     {
       "state": "review.seed.390x844.png",
@@ -290,7 +290,7 @@
     {
       "state": "album.seed.390x844.png",
       "status": "PASS",
-      "diffPct": 0.007,
+      "diffPct": 0,
       "limitPct": 0.05
     },
     {
@@ -303,7 +303,7 @@
       "state": "travel-map.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 1
+      "limitPct": 0.05
     }
   ]
 }

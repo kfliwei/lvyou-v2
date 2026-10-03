@@ -1,0 +1,372 @@
+{
+ "day": "2026-10-03",
+ "pages": {
+  "index.html": {
+   "light": {
+    "icons": 6,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 6,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "explore-map.html": {
+   "light": {
+    "icons": 11,
+    "legacy": 1,
+    "samples": 1,
+    "clipped": 1,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 11,
+    "legacy": 1,
+    "samples": 1,
+    "clipped": 1,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "topic.html": {
+   "light": {
+    "icons": 1,
+    "legacy": 13,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 1,
+    "legacy": 13,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "search.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "wishlist.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "review.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 7,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 7,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "travel-map.html": {
+   "light": {
+    "icons": 7,
+    "legacy": 3,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 7,
+    "legacy": 3,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "planner.html": {
+   "light": {
+    "icons": 7,
+    "legacy": 1,
+    "samples": 2,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 7,
+    "legacy": 1,
+    "samples": 2,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "me.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 3,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 3,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "settings.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "node-manager.html": {
+   "light": {
+    "icons": 0,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 0,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "md-manager.html": {
+   "light": {
+    "icons": 0,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 0,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "album.html": {
+   "light": {
+    "icons": 0,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 0,
+    "legacy": 0,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "album-edit.html": {
+   "light": {
+    "icons": 1,
+    "legacy": 0,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 1,
+    "legacy": 0,
+    "samples": 1,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  },
+  "story.html": {
+   "light": {
+    "icons": 5,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   },
+   "dark": {
+    "icons": 5,
+    "legacy": 1,
+    "samples": 0,
+    "clipped": 0,
+    "covered": [],
+    "blind": [],
+    "thin": [],
+    "baseline": [],
+    "small": []
+   }
+  }
+ },
+ "totalFail": 0,
+ "observed": {
+  "baselineSamples": 12,
+  "maxBaseline": 1.59,
+  "minContrast": 3.05,
+  "minHit": 40
+ }
+}

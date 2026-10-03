@@ -1,0 +1,53 @@
+FAIL index.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/index.390x844.png
+FAIL index.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/index.768x1024.png
+PASS index.1440x900.png  diff 0.07%
+PASS topic.390x844.png  diff 0.00%
+PASS topic.768x1024.png  diff 0.00%
+PASS topic.1440x900.png  diff 0.00%
+FAIL search.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/search.390x844.png
+FAIL search.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/search.768x1024.png
+PASS search.1440x900.png  diff 0.07%
+FAIL wishlist.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/wishlist.390x844.png
+FAIL wishlist.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/wishlist.768x1024.png
+PASS wishlist.1440x900.png  diff 0.07%
+FAIL review.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/review.390x844.png
+FAIL review.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/review.768x1024.png
+PASS review.1440x900.png  diff 0.07%
+FAIL settings.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/settings.390x844.png
+FAIL settings.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/settings.768x1024.png
+PASS settings.1440x900.png  diff 0.07%
+FAIL me.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/me.390x844.png
+FAIL me.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/me.768x1024.png
+PASS me.1440x900.png  diff 0.07%
+FAIL node-manager.390x844.png  diff 0.61% > 0.1%  → tools/out/visual-diff/node-manager.390x844.png
+FAIL node-manager.768x1024.png  diff 0.26% > 0.1%  → tools/out/visual-diff/node-manager.768x1024.png
+FAIL node-manager.1440x900.png  diff 0.15% > 0.1%  → tools/out/visual-diff/node-manager.1440x900.png
+PASS album.390x844.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS album-edit.390x844.png  diff 0.00%
+PASS album-edit.768x1024.png  diff 0.00%
+PASS album-edit.1440x900.png  diff 0.00%
+FAIL story.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/story.390x844.png
+FAIL story.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/story.768x1024.png
+PASS story.1440x900.png  diff 0.07%
+FAIL planner.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/planner.390x844.png
+FAIL planner.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/planner.768x1024.png
+PASS planner.1440x900.png  diff 0.07%
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+FAIL explore-map.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/explore-map.390x844.png
+FAIL explore-map.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/explore-map.768x1024.png
+PASS explore-map.1440x900.png  diff 0.07%
+FAIL travel-map.390x844.png  diff 0.27% > 0.1%  → tools/out/visual-diff/travel-map.390x844.png
+FAIL travel-map.768x1024.png  diff 0.11% > 0.1%  → tools/out/visual-diff/travel-map.768x1024.png
+PASS travel-map.1440x900.png  diff 0.07%
+FAIL review.seed.390x844.png  diff 0.27% > 0.05%  → tools/out/visual-diff/review.seed.390x844.png
+PASS album.seed.390x844.png  diff 0.00%
+FAIL story.seed.390x844.png  diff 0.27% > 0.05%  → tools/out/visual-diff/story.seed.390x844.png
+FAIL travel-map.seed.390x844.png  diff 0.27% > 0.05%  → tools/out/visual-diff/travel-map.seed.390x844.png
+---
+耗时 148.5s（49 张，报告 tools/out/visual-report.json）
+比对 49 张: 23 PASS, 26 FAIL
+exit=1

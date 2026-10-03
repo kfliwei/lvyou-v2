@@ -168,7 +168,7 @@
   window.copyWishlist = function () {
     var list = window.Wish ? Wish.list() : [];
     if (!list.length) { UI.toast('清单是空的'); return; }
-    var txt = '⭐ 想去清单（行迹 TRACE）\n';
+    var txt = '⭐ 想去清单（行迹 TRACE）\n';   /* emoji-ok: 复制到剪贴板的纯文本，没有 SVG 载体 */
     list.forEach(function (w, i) { txt += (i + 1) + '. ' + w.label + (w.city ? '（' + w.city + '）' : '') + '\n'; });
     copyText(txt);
   };

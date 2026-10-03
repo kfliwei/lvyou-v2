@@ -27,7 +27,7 @@
   .story-item__title{font-family:var(--font-serif);font-size:17px;font-weight:400;color:var(--color-ink);letter-spacing:.01em}
   .story-item__loc{font-size:0.6875rem;color:var(--color-muted);margin-top:4px;letter-spacing:.04em}
   .story-item__desc{font-size:0.75rem;color:var(--color-ink-soft);margin-top:5px;line-height:1.7;font-family:var(--font-sans)}
-  .story-item__arr{color:var(--color-faint);display:grid;place-items:center;flex:0 0 auto;margin-left:8px}
+  .story-item__arr{color:var(--color-muted);display:grid;place-items:center;flex:0 0 auto;margin-left:8px}   /* faint 在亮底上只有 2.25:1，图形底线 3:1 */
   /* 我的地图：文字链接 */
   .mine{display:flex;align-items:baseline;gap:8px;padding:22px 2px 8px;text-decoration:none}
   .mine .text-link{font-size:15px;font-weight:500;color:var(--color-primary-dark)}
@@ -68,7 +68,7 @@
     </div>
     <h1 class="hero__title">今天，想去哪里？</h1>
     <p class="hero__sub">三十四省，七千余处风景。选一张地图，走进去。</p>
-    <a href="search.html" style="display:flex;align-items:center;gap:8px;margin:14px 2px 2px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:13px 18px;font-size:13.5px;color:var(--color-muted);box-shadow:var(--shadow-soft)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex:0 0 auto"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5"/></svg><span style="flex:1">搜索全部景点（7833 处）</span><span style="color:var(--color-faint)">›</span></a>
+    <a href="search.html" style="display:flex;align-items:center;gap:8px;margin:14px 2px 2px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:13px 18px;font-size:13.5px;color:var(--color-muted);box-shadow:var(--shadow-soft)"><svg width="15" height="15" aria-hidden="true" style="flex:0 0 auto"><use href="#ti-search"/></svg><span style="flex:1">搜索全部景点（7794 处）</span><span style="color:var(--color-faint)">›</span></a>
   </section>
 
   <div class="maps">
@@ -85,11 +85,12 @@
     </a>
   </div>
   <div id="bnav"></div>
+  <script src="icons.js"></script>
   <script src="topic-catalog.js"></script>
   <script>
   /* 专题列表：由 topic-catalog.js 数据渲染（与 index.html 精选共用一份目录） */
   (function () {
-    var ARR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg>';
+    var ARR = '<svg width="15" height="15" aria-hidden="true"><use href="#ti-chevron"/></svg>';
     var box = document.getElementById('topicList');
     if (!box || !window.TOPIC_CATALOG) return;
     box.innerHTML = window.TOPIC_CATALOG.map(function (t) {

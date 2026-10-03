@@ -1230,7 +1230,7 @@
   }
   window.plannerCopyPlan = function () {
     var t = state.trip; if (!t) return;
-    var txt = '🚗 行程计划（行迹 TRACE）· ' + t.name + '\n';
+    var txt = '🚗 行程计划（行迹 TRACE）· ' + t.name + '\n';   /* emoji-ok: 复制到剪贴板的纯文本，没有 SVG 载体 */
     t.days.forEach(function (d, i) { txt += 'Day' + (i + 1) + '：' + dayText(d) + '\n'; });
     copyText(txt);
   };
@@ -1281,7 +1281,7 @@
     if (trip.narrative && trip.narrative.story) h += '<div class="story">' + esc(trip.narrative.story) + '</div>';
     trip.days.forEach(function (d, di) {
       h += '<h2>Day ' + (di + 1) + (d.transit ? ' · 赶路日' : '') + (trip.narrative && trip.narrative.dayThemes && trip.narrative.dayThemes[di] ? ' · ' + esc(trip.narrative.dayThemes[di]) : '') + '</h2><div class="muted">' + (d.transit ? esc((d.from || '出发地') + ' → ' + (d.to || '目的地') + ' · ') : '') + '约 ' + Math.round(d.driveKm) + ' km · 全程约 ' + d.totalH.toFixed(1) + 'h</div>';
-      d.stops.forEach(function (s, si) { h += '<div>' + (si + 1) + '. ' + esc(s.name) + (s.city ? ' <span class="muted">' + esc(s.city) + '</span>' : '') + (s.done ? ' ✓' : '') + '</div>'; });
+      d.stops.forEach(function (s, si) { h += '<div>' + (si + 1) + '. ' + esc(s.name) + (s.city ? ' <span class="muted">' + esc(s.city) + '</span>' : '') + (s.done ? ' ✓' : '') + '</div>'; });   /* emoji-ok: 导出路书 HTML 文档里的纯文本勾号，文档不携带 sprite */
     });
     return docShell(trip.name + ' · 路书', h);
   }

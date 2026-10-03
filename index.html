@@ -226,13 +226,13 @@
     <h1 class="hero__title fade-up" style="animation-delay:120ms">今天，<br>去哪里？</h1>
     <p class="hero__sub fade-up" style="animation-delay:200ms">Discover Somewhere · 山川湖海，皆可抵达</p>
     <div class="hero__meta fade-up" style="animation-delay:260ms">
-      <span><b>34</b> 省</span><i></i><span><b>7,833</b> 处山川</span><i></i><span><b>36</b> 专题地图</span>
+      <span><b>34</b> 省</span><i></i><span><b>7,794</b> 处山川</span><i></i><span><b>36</b> 专题地图</span>
     </div>
 
     <div class="hero__lower">
       <div class="hero__search fade-up" style="animation-delay:280ms" onclick="goFullSearch()" role="button" tabindex="0" aria-label="搜索全部景点">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16.5 16.5" stroke-linecap="round"/></svg>
-        <input id="homeSearch" type="search" placeholder="搜索全部景点（7833 处）" autocomplete="off" readonly onfocus="goFullSearch()">
+        <svg width="17" height="17" aria-hidden="true"><use href="#ti-search"/></svg>
+        <input id="homeSearch" type="search" placeholder="搜索全部景点（7794 处）" autocomplete="off" readonly onfocus="goFullSearch()">
       </div>
 
       <div class="hero__btnrow fade-up" style="animation-delay:360ms">
@@ -305,14 +305,15 @@
 
   <!-- ============ 底部操作（保留功能） ============ -->
   <div class="home-actions">
-    <button class="ha-btn seal" onclick="__tnAnywhere()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>随手记</button>
-    <button class="ha-btn line" onclick="location.href='review.html'"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 16 L9.5 11.5 L13.5 15 L16 12.5 L20 16"/></svg>旅程回顾</button>
+    <button class="ha-btn seal" onclick="__tnAnywhere()"><svg width="17" height="17" aria-hidden="true"><use href="#ti-mic"/></svg>随手记</button>
+    <button class="ha-btn line" onclick="location.href='review.html'"><svg width="17" height="17" aria-hidden="true"><use href="#ti-gallery"/></svg>旅程回顾</button>
   </div>
 
 </div>
 
 <!-- ============ 底部导航（4 Tab：探索/地图/旅途/我的） ============ -->
-<div id="bnav"></div><script src="nav.js" data-active="index"></script>
+<!-- icons.js 必须先于 nav.js：nav.js 用 TI() 渲染 Tab 图标 -->
+<div id="bnav"></div><script src="icons.js"></script><script src="nav.js" data-active="index"></script>
 
 <script src="topic-catalog.js"></script>
 <script src="geo.js"></script>
@@ -321,7 +322,6 @@
 <script src="travel-notes.js"></script>
 <script src="results.js"></script>
 <script src="vault.js"></script>
-<script src="icons.js"></script>
 <script src="ui.js"></script>
 <script src="wishlist.js"></script>
 <script>
@@ -513,12 +513,13 @@
   try{
     if(localStorage.getItem('tn_onboarded')) return;
     var OB_IC = {
-      map: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L3 6 V20 L9 18 L15 20 L21 18 V4 L15 6 Z"/><path d="M9 4 V18 M15 6 V20"/></svg>',
-      mic: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>',
-      star: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary,#c86d4b)" stroke-width="1.4" stroke-linejoin="round"><path d="M12 3 L14.8 8.9 L21 9.6 L16.5 13.8 L17.6 20 L12 16.9 L6.4 20 L7.5 13.8 L3 9.6 L9.2 8.9 Z"/></svg>'
+      /* 品牌色靠外层 color 传给 sprite 的 currentColor，不再各画一个 stroke 色 */
+      map: '<span style="color:var(--color-primary,#c86d4b)">' + TI('map', 44) + '</span>',
+      mic: '<span style="color:var(--color-primary,#c86d4b)">' + TI('mic', 44) + '</span>',
+      star: '<span style="color:var(--color-primary,#c86d4b)">' + TI('star', 44) + '</span>'
     };
     var steps=[
-      {t:'探索全国', d:'7833 处景点 · 34 省 · 36 专题地图 · 搜索直达，山川湖海一键抵达', i:OB_IC.map},
+      {t:'探索全国', d:'7794 处景点 · 34 省 · 36 专题地图 · 搜索直达，山川湖海一键抵达', i:OB_IC.map},
       {t:'语音随手记', d:'景点详情页点「记录」，语音生成游记，足迹自动落上地图', i:OB_IC.mic},
       {t:'想去就打卡', d:'收藏想去清单，到了现场一键打卡，行程自动规划', i:OB_IC.star}
     ];

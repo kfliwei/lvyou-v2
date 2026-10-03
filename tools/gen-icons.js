@@ -25,7 +25,8 @@ const MAP = {
   'list': 'list', 'layout-grid': 'grid', 'flag': 'flag', 'info': 'info', 'lock': 'lock',
   'globe': 'globe', 'navigation': 'navigation', 'locate-fixed': 'locate', 'layers': 'layers',
   'sliders-horizontal': 'filter', 'pen-line': 'pen', 'notebook-pen': 'journal',
-  'volume-2': 'volume', 'headphones': 'headphones', 'message-circle': 'chat', 'smile': 'smile', 'meh': 'meh', 'frown': 'sad', 'gauge': 'gauge', 'map-pinned': 'pinned', 'ticket': 'ticket'
+  'volume-2': 'volume', 'headphones': 'headphones', 'message-circle': 'chat', 'smile': 'smile', 'meh': 'meh', 'frown': 'sad', 'gauge': 'gauge', 'map-pinned': 'pinned', 'ticket': 'ticket',
+  'chevron-right': 'chevron'
 };
 
 function innerOf(file) {
