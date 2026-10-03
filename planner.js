@@ -1317,25 +1317,51 @@
     if (!html) { toast('还没有相关游记，旅行中「记一笔」后再来生成纪念册'); return; }
     saveHtmlDoc(t.name + '·纪念册', html);
   };
-  window.plannerNavDay = function (di) {
-    var t = state.trip; if (!t || !t.days[di]) return;
+  /* 高德对途经点的硬性要求：vian / vialons / vialats / vianames 四个参数数量必须一致，
+     少一个 vianames 会被整组丢弃——表现就是「多站的一天发到高德后不显示途经地」。
+     名称里的 | 会破坏计数（自建站点名是用户输入），先换成间隔号。 */
+  function viaOf(p, xy) {
+    return { xy: xy, name: String(p.name == null ? '途经点' : p.name).replace(/\|/g, '·') };
+  }
+  function navUrlsForDay(t, di) {
     var d = t.days[di];
+    if (!d || !d.stops || !d.stops.length) return null;
     var gcj = function (p) {
       if (!p) return null;
       if (p.gcj) return [p.lng, p.lat]; /* 已是高德坐标，直接用，避免二次纠偏 */
       try { var g = window.Geo.gcj02Of(p.lat, p.lng); return [g[1], g[0]]; } catch (e) { return [p.lng, p.lat]; }
     };
-    var start = gcj(d.stops[0]), dest = gcj(d.stops[d.stops.length - 1]);
-    if (!start || !dest) { toast('站点缺少坐标'); return; }
-    var ways = d.stops.slice(1, -1).map(gcj).filter(Boolean);
-    var deep = 'amapuri://route/plan/?sourceApplication=' + encodeURIComponent('行迹') + '&slat=' + start[1] + '&slon=' + start[0] + '&sname=' + encodeURIComponent(d.stops[0].name) + '&dlat=' + dest[1] + '&dlon=' + dest[0] + '&dname=' + encodeURIComponent(d.stops[d.stops.length - 1].name) + '&dev=0&t=0';
-    if (ways.length) deep += '&vian=' + ways.length + '&vialons=' + ways.map(function (w) { return w[0]; }).join('|') + '&vialats=' + ways.map(function (w) { return w[1]; }).join('|');
-    var web = 'https://uri.amap.com/navigation?from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(d.stops[0].name) + '&to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(d.stops[d.stops.length - 1].name) + '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
-    if (ways.length) web += '&waypoints=' + ways.map(function (w) { return w[0] + ',' + w[1]; }).join(';');
+    var first = d.stops[0], last = d.stops[d.stops.length - 1];
+    var start = d.stops.length > 1 ? gcj(first) : null; /* 只有一站时不照抄它当起点，否则高德报「起终点相同」 */
+    var dest = gcj(last);
+    if (!dest) return null;
+    var ways = d.stops.slice(1, -1).map(function (s) { return viaOf(s, gcj(s)); }).filter(function (w) { return w.xy; });
+    var deep = 'amapuri://route/plan/?sourceApplication=' + encodeURIComponent('行迹') +
+      (start ? '&slat=' + start[1] + '&slon=' + start[0] + '&sname=' + encodeURIComponent(first.name) : '') +
+      '&dlat=' + dest[1] + '&dlon=' + dest[0] + '&dname=' + encodeURIComponent(last.name) + '&dev=0&t=0';
+    if (ways.length) {
+      deep += '&vian=' + ways.length +
+        '&vialons=' + ways.map(function (w) { return w.xy[0]; }).join('|') +
+        '&vialats=' + ways.map(function (w) { return w.xy[1]; }).join('|') +
+        '&vianames=' + ways.map(function (w) { return encodeURIComponent(w.name); }).join('|');
+    }
+    var web = 'https://uri.amap.com/navigation?' +
+      (start ? 'from=' + start[0] + ',' + start[1] + ',' + encodeURIComponent(first.name) + '&' : '') +
+      'to=' + dest[0] + ',' + dest[1] + ',' + encodeURIComponent(last.name) +
+      '&mode=car&policy=1&src=' + encodeURIComponent('行迹') + '&coordinate=gaode&callnative=1';
+    /* 网页版 URI 的途经点参数叫 via（waypoints 不存在，会被静默忽略），且只认一个：
+       多个途经点只有深链档能完整表达，这里取第一个中间站。 */
+    if (ways.length) web += '&via=' + ways[0].xy[0] + ',' + ways[0].xy[1] + ',' + encodeURIComponent(ways[0].name);
+    return { deep: deep, web: web };
+  }
+  window.plannerNavUrls = function (di) { return state.trip ? navUrlsForDay(state.trip, di) : null; };
+  window.plannerNavDay = function (di) {
+    var u = window.plannerNavUrls(di);
+    if (!u) { toast(state.trip && state.trip.days[di] ? '站点缺少坐标' : '行程不存在'); return; }
     toast('正在打开高德地图导航…');
-    if (/GuJianApp/.test(navigator.userAgent)) { window.location.href = deep; return; }
-    var t0 = Date.now(); window.location.href = deep;
-    setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
+    if (/GuJianApp/.test(navigator.userAgent)) { window.location.href = u.deep; return; }
+    var t0 = Date.now(); window.location.href = u.deep;
+    setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = u.web; }, 1900);
   };
   window.plannerOpenFootprint = function () { location.href = 'travel-map.html'; };
   window.plannerStartTrip = function () {
