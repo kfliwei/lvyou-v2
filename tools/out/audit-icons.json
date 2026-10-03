@@ -27,10 +27,10 @@
   },
   "explore-map.html": {
    "light": {
-    "icons": 11,
+    "icons": 10,
     "legacy": 1,
     "samples": 1,
-    "clipped": 1,
+    "clipped": 0,
     "covered": [],
     "blind": [],
     "thin": [],
@@ -38,10 +38,10 @@
     "small": []
    },
    "dark": {
-    "icons": 11,
+    "icons": 10,
     "legacy": 1,
     "samples": 1,
-    "clipped": 1,
+    "clipped": 0,
     "covered": [],
     "blind": [],
     "thin": [],
