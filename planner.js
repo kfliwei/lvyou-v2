@@ -1677,21 +1677,51 @@
           box.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('on', x === c); });
         });
       });
-      b.onclick = function () {
-        if (!window.Ai.hasKey()) { toast('请先在「设置 → AI 助手」配置站点与 Key'); return; }
+      function collectForm() {
         var dest = $id('arDest').value.trim();
-        if (!dest) { toast('先告诉 AI 想去哪个省或城市'); return; }
+        if (!dest) { toast('先告诉 AI 想去哪个省或城市'); return null; }
         var days = parseInt($id('arDays').value, 10) || 5;
         days = Math.max(1, Math.min(15, days));
         var trans = ($id('arTrans').querySelector('.chip.on') || { getAttribute: function () { return '自驾'; } }).getAttribute('data-t');
         var pref = ($id('arPref').querySelector('.chip.on') || { getAttribute: function () { return '必去'; } }).getAttribute('data-p');
-        b.disabled = true; b.innerHTML = TI('globe') + 'AI 上网检索中…';
-        aiPlanRoutes(dest, days, trans, pref, function (routes) {
-          b.disabled = false; b.innerHTML = TI('sparkles') + '上网查询 · 生成 5 条备选路线';
-          if (!routes) { toast('AI 没有返回有效路线，换个目的地或稍后再试'); return; }
-          arData = { dest: dest, days: days, trans: trans, pref: pref, regions: matchRegions(dest), routes: routes };
-          renderAiRoutes();
-          $id('aiRouteOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return { dest: dest, days: days, trans: trans, pref: pref };
+      }
+      function generateOnce(f) {
+        return new Promise(function (resolve) { aiPlanRoutes(f.dest, f.days, f.trans, f.pref, function (routes) { resolve(routes || null); }); });
+      }
+      function commitRoutes(f, routes) {
+        arData = { dest: f.dest, days: f.days, trans: f.trans, pref: f.pref, regions: matchRegions(f.dest), routes: routes };
+        renderAiRoutes();
+        $id('aiRouteOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      function busyBtn(on) { b.disabled = on; b.innerHTML = on ? TI('globe') + 'AI 上网检索中…' : TI('sparkles') + '上网查询 · 生成 5 条备选路线'; }
+      /* P1-8 状态矩阵（批次6）：AI 生成失败=可重试错误卡，不再只 toast 一闪而过 */
+      function showGenError(f) {
+        var out = $id('aiRouteOut'); out.style.display = 'block';
+        if (window.UI && UI.errorBox) {
+          UI.errorBox(out, {
+            title: '路线生成失败',
+            text: 'AI 没有返回有效路线，可能是网络不稳或目的地太冷门。换个说法，或点按重试再生成一次。',
+            retryText: '重新生成',
+            onRetry: function () {
+              busyBtn(true);
+              return generateOnce(f).then(function (routes) {
+                busyBtn(false);
+                if (routes) { commitRoutes(f, routes); return true; }
+                return false;   /* 保留卡片、复位按钮，用户可再点 */
+              });
+            }
+          });
+        } else toast('AI 没有返回有效路线，换个目的地或稍后再试');
+      }
+      b.onclick = function () {
+        if (!window.Ai.hasKey()) { toast('请先在「设置 → AI 助手」配置站点与 Key'); return; }
+        var f = collectForm(); if (!f) return;
+        busyBtn(true);
+        generateOnce(f).then(function (routes) {
+          busyBtn(false);
+          if (!routes) { showGenError(f); return; }
+          commitRoutes(f, routes);
         });
       };
     })();

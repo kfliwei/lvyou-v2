@@ -103,8 +103,21 @@
       buildChips(); loaded=true; cb();
     };
     s.onerror=function(){ loaded=true; REGS=[]; $sk.style.display='none';
-      $r.innerHTML='<div class="empty" style="padding:30px 20px;text-align:center"><span>搜索索引加载失败，可能是网络或缓存异常</span><br><button id="idxRetry" style="margin-top:12px;min-height:38px;padding:0 22px;border:0;border-radius:999px;background:var(--grad-primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer">点击重试</button></div>';
-      var r=document.getElementById('idxRetry'); if(r) r.onclick=function(){ location.reload(); };
+      if (window.UI && UI.errorBox) {
+        UI.errorBox($r, {
+          title: '搜索索引加载失败',
+          text: '可能是网络波动或本地缓存异常，点按重试会重新载入景点索引。',
+          retryText: '重新载入',
+          onRetry: function () {
+            return new Promise(function (res) {
+              var t = setTimeout(function () { res(false); }, 15000);
+              loadData(function () { clearTimeout(t); $sk.style.display = 'none'; render(); res(true); });
+            });
+          }
+        });
+      } else {
+        $r.innerHTML = '<div class="empty" style="padding:30px 20px;text-align:center"><span>搜索索引加载失败，请检查网络后刷新页面</span></div>';
+      }
     };
     document.head.appendChild(s);
   }

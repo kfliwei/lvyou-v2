@@ -1,0 +1,31 @@
+批次 6 §13 状态矩阵闸门 变异自测留痕
+日期: 2026-10-04
+基线: verify.js 全绿 (exit 0), matrixRows=8, CORE=8, REMOTE=4; smoke-states 9/9 PASS
+
+MUT-1 · ui.js 导出键 offlineBar→offlineBarX
+  node tools/verify.js | grep 状态矩阵
+  → 状态矩阵 FAIL: ui.js 未导出 UI.offlineBar
+  → === FAIL: 1 issue(s) ===
+  Edit 撤销 → 复绿
+
+MUT-2 · design.css `.ui-errorbox{` → `.ui-errorboxX{` (两处)
+  → 状态矩阵 FAIL: design.css 缺样式 .ui-errorbox
+  → === FAIL: 1 issue(s) ===
+  Edit 撤销 → 复绿
+
+MUT-3 · search.html 的 `UI.errorBox($r,` → `UI.errorBOX_MUT($r,`
+  → 状态矩阵 FAIL: search.html 未挂 UI.errorBox（出错态无重试落点）
+  → === FAIL: 1 issue(s) ===
+  Edit 撤销 → 复绿
+
+MUT-4 · 矩阵 album 行的"加载中"改为"待设计"
+  → 状态矩阵 FAIL: 矩阵仍有"待设计" -> | album | 待设计 | `.al-empty` | ...
+  → === FAIL: 1 issue(s) ===
+  Edit 撤销 → 复绿
+
+MUT-5 · 整行删除 album 矩阵行
+  → 状态矩阵 FAIL: 矩阵 5 列行 7 ≠ 8 核心页
+  → === FAIL: 1 issue(s) ===
+  Edit 撤销 → 复绿
+
+结论: 5 类回潮场景全部命中；闸门在守。

@@ -141,7 +141,7 @@
   var titleEl = document.querySelector('.title');
   if (titleEl) titleEl.insertAdjacentHTML('afterbegin', '<span class="topic-title">' + cfg.title + '</span>');
   if (!cfg.foodEnabled) { var ft = document.querySelector('.tabbar button[data-tab="food"]'); if (ft) ft.style.display = 'none'; }
-  function loadScript(src, cb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = cb; document.head.appendChild(s); }
+  function loadScript(src, cb, errcb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = function () { if (errcb) errcb(src); else if (cb) cb(); }; document.head.appendChild(s); }
   function boot() {
     /* 到 Sheet / 到达卡片的面板关闭钩子 */
     window.TopicEngine._closeArrive = function () { var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show'); };
@@ -149,22 +149,37 @@
     var _sk = document.getElementById('mapSkel'); if (_sk) { setTimeout(function () { _sk.style.display = 'none'; }, 300); }
   }
   /* 全国页懒加载（审核修复）：轻量索引渲染 + 节点详情按省按需补充 */
-  function loadNationIndex() {
+  function loadNationIndex(done, err) {
     loadScript('nation-index.js', function () {
       window.SITES = (window.NATION_SITES_RAW || '').split('\n').map(function (line) {
         var p = line.split('|');
         return { name: p[0], label: p[1], region: p[2], city: p[3], county: p[4], theme: p[5], flag: p[6], lat: +p[7], lng: +p[8] };
       });
       window.SITES_LAZY = true;
-      boot();
-    });
+      boot(); if (done) done();
+    }, err);
   }
-  if (cfg.p === 'nation') loadNationIndex();
-  else loadScript(cfg.dataJs, function () {
-    if (cfg.routesKey) { loadScript('routes-data.js', function () { if (cfg.foodJs) loadScript(cfg.foodJs, boot); else boot(); }); }
-    else if (cfg.foodJs) loadScript(cfg.foodJs, boot);
-    else boot();
-  });
+  /* P1-8 状态矩阵（批次6）：主数据包/路线包失败=致命，走错误卡+重试；美食包非致命，失败仍 boot */
+  function startLoad(done, err) {
+    if (cfg.p === 'nation') { loadNationIndex(done, err); return; }
+    loadScript(cfg.dataJs, function () {
+      if (cfg.routesKey) loadScript('routes-data.js', function () { if (cfg.foodJs) loadScript(cfg.foodJs, function () { boot(); if (done) done(); }); else { boot(); if (done) done(); } }, err);
+      else if (cfg.foodJs) loadScript(cfg.foodJs, function () { boot(); if (done) done(); });
+      else { boot(); if (done) done(); }
+    }, err);
+  }
+  function showLoadError() {
+    var sk = document.getElementById('mapSkel'); if (!sk) return;
+    sk.style.display = 'flex';
+    if (window.UI && UI.errorBox) {
+      UI.errorBox(sk, {
+        title: '专题数据加载失败',
+        text: '景点数据包未能载入，请检查网络后点按重试。',
+        onRetry: function () { return new Promise(function (res) { startLoad(function () { res(true); }, function () { res(false); }); }); }
+      });
+    } else { sk.innerHTML = '<div class="empty" style="color:var(--color-muted);font-family:var(--font-serif)">数据加载失败，请刷新重试。</div>'; }
+  }
+  startLoad(null, showLoadError);
 })();
 </script>
 

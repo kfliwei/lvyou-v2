@@ -1,0 +1,99 @@
+{
+  "fail": 0,
+  "results": [
+    {
+      "file": "index.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "search.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "topic.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "wishlist.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "travel-map.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "planner.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "album.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "review.html",
+      "checks": {
+        "onlineInit": true,
+        "offlineShows": true,
+        "onlineHides": true,
+        "errorBoxRenders": true,
+        "errorBoxRetryFires": true,
+        "errorBoxRetryCount": true
+      }
+    },
+    {
+      "file": "planner.html#ai",
+      "checks": {
+        "errorBoxOnFail": true
+      }
+    }
+  ]
+}

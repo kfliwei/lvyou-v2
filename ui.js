@@ -70,13 +70,97 @@
   }
 
   function tileWarn(layer, name) {
-    var warned = false;
+    if (!layer || !layer.on) return;
     layer.on('tileerror', function () {
-      if (warned) return;
-      warned = true;
-      toast((name || '地图') + '瓦片加载失败，请检查网络');
-      setTimeout(function () { warned = false; }, 20000);
+      /* P1-8（批次6）：离线信号统一交给离线条，瓦片告警不再抢顶部 toast（旧实现盖住页头标题）；
+         全局 15s 节流，travel-map 六瓦片层共用一条、底部定位、4s 自动消失 */
+      if (navigator.onLine === false) return;
+      var now = Date.now();
+      if (now - tileWarnLast < 15000) return;
+      tileWarnLast = now;
+      showTileWarn((name || '地图') + '瓦片加载失败，请检查网络');
     });
+  }
+  var tileWarnLast = 0, tileWarnEl = null, tileWarnTimer = null;
+  function showTileWarn(msg) {
+    if (typeof document === 'undefined' || !document.body) return;
+    if (!tileWarnEl) {
+      tileWarnEl = document.createElement('div');
+      tileWarnEl.className = 'ui-tilewarn';
+      tileWarnEl.setAttribute('role', 'status');
+      document.body.appendChild(tileWarnEl);
+    }
+    if (!document.querySelector('.bottom-nav')) tileWarnEl.classList.add('bare');
+    tileWarnEl.textContent = msg;
+    requestAnimationFrame(function () { tileWarnEl && tileWarnEl.classList.add('show'); });
+    if (tileWarnTimer) clearTimeout(tileWarnTimer);
+    tileWarnTimer = setTimeout(function () { if (tileWarnEl) tileWarnEl.classList.remove('show'); }, 4000);
+  }
+
+  /* P1-8 离线条（批次6）：底部导航之上常驻，online/offline 事件 + 初始 navigator.onLine 驱动；
+     ui.js 载入即自动安装，所有引 ui.js 的页（含 file:// 与 APK 壳）无需逐页接线 */
+  function offlineBar() {
+    if (window.__uiOfflineBarOn || typeof document === 'undefined') return;
+    window.__uiOfflineBarOn = true;
+    var bar = null;
+    function show() {
+      if (!document.body) return;
+      if (bar && document.body.contains(bar)) { requestAnimationFrame(function () { bar.classList.add('show'); }); return; }
+      bar = document.createElement('div');
+      bar.className = 'ui-offlinebar';
+      bar.setAttribute('role', 'status');
+      bar.setAttribute('aria-live', 'polite');
+      if (!document.querySelector('.bottom-nav')) bar.classList.add('bare');
+      bar.innerHTML = '<span class="oic">' + (window.TI ? TI('wifioff', 16) : '') + '</span>' +
+        '<span>当前离线 · 已缓存内容仍可浏览，联网后自动恢复</span>';
+      document.body.appendChild(bar);
+      requestAnimationFrame(function () { bar && bar.classList.add('show'); });
+    }
+    function hide() {
+      if (!bar) return;
+      var b = bar; bar = null;
+      b.classList.remove('show');
+      setTimeout(function () { b.remove(); }, 320);
+    }
+    window.addEventListener('offline', show);
+    window.addEventListener('online', hide);
+    if (navigator.onLine === false) show();
+  }
+
+  /* P1-8 错误卡（批次6）：把"加载失败 + 真实可用的重试"标准化。host=元素或选择器；
+     opts.onRetry 返回 Promise/布尔：falsy 复位按钮并提示，truthy 交调用方替换 host 内容。
+     未传 onRetry 时默认 location.reload()。 */
+  function errorBox(host, opts) {
+    opts = opts || {};
+    host = typeof host === 'string' ? document.querySelector(host) : host;
+    if (!host) return null;
+    host.innerHTML =
+      '<div class="ui-errorbox" role="alert">' +
+      '<span class="eb-ic">' + (window.TI ? TI('warn', 24) : '') + '</span>' +
+      '<div class="eb-t"></div><div class="eb-d"></div>' +
+      '<button class="ui-btn ui-btn-primary eb-retry" type="button"></button>' +
+      '</div>';
+    host.querySelector('.eb-t').textContent = opts.title || '加载失败';
+    host.querySelector('.eb-d').textContent = opts.text || '请检查网络后重试。';
+    var btn = host.querySelector('.eb-retry');
+    var label = opts.retryText || '重试';
+    btn.textContent = label;
+    btn.onclick = function () {
+      if (!opts.onRetry) { location.reload(); return; }
+      btn.disabled = true; btn.textContent = opts.retryingText || '重试中…';
+      var r;
+      try { r = opts.onRetry(); } catch (e) { r = Promise.reject(e); }
+      Promise.resolve(r).then(function (ok) {
+        if (ok === false) {
+          btn.disabled = false; btn.textContent = label;
+          if (opts.onFail) opts.onFail(); else toast('仍未恢复，请稍后再试');
+        } else if (host.querySelector('.ui-errorbox')) {
+          /* 调用方成功却没清卡：复位按钮，不报错 */
+          btn.disabled = false; btn.textContent = label;
+        }
+      }, function () { btn.disabled = false; btn.textContent = label; toast('重试失败，请检查网络'); });
+    };
+    return btn;
   }
 
   function esc(s) {
@@ -174,7 +258,13 @@
     return '#' + rgb.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge };
+  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox };
+
+  /* 载入即安装离线条（幂等，见 __uiOfflineBarOn）；引 ui.js 的每个页面自动获得离线态，无需逐页接线 */
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', offlineBar);
+    else offlineBar();
+  }
 })();
 
 /* 标签避让（2026-08-15）：地图名称标签重叠时保留高优先级，低优先级隐藏 */

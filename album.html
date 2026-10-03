@@ -194,14 +194,42 @@
   function boot() {
     var id = new URLSearchParams(location.search).get('id');
     if (id) {
-      Album.get(id).then(function (a) { if (a) render(a); else autoCreate(); })
-        .catch(function () { autoCreate(); });
-    } else {
-      Album.list().then(function (list) {
-        if (list.length) render(list[list.length - 1]);
-        else autoCreate();
-      }).catch(function () { autoCreate(); });
+      return Album.get(id).then(function (a) { if (a) render(a); else autoCreate(); });
     }
+    return Album.list().then(function (list) {
+      if (list.length) render(list[list.length - 1]);
+      else autoCreate();
+    });
+  }
+
+  /* 读取失败（IDB 异常）：错误卡 + 真实重试；空态仍走 renderEmpty，不当错误处理 */
+  function loadFail() {
+    var root = document.getElementById('albumRoot');
+    document.getElementById('alEdit').style.display = 'none';
+    document.getElementById('alExport').style.display = 'none';
+    if (window.UI && UI.errorBox) {
+      UI.errorBox(root, {
+        title: '图册加载失败',
+        text: '本地游记数据暂时读不出来，可能是存储异常。点按重试会重新读取。',
+        retryText: '重新读取',
+        onRetry: function () {
+          return new Promise(function (res) {
+            try { boot().then(function () { res(true); }, function () { res(false); }); }
+            catch (e) { res(false); }
+          });
+        }
+      });
+    } else {
+      root.innerHTML = '<div class="al-empty"><b>图册加载失败</b><span>请刷新页面重试。</span></div>';
+    }
+  }
+
+  function start() {
+    try {
+      var p = boot();
+      if (p && p.catch) p.catch(function () { loadFail(); });
+      else loadFail();
+    } catch (e) { loadFail(); }
   }
 
   /* 编辑：跳转编辑器 */
@@ -235,9 +263,9 @@
   // 等游记库就绪再启动
   if (window.TravelNotes) {
     TravelNotes.init({});
-    window.TravelNotes._onReady = boot;
+    window.TravelNotes._onReady = start;
   } else {
-    boot();
+    start();
   }
 })();
 </script>

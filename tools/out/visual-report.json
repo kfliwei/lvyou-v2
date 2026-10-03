@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-03T19:03:12.200Z",
+  "ranAt": "2026-10-03T19:50:09.623Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -9,7 +9,7 @@
   ],
   "states": 49,
   "fail": 0,
-  "elapsedSec": 228.7,
+  "elapsedSec": 234.1,
   "results": [
     {
       "state": "index.390x844.png",
@@ -308,15 +308,15 @@
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1168,
+      "lcpMs": 1100,
       "lcpEl": "A",
       "cls": 0
     },
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 1672,
-      "lcpEl": "DIV",
+      "lcpMs": 1488,
+      "lcpEl": "?",
       "cls": 0
     }
   ]
