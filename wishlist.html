@@ -12,7 +12,7 @@
 <style>
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .wrap{padding:20px 16px 120px;max-width:520px;margin:0 auto}
-  .wl-empty{text-align:center;padding:70px 20px;color:var(--color-faint)}
+  .wl-empty{text-align:center;padding:70px 20px;color:var(--color-muted)}
   .wl-empty .em{font-family:var(--font-serif);font-size:22px;color:var(--color-ink-soft);line-height:1.8}
   .wl-empty p{font-size:0.8125rem;margin-top:10px;line-height:1.8}
   .wl-empty a{color:var(--color-primary-dark);font-size:14px;font-weight:600}
@@ -29,7 +29,7 @@
   .wl-btn:active{transform:scale(.95)}
   .wl-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
   .wl-btn.done{background:#ECEFEA;border-color:transparent;color:var(--color-green)}
-  .wl-remove{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--color-faint);font-size:14px;cursor:pointer;flex:0 0 auto}
+  .wl-remove{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:14px;cursor:pointer;flex:0 0 auto}
   .wl-remove:active{background:var(--color-bg-soft)}
   /* 省分组 */
   .wl-group-head{display:flex;align-items:center;gap:8px;padding:11px 4px 7px;cursor:pointer;user-select:none;-webkit-user-select:none}
@@ -110,14 +110,14 @@
   var cnt = document.getElementById('cntLabel');
   function esc(s) { return window.UI.esc(s); }
   function themeColor(t) {
-    var map = { '高原湖泊':'#5F6D76','雪山冰川':'#9C9A92','名山大川':'#71806C','峡谷天堑':'#8A5A44','江河瀑布':'#5F6D76','古建寺院':'#A9563B','古城古镇':'#8A5A44','古城遗址':'#7E7663','红色遗迹':'#C86D4B','民族风情':'#C86D4B','城市地标':'#6D7D88','溶洞奇观':'#8C7B66','森林草原':'#71806C','森林山川':'#71806C','宗教圣地':'#A9563B','遗址陵墓':'#7E7663','温泉康养':'#C86D4B','石窟艺术':'#A9563B','丹霞地貌':'#BA7517','雅丹地貌':'#BA7517','沙漠戈壁':'#BA7517','草原湿地':'#639922','石窟寺':'#A9563B','佛寺':'#A9563B','古塔':'#7E7663','楼阁牌坊':'#8A5A44','名城名镇':'#8A5A44','壁画彩塑':'#C86D4B','关隘长城':'#993C1D','窑洞民居':'#BA7517','庙宇道观':'#A9563B','文庙书院':'#A9563B','陵墓':'#7E7663','桥梁':'#6D7D88','教堂会馆':'#6D7D88' };
+    var map = { '高原湖泊':'#5F6D76','雪山冰川':'#9C9A92','名山大川':'#71806C','峡谷天堑':'#8A5A44','江河瀑布':'#5F6D76','古建寺院':'#96472F','古城古镇':'#8A5A44','古城遗址':'#7E7663','红色遗迹':'#AE5738','民族风情':'#AE5738','城市地标':'#6D7D88','溶洞奇观':'#8C7B66','森林草原':'#71806C','森林山川':'#71806C','宗教圣地':'#96472F','遗址陵墓':'#7E7663','温泉康养':'#AE5738','石窟艺术':'#96472F','丹霞地貌':'#BA7517','雅丹地貌':'#BA7517','沙漠戈壁':'#BA7517','草原湿地':'#639922','石窟寺':'#96472F','佛寺':'#96472F','古塔':'#7E7663','楼阁牌坊':'#8A5A44','名城名镇':'#8A5A44','壁画彩塑':'#AE5738','关隘长城':'#993C1D','窑洞民居':'#BA7517','庙宇道观':'#96472F','文庙书院':'#96472F','陵墓':'#7E7663','桥梁':'#6D7D88','教堂会馆':'#6D7D88' };
     return map[t] || '#B4AFA4';
   }
   function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }
 
   /* ---------- 地图视图 ---------- */
   var map = null, mapOn = false, planLayer = null;
-  var DAY_COLORS = ['#C86D4B', '#71806C', '#6D7D88', '#8A6D3B', '#7E7663', '#5F6D76'];
+  var DAY_COLORS = ['#AE5738', '#71806C', '#6D7D88', '#8A6D3B', '#7E7663', '#5F6D76'];
   function initMap() {
     if (map) return;
     map = L.map('wlMap', { zoomControl: false }).setView([34.5, 105], 5);
@@ -139,7 +139,7 @@
     var bnd = [];
     list.forEach(function (x) {
       var m = L.marker([x.lat, x.lng], {
-        icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:' + (x.visited ? '#9C9A92' : '#C86D4B') + ';border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)"></span>' + (x.visited ? '' : '<span style="position:absolute;right:-2px;top:-2px;width:9px;height:9px;border-radius:50%;background:#FF7A50;border:1.5px solid #fff"></span>') + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
+        icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:' + (x.visited ? '#9C9A92' : '#AE5738') + ';border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)"></span>' + (x.visited ? '' : '<span style="position:absolute;right:-2px;top:-2px;width:9px;height:9px;border-radius:50%;background:#FF7A50;border:1.5px solid #fff"></span>') + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
       });
       m.bindPopup('<b>' + x.label + '</b><br>' + (x.region || '') + (x.city ? ' · ' + x.city : '') + (x.visited ? '<br><span style="color:#9C9A92">已打卡</span>' : ''));
       map.addLayer(m);
@@ -265,7 +265,7 @@
   function flash(msg) {
     if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:#fff;padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2400);
   }

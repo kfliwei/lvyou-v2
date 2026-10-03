@@ -270,7 +270,7 @@
       + '<path d="M60 0 Q 80 110 70 220" stroke="#D8D4CB" stroke-width="3" fill="none" opacity=".7"/>'
       + '<path d="M250 0 Q 270 100 260 220" stroke="#D8D4CB" stroke-width="3" fill="none" opacity=".7"/>'
       + '<circle cx="120" cy="70" r="24" fill="#DCE6E6" opacity=".8"/>'
-      + '<path d="' + pathD + '" stroke="#C86D4B" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>'
+      + '<path d="' + pathD + '" stroke="#AE5738" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>'
       + dots + labels
       + '</svg>';
   }
@@ -388,7 +388,7 @@
       + '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">'
       + '<title>' + esc(album.title) + ' · 旅行图册</title>'
       + '<style>'
-      + ':root{--color-bg:#F7F5EF;--color-bg-soft:#F0EDE5;--color-ink:#20201D;--color-ink-soft:#4C4A45;--color-muted:#7D7970;--color-faint:#AAA59B;--color-line:rgba(32,32,29,.09);--color-primary:#C86D4B;--color-primary-dark:#A9563B;--font-serif:"Songti SC","STSong","Noto Serif SC",serif;--font-sans:"PingFang SC","Noto Sans SC",sans-serif}'
+      + ':root{--color-bg:#F7F5EF;--color-bg-soft:#F0EDE5;--color-ink:#20201D;--color-ink-soft:#4C4A45;--color-muted:#6A675E;--color-faint:#AAA59B;--color-line:rgba(32,32,29,.09);--color-primary:#AE5738;--color-primary-dark:#96472F;--font-serif:"Songti SC","STSong","Noto Serif SC",serif;--font-sans:"PingFang SC","Noto Sans SC",sans-serif}'
       + '*{box-sizing:border-box;margin:0;padding:0}'
       + 'body{background:var(--color-bg);color:var(--color-ink);font-family:var(--font-sans);line-height:1.75}'
       + '.al{max-width:720px;margin:0 auto;min-height:100vh}'
@@ -419,7 +419,7 @@
       + '.al-map-plate svg{width:100%;height:auto;display:block}'
       + '.al-mp-title{font-size:11px;letter-spacing:.24em;color:var(--color-muted);text-align:center}'
       + '.al-audio{margin-top:44px;display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--color-bg-soft);border-radius:16px}'
-      + '.al-audio__btn{width:56px;height:56px;border-radius:50%;background:var(--color-primary);color:#fff;display:grid;place-items:center;cursor:pointer;flex:0 0 auto;border:0;box-shadow:0 8px 20px rgba(200,109,75,.3)}'
+      + '.al-audio__btn{width:56px;height:56px;border-radius:50%;background:var(--color-primary);color:var(--bg);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;border:0;box-shadow:0 8px 20px rgba(200,109,75,.3)}'
       + '.al-audio__meta{flex:1;min-width:0}'
       + '.al-audio__label{display:block;font-family:var(--font-serif);font-size:16px}'
       + '.al-audio__place{display:block;font-size:11px;color:var(--color-muted);margin-top:3px}'

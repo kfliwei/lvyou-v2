@@ -128,7 +128,53 @@
     return imgBox(src, name, opts);
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg };
+  /* P0-4：动态色板徽章底 —— 保证白字标签 ≥4.6:1。
+     分类/每日色板（topic-meta dayColors、FTYPE_COLOR 等）同时喂给圆点/折线（图形级 3:1 即可）
+     和 .dnt/.num/.ft 这类 10~11.5px 白字徽章（正文级需 4.5）。数据色相不动，
+     在徽章渲染点用本函数把底色压深到达标，色相经 HSL 保持。 */
+  function lum255(r, g, b) {
+    var f = function (c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  }
+  function parseHex(h) {
+    h = String(h || '').trim().replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgb2hsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), h = 0, s = 0, l = (mx + mn) / 2;
+    if (mx !== mn) {
+      var d = mx - mn;
+      s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+      h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h /= 6;
+    }
+    return [h, s, l];
+  }
+  function hsl2rgb(h, s, l) {
+    function q(p, q2, t) { if (t < 0) t += 1; if (t > 1) t -= 1; return t < 1 / 6 ? p + (q2 - p) * 6 * t : t < 1 / 2 ? q2 : t < 2 / 3 ? p + (q2 - p) * (2 / 3 - t) * 6 : p; }
+    if (s === 0) { var v = Math.round(l * 255); return [v, v, v]; }
+    var q2 = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q2;
+    return [Math.round(q(p, q2, h + 1 / 3) * 255), Math.round(q(p, q2, h) * 255), Math.round(q(p, q2, h - 1 / 3) * 255)];
+  }
+  function badge(hex) {
+    var rgb = parseHex(hex);
+    if (!rgb) return hex;
+    var ratio = 1.05 / (lum255(rgb[0], rgb[1], rgb[2]) + 0.05);
+    if (ratio >= 4.6) return hex;
+    var hsl = rgb2hsl(rgb[0], rgb[1], rgb[2]);
+    for (var i = 0; i < 40 && ratio < 4.6; i++) {
+      hsl[2] = Math.max(0.04, hsl[2] - 0.02);
+      var c = hsl2rgb(hsl[0], hsl[1], hsl[2]);
+      ratio = 1.05 / (lum255(c[0], c[1], c[2]) + 0.05);
+      rgb = c;
+    }
+    return '#' + rgb.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
+  }
+
+  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge };
 })();
 
 /* 标签避让（2026-08-15）：地图名称标签重叠时保留高优先级，低优先级隐藏 */

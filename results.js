@@ -180,14 +180,14 @@
       + '.wrap{max-width:720px;margin:0 auto;padding:18px}'
       + '.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}'
       + '.stat{background:#fff;border-radius:14px;padding:16px 10px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06)}'
-      + '.stat b{display:block;font-size:26px;color:#C86D4B;font-family:&quot;Songti SC&quot;,serif}'
+      + '.stat b{display:block;font-size:26px;color:#AE5738;font-family:&quot;Songti SC&quot;,serif}'
       + '.stat span{font-size:12px;color:#7D7970}'
       + '.card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px;margin-bottom:16px}'
       + '.card h2{margin:0 0 4px;font-size:18px;color:#20201D}'
       + '.card .m{color:#7D7970;font-size:12px;margin-bottom:8px}'
       + '.card .t{white-space:pre-wrap;line-height:1.8;font-size:14px;color:#333}'
-      + '.q{margin:8px 0 0;font-size:13px;color:#8a6408;font-family:&quot;Noto Serif SC&quot;,serif;border-left:3px solid #C86D4B;padding-left:10px}'
-      + '.tag{display:inline-block;background:rgba(200,109,75,.10);color:#C86D4B;border-radius:999px;font-size:11px;padding:2px 9px;margin:0 4px 4px 0}'
+      + '.q{margin:8px 0 0;font-size:13px;color:#8a6408;font-family:&quot;Noto Serif SC&quot;,serif;border-left:3px solid #AE5738;padding-left:10px}'
+      + '.tag{display:inline-block;background:rgba(174,87,56,.10);color:#8F4327;border-radius:999px;font-size:11px;padding:2px 9px;margin:0 4px 4px 0}'
       + '@media print{body{background:#fff}.card{box-shadow:none;border:1px solid #ddd}}'
       + '</style></head><body><div class="cover"><h1>' + esc(title) + '</h1><p>' + esc(subtitle) + '</p></div><div class="wrap">' + body + '</div></body></html>';
   }
@@ -243,7 +243,7 @@
     d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:19px;color:#20201D;margin-bottom:4px">' + icon + ' ' + label + '</div>'
       + '<div style="font-size:12.5px;color:#7D7970;margin-bottom:14px">选择范围后生成，支持按省 / 市 / 时间筛选</div>'
-      + '<div style="font-size:11.5px;color:#9c958a;margin-bottom:6px">省份（可多选跳过则不限）</div>'
+      + '<div style="font-size:11.5px;color:#6A675E;margin-bottom:6px">省份（可多选跳过则不限）</div>'
       + '<select id="fp" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
       + '<option value="">全部省份</option>' + opts.provs.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('')
       + '</select>'
@@ -257,8 +257,8 @@
       + '<input type="date" id="ffrom" placeholder="开始日期" style="flex:1;min-width:0;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 8px;background:#fff;color:#20201D">'
       + '<input type="date" id="fto" placeholder="结束日期" style="flex:1;min-width:0;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 8px;background:#fff;color:#20201D">'
       + '</div>'
-      + '<div id="fcount" style="font-size:12px;color:#9c958a;margin-bottom:12px">共 <b style="color:#C86D4B">' + all.length + '</b> 篇</div>'
-      + '<button id="fgo" style="width:100%;height:48px;border:0;border-radius:12px;background:#C86D4B;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:&quot;Songti SC&quot;,serif">生成' + label + '</button>'
+      + '<div id="fcount" style="font-size:12px;color:#6A675E;margin-bottom:12px">共 <b style="color:#AE5738">' + all.length + '</b> 篇</div>'
+      + '<button id="fgo" style="width:100%;height:48px;border:0;border-radius:12px;background:#AE5738;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:&quot;Songti SC&quot;,serif">生成' + label + '</button>'
       + '</div>';
     document.body.appendChild(d);
     function close(){ d.remove(); }
@@ -276,7 +276,7 @@
     function updateCount(){
       var f = readFilter();
       filterNotes(all, f.prov, f.city, f.days, f.from, f.to, function (n) {
-        d.querySelector('#fcount').innerHTML = '符合条件的 <b style="color:#C86D4B">' + n.length + '</b> 篇';
+        d.querySelector('#fcount').innerHTML = '符合条件的 <b style="color:#AE5738">' + n.length + '</b> 篇';
       });
     }
     d.querySelector('#ft').onchange = function () {
@@ -463,7 +463,7 @@
       + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
       + '<input id="ipref" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:14px;padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'
       + '<div id="iout" style="margin-top:8px;font-size:13px;color:#333;line-height:1.8;white-space:pre-wrap;display:none"></div>'
-      + '<div style="font-size:11.5px;color:#9c958a;margin-top:8px">可用景点 ' + sites.length + ' 处。会为你挑选并给出衔接建议，生成后可参考现有「路线」页导航。</div>'
+      + '<div style="font-size:11.5px;color:#6A675E;margin-top:8px">可用景点 ' + sites.length + ' 处。会为你挑选并给出衔接建议，生成后可参考现有「路线」页导航。</div>'
       + '<button id="igo" class="btn-primary" style="width:100%;margin-top:14px">生成路书</button>'
       + '</div>';
     document.body.appendChild(d);

@@ -18,7 +18,7 @@
   .t-row .back{width:40px;height:40px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);border:1px solid var(--color-line);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
   .t-row .back:active{transform:scale(.92)}
   .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
-  .t-row .act{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform .12s var(--ease-standard);cursor:pointer;letter-spacing:.02em}
+  .t-row .act{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform .12s var(--ease-standard);cursor:pointer;letter-spacing:.02em}
   .t-row .act:active{transform:scale(.94)}
   .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
   .theme-dark .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
@@ -108,7 +108,7 @@
   /* 聚合节点数量徽标 */
   .tncnt{
     position:absolute;right:-10px;top:-8px;min-width:18px;height:18px;
-    background:var(--color-primary);color:#fff;
+    background:var(--color-primary);color:var(--bg);
     border-radius:999px;font-size:10.5px;line-height:18px;text-align:center;
     padding:0 5px;font-weight:700;font-family:var(--font-sans);
     box-shadow:0 1px 5px rgba(200,109,75,.4);z-index:2;
@@ -189,7 +189,7 @@
   .mem-node--photo.no-photo img{display:none}
   .mem-node--photo.no-photo::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink)}
   /* 聚合角标（同地点多篇记忆）：照片/墨点 + 数量 */
-  .mem-badge{position:absolute;right:-7px;top:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--color-primary);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(200,109,75,.4);z-index:3;font-family:var(--font-sans)}
+  .mem-badge{position:absolute;right:-7px;top:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(200,109,75,.4);z-index:3;font-family:var(--font-sans)}
   .mem-node--dot .mem-badge{top:-11px;right:-11px}
   /* 地点记忆列表（聚合展开） */
   .ms-item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--color-line);cursor:pointer}
@@ -218,7 +218,7 @@
   .ms-audio audio{flex:1;height:36px}
   .ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
   .ms-tags span{font-size:11px;color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:3px 10px;font-weight:600}
-  .ms-loc{margin-top:3px;font-size:11px;color:var(--color-faint);letter-spacing:.04em}
+  .ms-loc{margin-top:3px;font-size:11px;color:var(--color-muted);letter-spacing:.04em}
   .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:14px;cursor:pointer;z-index:6}
   @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
 
@@ -232,7 +232,7 @@
   .theme-dark .statClose{background:rgba(255,255,255,.08);color:var(--color-muted)}
   .theme-dark .emptyTip{background:rgba(29,28,25,.92);border-color:var(--color-line)}
   .theme-dark .tl-chip{background:rgba(29,28,25,.85);border-color:var(--color-line);color:var(--color-muted)}
-  .theme-dark .tl-chip.active{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
+  .theme-dark .tl-chip.active{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg)}
   .theme-dark .tl-trip{background:rgba(200,109,75,.16);border-color:rgba(200,109,75,.35);color:var(--color-primary-dark)}
   .theme-dark #memSheet{background:rgba(29,28,25,.96);border-color:var(--color-line)}
   .theme-dark .ms-item{border-bottom-color:var(--color-line)}
@@ -374,15 +374,15 @@ function flash(msg){
 }
 function tagColor(n){
   var rules=[
-    ['美食','吃','食','#71806C'],['日出','日落','晨','昏','#C86D4B'],
+    ['美食','吃','食','#71806C'],['日出','日落','晨','昏','#AE5738'],
     ['山','徒步','爬','#6D7D88'],['海','湖','江','河','#5F6D76'],
-    ['建筑','古迹','寺','庙','塔','#A9563B'],['雨','雪','#8C7B66']
+    ['建筑','古迹','寺','庙','塔','#96472F'],['雨','雪','#8C7B66']
   ];
   var hay=((n.tags||[]).join(' ')+' '+(n.siteName||'')+' '+(n.title||''));
   for(var i=0;i<rules.length;i++){
     for(var j=0;j<rules[i].length-1;j++){ if(hay.indexOf(rules[i][j])>=0) return rules[i][rules[i].length-1]; }
   }
-  return '#C86D4B';
+  return '#AE5738';
 }
 function refresh(){
   const notes=TravelNotes.list();
@@ -393,7 +393,7 @@ function refresh(){
   const linePts = ordered.map(n=>gxy(n.lat,n.lng));
   // 轨迹：陶土实线 + 生长动画（蓝图 §4.4：起点→路线逐渐生长 800-1600ms）
   if (linePts.length >= 2) {
-    var trackLine=L.polyline(linePts,{color:'#C86D4B',weight:3,opacity:.75,lineCap:'round',lineJoin:'round'}).addTo(tnLayer);
+    var trackLine=L.polyline(linePts,{color:'#AE5738',weight:3,opacity:.75,lineCap:'round',lineJoin:'round'}).addTo(tnLayer);
     var _path=trackLine._path;
     if (_path && _path.getTotalLength) {
       try {

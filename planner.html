@@ -14,7 +14,7 @@
   .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px;margin-bottom:14px;transition:box-shadow .25s var(--ease-out),transform .25s var(--ease-out),border-color .25s}
   .card:hover{box-shadow:var(--shadow-medium)}
   /* 鎏金 eyebrow 分区题 */
-  .ph{display:flex;align-items:center;gap:8px;background:none;font-family:var(--font-sans);font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--color-faint);margin:4px 0 12px}
+  .ph{display:flex;align-items:center;gap:8px;background:none;font-family:var(--font-sans);font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:4px 0 12px}
   .ph::before{content:"";width:14px;height:3px;border-radius:99px;flex:0 0 auto;background:var(--grad-gold)}
   .card > .ph:first-child{margin-top:0}
   .wrap > .ph{margin:22px 2px 12px}
@@ -47,7 +47,7 @@
   .seed .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(219,125,83,.16),rgba(169,76,45,.08));color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:15px}
   .seed .t{flex:1}
   .seed .t small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
-  .seed .arr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-faint);font-size:15px}
+  .seed .arr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:15px}
   /* chips */
   .chips{display:flex;flex-wrap:wrap;gap:6px}
   .chip{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:all .18s var(--ease-out)}
@@ -96,9 +96,9 @@
   .day-card .stop.done{opacity:.55}
   .day-card .stop .meta{font-size:11px;color:var(--color-muted)}
   .stop .lbl{flex:1;min-width:0;word-break:break-all;line-height:1.4}
-  .stop.warn .lbl{color:var(--color-danger,#B4543A)}
+  .stop.warn .lbl{color:var(--color-danger,#AE5738)}
   .stop.done .lbl{color:var(--color-muted)}
-  .stop .warn-ic{color:var(--color-danger,#B4543A);flex:0 0 auto}
+  .stop .warn-ic{color:var(--color-danger,#AE5738);flex:0 0 auto}
   .mv{width:30px;height:30px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:12px;cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
   .mv:active{transform:scale(.9)}
   .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
@@ -118,7 +118,7 @@
   .narr .themes{font-size:12px;color:var(--color-muted);margin-top:8px;line-height:1.8}
   .act-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
-  .empty-tip{text-align:center;padding:24px 10px;color:var(--color-faint);font-size:12.5px;line-height:1.8}
+  .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:12.5px;line-height:1.8}
   /* 深色适配 */
   .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
   .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}

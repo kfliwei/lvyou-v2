@@ -44,7 +44,7 @@
   function prefHit(p, t) { var def = PREF[p]; var n = normTheme(t); return !!(def && def.themes && def.themes.indexOf(n) >= 0); }
 
   /* ---------- 主题 → 颜色 / 时长 ---------- */
-  var THEME_COLOR = { '高原湖泊': '#5F6D76', '雪山冰川': '#9C9A92', '名山大川': '#71806C', '峡谷天堑': '#8A5A44', '江河瀑布': '#5F6D76', '古建寺院': '#A9563B', '古城古镇': '#8A5A44', '古城遗址': '#7E7663', '红色遗迹': '#C86D4B', '民族风情': '#C86D4B', '城市地标': '#6D7D88', '溶洞奇观': '#8C7B66', '森林草原': '#71806C', '森林山川': '#71806C', '宗教圣地': '#A9563B', '遗址陵墓': '#7E7663', '温泉康养': '#C86D4B', '石窟艺术': '#A9563B', '丹霞地貌': '#BA7517', '雅丹地貌': '#BA7517', '沙漠戈壁': '#BA7517', '草原湿地': '#639922', '寺庙': '#A9563B', '古塔': '#7E7663', '草原': '#639922', '冰川': '#9C9A92' };
+  var THEME_COLOR = { '高原湖泊': '#5F6D76', '雪山冰川': '#9C9A92', '名山大川': '#71806C', '峡谷天堑': '#8A5A44', '江河瀑布': '#5F6D76', '古建寺院': '#96472F', '古城古镇': '#8A5A44', '古城遗址': '#7E7663', '红色遗迹': '#AE5738', '民族风情': '#AE5738', '城市地标': '#6D7D88', '溶洞奇观': '#8C7B66', '森林草原': '#71806C', '森林山川': '#71806C', '宗教圣地': '#96472F', '遗址陵墓': '#7E7663', '温泉康养': '#AE5738', '石窟艺术': '#96472F', '丹霞地貌': '#BA7517', '雅丹地貌': '#BA7517', '沙漠戈壁': '#BA7517', '草原湿地': '#639922', '寺庙': '#96472F', '古塔': '#7E7663', '草原': '#639922', '冰川': '#9C9A92' };
   function themeColor(t) { return THEME_COLOR[normTheme(t)] || THEME_COLOR[t] || '#B4AFA4'; }
   function playH(s) {
     var t = normTheme(s.theme);
@@ -849,7 +849,7 @@
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
     var leg = mkLeg(trip.dist);
-    var DAY_COLORS = ['#C86D4B', '#71806C', '#6D7D88', '#8A6D3B', '#7E7663', '#5F6D76'];
+    var DAY_COLORS = ['#AE5738', '#71806C', '#6D7D88', '#8A6D3B', '#7E7663', '#5F6D76'];
     var h = '<div style="font-size:12px;color:var(--color-muted);margin-bottom:4px">' +
       rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') + '</div>';
     days.forEach(function (d, di) {
@@ -894,7 +894,7 @@
       var lastStop = lastDay && lastDay.stops && lastDay.stops.length ? lastDay.stops[lastDay.stops.length - 1] : null;
       var endKm = lastStop ? leg(lastStop, trip.end).km : 0;
       h += '<div class="stop" style="padding:8px 10px;border-radius:10px;background:rgba(200,109,75,.05);border:1px solid rgba(200,109,75,.14)">' +
-        '<div class="stop-name"><span class="n" style="background:var(--color-primary);color:#fff">终</span>' +
+        '<div class="stop-name"><span class="n" style="background:var(--color-primary);color:var(--bg)">终</span>' +
         '<span class="lbl">' + esc(trip.end.name) + (trip.end.isLoop ? '（回到起点 · 环线）' : '（抵达地）') + '</span></div>' +
         '<div class="stop-meta"><span class="meta">' + Math.round(endKm) + ' km</span></div></div>';
     }
@@ -953,7 +953,7 @@
     m.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(20,16,12,.45);display:flex;align-items:flex-end;justify-content:center';
     var items = state.selected.map(function (s, i) {
       return '<div style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--color-line)">' +
-        '<span style="min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--color-primary);color:#fff;font-size:11px">' + (i + 1) + '</span>' +
+        '<span style="min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--color-primary);color:var(--bg);font-size:11px">' + (i + 1) + '</span>' +
         '<span style="flex:1;font-size:13.5px">' + esc(s.name || s.label) + '<span style="display:block;font-size:11px;color:var(--color-muted)">' + esc(s.city || s.region || '') + (s.__cur ? ' · 当前位置' : '') + '</span></span>' +
         '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerRemovePick(' + i + ')">删除</button></div>';
     }).join('');
@@ -1197,12 +1197,12 @@
       if (a[0] == null || b[0] == null) continue;
       bnd.push(a, b);
       var seg = L.layerGroup().addTo(mapLayer);
-      L.polyline([a, b], { color: '#C86D4B', weight: 3, opacity: .8, dashArray: '7 7' }).addTo(seg);
+      L.polyline([a, b], { color: '#AE5738', weight: 3, opacity: .8, dashArray: '7 7' }).addTo(seg);
       (function (aa, bb, sg) {
         amapRoutePolyline({ lat: aa[0], lng: aa[1] }, { lat: bb[0], lng: bb[1] }, function (pts) {
           if (pts && pts.length > 1) {
             sg.clearLayers();
-            L.polyline(pts, { color: '#C86D4B', weight: 4, opacity: .9 }).addTo(sg);
+            L.polyline(pts, { color: '#AE5738', weight: 4, opacity: .9 }).addTo(sg);
             routeReal++;
           } else if (!getAmapKey() && !routeHintShown) {
             routeHintShown = true;
@@ -1213,7 +1213,7 @@
     }
     pts.forEach(function (s, i) {
       if (s.lat == null) return;
-      var m = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:9px;background:#C86D4B;color:#fff;font-size:10.5px;font-weight:700;border:2px solid #fff">' + (i + 1) + '</span></div>', iconSize: [26, 26], iconAnchor: [13, 13] }) });
+      var m = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:9px;background:#AE5738;color:#fff;font-size:10.5px;font-weight:700;border:2px solid #fff">' + (i + 1) + '</span></div>', iconSize: [26, 26], iconAnchor: [13, 13] }) });
       m.bindPopup('<b>' + esc(s.name) + '</b><br>' + esc(s.region || '') + (s.city ? ' · ' + esc(s.city) : ''));
       mapLayer.addLayer(m);
     });
@@ -1267,7 +1267,7 @@
   function docShell(name, body) {
     return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(name) + '</title><style>' +
       'body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-width:640px;margin:0 auto;padding:24px 20px;color:#26241F;line-height:1.85;background:#F6F3EC}' +
-      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:18px;border-left:3px solid #C86D4B;padding-left:10px;margin:26px 0 8px}' +
+      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:18px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +
       '.muted{color:#8C877D;font-size:12px}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:"Songti SC",serif;margin:12px 0}' +
       '.note{border-bottom:1px solid #E3DED2;padding:12px 0}.note:last-child{border-bottom:0}' +
       '</style></head><body><div class="wrap">' + body + '</div></body></html>';
@@ -1448,7 +1448,7 @@
     var html = list.map(function (t, i) {
       return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
-        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-faint)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
+        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-muted)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
     }).join('');
     /* 结果页（stageResult）底部的已保存行程 */
     var card = $id('tripsCard');
@@ -1531,7 +1531,7 @@
     var w = state.wiz || (state.wiz = wizNew());
     var names = ['起终点', '环线', '排序', '排期'];
     var bar = names.map(function (nm, i) {
-      var st = i + 1 === w.step ? 'background:var(--color-primary);color:#fff' : (i + 1 < w.step ? 'background:var(--color-primary-soft);color:var(--color-primary-dark)' : 'background:var(--color-bg-soft);color:var(--color-muted)');
+      var st = i + 1 === w.step ? 'background:var(--color-primary);color:var(--bg)' : (i + 1 < w.step ? 'background:var(--color-primary-soft);color:var(--color-primary-dark)' : 'background:var(--color-bg-soft);color:var(--color-muted)');
       return '<span class="chip" data-s="' + (i + 1) + '" style="' + st + ';cursor:pointer">' + (i + 1) + '. ' + nm + '</span>';
     }).join('');
     var body = '';

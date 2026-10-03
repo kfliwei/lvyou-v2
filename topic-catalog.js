@@ -39,7 +39,7 @@ window.TOPIC_CATALOG = [
   { id: 'nmg', ch: '蒙', img: 'topic-nmg', ring: '#5F8A6B',
     title: '内蒙古草原风情地图', loc: '呼伦贝尔 · 额济纳 · 响沙湾 · 阿尔山 · 满洲里',
     desc: '三十四处草原沙漠、森林边境与蒙味，草原/胡杨/阿尔山三条线。' },
-  { id: 'sx2', ch: '秦', img: 'topic-sx2', ring: '#A9563B',
+  { id: 'sx2', ch: '秦', img: 'topic-sx2', ring: '#96472F',
     title: '陕西三秦人文地图', loc: '兵马俑 · 华山 · 壶口 · 延安 · 大唐不夜城',
     desc: '三十一处古迹名城、峡谷丹霞与秦味，古都/陕北/秦岭三条线。' },
   { id: 'cq',  ch: '渝', img: 'topic-cq', ring: '#8A5A44',

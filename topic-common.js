@@ -169,7 +169,7 @@
     restoreMarkers();
     clearNearLayer();
     nearLayer = L.layerGroup().addTo(map);
-    L.circleMarker([latlng.lat, latlng.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#C86D4B', fillOpacity: 1 }).addTo(nearLayer);
+    L.circleMarker([latlng.lat, latlng.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#AE5738', fillOpacity: 1 }).addTo(nearLayer);
     nearP = [latlng.lat, latlng.lng];
     if (!nearBar) {
       nearBar = document.createElement('div');
@@ -190,7 +190,7 @@
   function nearQuery(lat, lng, km) {
     clearNearLayer();
     nearLayer = L.layerGroup().addTo(map);
-    L.circle([lat, lng], { radius: km * 1000, color: '#C86D4B', weight: 1.5, dashArray: '4 6', fillColor: '#C86D4B', fillOpacity: .06, interactive: false, bubblingMouseEvents: false }).addTo(nearLayer);
+    L.circle([lat, lng], { radius: km * 1000, color: '#AE5738', weight: 1.5, dashArray: '4 6', fillColor: '#AE5738', fillOpacity: .06, interactive: false, bubblingMouseEvents: false }).addTo(nearLayer);
     var hits = SITES.map(function (s) { return { s: s, d: haversine([lat, lng], [s.lat, s.lng]) }; })
       .filter(function (h) { return h.d <= km; })
       .sort(function (a, b) { return a.d - b.d; });
@@ -265,7 +265,7 @@
   function nodeIcon(s, active, dim) {
     var f = s.flag || '';
     /* 配色收敛（规范 §47）：地图节点不再按主题 38 色着色，统一中性色 + 重点强调 */
-    var tint = s.source === 'user' ? '#5F7A4E' : (f.indexOf('m') >= 0 ? '#C86D4B' : (f.indexOf('h') >= 0 ? '#E0915C' : '#8C7B66'));
+    var tint = s.source === 'user' ? '#5F7A4E' : (f.indexOf('m') >= 0 ? '#AE5738' : (f.indexOf('h') >= 0 ? '#E0915C' : '#8C7B66'));
     var inT = inTrip(s.__i);
     var num = inT ? (trip.indexOf(s.__i) + 1) : null;
     var cls = 'tr-node' + (active ? ' tr-active' : '') + (dim ? ' tr-dim' : '') + (isMajorSite(s) ? ' tr-major' : '') +
@@ -565,7 +565,7 @@
     if (tripRouteLayer) { tripRouteLayer.remove(); tripRouteLayer = null; }
     if (trip.length < 2) return;
     var pts = trip.map(function (i) { return pt(tripSite(i)); });
-    tripRouteLayer = L.polyline(pts, { color: '#C86D4B', weight: 3, opacity: .7, dashArray: '6 6' }).addTo(map);
+    tripRouteLayer = L.polyline(pts, { color: '#AE5738', weight: 3, opacity: .7, dashArray: '6 6' }).addTo(map);
   }
   /* 行程项解析：-1 = 我的位置（临时途经点） */
   function tripSite(i) {
@@ -828,14 +828,15 @@
       var daysHtml = '';
       rt.days.forEach(function (d, di) {
         var c = DAY_COLORS[di % DAY_COLORS.length];
+        var cb = (window.UI && UI.badge) ? UI.badge(c) : c; /* P0-4：白字徽章底压深到 ≥4.6:1，原始色仍用于圆点/连线 */
         var names = dayNames(ri, di);
         var stopsHtml = names.map(function (nm) {
           var s = resolveStop(nm);
-          return s ? '<div class="stop"><div class="num" style="background:' + c + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + [s.theme, s.region + (s.county || ''), s.elev ? ('海拔' + s.elev + 'm') : ''].filter(Boolean).join(' · ') + '</div></div></div>'
-            : '<div class="stop"><div class="num" style="background:' + c + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + nm + '</div><div class="sd">（未收录）</div></div></div>';
+          return s ? '<div class="stop"><div class="num" style="background:' + cb + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + [s.theme, s.region + (s.county || ''), s.elev ? ('海拔' + s.elev + 'm') : ''].filter(Boolean).join(' · ') + '</div></div></div>'
+            : '<div class="stop"><div class="num" style="background:' + cb + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + nm + '</div><div class="sd">（未收录）</div></div></div>';
         }).join('');
         var connHtml = dayConnectHtml(ri, di, c);
-        daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + c + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">' + TI('info', 12) + ' ' + d.tip + '</div>' + stopsHtml +
+        daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + cb + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">' + TI('info', 12) + ' ' + d.tip + '</div>' + stopsHtml +
           '<div class="dayacts"><button class="dbtn" data-sort="' + ri + ':' + di + '">↻ 按距离排序</button><button class="dbtn send" data-send="' + ri + ':' + di + '">'+ TI('car') + '发高德导航</button></div></div>';
       });
       el.innerHTML = '<div class="rh" style="border-left-color:' + rt.color + '"><span class="rh-dot" style="background:' + rt.color + '"></span><h3>' + rt.name + '</h3><p>⏱ ' + rt.days.length + ' 天 ｜ ' + total + ' 站 ｜ ' + rt.desc + '</p><div class="dkey"><span class="dkey-label">每日轨迹色</span>' + keyHtml + '</div></div><div class="stops">' + daysHtml + '</div>' +
@@ -943,7 +944,7 @@
     userLatLng = [pos.coords.latitude, pos.coords.longitude];
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker(gxy(userLatLng[0], userLatLng[1]), { icon: userDotIcon(), zIndexOffset: 1000 }).addTo(map);
-    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:#C86D4B;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
+    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
     if (!watchId && navigator.geolocation) watchId = navigator.geolocation.watchPosition(function (p) {
       userLatLng = [p.coords.latitude, p.coords.longitude];
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));
@@ -1149,14 +1150,14 @@
     var legBody = $('legBody'); legBody.innerHTML = '';
     /* 图例首行：全部（清除主题筛选） */
     var allRow = document.createElement('div'); allRow.className = 'lg'; allRow.dataset.th = '';
-    allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#C86D4B,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + SITES.length + '</span>';
+    allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#AE5738,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-muted);font-family:var(--font-sans)">' + SITES.length + '</span>';
     allRow.onclick = function () { state.theme = ''; syncChips(); renderAll(); };
     legBody.appendChild(allRow);
     (M.themeOrder || []).forEach(function (th) {
       if (!SITES.some(function (s) { return tk(s) === th; })) return;
       var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
       var cnt = SITES.filter(function (s) { return tk(s) === th; }).length;
-      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-faint);font-family:var(--font-sans)">' + cnt + '</span>';
+      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-muted);font-family:var(--font-sans)">' + cnt + '</span>';
       /* 图例即标签：点击切换该主题筛选（与顶部 chips 联动） */
       r.onclick = function () {
         state.theme = (state.theme === th ? '' : th);
@@ -1174,7 +1175,7 @@
 
   /* ---------- 美食 ---------- */
   var FTYPE_ICON = { "面食": "🍜", "小吃": "🥟", "硬菜": "🍲", "宴席": "🍱", "特产": "🎁", "饮品": "🍶" };   /* emoji-ok: 美食类目彩色徽章；lucide 单色描边表达不了"面食/小吃/硬菜/宴席/特产/饮品"的类目差异 */
-  var FTYPE_COLOR = { "面食": "#C86D4B", "小吃": "#71806C", "硬菜": "#C86D4B", "宴席": "#8C7B66", "特产": "#6D7D88", "饮品": "#71806C" };
+  var FTYPE_COLOR = { "面食": "#AE5738", "小吃": "#71806C", "硬菜": "#AE5738", "宴席": "#8C7B66", "特产": "#6D7D88", "饮品": "#71806C" };
   function foodCountInCity(city) { return SITES.filter(function (s) { return s.city === city; }).length; }
   function getFoodFiltered() {
     var q = (FOOD_STATE.q || "").trim().toLowerCase();
@@ -1194,10 +1195,11 @@
     if (!list.length) { grid.innerHTML = '<div class="empty">没有匹配的美食，换个关键词试试。</div>'; return; }
     grid.innerHTML = '';
     list.forEach(function (d) {
-      var ic = FTYPE_ICON[d.type] || "🍽️", col = FTYPE_COLOR[d.type] || "#7D7970";   /* emoji-ok: 同上一行 FTYPE_ICON 的未知类目兜底徽章 */
+      var ic = FTYPE_ICON[d.type] || "🍽️", col = FTYPE_COLOR[d.type] || "#6A675E";   /* emoji-ok: 同上一行 FTYPE_ICON 的未知类目兜底徽章 */
+      var cb = (window.UI && UI.badge) ? UI.badge(col) : col; /* P0-4：.ft 白字 10px，压深到达标 */
       var nSites = foodCountInCity(d.city);
       var card = document.createElement('div'); card.className = 'fcard';
-      card.innerHTML = '<div class="fh"><span class="fic">' + ic + '</span><span class="ft" style="background:' + col + '">' + d.type + '</span></div>' +
+      card.innerHTML = '<div class="fh"><span class="fic">' + ic + '</span><span class="ft" style="background:' + cb + '">' + d.type + '</span></div>' +
         '<div class="fn">' + d.name + '</div>' +
         '<div class="floc">' + TI('pin', 12) + ' ' + d.city + (d.county ? (' · ' + d.county) : '') + '</div>' +
         '<div class="fdesc">' + d.desc + '</div>' +

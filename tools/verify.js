@@ -221,5 +221,125 @@ const EMOJI_MARK = 'emoji-ok:';
   fail += bad + lazyBad.length + errBad.length;
 }
 
+/* 12. 对比度审计（P0-4 · WCAG AA）。从 design.css 真解析 token 值再算，不抄数字——
+   谁改了色阶，这里立刻见真章。三档：
+     body    正文/按钮标签/链接 ≥4.5:1   —— 不达标 FAIL
+     graphic 图标/图形/地图线 ≥3:1        —— 不达标 FAIL
+     decor   纯装饰（placeholder/箭头/空态大字符/禁用态）—— 必须写明豁免理由才放行，
+             豁免表外的 decor 缺理由 = FAIL（防止"顺手标个 decor"溜过去）。
+   配对表是"实际渲染组合"清单（fg 用在哪个底上），新增文字类 UI 时往表里加行，
+   而不是在使用处写死颜色救急。 */
+{
+  const css = fs.readFileSync('design.css', 'utf8');
+  function collectBlock(re) {
+    const map = {}; let m; const rx = new RegExp(re, 'g');
+    while ((m = rx.exec(css))) {
+      for (const t of m[1].matchAll(/(--[\w-]+)\s*:\s*([^;}]+)/g)) map[t[1]] = t[2].trim();
+    }
+    return map;
+  }
+  const light = collectBlock(':root\\s*\\{([\\s\\S]*?)\\}');   /* 合并全部 :root 块（v2 token 在后半段） */
+  const dark = Object.assign({}, light, collectBlock('\\.theme-dark\\s*\\{([\\s\\S]*?)\\}'));
+  function resolve(tok, map, depth) {
+    depth = depth || 0;
+    if (depth > 6 || !tok) return null;
+    if (/^#/.test(tok)) return { hex: tok.length === 4 ? '#' + tok.slice(1).split('').map(c => c + c).join('') : tok };
+    let m = tok.match(/^rgba?\(([^)]+)\)$/);
+    if (m) {
+      const p = m[1].split(',').map(s => parseFloat(s));
+      return { rgb: p.slice(0, 3), a: p.length > 3 ? p[3] : 1 };
+    }
+    if (/^--/.test(tok)) return map[tok] ? resolve(map[tok], map, depth + 1) : null;  /* 直接给 token 名：查表再解析 */
+    m = tok.match(/^var\((--[\w-]+)(?:\s*,\s*([^)]+))?\)$/);
+    if (m) return resolve(map[m[1]] || (m[2] || '').trim(), map, depth + 1);
+    return null;
+  }
+  const toRgb = c => c.rgb || [parseInt(c.hex.slice(1, 3), 16), parseInt(c.hex.slice(3, 5), 16), parseInt(c.hex.slice(5, 7), 16)];
+  function lum(c) {
+    const v = toRgb(c).map(x => x / 255).map(x => x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4));
+    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+  }
+  function over(fg, bg) {  /* 半透明 fg 压到 bg 上的合成色 */
+    if (fg.a === undefined || fg.a === 1) return { rgb: toRgb(fg) };
+    const f = toRgb(fg), b = toRgb(bg), a = fg.a;
+    return { rgb: f.map((x, i) => Math.round(x * a + b[i] * (1 - a))) };
+  }
+  function cr(fgT, bgT, map) {
+    const bg = resolve(bgT, map); const fg = resolve(fgT, map);
+    if (!bg || !fg) return null;
+    const B = { rgb: toRgb(bg) }; const F = over(fg, B);
+    const l1 = lum(F), l2 = lum(B);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  }
+  /* [主题, 前景, 背景, 档位, 用途/豁免理由] */
+  const PAIRS = [
+    ['L', '--color-ink', '--color-bg', 'body', '标题/正文'],
+    ['L', '--color-ink-soft', '--color-bg', 'body', '次级正文'],
+    ['L', '--color-ink-soft', '--color-bg-deep', 'body', '深底分区上的正文'],
+    ['L', '--color-muted', '--color-bg', 'body', '说明文字'],
+    ['L', '--color-muted', '--color-surface', 'body', '卡片说明文字'],
+    ['L', '--color-muted', '--color-bg-soft', 'body', '软底 chip 文字'],
+    ['L', '--color-faint', '--color-bg', 'decor', 'placeholder/箭头/空态大字符/图片占位框——placeholder 语义豁免'],
+    ['L', '--color-faint', '--color-surface', 'decor', '同上（白底卡内装饰箭头）'],
+    ['L', '--color-faint', '--color-bg-soft', 'decor', 'nmPhotoBox 空图占位提示（disabled 容器）'],
+    ['L', '--color-primary', '--color-bg', 'body', '主色文字/链接'],
+    ['L', '--color-primary-dark', '--color-bg', 'body', 'soft 底 pill 文字（行内色）'],
+    ['L', '--color-primary-dark', 'rgba(174,87,56,.10) on --color-bg', 'body', 'primary-soft 复合底上的 pill 文字'],
+    ['L', '--bg', '--color-primary', 'body', '主按钮标签（var(--bg) 统一口径，暗色自动翻深）'],
+    ['L', '#ffffff', '#B25A3A', 'body', 'grad-primary 最亮档上的白标签（火纹按钮/激活 tab）'],
+    ['L', '--ink-900', '--gold-500', 'body', '.btn-accent 标签（金底墨字）'],
+    ['L', '--color-green', '#ECEFEA', 'body', 'wishlist 已完成标签'],
+    ['L', '--teal-600', '--color-bg', 'body', '时间轴节点标题'],
+    ['L', '--color-gold', '--color-surface', 'body', '序号/徽标金字（压深后）'],
+    ['L', '--color-danger', '--color-surface', 'body', '破坏性操作文字'],
+    ['D', '--color-ink', '--color-bg', 'body', '暗色正文'],
+    ['D', '--color-ink-soft', '--color-bg', 'body', '暗色次级'],
+    ['D', '--color-muted', '--color-surface', 'body', '暗色卡片说明文字'],
+    ['D', '--color-primary', '--color-bg', 'body', '暗色主色文字+深标签按钮（同一配对）'],
+    ['D', '--color-primary-dark', '--color-bg', 'body', '暗色强调文字'],
+    ['D', '--color-primary-dark', 'rgba(216,123,86,.14) on --color-surface', 'body', '暗色 soft 底 pill 文字'],
+    ['D', '--color-gold', '--color-surface', 'body', '暗色金字'],
+    ['D', '--color-danger', '--color-surface', 'body', '暗色危险文字'],
+    ['D', '--color-faint', '--color-bg', 'decor', '暗色 placeholder/空态大字符——placeholder 语义豁免'],
+    ['L', '--route-color', '--map-bg', 'graphic', '地图路线色（图形档 3:1）'],
+    ['L', '--color-blue', '--color-surface', 'graphic', '蓝灰图标（图形档）'],
+    ['L', '#ffffff', '--color-blue', 'body', '.bdg-h 网红徽章白字（压深后 5.34）'],
+    ['D', '#ffffff', '--color-blue', 'body', '暗色同上（blue 令牌两主题共用）'],
+    ['D', '--bg', '#E08A64', 'body', '底部导航 FAB 渐变最亮端深标签（var(--bg) 翻转）'],
+    ['D', '#ffffff', '--color-primary', 'graphic', 'boot 印章 40px 大字按大字/图形档 3:1 判（3.05）'],
+    ['L', '--color-primary', '--bg', 'body', '.tn-style .rec 反色小徽标（米底上主色字）'],
+    ['D', '--color-primary', '--bg', 'body', '暗色同上（#D87B56 on #1D1C19）']
+  ];
+  let bad = 0;
+  console.log('对比度审计（WCAG AA：正文 4.5 · 图形 3 · 装饰须登记豁免）');
+  for (const [th, fg, bg, tier, why] of PAIRS) {
+    const map = th === 'L' ? light : dark;
+    const isOn = / on /.test(bg);
+    let ratio;
+    if (isOn) {
+      const mm = bg.match(/^(rgba?\([^)]+\)) on (--[\w-]+)$/);
+      const base = resolve(mm[2], map); const softC = resolve(mm[1], map);
+      if (!base || !softC) { console.log('对比度 FAIL: 复合底解析失败 ' + bg); bad++; continue; }
+      const soft = over(softC, { rgb: toRgb(base) });
+      const f = resolve(fg, map);
+      if (!f) { console.log('对比度 FAIL: 配对解析不出颜色 ' + fg); bad++; continue; }
+      const l1 = lum(f), l2 = lum(soft);
+      ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    } else ratio = cr(fg, bg, map);
+    if (ratio === null) { console.log('对比度 FAIL: 配对解析不出颜色 ' + fg + ' / ' + bg + '（token 改名了？）'); bad++; continue; }
+    const lim = tier === 'body' ? 4.5 : 3;
+    const r = ratio.toFixed(2);
+    if (tier === 'decor') {
+      if (!why || why.length < 6) { console.log('对比度 FAIL: decor 配对未写豁免理由 ' + fg + '/' + bg); bad++; }
+      else console.log('  豁免 ' + th + ' ' + fg.padEnd(22) + '/' + bg.padEnd(14) + ' ' + r.padStart(5) + ':1  ' + why);
+    } else if (ratio + 1e-9 < lim) {
+      console.log('对比度 FAIL ' + th + ' ' + fg + ' / ' + bg + ' = ' + r + ':1 < ' + lim + '  [' + why + ']');
+      bad++;
+    } else console.log('  ' + (tier === 'body' ? '正文' : '图形') + ' ' + th + ' ' + fg.padEnd(22) + '/' + bg.padEnd(14) + ' ' + r.padStart(5) + ':1  ' + why);
+  }
+  console.log('对比度审计: ' + PAIRS.length + ' 组配对，' + (PAIRS.filter(p => p[3] === 'decor').length) + ' 组装饰豁免，不达标 ' + bad);
+  fail += bad;
+}
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

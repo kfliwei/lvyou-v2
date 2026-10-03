@@ -21,7 +21,7 @@
   input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .chips button{padding:8px 16px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:12.5px;cursor:pointer;font-family:var(--font-sans)}
-  .chips button.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600;box-shadow:0 3px 12px rgba(200,109,75,.22)}
+  .chips button.on{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600;box-shadow:0 3px 12px rgba(200,109,75,.22)}
   /* 开关 */
   .switchrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0}
   .switchrow .sw-label{font-size:13.5px;color:var(--color-ink)}
@@ -94,7 +94,7 @@
         <input type="text" id="inBase" placeholder="https://…/v1/chat/completions" autocomplete="off">
       </div>
       <div class="row">
-        <div class="row-label">② API Key <span id="keyHint" style="font-weight:400;color:var(--color-faint);font-size:11px"></span></div>
+        <div class="row-label">② API Key <span id="keyHint" style="font-weight:400;color:var(--color-muted);font-size:11px"></span></div>
         <input type="password" id="inKey" placeholder="sk-…" autocomplete="off">
       </div>
       <div class="row">
@@ -379,7 +379,7 @@
       Ai.test(function (r) {
         bt.disabled = false; bt.textContent = '④ 测试连接';
         if (r.ok) testResult('<svg class="ti" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-check"/></svg> 连接成功 · ' + (r.ms / 1000).toFixed(1) + 's · 模型回复「' + (r.echo || '') + '」', 'var(--color-primary-dark)');
-        else testResult('<svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg> ' + friendlyAiError(r.err), '#B4543A');
+        else testResult('<svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg> ' + friendlyAiError(r.err), '#AE5738');
       });
     };
   })();
