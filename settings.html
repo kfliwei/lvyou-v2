@@ -175,6 +175,12 @@
           </div>
         </div>
         <div class="adv-item">
+          <div class="switchrow">
+            <div><div class="sw-label">行程日卡显示天气</div><div class="sw-sub">按当天首站坐标取当日天气（免费公开数据源，不需要 Key，只在排好行程后按站点逐个查一次）</div></div>
+            <div class="sw" id="swWx"></div>
+          </div>
+        </div>
+        <div class="adv-item">
           <div class="row-label">高德地图 Key</div>
           <div style="display:flex;gap:8px;margin-top:4px">
             <input id="amapKeyInput" type="text" autocomplete="off" placeholder="Web 服务 Key（console.amap.com 免费申请）" style="flex:1;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:13px;padding:0 16px">
@@ -623,6 +629,19 @@
     document.documentElement.classList.toggle('theme-dark', dark);
     toast('已切换深色模式');
   });
+  /* ===== 日卡天气开关（批次 10 · P1-6）：默认开，关掉才写 tn_planner_weather=0 ===== */
+  (function () {
+    var sw = document.getElementById('swWx'); if (!sw) return;
+    function off() { try { return localStorage.getItem('tn_planner_weather') === '0'; } catch (e) { return false; } }
+    function paint() { sw.className = 'sw' + (off() ? ' off' : ''); }
+    paint();
+    sw.onclick = function () {
+      lsSave('tn_planner_weather', off() ? '1' : '0');
+      paint();
+      toast(off() ? '日卡不再查天气' : '日卡会显示当天天气');
+    };
+  })();
+
   /* ===== 行程分享基址（批次 9 · P1-5）：链接落点，只有别人打得开的地址才有意义 ===== */
   (function () {
     var inp = document.getElementById('shareBaseInput');

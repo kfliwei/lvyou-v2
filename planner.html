@@ -90,6 +90,9 @@
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
   .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
+  /* 日卡天气位：字形+温度，窄屏靠 dmeta 先收缩。取数未回时挂 .wxh（display:none），不是空位 */
+  .day-card .dhead .wx{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:11px;line-height:1;color:var(--color-muted);white-space:nowrap}
+  .day-card .dhead .wxh{display:none}
   .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background .15s}
   .day-card .stop:active{background:var(--color-bg-soft)}
   .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}

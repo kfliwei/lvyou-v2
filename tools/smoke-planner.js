@@ -343,6 +343,162 @@ async function wizardDone(p) {
   const real3 = errors3.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile/.test(e));
   ok('导航档无 JS 报错', real3.length === 0, real3.slice(0, 3).join(' | '));
 
+  /* ===== 阶段四（批次 10 · P1-6）：日卡天气位 =====
+     三种网络口径各开一个页面，因为「静默降级」最容易骗人的地方就是只测取到数的那一次：
+     取不到时到底是不显示，还是留一个空位、弹一个 toast，只有真断网那天看得出来。
+     缓存必须逐页清：file:// 同源共享 localStorage，不清的话后一个页面直接命中前一个页面
+     取回的天气，「一天到底发几个请求」这条就永远数不出来。 */
+  const wxDay = n => {
+    const d = new Date(); d.setHours( 0, 0, 0, 0); d.setDate(d.getDate() + n);
+    const z = x => (x < 10 ? '0' : '') + x;
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+  };
+  async function wxOpen(mode, offset) {
+    const p = await browser.newPage();
+    await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+    const errs = [];
+    p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+    p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 200)); });
+    await p.evaluateOnNewDocument(m => {
+      try {
+        Object.keys(localStorage)
+          .filter(k => /^tn_weather_|^tn_d_|^tn_rt_/.test(k))
+          .forEach(k => localStorage.removeItem(k));
+        localStorage.removeItem('tn_planner_weather');
+      } catch (e) {}
+      window.__wxCalls = 0; window.__wxUrls = []; window.__wxMode = m;
+      const realFetch = window.fetch ? window.fetch.bind(window) : null;
+      window.fetch = function (url) {
+        const u = String(url || '');
+        if (u.indexOf('api.open-meteo.com') >= 0) {
+          window.__wxCalls++; window.__wxUrls.push(u);
+          if (window.__wxMode === 'down') return Promise.reject(new TypeError('Failed to fetch'));
+          if (window.__wxMode === 'junk') return Promise.resolve({ json: () => Promise.resolve({ daily: {} }) });
+          if (window.__wxMode === 'rate') {
+            const seen = window.__wxSeen || (window.__wxSeen = {});
+            seen[u] = (seen[u] || 0) + 1;
+            if (seen[u] === 1) return Promise.resolve({ status: 429, json: () => Promise.resolve({}) });
+          }
+          const day = (/start_date=([\d-]+)/.exec(u) || [])[1] || '';
+          return Promise.resolve({
+            json: () => Promise.resolve({
+              daily: { time: [day], weathercode: [61], temperature_2m_max: [19.4], temperature_2m_min: [8.2] }
+            })
+          });
+        }
+        return realFetch ? realFetch.apply(window, arguments) : Promise.reject(new Error('fetch unavailable'));
+      };
+    }, mode);
+    await p.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+    await p.type('#promptInput', '我想去川西玩3天，喜欢自然风光');
+    await p.click('#genBtn');
+    await sleep(1500);
+    for (let i = 0; i < 3; i++) {
+      await p.evaluate(idx => { const els = document.querySelectorAll('#candList .cand'); if (els[idx]) els[idx].click(); }, i);
+      await sleep(150);
+    }
+    await sleep(400);
+    await p.evaluate(d => { const el = document.getElementById('intentDate'); el.value = d; }, wxDay(offset));
+    await wizardTo(p, 3);
+    await wizardDone(p);
+    const dayN = await p.$$eval('#resultBody .day-card', els => els.length);
+    const calls = () => p.evaluate(() => window.__wxCalls);
+    const wxN = () => p.$$eval('#resultBody .day-card .wx', els => els.length);
+    const slotN = () => p.$$eval('#resultBody .day-card .wxh', els => els.length);
+    const clean = () => errs.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch/.test(e));
+    return { p, errs, dayN, calls, wxN, slotN, clean };
+  }
+
+  /* --- 口径①：日期在预报窗口内，一天一个请求，取回来就落在当天日卡上 --- */
+  const w1 = await wxOpen('ok', 0);
+  const gotWx = await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await w1.calls() >= w1.dayN) return true; await sleep(200); } return false; })();
+  ok('排好行程后按天发起天气请求', gotWx && (await w1.calls()) >= w1.dayN, '请求 ' + await w1.calls() + ' 次 / ' + w1.dayN + ' 天');
+  await sleep(800);
+  const wxCells = await w1.wxN();
+  ok('每个日卡都有天气位', wxCells === w1.dayN, wxCells + ' 个 .wx / ' + w1.dayN + ' 张日卡');
+  ok('天气位取数完不留空槽', await w1.slotN() === 0, '残留 .wxh ' + await w1.slotN() + ' 个');
+  const wxText = await w1.p.evaluate(() => {
+    const e = document.querySelector('#resultBody .day-card .wx');
+    return e ? { txt: e.textContent.trim(), title: e.getAttribute('title'), svg: !!e.querySelector('svg'), label: e.getAttribute('aria-label') } : null;
+  });
+  ok('温度文案为「最低~最高°」（19.4/8.2 取整）', !!wxText && wxText.txt === '8~19°', wxText ? JSON.stringify(wxText.txt) : '无天气位');
+  ok('title 带 WMO 61 的中文口径', !!wxText && wxText.title === '小雨 8~19°', wxText ? wxText.title : '');
+  ok('字形走 SVG 图标，不是 emoji', !!wxText && wxText.svg === true);
+  const wxUrls = await w1.p.evaluate(() => window.__wxUrls);
+  ok('请求参数是三字段 + 同一天首尾 + 免 Key', wxUrls.every(u =>
+    u.indexOf('api.open-meteo.com') >= 0 &&
+    u.indexOf('daily=weathercode,temperature_2m_max,temperature_2m_min') >= 0 &&
+    u.indexOf('timezone=auto') >= 0 && /key=|appid=/i.test(u) === false &&
+    /&start_date=[\d-]+&end_date=\d{4}-\d{2}-\d{2}/.test(u) &&
+    (() => { const s = /start_date=([\d-]+)/.exec(u)[1], e = /end_date=([\d-]+)/.exec(u)[1]; return s === e; })()
+  ), wxUrls.length ? wxUrls[0].slice(0, 150) : '一个请求都没发');
+  const daysSent = await w1.p.evaluate(() => window.__wxUrls.map(u => /start_date=([\d-]+)/.exec(u)[1]).sort());
+  const daysWant = []; for (let i = 0; i < w1.dayN; i++) daysWant.push(wxDay(i));
+  ok('逐日按出发日期往后推，不是每天都问同一天', daysSent.join(',') === daysWant.sort().join(','), daysSent.join(','));
+  const cacheKeys = await w1.p.evaluate(() => Object.keys(localStorage).filter(k => /^tn_weather_d_/.test(k)));
+  ok('缓存键含坐标与日期（跨日不会复用昨天的数）', cacheKeys.length === w1.dayN && cacheKeys.every(k => /^tn_weather_d_-?\d+\.\d+_-?\d+\.\d+_\d{4}-\d{2}-\d{2}$/.test(k)), cacheKeys[0] || '无缓存键');
+  /* 重渲染走旅行模式开关：它只调 renderDaysBody，不像增删站点那样换掉首站坐标，
+     换了坐标就等于换了缓存键，「命中缓存不再打网络」这条会被悄悄测歪 */
+  const c1 = await w1.calls();
+  await w1.p.evaluate(() => window.plannerStartTrip());
+  await sleep(700);
+  ok('重渲染命中缓存，不再打网络', await w1.calls() === c1 && await w1.wxN() === w1.dayN, '请求 ' + c1 + ' → ' + await w1.calls());
+  await w1.p.setViewport({ width: 320, height: 640, isMobile: true, hasTouch: true });
+  await sleep(400);
+  const fit = await w1.p.evaluate(() => {
+    const boxes = [...document.querySelectorAll('#resultBody .day-card .wx')].map(e => {
+      const b = e.getBoundingClientRect(); return { l: b.left, r: b.right, w: b.width };
+    });
+    return { pageOver: document.documentElement.scrollWidth - document.documentElement.clientWidth, n: boxes.length, inView: boxes.filter(b => b.w > 0 && b.l >= -0.5 && b.r <= window.innerWidth + 0.5).length };
+  });
+  ok('320px 窄屏：日卡不横向溢出且天气位不挤出屏幕', fit.pageOver <= 0 && fit.n === fit.inView && fit.n > 0, '溢出 ' + fit.pageOver + 'px，天气位 ' + fit.inView + '/' + fit.n + ' 在屏内');
+  /* 开关关掉：一个槽都不该铺，一个请求都不该发（关掉功能还偷偷打网络是最难查的那种） */
+  const c2 = await w1.calls();
+  await w1.p.evaluate(() => { localStorage.setItem('tn_planner_weather', '0'); window.plannerStartTrip(); });
+  await sleep(700);
+  ok('关掉开关后无天气位也无请求', await w1.wxN() === 0 && await w1.slotN() === 0 && await w1.calls() === c2, '.wx ' + await w1.wxN() + ' / .wxh ' + await w1.slotN() + ' / 请求 ' + c2 + ' → ' + await w1.calls());
+  ok('天气正常态无 JS 报错', w1.clean().length === 0, w1.clean().slice(0, 2).join(' | '));
+
+  /* --- 口径②：日期超出预报窗口，不猜、不问、不留位 --- */
+  const w2 = await wxOpen('ok', 40);
+  await sleep(1500);
+  ok('超出预报期：一个天气请求都不发', await w2.calls() === 0, '发了 ' + await w2.calls() + ' 次');
+  ok('超出预报期：日卡既不显示也不留空位', await w2.wxN() === 0 && await w2.slotN() === 0, '.wx ' + await w2.wxN() + ' / .wxh ' + await w2.slotN());
+  ok('没到窗口内的日子不出现「天气」话术', await w2.p.evaluate(() => (document.getElementById('resultBody').innerText || '').indexOf('天气') < 0));
+  ok('超预报期档无 JS 报错', w2.clean().length === 0, w2.clean().slice(0, 2).join(' | '));
+
+  /* --- 口径③：坏包与断网都必须当这件事没发生 --- */
+  const w3 = await wxOpen('junk', 1);
+  await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 12000) { if (await w3.calls() >= w3.dayN) break; await sleep(200); } })();
+  await sleep(800);
+  ok('接口回坏包时会铺槽而不是硬留空', await w3.slotN() === w3.dayN && await w3.wxN() === 0, '.wxh ' + await w3.slotN() + ' / .wx ' + await w3.wxN());
+  const hidden = await w3.p.evaluate(() => [...document.querySelectorAll('#resultBody .day-card .wxh')]
+    .map(e => getComputedStyle(e).display + ':' + e.offsetWidth));
+  ok('未取到的槽不占位（display:none / 宽 0）', hidden.length > 0 && hidden.every(h => h === 'none:0'), hidden.slice(0, 2).join(' | '));
+  const c3 = await w3.calls();
+  await w3.p.evaluate(() => {
+    window.__wxMode = 'down';
+    Object.keys(localStorage).filter(k => /^tn_weather_/.test(k)).forEach(k => localStorage.removeItem(k));
+    window.plannerStartTrip();
+  });
+  await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 12000) { if (await w3.calls() >= c3 + w3.dayN) break; await sleep(200); } })();
+  await sleep(800);
+  ok('断网时按天各试一次（说明确实在取，不是压根没接线）', await w3.calls() >= c3 + w3.dayN, '请求 ' + c3 + ' → ' + await w3.calls());
+  const quietMsg = await w3.p.evaluate(() => (document.getElementById('resultBody').innerText || '').match(/天气|重试|失败|加载/g));
+  ok('断网后日卡不出温度、不出「重试/加载失败」话术', await w3.wxN() === 0 && !quietMsg, quietMsg ? quietMsg.join(',') : '零话术');
+  ok('坏包/断网档无 JS 报错', w3.clean().length === 0, w3.clean().slice(0, 2).join(' | '));
+
+  /* --- 口径④：被限流（429）要退避重试，而不是那天就没天气了 --- */
+  const w4 = await wxOpen('rate', 2);
+  await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 25000) { if (await w4.wxN() >= w4.dayN) break; await sleep(300); } })();
+  const w4n = await w4.wxN();
+  ok('429 退避后天气仍然补上了', w4n === w4.dayN, '.wx ' + w4n + ' / ' + w4.dayN + ' 张日卡');
+  const w4c = await w4.calls();
+  ok('限流是真重试（每天至少再试一次），不是只发一次就放弃', w4c >= w4.dayN * 2, '请求 ' + w4c + ' 次 / ' + w4.dayN + ' 天');
+  ok('限流档不留残槽', await w4.slotN() === 0, '.wxh ' + await w4.slotN());
+  ok('限流档无 JS 报错', w4.clean().length === 0, w4.clean().slice(0, 2).join(' | '));
+
   await browser.close();
   console.log(fails ? ('\n' + fails + ' 项失败') : '\n全部通过');
   process.exit(fails ? 1 : 0);

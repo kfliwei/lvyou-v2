@@ -917,5 +917,175 @@ const EMOJI_MARK = 'emoji-ok:';
   fail += bad;
 }
 
+/* ============================================================
+   18. 逐日天气闸门（批次 10 · P1-6）
+   天气是排线里唯一「行程已经排完、还要再补一轮网络」的功能，最容易做成
+   又慢又吵、满屏「加载失败」。闸门只盯三件事：码表与游记同源、拿不到就当
+   这件事不存在、开关与缓存的键各归各位（一个进备份、一字节都不许出去）。
+   ============================================================ */
+{
+  let bad = 0;
+  const F18 = m => { console.log('天气闸门 FAIL: ' + m); bad++; };
+  const read18 = f => { if (!fs.existsSync(f)) { F18('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const PL = read18('planner.js'), PLH = read18('planner.html'), TN = read18('travel-notes.js');
+  const IC = read18('icons.js'), SET18 = read18('settings.html'), SH18 = read18('share.html');
+  const BK18 = read18('backup.js'), SM18 = read18('tools/smoke-planner.js'), DOC18 = read18('改进实施方案与验收标准.md');
+
+  /* --- ① 码表对账：两份 WMO 表都按对象字面量真解析（不写影子实现），逐码比 --- */
+  const lit18 = (src, re, what) => {
+    const m = src.match(re);
+    if (!m) { F18('取不到' + what + '的字面量（改了写法请同步本闸门）'); return null; }
+    try { return vm.runInNewContext('(' + m[1] + ')'); }
+    catch (e) { F18(what + ' 字面量解析失败：' + e.message); return null; }
+  };
+  const G18 = lit18(PL, /var WMO_G = (\{[\s\S]*?\n  \})/, 'planner 的 WMO_G');
+  const W18 = lit18(TN, /var WMO = (\{[^}]*\})/, 'travel-notes 的 WMO');
+  let NAMES18 = null;
+  {
+    const m = IC.match(/window\.TI_NAMES = (\[[^\]]*\])/);
+    if (!m) F18('icons.js 取不到 TI_NAMES');
+    else { try { NAMES18 = JSON.parse(m[1]); } catch (e) { F18('TI_NAMES 不是合法 JSON 数组：' + e.message); } }
+  }
+  let codes18 = 0;
+  if (G18 && W18) {
+    const kg = Object.keys(G18).map(Number).sort((a, b) => a - b);
+    const kw = Object.keys(W18).map(Number).sort((a, b) => a - b);
+    const missG = kw.filter(k => kg.indexOf(k) < 0), missW = kg.filter(k => kw.indexOf(k) < 0);
+    if (missG.length) F18('planner 码表缺码，这些天气在游记里有、日卡上不会显示：' + missG.join(','));
+    if (missW.length) F18('planner 码表多出游记没有的码：' + missW.join(','));
+    /* 同一个码在两处不能说两种话：游记表带 emoji 前缀，去前缀后逐字比 */
+    const strip = s => String(s).replace(/^[^一-龥]+/, '');
+    kg.forEach(k => {
+      const g = G18[k];
+      if (!Array.isArray(g) || g.length !== 2) { F18('WMO_G[' + k + '] 不是 [字形, 中文] 两项'); return; }
+      if (W18[k] && strip(W18[k]) !== g[1]) F18('码 ' + k + ' 两处中文不一致：planner「' + g[1] + '」/ 游记「' + strip(W18[k]) + '」');
+      if (NAMES18 && NAMES18.indexOf(g[0]) < 0) F18('码 ' + k + ' 的字形 "' + g[0] + '" 不在 icons.js 的 TI_NAMES 里——日卡上会是一块空白');
+      codes18++;
+    });
+  }
+
+  /* --- ② 口径逐值核定：缓存时长与预报窗口拿源码里的字面量求值，不认注释 --- */
+  const num18 = (name, want, why) => {
+    const m = PL.match(new RegExp('var ' + name + ' = ([^;]+);'));
+    if (!m) { F18('取不到 var ' + name + '（' + why + '）'); return; }
+    let v; try { v = vm.runInNewContext('(' + m[1] + ')'); } catch (e) { F18(name + ' 求值失败：' + e.message); return; }
+    if (v !== want) F18(name + ' 应为 ' + want + '，实际 ' + v + '（' + why + '）');
+  };
+  num18('WX_TTL', 6 * 3600 * 1000, '文档口径：预报一天更新几轮，缓存 6 小时');
+  num18('WX_HORIZON', 15, '接口只给到 T+16，第 16 天起没有数据');
+
+  /* --- ③ 接口口径：forecast（不是 archive）、同一天首尾、三字段与游记一套、零 Key --- */
+  if (PL.indexOf("'https://api.open-meteo.com/v1/forecast'") < 0) F18('天气接口地址漂移（排线查未来，应是 forecast 不是 archive）');
+  if (/archive-api/.test(PL)) F18('planner 用了历史天气接口：过期日期的天气不属于排线，宁可什么都不显示');
+  if (PL.indexOf('daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto') < 0) F18('daily 参数与 travel-notes 不是同一套字段');
+  if (!/&start_date=' \+ date \+ '&end_date=' \+ date/.test(PL)) F18('没把 start_date 与 end_date 钉成同一天，取回来的就不止一天');
+
+  const WXBLK = (() => {
+    const a = PL.indexOf('var WX_TTL'), b = PL.indexOf('function renderDaysBody');
+    if (a < 0 || b < 0 || b <= a) { F18('找不到天气模块的边界（var WX_TTL … function renderDaysBody）'); return ''; }
+    return PL.slice(a, b);
+  })();
+  /* 静默降级的硬口径：这一整块里不许出现任何"我失败了"的话术，也不许留 console */
+  [['console.', '往控制台刷日志'], ['toast(', '弹 toast'], ['errorBox', '挂错误卡'],
+    ['重试', '放重试话术'], ['alert(', '弹系统框'], ['getAmapKey', '读高德 Key'], ['tn_amap_key', '读本机密钥']]
+    .forEach(([s, why]) => { if (WXBLK.indexOf(s) >= 0) F18('天气模块里出现「' + s + '」——' + why + '，取不到天气就该当这件事没发生'); });
+  if (/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/u.test(WXBLK)) F18('天气模块里出现 emoji 字形（P0-1 已收口成 SVG 图标）');
+  if (!/if \(!g\) return '';/.test(WXBLK)) F18('没登记的天气码必须不显示，不能摆「天气码 50」');
+  {
+    const m = WXBLK.match(/function wxSlot[\s\S]*?\n  }/);
+    if (!m) F18('取不到 wxSlot 的函数体');
+    else {
+      const n = (m[0].match(/return ''/g) || []).length;
+      if (n < 3) F18('wxSlot 的静默出口从 ' + n + ' 条掉到不足 3 条（开关关/缺坐标/超出预报期三条都要有）');
+    }
+  }
+  if (!/rememberCacheKey\(k\)/.test(WXBLK)) F18('天气缓存没走 rememberCacheKey 的 LRU——localStorage 会无界膨胀');
+  if (!/function wxRun\(job\) \{ gateRun\(wxGate, job\); \}/.test(PL)) F18('天气没走与高德同族的限流闸门（并发 2）');
+  if (!/gateRun\(amapGate, job\)/.test(PL)) F18('amapRun 不再走公共闸门，两份限流逻辑开始各写各的');
+  if (!/r\.status === 429 && \(tries \|\| 0\) < 2/.test(PL) || !/wxRest\(url, cb, \(tries \|\| 0\) \+ 1\); \}, 700 \* \(\(tries \|\| 0\) \+ 1\)\)/.test(PL)) F18('天气缺被限流后的退避重试（最多 2 次）');
+  if (!/weatherOn\(\)[\s\S]{0,80}getItem\('tn_planner_weather'\) !== '0'/.test(PL)) F18('天气开关不是「默认开、写 0 才关」');
+
+  /* --- ④ 接线：两处日卡都要有天气位，渲染完补槽，转场日也要有坐标可查 --- */
+  {
+    const a = PL.indexOf('function renderDaysBody'), b = PL.indexOf('function renderNarrative');
+    if (a < 0 || b < 0 || b <= a) F18('找不到 renderDaysBody 的边界，日卡天气位无从对账');
+    else {
+      /* 只数函数体内的调用点：定义处那句 function wxSlot(trip, di) 不是调用 */
+      const n = ((PL.slice(a, b).match(/\+ wxSlot\(trip, di\)/g) || []).length);
+      if (n !== 2) F18('renderDaysBody 里 wxSlot 调用应为 2 处（普通日卡 + 赶路日），实际 ' + n + ' 处');
+    }
+  }
+  if (!/resultBody'\)\.innerHTML = h;\s*\n\s*wxHydrate\(trip\);/.test(PL)) F18('渲染后没补槽：缓存没命中的日子永远不会显示天气');
+  if (!/tla: to && to\.lat != null/.test(PL)) F18('赶路日没存终点坐标——长途那天恰恰最该看天气');
+  if (!/\.day-card \.dhead \.wxh\{display:none\}/.test(PLH)) F18('planner.html 的空槽没设 display:none，取不到天气时会在日卡上留一个位');
+  if (!/\.day-card \.dhead \.wx\{[^}]*flex:0 0 auto[^}]*white-space:nowrap/.test(PLH)) F18('.wx 没设 flex:0 0 auto + white-space:nowrap，320px 窄屏会把导航键挤出去');
+
+  /* --- ⑤ 键两清：开关要能同步，缓存一字节都不许进备份（拿 backup.js 自己的分类函数判） --- */
+  const litKeys18 = src => [...new Set((src.match(/'tn_[A-Za-z0-9_]+'/g) || []).map(s => s.slice(1, -1)))];
+  const wxCache = litKeys18(PL).filter(k => /^tn_weather_/.test(k));
+  const wxSw = litKeys18(PL).filter(k => k === 'tn_planner_weather');
+  /* 开关键绝不能落在 tn_weather_ 前缀里：topic-common 的 pruneKV 清缓存会把开关一起扫掉
+     （文档原方案写 tn_weather=0 正是这个雷，复核时改名为 tn_planner_weather）。
+     这条要能被打红，只能反过来钉「tn_weather 家族里只许有缓存前缀这一个键」——
+     若写成「wxSw[0] 是否以 tn_weather_ 开头」，两个 filter 条件天然互斥，永远不红（变异自测抓到过）。 */
+  if (wxCache.length !== 1 || wxCache[0] !== 'tn_weather_d_') F18('planner 里 tn_weather 家族只许有缓存前缀 tn_weather_d_ 一个键，实际：' + (wxCache.join(',') || '无') + '（开关若叫 tn_weather* 会被 pruneKV 连带清掉）');
+  if (!wxSw.length) F18('planner 没读天气开关键 tn_planner_weather');
+  {
+    const bstore18 = {}, bwin18 = {};
+    const bctx18 = vm.createContext({
+      window: bwin18, console, JSON, Math, Object, String, Array, Number, Date, isFinite, parseInt,
+      localStorage: {
+        getItem: k => (k in bstore18 ? bstore18[k] : null),
+        setItem: (k, v) => { bstore18[k] = String(v); },
+        removeItem: k => { delete bstore18[k]; },
+        key: i => Object.keys(bstore18)[i] === undefined ? null : Object.keys(bstore18)[i],
+        get length() { return Object.keys(bstore18).length; }
+      }
+    });
+    try { vm.runInContext(BK18, bctx18, { filename: 'backup.js' }); }
+    catch (e) { F18('backup.js 在天气闸门里跑不起来：' + e.message); }
+    const B18 = bwin18.Backup;
+    if (!B18) F18('backup.js 没导出 window.Backup，天气键无从对账');
+    else {
+      if (wxSw.length && B18.classOf(wxSw[0]) !== 'prefs') F18('开关 ' + wxSw[0] + ' 没注册成 prefs（换机就丢，或被当数据同步）：实际 ' + B18.classOf(wxSw[0]));
+      if (wxCache.length && B18.classOf(wxCache[0] + '30.50_114.30_2026-10-05') !== 'never')
+        F18('逐日天气缓存没被 tn_weather_ 禁入前缀盖住——它会跟着备份跑到别人机器上');
+    }
+  }
+
+  /* --- ⑥ 其它两处不许越界：分享页不替访客发请求；设置页开关真接上 --- */
+  if (/open-meteo|tn_weather|wxSlot|class="wx"/.test(SH18)) F18('分享页里出现了天气——链接只该展示写进行程里的那些字，不给看链接的人发第三方请求');
+  if (!/id="swWx"/.test(SET18)) F18('设置页没有日卡天气开关控件');
+  if (!/lsSave\('tn_planner_weather'/.test(SET18)) F18('设置页开关没落键');
+  if (!/行程日卡显示天气/.test(SET18)) F18('开关文案漂了（高级设置里那条「行程日卡显示天气」）');
+
+  /* --- ⑦ 冒烟里必须真测了天气，不是只有闸门在盯着源码 ---
+     每条锚点都取「只出现一次的那一行」，这样它被改掉时闸门一定红；
+     宽锚点（如光一个 __wxCalls）删掉自增点也不会红，等于没闸。 */
+  [["if \\(u\\.indexOf\\('api\\.open-meteo\\.com'\\) >= 0\\) \\{", 'mock 预报接口的拦截点'],
+    ['window\\.__wxCalls\\+\\+', '数取数次数的计数器自增点'],
+    ["\\$\\$eval\\('#resultBody \\.day-card \\.wx'", '日卡天气位计数'],
+    ["localStorage\\.setItem\\('tn_planner_weather', '0'\\)", '关掉开关后的无天气态'],
+    ['wxOpen\\(.ok., 40\\)', '超出预报期那一档'], ['__wxMode = .down.', '断网那一档'],
+    ['wxOpen\\(.rate., 2\\)', '被 429 限流那一档']]
+    .forEach(([re, what]) => { if (!new RegExp(re).test(SM18)) F18('smoke-planner.js 里缺' + what + '——闸门写了不等于测过'); });
+
+  /* --- ⑧ 文档：键名更正在案，本节欠账清零 --- */
+  {
+    const a = DOC18.indexOf('## P1-6'), b = DOC18.indexOf('## P1-7');
+    if (a < 0 || b < 0 || b <= a) F18('文档里找不到 §P1-6 的边界');
+    else {
+      const sec = DOC18.slice(a, b);
+      if (!/tn_planner_weather/.test(sec)) F18('§P1-6 没写开关键名（文档原方案要写 tn_weather，与既有缓存前缀撞名，这条更正必须在案）');
+      if (/- \[ \]/.test(sec)) F18('§P1-6 还有未勾选项，批次 10 不能算收工');
+      if (!/6\s*(小时|h)/.test(sec)) F18('§P1-6 没写缓存时长口径');
+    }
+  }
+
+  console.log('天气闸门: 码表 ' + codes18 + ' 码与游记逐码对账、字形全在 TI_NAMES；缓存 6h 与窗口 T+15 逐值核定；'
+    + '静默降级（模块内零 toast/零错误卡/零 console）；键两清（开关 prefs ↔ 缓存 never）；分享页零天气请求');
+  fail += bad;
+}
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

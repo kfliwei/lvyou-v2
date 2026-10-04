@@ -380,7 +380,8 @@
     function newDay() { day = mkDay(); days.push(day); return day; }
     /* 转场日：只赶路、不塞景点，日卡不给导航按钮 */
     function transit(p, from, to, arrive) {
-      day = { stops: [], driveKm: p.km, driveH: p.h, playH: 0, endKm: arrive ? p.km : 0, transit: 1, from: from && from.name, to: to && to.name };
+      day = { stops: [], driveKm: p.km, driveH: p.h, playH: 0, endKm: arrive ? p.km : 0, transit: 1, from: from && from.name, to: to && to.name,
+        tla: to && to.lat != null ? to.lat : null, tlo: to && to.lng != null ? to.lng : null };   /* 赶路日也要天气：这段路最怕的就是雨 */
       days.push(day);
       return day;
     }
@@ -845,26 +846,131 @@
       ? '日卡里程为高德真实道路里程'
       : '日卡里程按直线 ×1.35 折算（未取真实道路数据）';
   }
+
+  /* ---------- 逐日天气（Open-Meteo，免费无 Key、CORS 开放） ----------
+     只做三件事：按「坐标 + 日期」取一次、缓存 6 小时、拿不到就什么都不显示。
+     没有出发日期 / 缺坐标 / 超出预报期 / 断网 / 被限流后仍失败 —— 一律不出天气元素，
+     宁可少一项信息，也不给日卡留一个空位或一句「加载失败」。 */
+  var WX_TTL = 6 * 3600 * 1000;   /* 预报一天更新几轮，6h 内的数不会翻脸 */
+  var WX_HORIZON = 15;            /* 接口只给到 T+16，第 16 天起没有数据 */
+  var WX_HOST = 'https://api.open-meteo.com/v1/forecast';
+  /* 码 → [icons.js 字形, 中文]。中文与 travel-notes.js 的 WMO 表逐码对账（verify §18），
+     两边不一致就是同一个码在两处说两种话。字形走 SVG，不引 emoji。 */
+  var WMO_G = {
+    0: ['sun', '晴'], 1: ['cloudsun', '晴间多云'], 2: ['cloudsun', '多云'], 3: ['cloud', '阴'],
+    45: ['cloud', '雾'], 48: ['cloud', '雾凇'],
+    51: ['cloud', '毛毛雨'], 53: ['cloud', '毛毛雨'], 55: ['cloud', '毛毛雨'],
+    61: ['rain', '小雨'], 63: ['rain', '中雨'], 65: ['rain', '大雨'],
+    71: ['snow', '小雪'], 73: ['snow', '中雪'], 75: ['snow', '大雪'], 77: ['snow', '雪粒'],
+    80: ['rain', '阵雨'], 81: ['rain', '阵雨'], 82: ['bolt', '强阵雨'],
+    85: ['snow', '阵雪'], 86: ['snow', '强阵雪'],
+    95: ['bolt', '雷暴'], 96: ['bolt', '雷暴冰雹'], 99: ['bolt', '强雷暴']
+  };
+  function weatherOn() { try { return localStorage.getItem('tn_planner_weather') !== '0'; } catch (e) { return true; } }
+  function dayDate(trip, di) {
+    var sd = trip && trip.startDate;
+    if (!sd || !/^\d{4}-\d{2}-\d{2}$/.test(sd)) return '';
+    var d = new Date(sd + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
+    d.setDate(d.getDate() + di);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function wxCoord(d) {
+    if (!d) return null;
+    var s = (d.stops || [])[0];
+    if (s && s.lat != null && s.lng != null) return { lat: s.lat, lng: s.lng };
+    if (d.transit && d.tla != null && d.tlo != null) return { lat: d.tla, lng: d.tlo };
+    return null;
+  }
+  /* 键前缀落在 tn_weather_ 里：与 topic-common 的实时天气缓存同族（都可再生、都不进备份），
+     但键尾带日期，两者永不同时命中同一条。 */
+  function wxKeyOf(lat, lng, date) { return 'tn_weather_d_' + lat.toFixed(2) + '_' + lng.toFixed(2) + '_' + date; }
+  function wxGet(k) {
+    try { var c = JSON.parse(localStorage.getItem(k) || 'null'); return c && Date.now() - c.ts < WX_TTL ? c.d : null; } catch (e) { return null; }
+  }
+  function wxPut(k, d) { try { localStorage.setItem(k, JSON.stringify({ ts: Date.now(), d: d })); rememberCacheKey(k); } catch (e) {} }
+  /* 日界按本地日历数，别用 UTC 相减——那会让今天出发的一天被判成昨天而整趟不出天气 */
+  function wxInWindow(date) {
+    if (!date) return false;
+    var t = new Date(), target = new Date(date + 'T00:00:00');
+    if (isNaN(target.getTime())) return false;
+    var days = Math.round((target - new Date(t.getFullYear(), t.getMonth(), t.getDate())) / 86400000);
+    return days >= 0 && days <= WX_HORIZON;
+  }
+  function wxUrl(co, date) {
+    return WX_HOST + '?latitude=' + co.lat.toFixed(4) + '&longitude=' + co.lng.toFixed(4) +
+      '&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&start_date=' + date + '&end_date=' + date;
+  }
+  function wxParse(j) {
+    var d = j && j.daily;
+    if (!d) return null;
+    var codes = d.weathercode || d.weather_code;
+    if (!codes || !codes.length) return null;
+    var mx = d.temperature_2m_max, mn = d.temperature_2m_min;
+    return { code: codes[0], tmax: mx && mx.length ? mx[0] : null, tmin: mn && mn.length ? mn[0] : null };
+  }
+  function wxCell(w) {
+    if (!w) return '';
+    var g = WMO_G[w.code];
+    if (!g) return '';   /* 没登记过的码不显示，也不摆「天气码 50」 */
+    var lo = w.tmin == null ? null : Math.round(w.tmin), hi = w.tmax == null ? null : Math.round(w.tmax);
+    var temp = lo != null && hi != null ? lo + '~' + hi + '°' : hi != null ? hi + '°' : lo != null ? lo + '°' : '';
+    if (!temp) return '';
+    return '<span class="wx" title="' + esc(g[1] + ' ' + temp) + '" aria-label="' + esc(g[1] + '，' + lo + ' 到 ' + hi + ' 度') + '">' + TI(g[0], 13) + temp + '</span>';
+  }
+  /* 渲染期能同步决定的一律当场写进 HTML（缓存命中=不闪）；只有真要发请求的才留 .wxh 空槽 */
+  function wxSlot(trip, di) {
+    if (!weatherOn()) return '';
+    var d = (trip.days || [])[di], co = wxCoord(d), date = dayDate(trip, di);
+    if (!co) return '';                 /* 没坐标就不问：这天的天气压根无从问起 */
+    if (!wxInWindow(date)) return '';   /* 没有日期或超出预报期：不猜，也不摆「日期没填」 */
+    var hit = wxGet(wxKeyOf(co.lat, co.lng, date));
+    if (hit) return wxCell(hit);
+    return '<span class="wxh" data-wx="' + di + '"></span>';
+  }
+  var wxSeq = 0;
+  function wxHydrate(trip) {
+    var seq = ++wxSeq;
+    if (!trip || !weatherOn()) return;
+    (trip.days || []).forEach(function (d, di) {
+      var slot = document.querySelector('#resultBody .wxh[data-wx="' + di + '"]');
+      if (!slot) return;   /* 缓存命中或这天天不在窗口内：没有槽要填 */
+      var co = wxCoord(d), date = dayDate(trip, di);
+      var k = wxKeyOf(co.lat, co.lng, date);
+      wxRun(function (release) {
+        wxRest(wxUrl(co, date), function (w) {
+          release();
+          if (!w) return;
+          wxPut(k, w);
+          if (seq !== wxSeq) return;   /* 期间又排了一次：这张卡已经不是我那张 */
+          var live = document.querySelector('#resultBody .wxh[data-wx="' + di + '"]');
+          if (live) live.outerHTML = wxCell(w);
+        });
+      });
+    });
+  }
   function renderDaysBody() {
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
     var leg = mkLeg(trip.dist);
     var h = '<div style="font-size:12px;color:var(--color-muted);margin-bottom:4px">' +
-      rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') + '</div>';
+      rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
+      (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>';
     days.forEach(function (d, di) {
       var over = d.totalH > 12;
       var seal = 'day-seal ds-' + (di % 6 + 1);
       if (d.transit) {
         /* 转场日：只赶路、不塞景点，没有起讫站点可导航，所以不挂导航按钮 */
         h += '<div class="day-card transit"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
-          '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span></div>' +
+          '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
           '<div style="font-size:11.5px;color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div></div>';
         return;
       }
       var allDone = d.stops.length > 0 && d.stops.every(function (s) { return s.done; });
       h += '<div class="day-card"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
-        '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' +
+        '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' + wxSlot(trip, di) +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
       if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
       d.stops.forEach(function (s, si) {
@@ -899,6 +1005,7 @@
         '<div class="stop-meta"><span class="meta">' + Math.round(endKm) + ' km</span></div></div>';
     }
     $id('resultBody').innerHTML = h;
+    wxHydrate(trip);   /* 缓存没命中的日子在这一步发请求；拿不到就永远不出现 .wx */
   }
   function renderNarrative(n) {
     $id('narrBox').innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:6px">AI 行程故事</div>' +
@@ -1011,16 +1118,17 @@
      并发 ≤2、429 类错误退避重试、重试仍失败则计数并当场播报，绝不静默当成直线。 */
   var AMAP_MAX_STOPS = 12;   /* 逐对查询的成本上限：n 站要 n(n-1)/2 段，12 站 = 66 段 */
   var amapGate = { active: 0, queue: [] };
-  function amapRun(job) {
-    amapGate.queue.push(job);
+  function gateRun(gate, job) {
+    gate.queue.push(job);
     function pump() {
-      if (amapGate.active >= 2 || !amapGate.queue.length) return;
-      var j = amapGate.queue.shift();
-      amapGate.active++;
-      j(function () { amapGate.active--; pump(); });
+      if (gate.active >= 2 || !gate.queue.length) return;
+      var j = gate.queue.shift();
+      gate.active++;
+      j(function () { gate.active--; pump(); });
     }
     pump();
   }
+  function amapRun(job) { gateRun(amapGate, job); }
   function amapRest(url, cb, tries) {
     var ctl = new AbortController();
     var to = setTimeout(function () { ctl.abort(); }, 9000);
@@ -1034,6 +1142,24 @@
         cb(j && !quota ? j : null);
       })
       .catch(function () { clearTimeout(to); cb(null); });
+  }
+  /* 天气另开一个同族闸门：不和高德的几十段路线抢那 2 个槽，但同样的并发上限与退避规矩。 */
+  var wxGate = { active: 0, queue: [] };
+  function wxRun(job) { gateRun(wxGate, job); }
+  function wxRest(url, cb, tries) {
+    var ctl = new AbortController();
+    var to = setTimeout(function () { ctl.abort(); }, 9000);
+    fetch(url, { signal: ctl.signal })
+      .then(function (r) {
+        if (r.status === 429 && (tries || 0) < 2) throw { wxRetry: 1 };
+        return r.json();
+      })
+      .then(function (j) { clearTimeout(to); cb(wxParse(j)); })
+      .catch(function (e) {
+        clearTimeout(to);
+        if (e && e.wxRetry && (tries || 0) < 2) { setTimeout(function () { wxRest(url, cb, (tries || 0) + 1); }, 700 * ((tries || 0) + 1)); return; }
+        cb(null);
+      });
   }
   function amapUrl(extra, a, b, key) {
     return 'https://restapi.amap.com/v3/direction/driving?origin=' + a.lng + ',' + a.lat + '&destination=' + b.lng + ',' + b.lat + '&' + extra + '&ke' + 'y=' + encodeURIComponent(key);

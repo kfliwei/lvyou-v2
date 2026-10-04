@@ -47,6 +47,7 @@
     { k: 'tn_aiSite', g: 'prefs', m: 'whole' },
     { k: 'tn_aiBase', g: 'prefs', m: 'whole' },    /* 自定义站点的接口地址：非密钥，但会决定 Key 发往哪里 */
     { k: 'tn_share_base', g: 'prefs', m: 'whole' }, /* 只读分享链接的落点地址：自己的域名，非密钥 */
+    { k: 'tn_planner_weather', g: 'prefs', m: 'whole' }, /* 日卡天气开关：纯显示偏好，关掉不影响数据 */
     { p: 'tn_model_', g: 'prefs', m: 'whole' },    /* tn_model_<站点> = 模型名，不含 Key */
     { p: 'tn_mappos_', g: 'prefs', m: 'whole' }    /* 各页地图回到上次视角 */
   ];
