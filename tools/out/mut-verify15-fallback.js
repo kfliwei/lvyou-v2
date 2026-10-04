@@ -59,13 +59,20 @@ for (const c of CASES) {
   if (!fs.readFileSync(c.file).equals(buf)) { ok(false, '还原失败！' + c.file); }
 }
 
-/* ③ 优先级反向对照：壳在本机时读壳——此时砸仓库副本不该红（红了就说明顺序写反了） */
-const brokenBuf = fs.readFileSync(CASES[0].file);
-fs.writeFileSync(CASES[0].file, brokenBuf.toString('utf8').replace(CASES[0].old, CASES[0].neo));
-const p = runVerify();
-ok(p.code === 0 && /外部壳 /.test(splashLine(p.out)),
-  '壳在场 + 仓库副本已砸 → exit=' + p.code + ' | ' + splashLine(p.out));
-fs.writeFileSync(CASES[0].file, brokenBuf);
+/* ③ 优先级反向对照：壳在本机时读壳——此时砸仓库副本不该红（红了就说明顺序写反了）。
+     壳路径与 verify.js 同源（TRACE_ANDROID_SHELL 可覆盖）。本机没有外部壳的机器上这条
+     不适用，必须 SKIP 而不是判异常，否则脚本换台机器就自己报假红。 */
+const SHELL_RES = (process.env.TRACE_ANDROID_SHELL || 'F:/MyAi/trace/lvyou-v2-android').replace(/\\/g, '/') + '/app/src/main/res';
+if (fs.existsSync(SHELL_RES)) {
+  const brokenBuf = fs.readFileSync(CASES[0].file);
+  fs.writeFileSync(CASES[0].file, brokenBuf.toString('utf8').replace(CASES[0].old, CASES[0].neo));
+  const p = runVerify();
+  ok(p.code === 0 && /外部壳 /.test(splashLine(p.out)),
+    '壳在场 + 仓库副本已砸 → exit=' + p.code + ' | ' + splashLine(p.out));
+  fs.writeFileSync(CASES[0].file, brokenBuf);
+} else {
+  console.log('SKIP  优先级对照：本机无外部壳 ' + SHELL_RES + '（TRACE_ANDROID_SHELL 可指定），闸门只会走仓库副本');
+}
 
 const last = runVerify(GHOST);
 ok(last.code === 0, '还原后复跑（无壳）→ exit=' + last.code + ' | ' + splashLine(last.out));
