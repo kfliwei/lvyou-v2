@@ -25,7 +25,7 @@
   var cur = ALIAS[raw] || raw;
   var css = '.bottom-nav{z-index:1050}' +
     '.bottom-nav__fab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;font-size:11px;letter-spacing:.04em;color:var(--color-muted);cursor:pointer;text-decoration:none;padding-bottom:6px}' +
-    '.bottom-nav__fab__btn{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,var(--color-primary),var(--color-primary-dark));color:var(--bg);display:grid;place-items:center;box-shadow:0 8px 20px rgba(200,109,75,.38);border:3px solid var(--color-surface,#fffdf8);margin-top:-24px;transition:transform var(--duration-fast,150ms) var(--ease-standard,ease)}' +
+    '.bottom-nav__fab__btn{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,var(--color-primary),var(--color-primary-dark));color:var(--bg);display:grid;place-items:center;box-shadow:0 8px 20px rgba(200,109,75,.38);border:3px solid var(--color-surface,#fffdf8);margin-top:-24px;transition:transform var(--duration-fast,var(--motion-fast)) var(--ease-standard,ease)}' +
     '.bottom-nav__fab:active .bottom-nav__fab__btn{transform:scale(.92)}' +
     /* 暗色主题把 --color-primary 调亮（为了文字对比），但 FAB 是实心砖红底 + 白描边图标，
        跟着调亮后白字对底只有 2.9:1；这里按图形 3:1 底线单独压深，不走 token */

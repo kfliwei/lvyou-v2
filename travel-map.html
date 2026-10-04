@@ -18,7 +18,7 @@
   .t-row .back{width:40px;height:40px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);border:1px solid var(--color-line);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
   .t-row .back:active{transform:scale(.92)}
   .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
-  .t-row .act{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform .12s var(--ease-standard);cursor:pointer;letter-spacing:.02em}
+  .t-row .act{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform var(--motion-tap) var(--ease-standard);cursor:pointer;letter-spacing:.02em}
   .t-row .act:active{transform:scale(.94)}
   .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
   .theme-dark .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
@@ -51,7 +51,7 @@
   .ctl button{
     width:44px;height:44px;border:0;background:none;
     display:flex;align-items:center;justify-content:center;
-    color:var(--ink-700);transition:background .15s;
+    color:var(--ink-700);transition:background var(--motion-fast);
   }
   .ctl button:active{background:var(--paper-200)}
   .ctl .sep{height:1px;background:var(--paper-300);margin:0 6px}
@@ -76,7 +76,7 @@
   .laymenu .ck{margin-left:auto;color:var(--cinnabar-500);font-size:13px;font-weight:700}
   /* Leaflet 控件中式化（紧凑圆角） */
   .leaflet-bar{border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--sh-sm);overflow:hidden}
-  .leaflet-bar a{width:34px;height:34px;line-height:34px;background:var(--surface);color:var(--ink-900);border-bottom:1px solid var(--line);font-size:16px;transition:background .15s ease}
+  .leaflet-bar a{width:34px;height:34px;line-height:34px;background:var(--surface);color:var(--ink-900);border-bottom:1px solid var(--line);font-size:16px;transition:background var(--motion-fast) ease}
   .leaflet-bar a:last-child{border-bottom:0}
   @media (hover:hover){.leaflet-bar a:hover{background:var(--surface-2)}}
   .leaflet-bar a.leaflet-disabled{background:var(--surface-2);color:var(--ink-300)}
@@ -102,7 +102,7 @@
     content:'';position:absolute;left:50%;top:50%;width:32px;height:32px;
     transform:translate(-50%,-50%);border-radius:2px;
     background:rgba(168,50,42,.18);
-    animation:tnhalo 2s ease-in-out infinite;
+    animation:tnhalo var(--motion-pulse) ease-in-out infinite;
   }
   @keyframes tnhalo{0%,100%{transform:translate(-50%,-50%) scale(.7);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
   /* 聚合节点数量徽标 */
@@ -123,7 +123,7 @@
   .stat b{color:var(--color-primary-dark)}
   .stat .s-main{font-weight:600;font-size:13.5px;font-family:var(--font-sans);letter-spacing:.02em;color:var(--color-ink)}
   .stat .s-sub{font-size:0.6875rem;color:var(--color-muted);font-family:var(--font-sans)}
-  .statClose{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6b665c;font-size:13px;cursor:pointer;margin-left:2px;transition:background .15s}
+  .statClose{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6b665c;font-size:13px;cursor:pointer;margin-left:2px;transition:background var(--motion-fast)}
   .statClose:active{background:rgba(38,36,31,.16)}
   .statOpen{
     position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:1000;
@@ -140,7 +140,7 @@
     box-shadow:var(--shadow-medium);padding:10px 14px;display:none;
     align-items:center;gap:10px;justify-content:center;max-width:calc(100vw - 28px);
   }
-  .emptyTip .em{font-size:22px;font-family:var(--font-serif);color:var(--color-primary);animation:tnfloat 3.2s ease-in-out infinite;flex:0 0 auto}
+  .emptyTip .em{font-size:22px;font-family:var(--font-serif);color:var(--color-primary);animation:tnfloat var(--motion-drift) ease-in-out infinite;flex:0 0 auto}
   @keyframes tnfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
   .emptyTip b{font-family:var(--font-serif);font-size:14px;color:var(--color-ink);letter-spacing:.02em;flex:0 0 auto;font-weight:400}
   .emptyTip span{font-size:11.5px;color:var(--color-muted);line-height:1.5;font-family:var(--font-sans);min-width:0}
@@ -177,8 +177,8 @@
      TRACE v2 记忆地图：节点系统 + Memory Sheet（规范 §6/§7）
      ============================================================ */
   .mem-node{position:relative;width:100%;height:100%;cursor:pointer}
-  .mem-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform 240ms var(--ease-standard)}
-  .mem-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--color-primary);opacity:.5;pointer-events:none;animation:node-breathe 3s ease-in-out infinite}
+  .mem-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--color-ink);border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.15);transition:transform var(--motion-mid) var(--ease-standard)}
+  .mem-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid var(--color-primary);opacity:.5;pointer-events:none;animation:node-breathe var(--motion-breath) ease-in-out infinite}
   .mem-node--endpoint{width:40px;height:40px;border-radius:50%;overflow:hidden;border:3px solid var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.3);background:var(--color-bg-soft)}
   .mem-node--endpoint .mem-dot{background:var(--color-primary);width:13px;height:13px}
   .mem-node--endpoint .mem-ring{width:30px;height:30px;opacity:.6}
@@ -205,7 +205,7 @@
   @media (hover:hover){.mem-node:hover .mem-dot{transform:translate(-50%,-50%) scale(1.3)}}
   /* Memory Sheet */
   /* Memory Sheet（z-index 必须 > .ctl 缩放控件层 1001，盖在缩放按钮之上） */
-  #memSheet{position:fixed;z-index:1100;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 212px);display:none;max-height:calc(100dvh - 212px - 26px);flex-direction:column;overflow:hidden;transform:translateY(115%);transition:transform 520ms var(--ease-standard);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
+  #memSheet{position:fixed;z-index:1100;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 212px);display:none;max-height:calc(100dvh - 212px - 26px);flex-direction:column;overflow:hidden;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard);background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(32,32,29,.07);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
   #memSheet.show{display:flex;transform:translateY(0)}
   #memSheet .sheet__handle{cursor:pointer;flex:0 0 auto}
   #msBody{flex:1;min-height:0;overflow-y:auto;padding-right:2px}

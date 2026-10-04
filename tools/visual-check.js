@@ -40,6 +40,9 @@ const argv = process.argv.slice(2);
 const UPDATE = argv.includes('--update');
 const REINDEX = argv.includes('--reindex');
 const SEEDONLY = argv.includes('--seed');
+/* FAIL 定位用：把本次截图也落一份（visual-diff/*.cur.png），与基线、diff 三张并排看，
+   不然只有一张 diff 图，分不清"改了色"还是"挪了位"。不影响任何判定。 */
+const KEEP = argv.includes('--keep-current');
 const onlyPages = argv.filter(a => !a.startsWith('--'));
 
 /* 状态清单：page → 视口列表。地图页不再有宽阈值（拦掉请求后它和普通页一样确定，理由见下方阈值注释）。
@@ -92,8 +95,19 @@ function writeManifest(files) {
     generatedAt: new Date().toISOString(),
     viewports: VIEWPORTS.map(v => v[0] + 'x' + v[1]),
     count: Object.keys(files).length,
-    files: files
+    files: orderFiles(files)
   }, null, 2));
+}
+/* 清单是入库文件，键序必须钉在状态清单上：--reindex 走 readdirSync（文件系统给的顺序），
+   不排序的话一次重登记就造出 60 多行纯顺序噪声，人审 diff 时看不出到底哪张基线真变了。 */
+function orderFiles(files) {
+  const want = [];
+  for (const p of PAGES) for (const [W, H] of VIEWPORTS) want.push(p.replace('.html', '') + '.' + W + 'x' + H + '.png');
+  for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) want.push(p.replace('.html', '') + '.seed.' + W + 'x' + H + '.png');
+  const out = {};
+  want.filter(k => files[k]).forEach(k => { out[k] = files[k]; });
+  Object.keys(files).filter(k => !out[k]).sort().forEach(k => { out[k] = files[k]; });
+  return out;
 }
 
 /* 把"会动的东西"全部钉死，否则 diff 里混的是时钟噪声而不是改版信号：
@@ -219,9 +233,12 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
         failN++; continue;
       }
     }
-    /* animations:'disabled' 让 puppeteer 在截屏前把 CSS 动画/过渡定格到终态，
-       否则首页 .hn 的呼吸光晕（infinite keyframes）每帧都在动，JS 冻时钟管不住它。 */
+    /* 确定性来自上面 emulateMediaFeatures(reduce) + design.css 的减动效块（duration .01ms、
+       iteration-count 1、delay 0s），不是来自 animations:'disabled'：实测 puppeteer-core 25.6.0
+       根本没实现这个选项（包里 grep 不到 animations，同一页 disabled / allow 两张图像素一致）。
+       留着它是为了将来内核真实现时口径不变，别把它当「动画已定格」的依据。 */
     const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
+    if (KEEP) fs.writeFileSync(path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png'), buf);
     testN++;
 
     if (UPDATE) {

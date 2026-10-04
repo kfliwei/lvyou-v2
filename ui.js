@@ -22,7 +22,8 @@
     requestAnimationFrame(function () { d.classList.add('show'); });
     setTimeout(function () {
       d.classList.remove('show');
-      setTimeout(function () { d.remove(); }, 320);
+      /* 退场等待跟 .ui-toast 的 CSS transition 同源，谁改 token 都不会把 toast 截在半空 */
+      setTimeout(function () { d.remove(); }, motionMs('normal', 320));
     }, ms || (action && action.text ? 5000 : 2600));
   }
 
@@ -120,7 +121,7 @@
       if (!bar) return;
       var b = bar; bar = null;
       b.classList.remove('show');
-      setTimeout(function () { b.remove(); }, 320);
+      setTimeout(function () { b.remove(); }, motionMs('normal', 320));
     }
     window.addEventListener('offline', show);
     window.addEventListener('online', hide);
@@ -258,7 +259,40 @@
     return '#' + rgb.map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('');
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox };
+  /* P2-7 动效编排（批次11-B）：JS 侧时序的唯一入口，值回读 design.css 的 --motion-* 阶梯。
+     CSS 与 JS 各写一套时长一定漂（toast 的退场就是这个），所以这里只认 token，字面量仅当
+     「这一页没载 design.css」的兜底传入。见 verify.js §19。 */
+  function reducedMotion() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches); } catch (e) { return false; }
+  }
+  function motionMs(name, fb) {
+    if (reducedMotion()) return 0;
+    var v = '';
+    try { v = '' + getComputedStyle(document.documentElement).getPropertyValue('--motion-' + name); } catch (e) { return fb; }
+    var n = parseFloat(v);
+    if (!(n >= 0)) return fb;
+    var t = v.trim();
+    return /(^|[^m])s$/.test(t) ? n * 1000 : n;
+  }
+  function scrollBehavior() { return reducedMotion() ? 'auto' : 'smooth'; }
+  /* View Transition 包装：减动效 / 老内核 / file:// 不支持时直接改 DOM，绝不拦导航也绝不报错。
+     连着切两次阶段时前一个转场会被 abort（AbortError: Transition was skipped），这是预期行为，
+     必须就地吞掉，否则它变成未捕获的 promise 拒绝，在壳里以「页面报错」的形式冒出来
+     （批次 11 smoke-motion D4 抓到）。三条 promise 都要挂 catch：实测拒绝是从 ready 冒出来的，
+     只 catch finished/updateCallbackDone 依然是红的。 */
+  function vt(fn) {
+    if (reducedMotion() || !document.startViewTransition) { fn(); return null; }
+    try {
+      var t = document.startViewTransition(fn);
+      ['ready', 'updateCallbackDone', 'finished'].forEach(function (k) {
+        var p = t && t[k];
+        if (p && typeof p.catch === 'function') p.catch(function () {});
+      });
+      return t;
+    } catch (e) { fn(); return null; }
+  }
+
+  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt };
 
   /* 载入即安装离线条（幂等，见 __uiOfflineBarOn）；引 ui.js 的每个页面自动获得离线态，无需逐页接线 */
   if (typeof document !== 'undefined') {

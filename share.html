@@ -31,11 +31,11 @@
   .mapnote{font-size:11px;color:var(--color-muted);line-height:1.7;margin:-6px 0 16px}
   /* 排期结果 */
   #mapBox{height:46vh;min-height:220px;border-radius:20px;overflow:hidden;border:1px solid var(--color-line);border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft);margin-bottom:14px}
-  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow .25s}
+  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow var(--motion-mid)}
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
   .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
-  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background .15s}
+  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background var(--motion-fast)}
   .day-card .stop:active{background:var(--color-bg-soft)}
   .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}
   .day-card .stop .meta{font-size:11px;color:var(--color-muted)}
@@ -57,7 +57,7 @@
   .foot b{font-family:var(--font-serif);font-weight:400;letter-spacing:.24em;color:var(--color-ink-soft);display:block;margin-bottom:6px}
   .act-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
-  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform .14s var(--ease-pop),box-shadow .2s,filter .2s}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
   .btn:active{transform:scale(.96)}
   #shareText{display:none;width:100%;margin-top:10px;min-height:180px;border:1px solid var(--color-line);border-radius:14px;background:var(--color-bg-soft);color:var(--color-ink);font-family:var(--font-sans);font-size:12.5px;line-height:1.7;padding:12px}
   .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:12.5px;line-height:1.8}

@@ -1,0 +1,9 @@
+PASS review.seed.390x844.png  diff 0.00%
+FAIL album.seed.390x844.png  diff 0.06% > 0.05%  → tools/out/visual-diff/album.seed.390x844.png
+PASS story.seed.390x844.png  diff 0.00%
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1284ms(<2500) 元素=SPAN | CLS 0.0000(<0.05)
+PASS 性能预算 topic.html — LCP 1084ms(<2500) 元素=? | CLS 0.0000(<0.05)
+---
+耗时 30.6s（4 张，报告 tools/out/visual-report.json）
+比对 4 张: 3 PASS, 1 FAIL

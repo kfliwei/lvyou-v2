@@ -105,7 +105,7 @@
   .theme-dark .add-bar{background:rgba(29,28,25,.96)}
 
   /* Toast（ui.js 创建 .ui-toast 时的可见样式，album-edit 局部兜底） */
-  .ui-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 14px);transform:translateX(-50%) translateY(-12px);background:rgba(32,32,29,.92);color:#FAF8F3;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:1100;box-shadow:0 8px 24px rgba(30,30,28,.3);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;letter-spacing:.02em}
+  .ui-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 14px);transform:translateX(-50%) translateY(-12px);background:rgba(32,32,29,.92);color:#FAF8F3;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:1100;box-shadow:0 8px 24px rgba(30,30,28,.3);opacity:0;transition:opacity var(--motion-normal),transform var(--motion-normal);pointer-events:none;max-width:90vw;letter-spacing:.02em}
   .ui-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   /* v3 CINEMATIC LAYER */

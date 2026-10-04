@@ -483,8 +483,8 @@
  },
  {
   "page": "settings.html",
-  "clickable": 55,
-  "scanned": 79,
+  "clickable": 56,
+  "scanned": 80,
   "dead": [
    {
     "el": "span",

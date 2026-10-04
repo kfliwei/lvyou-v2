@@ -499,6 +499,106 @@ async function wizardDone(p) {
   ok('限流档不留残槽', await w4.slotN() === 0, '.wxh ' + await w4.slotN());
   ok('限流档无 JS 报错', w4.clean().length === 0, w4.clean().slice(0, 2).join(' | '));
 
+  /* ===== 阶段五（批次 11 · P2-8）：用户画像进 AI 精选路线 =====
+     判据落在「真发出去的请求体」上，而不是 prefSummary() 的返回值上——返回值对、
+     拼串时漏了是看不出来的。桩只写在测试里（拦 fetch），生产代码零注入点。
+     三口径：有历史+默认开 / 关掉开关 / 新用户零历史。 */
+  const SECRET = '酸汤鱼的具体味道只有我自己知道';   // 游记正文里的独有句子，用来钉「正文不出门」
+  const SEED = {
+    trips: [{ id: 'p2-8', name: '画像验证一日', createdAt: 1759000000000, dest: '山西', startDate: '2026-09-28',
+      days: [{ date: '2026-09-28', driveKm: 30, driveH: 0.6, playH: 5, totalH: 5.6, stops: [
+        { name: '鹳雀楼', city: '运城市', lat: 34.84, lng: 110.49 },
+        { name: '普救寺', city: '运城市', lat: 34.85, lng: 110.46 }] }] }],
+    wish: [
+      { id: 'w1', label: '黄山', theme: '名山大川', region: '安徽', city: '黄山市', lat: 30.1, lng: 118.16, ts: 1759100000000, visited: 0 },
+      { id: 'w2', label: '华山', theme: '名山大川', region: '陕西', city: '渭南市', lat: 34.48, lng: 110.09, ts: 1759100000100, visited: 0 },
+      { id: 'w3', label: '武当山', theme: '名山大川', region: '湖北', city: '十堰市', lat: 32.4, lng: 111.0, ts: 1759100000200, visited: 0 },
+      { id: 'w4', label: '平遥古城', theme: '古城古镇', region: '山西', city: '晋中市', lat: 37.2, lng: 112.18, ts: 1759100000300, visited: 0 },
+      { id: 'w5', label: '镇远古镇', theme: '古城古镇', region: '贵州', city: '黔东南', lat: 27.05, lng: 108.4, ts: 1759100000400, visited: 0 },
+      { id: 'w6', label: '五台山', theme: '宗教圣地', region: '山西', city: '忻州市', lat: 39.08, lng: 113.55, ts: 1759100000500, visited: 1759100099000 },
+      { id: 'w7', label: '鼓浪屿', theme: '海岛海滩', region: '福建', city: '厦门市', lat: 24.44, lng: 118.06, ts: 1759100000600, visited: 0 }
+    ],
+    notes: [
+      { id: 'n1', title: '鹳雀楼看日落', siteName: '鹳雀楼', ts: 1759200000000, date: '2026-09-29', province: '山西省', city: '运城市', tags: ['日落', '徒步'], text: SECRET, raw: '口述' },
+      { id: 'n2', title: '永济闲走', siteName: '普救寺', ts: 1759100000000, date: '2026-09-28', province: '山西省', city: '运城市', tags: ['古建'], text: '另一篇正文' }
+    ]
+  };
+
+  async function aiOpen(withData) {
+    const p = await browser.newPage();
+    await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+    const errs = [];
+    p.on('pageerror', e => errs.push('pageerror: ' + e.message));
+    p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 200)); });
+    await p.evaluateOnNewDocument(seed => {
+      /* 有 Key 才走 AI 分支：Key 是假的，请求在下面被拦掉，一个字节都不出门 */
+      localStorage.setItem('tn_aiSite', 'deepseek');
+      localStorage.setItem('tn_key_deepseek', 'sk-smoke-fake-never-sent');
+      localStorage.removeItem('tn_plan_pref');
+      localStorage.setItem('tn_planner_weather', '0');
+      /* file:// 同源共享 localStorage 与 IDB：新用户档必须真清场，
+         否则上一档的种子数据会跟着过来，「画像省略」那条永远测不出来 */
+      if (seed) {
+        localStorage.setItem('tn_trips', JSON.stringify(seed.trips));
+        localStorage.setItem('tn_wishlist', JSON.stringify(seed.wish));
+      } else {
+        localStorage.removeItem('tn_trips');
+        localStorage.removeItem('tn_wishlist');
+      }
+      window.__aiBodies = [];
+      const realFetch = window.fetch ? window.fetch.bind(window) : null;
+      window.fetch = function (url, opt) {
+        const u = String(url || '');
+        if (u.indexOf('chat/completions') >= 0) {
+          window.__aiBodies.push(String((opt && opt.body) || ''));
+          const payload = { routes: [1, 2, 3, 4, 5].map(i => ({ name: '线路' + i, why: '亮点' + i, days: [['鹳雀楼'], ['普救寺']] })) };
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ choices: [{ message: { content: JSON.stringify(payload) } }] }) });
+        }
+        return realFetch ? realFetch.apply(window, arguments) : Promise.reject(new Error('fetch unavailable'));
+      };
+    }, withData ? SEED : null);
+    await p.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+    /* 游记走 sanctioned 的全量替换口（backup.js 恢复用的就是它），内存立刻可见，不用等 IDB 回读 */
+    await p.evaluate(n => { window.TravelNotes.replaceNotes(n); }, withData ? SEED.notes : []);
+    const clean = () => errs.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch/.test(e));
+    /* 生成一次并把请求体捞回来（#arBtn 在输入阶段里，直接 .click() 免得受视口/滚动影响） */
+    async function gen() {
+      await p.evaluate(() => {
+        window.__aiBodies.length = 0;
+        document.getElementById('arDest').value = '山西';
+        document.getElementById('arDays').value = '3';
+        document.getElementById('arBtn').click();
+      });
+      const t0 = Date.now();
+      while (Date.now() - t0 < 15000) { if (await p.evaluate(() => window.__aiBodies.length > 0)) break; await sleep(200); }
+      await sleep(500);
+      return {
+        body: await p.evaluate(() => window.__aiBodies[0] || ''),
+        n: await p.evaluate(() => document.querySelectorAll('#aiRouteOut .aroute').length)
+      };
+    }
+    return { p, errs, clean, gen };
+  }
+
+  const a1 = await aiOpen(true);
+  const r1 = await a1.gen();
+  ok('有历史数据时 AI 请求体带上「用户画像」段', /用户画像/.test(r1.body), r1.body ? '请求体 ' + r1.body.length + ' 字' : '一个请求都没发出去');
+  const inBody = ['山西', '运城市', '名山大川', '日落'].filter(w => r1.body.indexOf(w) >= 0);
+  ok('画像是聚合出来的：省 / 市 / 心愿单主题 / 近期关键词逐个在体里', inBody.length === 4, '命中 ' + inBody.join('、'));
+  ok('画像只出门送关键词，游记正文一个字都不发', r1.body.indexOf(SECRET) < 0 && r1.body.indexOf('另一篇正文') < 0);
+  ok('画像进了 prompt，5 条备选照样出得来', r1.n === 5, '.aroute ' + r1.n + ' 张');
+  await a1.p.evaluate(() => localStorage.setItem('tn_plan_pref', '0'));
+  const r2 = await a1.gen();
+  ok('关掉开关：请求体里一个画像字都没有', /用户画像/.test(r2.body) === false && r2.body.indexOf(SECRET) < 0, r2.body ? '请求体 ' + r2.body.length + ' 字' : '无请求');
+  ok('关开关只砍画像，目的地/天数/偏好照旧在', r2.body.indexOf('为「山西」设计 5 条互相不重复的 3 天') >= 0 && /景点偏好/.test(r2.body));
+  ok('开关档无 JS 报错', a1.clean().length === 0, a1.clean().slice(0, 2).join(' | '));
+
+  const a2 = await aiOpen(false);
+  const r3 = await a2.gen();
+  ok('新用户零历史：画像段整段省略（不写「去过 无」这种废话）', r3.body && /用户画像/.test(r3.body) === false, r3.body.slice(0, 40));
+  ok('新用户零历史：生成不报错且出满 5 条', a2.clean().length === 0 && r3.n === 5, '.aroute ' + r3.n + ' 张 / 报错 ' + a2.clean().length + ' 条');
+
   await browser.close();
   console.log(fails ? ('\n' + fails + ' 项失败') : '\n全部通过');
   process.exit(fails ? 1 : 0);

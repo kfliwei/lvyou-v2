@@ -83,13 +83,14 @@ function ok(name, cond, extra) {
   {
     const { page, errors } = await openPage('wishlist.html', 3000);
     ok('wishlist: UI 组件存在', await page.evaluate(() => !!window.UI && !!window.UI.toast && !!window.UI.confirm));
-    const planBind = await page.evaluate(() => {
-      const b = document.getElementById('wlPlanBtn');
-      if (!b) return '';
-      if (b.onclick) return 'bound';
-      return b.getAttribute('onclick') || '';
+    /* 批次 6 把 wishlist 的贪心规划并进了 planner，入口从 #wlPlanBtn（JS 绑 onclick）
+       换成一个直链锚点；断言当时没跟着改，从此一直抓不到元素、planBind 恒为空串——
+       本次复跑才撞到（smoke.js 不在批次 7–11 的复跑清单里，死的断言就是这么攒下来的）。 */
+    const planHref = await page.evaluate(() => {
+      const a = document.querySelector('.wl-btn.primary');
+      return a ? (a.getAttribute('href') || '') : '(没有 .wl-btn.primary)';
     });
-    ok('wishlist: 规划按钮跳转 planner', planBind === 'bound' || /planner\.html/.test(planBind), planBind);
+    ok('wishlist: 主操作「规划行程」直链 planner 并带 from=wish 交接', /planner\.html\?from=wish/.test(planHref), planHref);
     ok('wishlist: 无脚本错误', realErrors(errors).length === 0, realErrors(errors).join(' | ').slice(0, 150));
     await page.close();
   }

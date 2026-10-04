@@ -23,7 +23,7 @@
   .al-back{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--color-line);cursor:pointer;font-size:16px;color:var(--color-ink);flex:0 0 auto}
   .al-back:active{transform:scale(.94)}
   .al-progress{flex:1;height:1px;background:var(--color-line-strong);position:relative;overflow:hidden}
-  .al-progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--color-primary);transition:width .3s}
+  .al-progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--color-primary);transition:width var(--motion-normal)}
   .al-label{font-size:11px;color:var(--color-muted);letter-spacing:.18em;flex:0 0 auto}
   .al-edit,.al-export{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--color-line);font-size:12px;color:var(--color-ink-soft);cursor:pointer;letter-spacing:.04em;flex:0 0 auto}
   .al-edit{background:var(--color-primary);color:var(--bg);border-color:var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.25)}
@@ -38,7 +38,7 @@
   .al-cover__title{font-family:var(--font-serif);font-size:clamp(46px,13vw,64px);font-weight:400;line-height:1.1;letter-spacing:.04em;margin-top:18px}
   .al-cover__sub{margin-top:14px;font-family:var(--font-serif);font-size:19px;opacity:.92}
   .al-cover__year{margin-top:22px;font-size:12px;letter-spacing:.3em;opacity:.75}
-  .al-cover__scroll{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:3;color:#F4F1E7;font-size:10px;letter-spacing:.3em;opacity:.8;animation:alScroll 2.4s ease-in-out infinite}
+  .al-cover__scroll{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:3;color:#F4F1E7;font-size:10px;letter-spacing:.3em;opacity:.8;animation:alScroll var(--motion-boot) ease-in-out infinite}
   @keyframes alScroll{0%,100%{opacity:.35}50%{opacity:.9}}
 
   /* ---- 页 ---- */
@@ -70,7 +70,7 @@
   .al-audio{margin-top:44px;display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--color-bg-soft);border-radius:16px}
   .al-audio__btn{width:56px;height:56px;border-radius:50%;background:var(--color-primary);color:var(--bg);display:grid;place-items:center;cursor:pointer;flex:0 0 auto;border:0;transition:transform var(--t-fast);box-shadow:0 8px 20px rgba(200,109,75,.3)}
   .al-audio__btn:active{transform:scale(.92)}
-  .al-audio__btn.is-playing{background:var(--color-primary);animation:alBreathe 2.8s ease-in-out infinite}
+  .al-audio__btn.is-playing{background:var(--color-primary);animation:alBreathe var(--motion-breath) ease-in-out infinite}
   @keyframes alBreathe{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,.25)}50%{box-shadow:0 0 0 18px rgba(200,109,75,0)}}
   .al-audio__meta{flex:1;min-width:0}
   .al-audio__label{display:block;font-family:var(--font-serif);font-size:16px}

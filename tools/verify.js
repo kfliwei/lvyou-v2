@@ -1087,5 +1087,249 @@ const EMOJI_MARK = 'emoji-ok:';
   fail += bad;
 }
 
+/* ============================================================
+   19. 时序与转场闸门（批次 11 · P2-7）
+   动效烂掉的方式通常不是「不工作」，而是各写各的时长：改一处 token 别处不动、
+   减动效只管 duration 不管 delay、转场把导航拦住。闸门盯五件事——
+   唯一时序来源、阶梯逐值核定、减动效全覆盖、三处转场接线且不拦路、以及浏览器那头确实在测。
+   ============================================================ */
+{
+  let bad = 0;
+  const F19 = m => { console.log('时序转场闸门 FAIL: ' + m); bad++; };
+  const read19 = f => { if (!fs.existsSync(f)) { F19('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const D = read19('design.css'), U = read19('ui.js'), PL = read19('planner.js'), TN = read19('travel-notes.js');
+  const SMOKE = read19('tools/smoke-motion.js'), RD = read19('README.md'), DOC19 = read19('改进实施方案与验收标准.md');
+
+  /* --- ① 阶梯逐值核定：token 表按字面量求值成毫秒，与期望逐键比（多一档少一档改值都红） --- */
+  const WANT = { none: 0.01, tap: 120, fast: 160, mid: 240, normal: 280, page: 360, enter: 480, slow: 520, long: 700,
+    spin: 800, tick: 1000, flash: 1200, shimmer: 1300, pulse: 1800, boot: 2200, breath: 2800, drift: 3200, step: 40 };
+  const rung = {};
+  (D.match(/--motion-[a-z]+:[^;]+;/g) || []).forEach(s => {
+    const n = /--motion-([a-z]+):/.exec(s)[1], m = /:\s*(\d*\.?\d+)(ms|s)\s*;/.exec(s);
+    if (!m) { F19('--motion-' + n + ' 不是裸时长（' + s + '）：token 本身就是账本，不许再套 var/calc'); return; }
+    rung[n] = m[2] === 's' ? parseFloat(m[1]) * 1000 : parseFloat(m[1]);
+  });
+  Object.keys(WANT).forEach(n => {
+    if (!(n in rung)) F19('时序阶梯缺 --motion-' + n + '（期望 ' + WANT[n] + 'ms）');
+    else if (rung[n] !== WANT[n]) F19('--motion-' + n + ' 应为 ' + WANT[n] + 'ms，实际 ' + rung[n] + 'ms');
+  });
+  Object.keys(rung).forEach(n => { if (!(n in WANT)) F19('多出一档 --motion-' + n + '=' + rung[n] + 'ms，未在本闸门核定口径'); });
+  /* 同一组件父子两层反向旋转靠跨档才有相对速度，撞档=转圈看起来冻住，所以档位不许重值 */
+  const dup = Object.keys(rung).filter((n, i, a) => a.some((o, j) => j < i && o !== n && rung[o] === rung[n]));
+  if (dup.length) F19('时序阶梯撞档（同值会让父子反向旋转看起来停住）：' + dup.join(','));
+
+  /* --- ② 裸时序归零：第一方 css + 各页 <style> 与 style 属性，声明值段里不许有非零 ms/s ---
+     探针先用已知坏样本自证能抓到，再拿 token 样本自证不误报——否则正则写错就是一盏永久绿灯。 */
+  const RAW = /(^|[^A-Za-z0-9_.-])(?!0(\.0*)?(ms|s)\b)\d*\.?\d+(ms|s)\b/;
+  const bare = decl => RAW.test(decl.replace(/var\([^)]*\)/g, ''));
+  if (!bare('transition:opacity .25s')) F19('裸时序探针自身失效：已知坏样本 .25s 没被抓到');
+  if (bare('transition:transform var(--motion-tap) ease')) F19('裸时序探针误报：token 声明被当成魔法数字');
+  if (bare('animation:none 0s 1 normal')) F19('裸时序探针误报：CSSOM 把 animation:none 展开出来的 0s 被抓进来了');
+  /* 边界类里必须带引号：`style="animation-delay:…"` 的声明紧跟在 `"` 之后，只认 `[\s;{]` 的话
+     整条「行内 style 属性」扫描面会一条都抓不到（变异自测 M7 抓出来的死扫描面）。 */
+  const declScan = (label, src) => {
+    (src.match(/(?:^|[\s;{"'])(?:transition|animation)(?:-duration|-delay)?:[^;}]*/g) || [])
+      .forEach(seg => { if (bare(seg)) F19('裸时序字面量（' + label + '）：' + seg.trim().slice(0, 70)); });
+  };
+  {
+    const files = fs.readdirSync('.').filter(f => /\.(css|html)$/.test(f));
+    if (files.length < 18) F19('时序扫描面只有 ' + files.length + ' 个第一方 css/html，覆盖不足');
+    files.forEach(f => {
+      const src = read19(f);
+      if (f.endsWith('.css')) { declScan(f, src); return; }
+      declScan(f + ' <style>', (src.match(/<style[\s\S]*?<\/style>/g) || []).join('\n'));
+      declScan(f + ' style 属性', (src.match(/style="[^"]*"/g) || []).join('\n'));
+    });
+  }
+
+  /* --- ③ 别名族只能派生，不许自带字面量 --- */
+  ['--t-fast:var(--motion-fast)', '--t-norm:var(--motion-normal)', '--duration-fast:var(--motion-fast)', '--duration-normal:var(--motion-normal)']
+    .forEach(s => { if (D.indexOf(s) < 0) F19('旧时序别名没从 --motion-* 派生：' + s); });
+
+  /* --- ④ 减动效覆盖面：duration + delay + 循环次数 + 滚动 + 转场伪元素，一个都不许漏 --- */
+  {
+    const a = D.indexOf('@media (prefers-reduced-motion:reduce)');
+    if (a < 0) F19('没有减动效块');
+    else {
+      const b = D.indexOf('\n}', a);
+      const blk = D.slice(a, b < 0 ? D.length : b);
+      ['animation-duration', 'animation-delay', 'transition-duration', 'transition-delay',
+        'animation-iteration-count:1', 'scroll-behavior:auto', '::view-transition-old(*)']
+        .forEach(s => { if (blk.indexOf(s) < 0) F19('减动效块缺 ' + s + '（少一样就有半边动效在减动效档照旧跑）'); });
+      if (/var\(--motion-none\)(?!!important)/.test(blk)) F19('减动效归零没带 !important：压不住各页局部声明');
+      /* delay 要的是「归零」，写 0s；复用 --motion-none(.01ms) 等于凭空加了一拍延迟。
+         实测（visual-check 的 album.seed 稳定差 0.06%，A/B 四组合定位）：.01ms 的 animation-delay
+         会让首帧停在关键帧 0% 的值上（封面提示 opacity .8 → .35），动画结束后浏览器不补那次重绘，
+         减动效模式下就永久停在比基色更淡的一帧——所以这里逐条钉死成 0s。 */
+      const delays = blk.match(/(?:animation|transition)-delay:[^;}]+/g) || [];
+      if (delays.length < 2) F19('减动效块只找到 ' + delays.length + ' 条 delay 归零声明（animation 与 transition 各至少一条）');
+      delays.forEach(s => {
+        if (s !== 'animation-delay:0s!important' && s !== 'transition-delay:0s!important')
+          F19('减动效块的 delay 必须正好写成 0s!important（.01ms 不是零，会让首帧卡在关键帧 0% 且不再重绘）：' + s);
+      });
+    }
+  }
+
+  /* --- ⑤ 跨文档转场：开通 + root 时长走 token --- */
+  if (!/@view-transition\{navigation:auto\}/.test(D)) F19('跨文档转场没开通（@view-transition{navigation:auto}，新旧文档都要认）');
+  {
+    const m = /::view-transition-old\(root\)[^{]*\{[^}]*\}/.exec(D);
+    if (!m) F19('没给 root 伪元素定转场时长（默认转场不吃 --motion-page）');
+    else {
+      if (m[0].indexOf('var(--motion-page)') < 0) F19('root 转场时长没走 --motion-page token');
+      if (bare(m[0])) F19('root 转场时长写了字面量：' + m[0].slice(0, 70));
+    }
+  }
+
+  /* --- ⑥ 三处转场接线 + 共享元素名同页唯一 --- */
+  if (!/function showStage[\s\S]{0,240}UI\.vt\(function/.test(PL)) F19('planner 阶段切换没走 UI.vt（P2-7 三处转场之一）');
+  if (!/var flip = function[\s\S]{0,160}UI\.vt\(flip\)/.test(TN)) F19('随手记面板打开没走 UI.vt（P2-7 三处转场之一）');
+  if (!/var hide = function[\s\S]{0,160}UI\.vt\(hide\)/.test(TN)) F19('随手记面板关闭没走 UI.vt（只接开不接关会一半有名一半无声）');
+  [['index.html', '首页'], ['topic.html', '专题页']].forEach(([f, zh]) => {
+    const src = read19(f);
+    const n = (src.match(/view-transition-name:search-field/g) || []).length;
+    if (n !== 1) F19(zh + ' 里 search-field 出现 ' + n + ' 次：同页重名会让整段转场失效，两处必须各恰好一次');
+  });
+
+  /* --- ⑦ UI.vt / UI.motionMs 的契约 --- */
+  if (!/window\.UI = \{[^}]*reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt/.test(U)) F19('UI 的四个动效 helper 没导出');
+  if (!/\['ready', 'updateCallbackDone', 'finished'\]\.forEach/.test(U)) F19('UI.vt 没给三条 promise 全挂 catch：连开两次转场时 ready 的 AbortError 会冒成「页面报错」（smoke-motion D4 抓到过）');
+  if (!/if \(reducedMotion\(\) \|\| !document\.startViewTransition\) \{ fn\(\); return null; \}/.test(U)) F19('UI.vt 降级出口不对：减动效/老内核必须直接执行回调并返回 null，不许把 DOM 改动吞掉');
+  if (!/getPropertyValue\('--motion-' \+ name\)/.test(U)) F19('UI.motionMs 没从 :root 回读 --motion-*：CSS 与 JS 会各记一套时长');
+  if ((U.match(/motionMs\('normal', 320\)/g) || []).length !== 2) F19('toast/offlineBar 的移除等待应各回读一次 token（2 处），写死 320 会与 --motion-normal 脱节');
+
+  /* --- ⑧ 用了 helper 的页必须载 ui.js（UI 未定义是当场崩，不是静默降级） --- */
+  ['planner.js', 'topic-common.js', 'travel-notes.js'].forEach(lib => {
+    const src = read19(lib);
+    if (!/UI\.(vt|motionMs|scrollBehavior)\(/.test(src)) { F19(lib + ' 不再引用动效 helper，本条锚点需同步闸门'); return; }
+    fs.readdirSync('.').filter(f => f.endsWith('.html'))
+      .filter(f => read19(f).indexOf('src="' + lib + '"') >= 0)
+      .forEach(h => { if (read19(h).indexOf('src="ui.js"') < 0) F19(h + ' 载了 ' + lib + ' 却没载 ui.js：UI 未定义会当场崩'); });
+  });
+
+  /* --- ⑨ 浏览器那头确实在测，不是只有源码闸门在盯 --- */
+  [['C5 UI.vt 在支持的环境里真的走 startViewTransition', '同文档转场真被调用'],
+    ['B8 验收口径「所有动画时长 ≤1 帧」实测', '减动效全页逐元素实测'],
+    ['D4 全程无页面未捕获异常', '转场不许冒未捕获拒绝'],
+    ['C12 随手记面板开合各走一次转场', '随手记两处接线'],
+    ['C4 首页搜索框挂了共享元素名', '共享元素名落地']]
+    .forEach(([s, why]) => { if (SMOKE.indexOf(s) < 0) F19('smoke-motion.js 缺' + why + '的断言行：闸门写了不等于测过'); });
+  if (RD.indexOf('smoke-motion.js') < 0) F19('README 闸门清单没登记 smoke-motion.js');
+
+  /* --- ⑩ 文档口径：判据换过、结论回写 --- */
+  {
+    const a = DOC19.indexOf('## P2-7'), b = DOC19.indexOf('## P2-8');
+    if (a < 0 || b < 0 || b <= a) F19('文档里找不到 §P2-7 的边界');
+    else {
+      const sec = DOC19.slice(a, b);
+      if (!/\(\[0-9\]\+\\.\[0-9\]\+s\|\[0-9\]\+ms\)/.test(sec)) F19('§P2-7 的验收判据没换成「时间字面量归零」——原判据 grep `0.[0-9]+s` 是无效的（文件里写的是 .12s 省零形式，照字面跑一上来就 PASS）');
+      if (!/批次 11/.test(sec)) F19('§P2-7 没回写批次 11 的实测结论');
+      if (/- \[ \]/.test(sec)) F19('§P2-7 还有未勾选项，批次 11 不能算收工');
+    }
+  }
+  console.log('时序转场闸门: 阶梯 ' + Object.keys(rung).length + ' 档逐值核定且无撞档；'
+    + '第一方 css/html 声明内裸时序 0 处（探针带正反向自证）；减动效 duration+delay+循环+滚动+转场伪元素全覆盖；'
+    + '跨文档开通且 root 时长走 token；三处 UI.vt 接线 + 共享元素名同页唯一；UI.vt 三 promise 全 catch；smoke-motion 断言在案');
+  fail += bad;
+}
+
+/* ============================================================
+   20. 个性化画像闸门（批次 11 · P2-8）
+   画像是本仓库第一条「把用户本机数据喂给第三方 AI」的链路，红线只有一条：
+   出门的只能是聚合口径，正文一个字都不许走。其余全是工程账：默认值、开关落键、
+   键进备份、注入点唯一、新用户不崩。
+   ============================================================ */
+{
+  let bad = 0;
+  const F20 = m => { console.log('画像闸门 FAIL: ' + m); bad++; };
+  const read20 = f => { if (!fs.existsSync(f)) { F20('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const PL = read20('planner.js'), SET = read20('settings.html'), BK = read20('backup.js');
+  const SM = read20('tools/smoke-planner.js'), DOC = read20('改进实施方案与验收标准.md');
+
+  /* --- ① 聚合函数：默认开、库不在也不崩、有上限、不碰正文 --- */
+  if (!/function prefSummary\(\)/.test(PL)) F20('没有 prefSummary()（画像聚合入口）');
+  if (!/var PREF_KEY = 'tn_plan_pref';/.test(PL)) F20('画像开关键名漂了（planner 里应是 var PREF_KEY = \'tn_plan_pref\'）');
+  if (!/getItem\(PREF_KEY\) !== '0'/.test(PL)) F20('个性化推荐不是「默认开、写 0 才关」');
+  {
+    const m = /function prefSummary\(\)[\s\S]*?\n  \}/.exec(PL);
+    if (!m) F20('取不到 prefSummary 的函数体');
+    else {
+      const b = m[0];
+      if (!/if \(!prefOn\(\)\) return '';/.test(b)) F20('开关关掉后 prefSummary 没有直接返回空串');
+      if (!/window\.TravelNotes && TravelNotes\.list/.test(b) || !/window\.Wish && Wish\.list/.test(b)) F20('prefSummary 没判数据库在不在——新用户或未载 wishlist.js 的页会当场崩');
+      if (!/\.slice\(0, 160\)/.test(b)) F20('画像串没有 160 字上限：prompt 会随游记数量无界膨胀');
+      if (/\.text|\.raw/.test(b)) F20('prefSummary 读了游记正文/原声——画像只许给聚合关键词');
+      if (!/tags/.test(b)) F20('画像没取近期标签（vibe 口径断了）');
+      if (!/theme/.test(b)) F20('画像没取心愿单主题');
+    }
+  }
+
+  /* --- ② 注入点唯一且带护栏（多一个注入点=多一处没人审计过的出门口） --- */
+  if ((PL.match(/prefSummary\(\)/g) || []).length !== 2) F20('prefSummary 只许「定义 1 处 + aiPlanRoutes 调用 1 处」，实际 ' + (PL.match(/prefSummary\(\)/g) || []).length + ' 处');
+  {
+    const a = PL.indexOf('function aiPlanRoutes'), b = PL.indexOf('function arData_regions');
+    if (a < 0 || b < 0 || b <= a) F20('找不到 aiPlanRoutes 的边界');
+    else {
+      const fn = PL.slice(a, b);
+      if (!/prefSummary\(\)/.test(fn)) F20('AI 精选路线没把画像拼进 prompt');
+      if (!/用户画像/.test(fn)) F20('prompt 里没有「用户画像」段名（画像进出去了也看不出来）');
+      if (!/不要因为画像/.test(fn)) F20('画像段没带护栏：模型会为迎合画像推荐目的地之外的景点');
+      if (/\.text\b|\.raw\b|SECRET/.test(fn)) F20('aiPlanRoutes 的 prompt 里出现游记正文');
+    }
+  }
+
+  /* --- ③ 键两清：开关注册 prefs，且不落进任何缓存/禁入前缀 --- */
+  {
+    const bstore = {}, bwin = {};
+    const ctx = vm.createContext({
+      window: bwin, console, JSON, Math, Object, String, Array, Number, Date, isFinite, parseInt,
+      localStorage: {
+        getItem: k => (k in bstore ? bstore[k] : null),
+        setItem: (k, v) => { bstore[k] = String(v); },
+        removeItem: k => { delete bstore[k]; },
+        key: i => Object.keys(bstore)[i] === undefined ? null : Object.keys(bstore)[i],
+        get length() { return Object.keys(bstore).length; }
+      }
+    });
+    try { vm.runInContext(BK, ctx, { filename: 'backup.js' }); }
+    catch (e) { F20('backup.js 在画像闸门里跑不起来：' + e.message); }
+    const B = bwin.Backup;
+    if (!B) F20('backup.js 没导出 window.Backup，画像键无法对账');
+    else {
+      const c = B.classOf('tn_plan_pref');
+      if (c !== 'prefs') F20('tn_plan_pref 应为 prefs（换机要带走、又不带数据），实际 ' + c + '：没登记就采不到，落成 never 就是关掉一次开关不同步');
+    }
+  }
+
+  /* --- ④ 设置页给的是看得懂、关得掉的开关 --- */
+  if (!/id="swAiPref"/.test(SET)) F20('设置页没有「个性化推荐」开关控件');
+  if (!/lsSave\('tn_plan_pref'/.test(SET)) F20('设置页开关没落键（关掉一次，刷新就回来）');
+  if (!/个性化推荐/.test(SET)) F20('开关文案漂了');
+  if (!/只给聚合关键词，不带游记正文/.test(SET)) F20('开关副标题没写清画像是什么——用户有权知道要出门的是哪几个字');
+
+  /* --- ⑤ 冒烟真测在案（判据落在真发出去的请求体上） --- */
+  [["u\\.indexOf\\('chat/completions'", '拦 AI 请求体的桩'],
+    ['画像只出门送关键词，游记正文一个字都不发', '正文不出门的断言'],
+    ["localStorage\\.setItem\\('tn_plan_pref', '0'", '关掉开关那一档'],
+    ['aiOpen\\(false\\)', '新用户零历史那一档'],
+    ['画像是聚合出来的', '省市/主题/关键词逐个在体里']]
+    .forEach(([re, what]) => { if (!new RegExp(re).test(SM)) F20('smoke-planner.js 缺' + what + '：闸门写了不等于测过'); });
+
+  /* --- ⑥ 文档：键名与口径在案，欠账清零 --- */
+  {
+    const a = DOC.indexOf('## P2-8'), b = DOC.indexOf('## 豁免登记');
+    if (a < 0 || b < 0 || b <= a) F20('文档里找不到 §P2-8 的边界');
+    else {
+      const sec = DOC.slice(a, b);
+      if (!/tn_plan_pref/.test(sec)) F20('§P2-8 没写开关键名');
+      /* 原判据是 `/不送|不带|正文/`——三个常见词任一命中就绿，等于永远绿；换成两句原文逐字钉。 */
+      if (!/只送聚合关键词/.test(sec) || !/正文.{0,14}不出门/s.test(sec)) F20('§P2-8 没写「只送聚合口径、正文不出门」这条隐私口径');
+      if (/- \[ \]/.test(sec)) F20('§P2-8 还有未勾选项，批次 11 不能算收工');
+    }
+  }
+  console.log('画像闸门: 聚合口径（省市/主题/标签）逐条钉死、160 字上限、零正文；注入点唯一（定义+调用各 1）且带目的地护栏；开关 tn_plan_pref=prefs/默认开；设置页可见开关落键；冒烟四档在案');
+  fail += bad;
+}
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

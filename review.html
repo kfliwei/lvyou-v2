@@ -136,7 +136,7 @@
 }
 .stats span{font-size:10px;letter-spacing:.14em}
 /* 工坊行卡 */
-.ws-item{border-radius:18px;padding:14px 16px;transition:transform .22s var(--ease-out),box-shadow .22s,border-color .22s}
+.ws-item{border-radius:18px;padding:14px 16px;transition:transform var(--motion-mid) var(--ease-out),box-shadow var(--motion-mid),border-color var(--motion-mid)}
 .ws-item:hover{transform:translateY(-2px);border-color:rgba(200,109,75,.28);box-shadow:var(--shadow-medium)}
 .ws-item .ws-ic{
   width:40px;height:40px;border-radius:12px;
@@ -151,7 +151,7 @@
 /* 日历 */
 .cal-card{border-radius:20px;padding:16px}
 .cal-head b{font-weight:600;font-size:17px;letter-spacing:.03em}
-.cal-head .nav button{background:var(--color-bg);border-color:rgba(33,26,19,.08);transition:transform .14s,background .2s}
+.cal-head .nav button{background:var(--color-bg);border-color:rgba(33,26,19,.08);transition:transform var(--motion-tap),background var(--motion-fast)}
 .cal-head .nav button:hover{background:var(--color-primary-soft);color:var(--color-primary-dark)}
 .cal-cell.has{
   background:linear-gradient(135deg,rgba(219,125,83,.2),rgba(169,76,45,.1));
@@ -160,7 +160,7 @@
 .cal-cell.has .dot{background:var(--color-ember-deep)}
 .cal-cell.today{border-color:var(--color-gold-bright);box-shadow:inset 0 0 0 1px rgba(220,174,94,.5)}
 .cal-head .nav #yrPrev,.cal-head .nav #yrNext{height:34px;border-radius:999px;letter-spacing:.04em}
-.md-item{border-radius:18px;transition:box-shadow .22s,border-color .22s}
+.md-item{border-radius:18px;transition:box-shadow var(--motion-mid),border-color var(--motion-mid)}
 .md-item:hover{box-shadow:var(--shadow-medium);border-color:rgba(200,109,75,.22)}
 .md-item h3{font-weight:600}
 /* 成就 / 分布 */

@@ -16,7 +16,7 @@
   .story-bar .title{flex:1;font-family:var(--font-serif);font-weight:400;font-size:17px;color:var(--color-ink)}
   .story-bar select{flex:0 0 auto;max-width:140px;height:34px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:12px;padding:0 10px}
   #cards{padding:10px 16px 200px}
-  .story-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:18px 18px 16px;margin-bottom:14px;transition:box-shadow .3s}
+  .story-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:18px 18px 16px;margin-bottom:14px;transition:box-shadow var(--motion-normal)}
   .story-card.active{box-shadow:0 0 0 2px var(--color-primary)}
   .story-card .sc-date{font-size:0.7188rem;color:var(--color-muted);letter-spacing:.06em}
   .story-card .sc-place{font-family:var(--font-serif);font-size:22px;font-weight:400;color:var(--color-ink);margin-top:6px;line-height:1.3}
@@ -43,7 +43,7 @@
    ============================================================ */
 .story-bar{background:rgba(248,244,236,.82);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border-bottom-color:rgba(33,26,19,.06)}
 .story-bar select{border-radius:999px;padding:0 26px 0 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--color-faint) 50%),linear-gradient(135deg,var(--color-faint) 50%,transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 10px) 50%;background-size:4px 4px;background-repeat:no-repeat}
-.story-card{border-radius:20px;padding:20px 18px 18px;transition:box-shadow .3s,border-color .3s}
+.story-card{border-radius:20px;padding:20px 18px 18px;transition:box-shadow var(--motion-normal),border-color var(--motion-normal)}
 .story-card.active{box-shadow:var(--shadow-medium),0 0 0 1.5px var(--color-gold-bright);border-color:color-mix(in srgb,var(--color-gold-bright) 45%,var(--color-line))}
 .story-card .sc-date{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.16em}
 .story-card .sc-date::before{content:"";width:12px;height:2px;border-radius:2px;background:var(--grad-gold-line)}
@@ -180,7 +180,7 @@ function goStep(dir){
   if(j<0||j>=cards.length) return;
   lastActive=j; setActive(j);
   var el=document.querySelectorAll('.story-card')[j];
-  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+  if(el) el.scrollIntoView({behavior:UI.scrollBehavior(),block:'center'});
 }
 /* scroll-spy：以卡片相对视口中位判断激活 */
 var _spyTimer=null;

@@ -11,7 +11,7 @@
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .wrap{max-width:560px;margin:0 auto;padding:18px 16px 150px}
   /* 卡片 */
-  .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px;margin-bottom:14px;transition:box-shadow .25s var(--ease-out),transform .25s var(--ease-out),border-color .25s}
+  .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px;margin-bottom:14px;transition:box-shadow var(--motion-mid) var(--ease-out),transform var(--motion-mid) var(--ease-out),border-color var(--motion-mid)}
   .card:hover{box-shadow:var(--shadow-medium)}
   /* 鎏金 eyebrow 分区题 */
   .ph{display:flex;align-items:center;gap:8px;background:none;font-family:var(--font-sans);font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:4px 0 12px}
@@ -29,11 +29,11 @@
   .ai-switch.locked button.on{opacity:1}
   /* 输入条（16px 防 WebView 聚焦缩放） */
   .input-bar{display:flex;gap:8px;align-items:center}
-  .input-bar input{flex:1;min-width:0;height:48px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:14px;background:var(--color-bg);color:var(--color-ink);padding:0 14px;font-size:16px;transition:border-color .2s,box-shadow .2s}
+  .input-bar input{flex:1;min-width:0;height:48px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:14px;background:var(--color-bg);color:var(--color-ink);padding:0 14px;font-size:16px;transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
   .input-bar input::placeholder{color:var(--color-faint)}
   .input-bar input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
   /* 按钮：主操作独占品牌色 */
-  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform .14s var(--ease-pop),box-shadow .2s,filter .2s}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
   .btn:active{transform:scale(.96)}
   .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
   .btn.primary:active{filter:brightness(.96)}
@@ -41,7 +41,7 @@
   .btn:disabled{opacity:.5;cursor:not-allowed}
   /* 种子卡 */
   .seeds{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-  .seed{display:flex;align-items:center;gap:10px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:13px 15px;cursor:pointer;font-size:13px;transition:transform .2s var(--ease-out),box-shadow .2s,border-color .2s}
+  .seed{display:flex;align-items:center;gap:10px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:13px 15px;cursor:pointer;font-size:13px;transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast),border-color var(--motion-fast)}
   .seed:active{transform:scale(.98)}
   .seed:hover{transform:translateY(-1px);border-color:rgba(200,109,75,.3);box-shadow:var(--shadow-soft)}
   .seed .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(219,125,83,.16),rgba(169,76,45,.08));color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:15px}
@@ -50,7 +50,7 @@
   .seed .arr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:15px}
   /* chips */
   .chips{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:all .18s var(--ease-out)}
+  .chip{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:all var(--motion-fast) var(--ease-out)}
   .chip.on{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
   .chip:active{transform:scale(.95)}
   /* 意图卡字段 */
@@ -86,14 +86,14 @@
   .summbar .acts .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff}
   /* 排期结果 */
   #mapBox{height:46vh;min-height:220px;border-radius:20px;overflow:hidden;border:1px solid var(--color-line);border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft);margin-bottom:14px}
-  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow .25s}
+  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow var(--motion-mid)}
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
   .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
   /* 日卡天气位：字形+温度，窄屏靠 dmeta 先收缩。取数未回时挂 .wxh（display:none），不是空位 */
   .day-card .dhead .wx{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:11px;line-height:1;color:var(--color-muted);white-space:nowrap}
   .day-card .dhead .wxh{display:none}
-  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background .15s}
+  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background var(--motion-fast)}
   .day-card .stop:active{background:var(--color-bg-soft)}
   .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}
   .day-card .stop.done{opacity:.55}

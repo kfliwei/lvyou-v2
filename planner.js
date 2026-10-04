@@ -87,6 +87,57 @@
     return found;
   }
 
+  /* ---------- 用户画像（P2-8）：把本机历史口味喂给 AI 精选路线 ----------
+     只送聚合口径（省/市 Top3、心愿单主题、近期关键词），不送游记正文：
+     正文既是最私密的东西又是 prompt 里最长的一段，模型判断口味用关键词就够了。
+     开关 tn_plan_pref 默认开（写 '0' 才关），键名刻意避开 tn_weather_/tn_key_/tn_model_ 等既有前缀。 */
+  var PREF_KEY = 'tn_plan_pref';
+  function prefOn() { try { return localStorage.getItem(PREF_KEY) !== '0'; } catch (e) { return true; } }
+  /* 游记里存的是「山西省/广西壮族自治区」，索引里是裸名，两边对不上就当两个地方算了 */
+  function bareRegion(r) { return String(r || '').replace(/(特别行政区|自治州|自治区|省|市)$/, ''); }
+  function topKeys(counter, n) {
+    return Object.keys(counter).sort(function (a, b) {
+      return counter[b] - counter[a] || (a < b ? -1 : a > b ? 1 : 0);
+    }).slice(0, n);
+  }
+  function prefSummary() {
+    if (!prefOn()) return '';
+    buildDicts();
+    var prov = {}, city = {}, theme = {}, kw = {};
+    function bump(o, k) { if (k) o[k] = (o[k] || 0) + 1; }
+    /* 去过的地方 = 排过的行程 + 写过的游记 + 打过卡的心愿单 */
+    loadTrips().forEach(function (t) {
+      (t.days || []).forEach(function (d) {
+        (d.stops || []).forEach(function (s) {
+          bump(city, s.city);
+          if (s.city && cityToRegion[s.city]) bump(prov, cityToRegion[s.city]);
+        });
+      });
+    });
+    var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
+    notes.forEach(function (n) {
+      var p = bareRegion(n.province);
+      if (p && p !== '其他') bump(prov, p);
+      bump(city, n.city);
+    });
+    var wl = (window.Wish && Wish.list) ? Wish.list() : [];
+    wl.forEach(function (w) {
+      if (w.visited) { bump(prov, bareRegion(w.region)); bump(city, w.city); }
+      bump(theme, w.theme);
+    });
+    /* 近期 vibe：最近 3 篇的标签，没有标签的篇目跳过（不拿标题冒充口味） */
+    notes.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).slice(0, 3).forEach(function (n) {
+      (n.tags || []).forEach(function (t) { bump(kw, String(t).trim()); });
+    });
+    var pTop = topKeys(prov, 3), cTop = topKeys(city, 3), tTop = topKeys(theme, 3), kTop = topKeys(kw, 6);
+    var parts = [];
+    if (pTop.length) parts.push('去过 ' + pTop.join('/'));
+    if (cTop.length) parts.push('常去城市 ' + cTop.join('/'));
+    if (tTop.length) parts.push('心愿单主题 ' + tTop.join('/'));
+    if (kTop.length) parts.push('近期关键词 ' + kTop.join('、'));
+    return parts.join('；').slice(0, 160);
+  }
+
   /* ---------- 分省详情懒加载（取 best/elev/desc，供季节校验） ---------- */
   var PROV_FILE = { '北京': 'bj-data.js', '天津': 'tj-data.js', '河北': 'he-data.js', '山西': 'data.js', '内蒙古': 'nmg-data.js', '辽宁': 'ln-data.js', '吉林': 'jl-data.js', '黑龙江': 'hlj-data.js', '上海': 'sh-data.js', '江苏': 'js-data.js', '浙江': 'zj-data.js', '安徽': 'ah-data.js', '福建': 'fj-data.js', '江西': 'changzheng-data.js', '山东': 'sd-data.js', '河南': 'ha-data.js', '湖北': 'hb-data.js', '湖南': 'hn-data.js', '广东': 'gd-data.js', '广西': 'gxyn-data.js', '海南': 'hi-data.js', '重庆': 'cq-data.js', '四川': 'sc-data.js', '贵州': 'gz-data.js', '云南': 'gxyn-data.js', '西藏': 'xz-data.js', '陕西': 'sx-data.js', '甘肃': 'gs-data.js', '青海': 'qh-data.js', '宁夏': 'nx-data.js', '新疆': 'xj-data.js', '香港': 'hk-data.js', '澳门': 'mo-data.js', '台湾': 'tw-data.js' };
   var detailCache = {}, provLoading = {};
@@ -489,8 +540,10 @@
   }
   function aiPlanRoutes(dest, days, trans, pref, cb) {
     var grounding = arGrounding(arData_regions(dest), pref);
+    var profile = prefSummary();
     var prompt = '你是资深旅行规划师，熟悉全网热门旅行攻略与游记。请参考这些热门行程，为「' + dest + '」设计 5 条互相不重复的 ' + days + ' 天' + trans + '线路，景点偏好：' + pref + '。'
       + (grounding ? '景点请优先从以下真实景点中选择：' + grounding + '。' : '')
+      + (profile ? '用户画像：' + profile + '。5 条线路里至少一条贴合这些口味，但不要因为画像而推荐「' + dest + '」之外的景点。' : '')
       + '要求：1) 每天 2~4 个顺路景点，按地理顺序排，避免当天来回折返；2) 景点必须真实存在于「' + dest + '」，禁止编造；3) 5 条线路主题各异（如经典环线、小众深度、亲子休闲等）。'
       + '输出 JSON：{"routes":[{"name":"线路主题名(10字内)","why":"一句话亮点(20字内)","days":[["景点A","景点B"],["景点C"]]}]}，days 数组长度必须等于 ' + days + '。只输出 JSON。';
     window.Ai.chat([{ role: 'user', content: prompt }]).then(function (txt) {
@@ -608,8 +661,11 @@
   var curStage = 'stageInput';
   function showStage(name) {
     curStage = name;
-    ['stageInput', 'stagePick', 'stageResult'].forEach(function (n) { $id(n).style.display = n === name ? 'block' : 'none'; });
-    window.scrollTo(0, 0);
+    /* P2-7 转场：阶段切换走 View Transition（老内核、减动效、file:// 下 UI.vt 直接执行，与改前同行为） */
+    UI.vt(function () {
+      ['stageInput', 'stagePick', 'stageResult'].forEach(function (n) { $id(n).style.display = n === name ? 'block' : 'none'; });
+      window.scrollTo(0, 0);
+    });
     persistState();
   }
   /* 顶栏返回：结果页/选点页回到规划首页，首页返回浏览器历史 */
@@ -1425,7 +1481,7 @@
     toast('已保存行程「' + t.name + '」');
     renderTrips();
     /* 滚动到已保存行程区，让用户立即看到 */
-    try { $id('tripsCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    try { $id('tripsCard').scrollIntoView({ behavior: UI.scrollBehavior(), block: 'nearest' }); } catch (e) {}
   };
   window.plannerAddAllWish = function () {
     var pts = flatStops();
@@ -1863,7 +1919,7 @@
       function commitRoutes(f, routes) {
         arData = { dest: f.dest, days: f.days, trans: f.trans, pref: f.pref, regions: matchRegions(f.dest), routes: routes };
         renderAiRoutes();
-        $id('aiRouteOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        $id('aiRouteOut').scrollIntoView({ behavior: UI.scrollBehavior(), block: 'start' });
       }
       function busyBtn(on) { b.disabled = on; b.innerHTML = on ? TI('globe') + 'AI 上网检索中…' : TI('sparkles') + '上网查询 · 生成 5 条备选路线'; }
       /* P1-8 状态矩阵（批次6）：AI 生成失败=可重试错误卡，不再只 toast 一闪而过 */
