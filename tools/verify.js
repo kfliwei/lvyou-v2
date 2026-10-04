@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const FILES = ['ui.js','index.html','search.html','wishlist.html','travel-map.html','md-manager.html','settings.html','me.html','explore-map.html','topic.html','review.html','story.html','test-data.html','node-manager.html','topic-common.js','design.css','nation-index.js','travel-notes.js','results.js','poster.js','node-lod.js','wishlist.js','geo.js','quotes.js','vault.js','theme.js','backup.js','sync-webdav.js'].filter(f => fs.existsSync(f));
+const FILES = ['ui.js','index.html','search.html','wishlist.html','travel-map.html','md-manager.html','settings.html','me.html','explore-map.html','topic.html','review.html','story.html','test-data.html','node-manager.html','topic-common.js','design.css','nation-index.js','travel-notes.js','results.js','poster.js','node-lod.js','wishlist.js','geo.js','quotes.js','vault.js','theme.js','backup.js','sync-webdav.js','share.js','share.html','planner.js','planner.html'].filter(f => fs.existsSync(f));
 
 let fail = 0;
 
@@ -720,6 +720,200 @@ const EMOJI_MARK = 'emoji-ok:';
   if (!/tn_webdav_autosync/.test(WD) || !/=== '1'/.test(WD)) F16('sync-webdav.js 自动同步开关不是「显式打开才生效」');
   if (!/function redact/.test(WD)) F16('sync-webdav.js 缺口令抹除函数');
   if (/console\.(log|warn|error|info)\(/.test(WD)) F16('sync-webdav.js 里有 console 输出——别把带口令的 URL 打进日志');
+  fail += bad;
+}
+
+/* ============================================================
+   17. 只读行程分享闸门（批次 9 · P1-5）
+   分享是这条产品线唯一「把内容交出去」的通道，所以闸门不查字符串出没出现，
+   而是在沙箱里真跑 share.js：喂一个带照片/备注/密钥的脏行程，看出去的载荷里还有没有。
+   ① 行为：白名单构造、编解码往返、超长与无基址的降级、基址协议收紧。
+   ② 接线：planner 入口 + 确认卡 + 系统分享失败落回复制；settings 基址；sw SHELL。
+   ③ 对账：分享页与 planner 的日卡版式逐条声明必须逐字相等——两份样式，漂移就是丑的开始。
+   ============================================================ */
+{
+  let bad = 0;
+  const F17 = m => { console.log('分享闸门 FAIL: ' + m); bad++; };
+  const read17 = f => { if (!fs.existsSync(f)) { F17('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const SH = read17('share.js'), SA = read17('share.html'), PLJ = read17('planner.js'), PLH = read17('planner.html');
+  const SET17 = read17('settings.html'), SW17 = read17('sw.js'), PK = read17('vendor/pako.min.js');
+  read17('vendor/pako-LICENSE.txt');
+  if (!PK) F17('vendor/pako.min.js 缺失或为空（share.js 解压全靠它）');
+
+  /* --- 沙箱：share.js 只碰 localStorage / location / window.pako / btoa / TextDecoder --- */
+  const sstore = {}, swin = {};
+  const sctx = vm.createContext({
+    window: swin, console, JSON, Math, Number, String, Array, Object, isFinite, parseInt, RegExp, Error, TextDecoder, TextEncoder,
+    btoa: s => Buffer.from(s, 'binary').toString('base64'),
+    /* atob 必须按浏览器口径严格：Node 的 Buffer(s,'base64') 连 URL-safe 的 -_ 都照单全收，
+       拿它当桩会把「解码端忘了还原字符表」这类真 bug 洗成绿灯。 */
+    atob: s => {
+      const body = String(s).replace(/\s+/g, '').replace(/=+$/, '');
+      if (/[^A-Za-z0-9+/]/.test(body) || body.length % 4 === 1) throw new Error('InvalidCharacterError');
+      return Buffer.from(body, 'base64').toString('binary');
+    },
+    encodeURIComponent, decodeURIComponent,
+    location: { protocol: 'file:', pathname: '/storage/0/planner.html', origin: 'null' },
+    localStorage: {
+      getItem: k => (k in sstore ? sstore[k] : null),
+      setItem: (k, v) => { sstore[k] = String(v); },
+      removeItem: k => { delete sstore[k]; }
+    }
+  });
+  /* pako 在宿主侧 require（浏览器 UMD 也认 module.exports）：在 vm 沙箱里直接执行它会因为
+     缺 TextEncoder 而炸，而真浏览器里它有全套内建——闸门不该被沙箱的内建差异绊倒，
+     但要的是「这个 vendor 文件载得动、有 deflate/inflate」。 */
+  let PAKO = null;
+  try { PAKO = require(path.join(__dirname, '..', 'vendor', 'pako.min.js')); }
+  catch (e) { F17('vendor/pako.min.js 载入失败：' + e.message); }
+  if (PAKO && (typeof PAKO.deflate !== 'function' || typeof PAKO.inflate !== 'function'))
+    F17('vendor/pako.min.js 载入了但没有 deflate/inflate 导出');
+  swin.pako = PAKO;
+  try { vm.runInContext(SH, sctx, { filename: 'share.js' }); } catch (e) { F17('share.js 在沙箱里跑不起来：' + e.message); }
+  const S = swin.Share;
+  if (!S) { F17('share.js 没导出 window.Share'); }
+  else {
+    /* --- ① 行为 --- */
+    ['payloadOf', 'strayKeys', 'encodePayload', 'decodePayload', 'summary', 'textOf', 'build', 'normBase', 'savedBase', 'setBase', 'linkBase', 'hasPako']
+      .forEach(fn => { if (typeof S[fn] !== 'function') F17('缺导出 ' + fn); });
+    if (S.URL_LIMIT > 7000) F17('URL_LIMIT=' + S.URL_LIMIT + ' 超过聊天软件 7000 字符的实测上限');
+    if (S.BASE_KEY !== 'tn_share_base') F17('BASE_KEY 漂移：' + S.BASE_KEY);
+
+    const dirty = {
+      name: '晋陕豫 5 日自驾', startDate: '2026-10-20',
+      start: { name: '北京', lat: 39.9, lng: 116.4 }, end: { name: '北京', lat: 39.9, lng: 116.4, isLoop: true },
+      dist: { 'a|b': 12345 }, narrative: { story: '这段是自己写的游记正文，绝不能出现在链接里' },
+      userNote: '私密备注', aiKey: 'sk-SECRET',
+      days: [0, 1, 2, 3, 4].map(d => ({
+        driveKm: 61.4 + d * 3, totalH: 7.25 + d,
+        stops: [{ name: '五台山', lat: 39.0812, lng: 113.5518, photo: 'data:image/png;base64,SECRETPIX', note: '只有本机可见', audio: 'blob:x' },
+          { name: '平遥古城', lat: 37.2050, lng: 112.1830, ticket: { price: 125 } }]
+      }))
+    };
+    const p = S.payloadOf(dirty);
+    const pj = JSON.stringify(p);
+    ['photo', 'note', 'audio', 'story', 'SECRET', 'aiKey', 'ticket', 'narrative', 'userNote', 'tn_']
+      .forEach(w => { if (pj.indexOf(w) >= 0) F17('载荷里混进了「' + w + '」——白名单不是删字段，是逐字段构造，改坏了就是把用户内容发出去了'); });
+    const stray = S.strayKeys(p);
+    if (stray.length) F17('载荷含白名单外字段：' + [...new Set(stray)].join(','));
+    const su = S.summary(p);
+    if (su.days !== 5 || su.stops !== 10) F17('汇总与源行程不符：' + JSON.stringify(su));
+    if (su.km !== Math.round(p.days.reduce((n, d) => n + d.km, 0))) F17('总里程与逐日之和不一致');
+    /* 往返必须逐字相等：解码端和编码端不是同一套字节口径，链接发出去就是废的 */
+    const back = S.decodePayload(S.encodePayload(p));
+    if (!back) F17('encodePayload → decodePayload 往返失败（解不开自己编的包）');
+    else if (JSON.stringify(back) !== JSON.stringify(p)) F17('往返结果与原文不等价：' + JSON.stringify(back).slice(0, 60));
+    if (S.decodePayload('v2.abc') !== null) F17('版本前缀不符时应判坏包');
+    if (S.decodePayload('v1.@@@@') !== null) F17('坏 base64url 应解码为 null，不能抛给页面');
+    /* 基址收紧：只认 http(s)。填个 javascript: 或 file: 进去，生成的链接要么钓鱼要么对方打不开。
+       光测 javascript:alert(1) 不够 —— 它没有 //，任何「scheme://」式的正则都能挡掉；
+       javascript://host/ 才会漏过宽松协议白名单，所以两个都要断。 */
+    [['javascript:alert(1)', ''], ['javascript://evil.com/%0aalert(1)', ''],
+      ['ftp://a/b', ''], ['file:///sdcard/app', ''],
+      ['HTTPS://A.COM/app/', 'HTTPS://A.COM/app'], ['https://a.com/app/share.html', 'https://a.com/app'],
+      ['https://a.com/app///', 'https://a.com/app']].forEach(([i, o]) => {
+        if (S.normBase(i) !== o) F17('normBase(' + i + ') = ' + JSON.stringify(S.normBase(i)) + '，期望 ' + JSON.stringify(o));
+      });
+    /* 无基址（本机 file://）与超长的降级：宁可给文本，绝不发一条会被截断的链接 */
+    const nb = S.build(dirty);
+    if (nb.ok || nb.degrade !== 'no-base' || !nb.text) F17('file:// 且没填基址时应降级为文本，实际 ' + JSON.stringify(nb).slice(0, 60));
+    if (!/由 行迹 TRACE 生成/.test(nb.text)) F17('文本降级缺署名尾行');
+    if (!/里程为真实道路数据/.test(nb.text)) F17('真实里程的尺子没在文本版里说明');
+    const est = JSON.parse(JSON.stringify(dirty)); est.dist = {};
+    if (!/折算/.test(S.textOf(S.payloadOf(est)))) F17('估算里程的尺子没在文本版里说明——不说清就是拿估算冒充实测');
+    sstore[S.BASE_KEY] = 'https://example.org/trace';
+    const big = JSON.parse(JSON.stringify(dirty));
+    big.days = [];
+    /* 名字够杂才压不动：deflate 能把重复中文行程压到几百字符，用固定词造的"长行程"照样秒过 7000 */
+    for (let i = 0; i < 30; i++) {
+      const st = [];
+      for (let j = 0; j < 15; j++) {
+        const seed = (i * 131 + j * 7919) % 1000003;
+        st.push({ name: '景点' + seed.toString(36) + '·' + ((seed * 31) % 9973).toString(36) + '观景台' + j,
+          lat: 20 + (seed % 7000) / 1000, lng: 100 + (seed % 9000) / 1000 });
+      }
+      big.days.push({ driveKm: 20 + (i * 7) % 90, totalH: 5 + (i % 8), stops: st });
+    }
+    const bb = S.build(big);
+    if (bb.ok || bb.degrade !== 'too-long' || bb.url) F17('超长行程应判 too-long 且不产出链接，实际 ' + JSON.stringify(bb).slice(0, 60));
+    if (bb.chars <= S.URL_LIMIT) F17('too-long 时应回报真实长度 ' + bb.chars);
+    if (S.build({ days: [] }).reason !== '还没有排出行程') F17('空行程应给 reason，不该弹确认卡');
+    const link = S.build(dirty);
+    if (!link.ok || link.url.indexOf('https://example.org/trace/share.html#v1.') !== 0) F17('填了基址就该出可点开的链接，实际 ' + link.url);
+    delete sstore[S.BASE_KEY];
+
+    /* 基址键必须已在备份策略里登记：改了 BASE_KEY 忘了登记，换机后就丢一个「为什么链接打不开」的谜 */
+    const b17 = {};
+    const bctx17 = vm.createContext({
+      window: {}, console,
+      localStorage: { getItem: k => (k in b17 ? b17[k] : null), setItem: (k, v) => { b17[k] = String(v); }, removeItem: k => { delete b17[k]; } }
+    });
+    try { vm.runInContext(read17('backup.js'), bctx17, { filename: 'backup.js' }); } catch (e) { F17('backup.js 沙箱失败：' + e.message); }
+    const BK17 = bctx17.window.Backup;
+    if (!BK17) F17('backup.js 没导出 Backup，基址键无从对账');
+    else {
+      const cls = BK17.classOf(S.BASE_KEY), pol = BK17.policyOf(S.BASE_KEY);
+      if (cls !== 'prefs') F17('存储键 ' + S.BASE_KEY + ' 在备份策略里是「' + cls + '」，应为 prefs（改了 BASE_KEY 忘了登记，换机就丢分享设置）');
+      else if (!pol || pol.m !== 'whole') F17('键 ' + S.BASE_KEY + ' 合并语义不是 whole');
+    }
+  }
+
+  /* --- ② 接线 --- */
+  if (!/<script src="vendor\/pako\.min\.js"><\/script>/.test(SA)) F17('share.html 没引 vendor/pako.min.js');
+  if (!/<script src="share\.js"><\/script>/.test(SA)) F17('share.html 没引 share.js');
+  if (!/<script src="theme\.js"><\/script>/.test(SA)) F17('share.html 没在最前引 theme.js（暗色会先白闪一下）');
+  if (!/Share\.decodePayload\(/.test(SA)) F17('share.html 没调 decodePayload');
+  if (!/location\.hash/.test(SA)) F17('share.html 没从 location.hash 取载荷');
+  ['这条链接没有带上行程', '压缩库没加载，解不开链接', '链接内容读不出来'].forEach(t => {
+    if (!SA.includes(t)) F17('share.html 缺一条失败态文案「' + t + '」');
+  });
+  /* 交付壳没注册 traceapp:// intent-filter，页面上放「用行迹打开」就是一个点不动的死控件 */
+  if (/traceapp:|用行迹打开/.test(SA)) F17('share.html 出现了唤起按钮——壳侧 AndroidManifest 没有对应 intent-filter，那是个死控件');
+  if (!/class="map-pin"/.test(SA)) F17('share.html 地图标记没走 map-pin 品牌组件');
+  if (!/dashArray/.test(SA)) F17('share.html 没画离线可用的示意连线');
+  if (!/window\.shareCopyText\s*=/.test(SA)) F17('share.html 的复制按钮没有实现（只有按钮没函数＝死控件）');
+  if (!/window\.plannerShare\s*=\s*function/.test(PLJ)) F17('planner.js 没有 plannerShare 实现');
+  if (!/onclick="window\.plannerShare\(\)"/.test(PLJ)) F17('planner 结果区没挂「分享行程」按钮');
+  if (!/UI\.confirm\(\{ title: '分享这份行程'/.test(PLJ)) F17('分享没走确认卡——用户必须先看一眼要交出去什么');
+  if (!/不会分享：游记正文、照片、录音、任何 API Key/.test(PLJ)) F17('确认卡没向用户写明不会分享什么');
+  if (!/typeof navigator\.share === 'function'/.test(PLJ)) F17('plannerShare 没优先走系统分享');
+  if ((PLJ.match(/copyText\(r\.url\)/g) || []).length < 2) F17('plannerShare 缺系统分享失败后的复制兜底（WebView 里 navigator.share 常是空壳）');
+  if (!/<script src="share\.js" defer><\/script>/.test(PLH)) F17('planner.html 没加载 share.js');
+  if (!/<script src="vendor\/pako\.min\.js" defer><\/script>/.test(PLH)) F17('planner.html 没加载 pako');
+  if (!/id="shareBaseInput"/.test(SET17) || !/Share\.setBase\(/.test(SET17)) F17('settings 没有分享网址输入或没落盘');
+  if (!/<script src="share\.js"><\/script>/.test(SET17)) F17('settings.html 没引 share.js');
+  ['./share.html', './share.js', './vendor/pako.min.js'].forEach(f => { if (!SW17.includes("'" + f + "'")) F17('sw.js SHELL 缺 ' + f); });
+  read17('tools/smoke-share.js');
+
+  /* --- ③ 版式对账：同一套日卡，两份 CSS，逐字不许漂 --- */
+  const PAR = ['#mapBox', '.day-card', '.day-card .dhead', '.day-card .dhead .dmeta', '.day-card .stop', '.day-card .stop .n',
+    '.day-card .stop .meta', '.stop .lbl', '.stop-name', '.stop-name .lbl', '.stop-meta',
+    '.day-card.transit', '.day-card.transit .dhead', '.transit-route', '.transit-route span',
+    '.theme-dark .day-card', '.theme-dark .day-card .stop .n', '.btn'];
+  const styleOf = f => { const m = f.match(/<style>([\s\S]*?)<\/style>/); return m ? m[1] : ''; };
+  function ruleMap(css) {
+    const out = {};
+    css.split(/\r?\n/).forEach(l => {
+      const t = l.trim(), bi = t.indexOf('{');
+      if (bi < 0 || t[bi + 1] === '-' || !t.endsWith('}')) return;   /* 跳过多行规则与注释行 */
+      const sel = t.slice(0, bi).trim();
+      (out[sel] = out[sel] || []).push(t.slice(bi));
+    });
+    return out;
+  }
+  const PR = ruleMap(styleOf(PLH)), SR = ruleMap(styleOf(SA));
+  let par = 0;
+  PAR.forEach(sel => {
+    const a = PR[sel] || [], b = SR[sel] || [];
+    if (a.length !== 1) { F17('planner.html 里选择器 ' + sel + ' 定义了 ' + a.length + ' 次，对账没有唯一锚点'); return; }
+    if (b.length !== 1) { F17('share.html 缺选择器 ' + sel + '（日卡版式应与 planner 同一份）'); return; }
+    if (a[0] !== b[0]) F17('版式漂移 ' + sel + '：planner ' + a[0].slice(0, 40) + '… / share ' + b[0].slice(0, 40) + '…');
+    else par++;
+  });
+  if (!/seal = 'day-seal ds-' \+ \(di % 6 \+ 1\)/.test(PLJ)) F17('planner 日卡章算法漂移，分享页的 ds-* 对账失去基准');
+  if (SA.indexOf('<span class="\' + sealClass(di) + \'">D') < 0 || !/return 'day-seal ds-' \+ \(i % 6 \+ 1\);/.test(SA))
+    F17('share.html 的日卡章没按 planner 的 ds-(i%6+1) 走');
+  console.log('分享闸门: 行为断言（脏行程出包 ' + (S ? 'OK' : 'SKIP') + '），版式对账 ' + par + '/' + PAR.length + '，降级两态（无基址 / 超长）已验');
   fail += bad;
 }
 

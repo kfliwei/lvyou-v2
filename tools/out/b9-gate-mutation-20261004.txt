@@ -1,0 +1,34 @@
+基线：verify.js exit=0（绿）
+✓ M1 载荷改成透传整个 stop（隐私白名单失效）
+    exit=1 · 红在：载荷里混进了「photo」
+✓ M2 base64url 解码漏还原一个字符（链接解不开自己编的包）
+    exit=1 · 红在：往返失败
+✓ M3 URL 上限抬到 20000（发出会被聊天软件截断的链接）
+    exit=1 · 红在：超过聊天软件 7000 字符的实测上限
+✓ M4 基址协议放宽到任意 scheme（javascript:// 也能当基址）
+    exit=1 · 红在：normBase(javascript://evil.com/%0aalert(1))
+✓ M5 超长不再拒绝（直接产出 16k 字符的链接）
+    exit=1 · 红在：超长行程应判 too-long
+✓ M6 分享页不引压缩库
+    exit=1 · 红在：share.html 没引 vendor/pako.min.js
+✓ M7 分享页加一个「用行迹打开」（壳侧没有 intent-filter，是死控件）
+    exit=1 · 红在：出现了唤起按钮
+✓ M8 空载荷态文案改成「出错了」（没说清怎么办）
+    exit=1 · 红在：缺一条失败态文案
+✓ M9 结果区没挂「分享行程」按钮
+    exit=1 · 红在：planner 结果区没挂「分享行程」按钮
+✓ M10 确认卡不再声明不会分享什么
+    exit=1 · 红在：确认卡没向用户写明不会分享什么
+✓ M11 系统分享优先被砍掉（只留复制链接）
+    exit=1 · 红在：plannerShare 没优先走系统分享
+✓ M12 设置页分享网址不落盘
+    exit=1 · 红在：settings 没有分享网址输入或没落盘
+✓ M13 sw SHELL 漏掉压缩库（离线打开分享页解不开）
+    exit=1 · 红在：sw.js SHELL 缺 ./vendor/pako.min.js
+✓ M14 分享页日卡内边距自己改了（与 planner 版式漂移）
+    exit=1 · 红在：版式漂移 .day-card
+✓ M15 基址键改名没在备份策略登记（换机就丢分享设置）
+    exit=1 · 红在：在备份策略里是「unregistered」
+还原对账：5 个文件，未还原 0 个
+还原后 verify.js exit=0
+=== §17 变异自测: 15 条按要求变红 / 0 条异常 / 共 15 ===

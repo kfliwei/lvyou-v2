@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v55';
+var CACHE = 'trace-v56';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -18,6 +18,7 @@ var SHELL = [
   './review.html',
   './search.html',
   './settings.html',
+  './share.html',
   './story.html',
   './topic.html',
   './travel-map.html',
@@ -26,8 +27,6 @@ var SHELL = [
   './travel-notes.js',
   './results.js',
   './vault.js',
-  './backup.js',
-  './sync-webdav.js',
   './quotes.js',
   './topic-meta.js',
   './topic-common.js',
@@ -44,6 +43,9 @@ var SHELL = [
   './icons.js',
   './album.js',
   './planner.js',
+  './backup.js',
+  './sync-webdav.js',
+  './share.js',
   /* ---- 各省数据/美食（预缓存，离线开箱可用） ---- */
   './ah-data.js',
   './bj-data.js',
@@ -103,6 +105,7 @@ var SHELL = [
   './map.css',
   './vendor/leaflet/leaflet.css',
   './vendor/leaflet/leaflet.js',
+  './vendor/pako.min.js',
   './images/icon.svg',
   './manifest.webmanifest',
   /* ---- 主题插图 ---- */

@@ -1,0 +1,34 @@
+===== visual-check 全量 =====
+PASS album-edit.1440x900.png  diff 0.00%
+PASS story.320x640.png  diff 0.00%
+PASS story.390x844.png  diff 0.00%
+PASS story.768x1024.png  diff 0.00%
+PASS story.1440x900.png  diff 0.00%
+PASS planner.320x640.png  diff 0.00%
+PASS planner.390x844.png  diff 0.00%
+PASS planner.768x1024.png  diff 0.00%
+PASS planner.1440x900.png  diff 0.00%
+PASS md-manager.320x640.png  diff 0.00%
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+PASS explore-map.320x640.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+PASS travel-map.320x640.png  diff 0.00%
+PASS travel-map.390x844.png  diff 0.00%
+PASS travel-map.768x1024.png  diff 0.00%
+PASS travel-map.1440x900.png  diff 0.00%
+PASS review.seed.390x844.png  diff 0.00%
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1624ms(<2500) 元素=A | CLS 0.0000(<0.05)
+PASS 性能预算 topic.html — LCP 1336ms(<2500) 元素=? | CLS 0.0000(<0.05)
+---
+耗时 339.6s（64 张，报告 tools/out/visual-report.json）
+比对 64 张: 63 PASS, 1 FAIL
+vc exit=1
+===== audit-icons =====
+icons exit=1

@@ -10,7 +10,7 @@ const sw = fs.readFileSync(swPath, 'utf8');
 /* 扫描页面（开发/演示页不进离线壳） */
 const pages = fs.readdirSync(dir).filter(f => /\.html$/.test(f) && !/^(test-|icons-demo)/.test(f)).sort();
 /* 核心 JS（根目录） */
-const CORE_JS = ['theme.js', 'travel-notes.js', 'results.js', 'vault.js', 'quotes.js', 'topic-meta.js', 'topic-common.js', 'wishlist.js', 'geo.js', 'poster.js', 'tiles.js', 'topic-counts.js', 'food.js', 'food-gxyn.js', 'ui.js', 'node-lod.js', 'nation-index.js', 'nav.js', 'icons.js', 'album.js', 'planner.js'].filter(f => fs.existsSync(path.join(dir, f)));
+const CORE_JS = ['theme.js', 'travel-notes.js', 'results.js', 'vault.js', 'quotes.js', 'topic-meta.js', 'topic-common.js', 'wishlist.js', 'geo.js', 'poster.js', 'tiles.js', 'topic-counts.js', 'food.js', 'food-gxyn.js', 'ui.js', 'node-lod.js', 'nation-index.js', 'nav.js', 'icons.js', 'album.js', 'planner.js', 'backup.js', 'sync-webdav.js', 'share.js'].filter(f => fs.existsSync(path.join(dir, f)));
 /* 数据 JS 也在 SHELL 里预缓存（离线全站可查是产品行为，不是疏漏）。
    生成器曾经只列核心 JS，跑一次就把 34 个省的 data/food 从 SHELL 里抹掉——所以这里显式扫回来。 */
 const DATA_JS = fs.readdirSync(dir).filter(f => /\.js$/.test(f) && (
@@ -25,7 +25,7 @@ const groups = [
   { note: '/* ---- 各省数据/美食（预缓存，离线开箱可用） ---- */',
     items: DATA_JS.map(f => "'./" + f + "'") },
   { items: ["'./design.css'", "'./map.css'",
-    "'./vendor/leaflet/leaflet.css'", "'./vendor/leaflet/leaflet.js'",
+    "'./vendor/leaflet/leaflet.css'", "'./vendor/leaflet/leaflet.js'", "'./vendor/pako.min.js'",
     "'./images/icon.svg'", "'./manifest.webmanifest'"] },
   { note: '/* ---- 主题插图 ---- */', items: art }
 ];

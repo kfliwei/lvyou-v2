@@ -80,6 +80,68 @@ async function wizardDone(p) {
   ok('选点页预计天数=实际排期天数', estDays === dayN, '预计 ' + estDays + ' / 实际 ' + dayN);
   ok('落地动作条', !!(await page.$('#actRow .btn')));
 
+  /* ---- 批次 9：分享入口在真浏览器里点一遍（按钮 → 确认卡 → 无基址讲清 / 有基址出链接 → 复制到的确实是链接）
+     §17 闸门的接线断言只证明代码在，跑不到"点下去真出东西"；载荷与渲染由 smoke-share 验，
+     这一段专门验 planner 这一侧的用户路径。剪贴板与 navigator.share 都在页面里换成可控桩：
+     交付壳（WebView）本来就没有 navigator.share，走的就是"复制链接"那条路。 */
+  await page.evaluate(() => {
+    window.__copied = '';
+    try {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: t => { window.__copied = String(t); return Promise.resolve(); } }, configurable: true
+      });
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true });
+    } catch (e) {}
+  });
+  const shareBtn = await page.$('#actRow button[onclick="window.plannerShare()"]');
+  ok('结果区挂了「分享行程」按钮', !!shareBtn);
+  const shareTxt = shareBtn ? await shareBtn.evaluate(el => el.textContent.trim()) : '';
+  const shareIco = shareBtn ? await shareBtn.evaluate(el => !!el.querySelector('svg')) : false;
+  ok('按钮文案「分享行程」且带图标', shareTxt === '分享行程' && shareIco, JSON.stringify(shareTxt));
+  const nDays = await page.$$eval('#resultBody .day-card', e => e.length);
+  const nStops = await page.$$eval('#resultBody .stop', e => e.length);
+  const errBefore = errors.length;
+
+  /* 没填基址：宁可只给文字，也不发一条对方打不开的链接 */
+  await page.evaluate(() => localStorage.removeItem('tn_share_base'));
+  await page.evaluate(() => window.plannerShare());
+  await sleep(400);
+  const card1 = await page.$eval('.ui-modal-text', el => el.innerText).catch(() => '');
+  ok('无基址时确认卡讲明没有可点开的网址', /打不开|文字版/.test(card1), card1.slice(-46));
+  const mm = /(\d+) 天 \/ (\d+) 站/.exec(card1);
+  ok('确认卡的天数/站数与屏上行程一致', !!mm && +mm[1] === nDays && +mm[2] === nStops, mm ? mm[0] : '没抓到数字');
+  ok('确认卡写明不会分享什么', /不会分享：游记正文、照片、录音、任何 API Key/.test(card1));
+  await page.click('.ui-modal-mask .ui-btn-ghost');
+  await sleep(250);
+  ok('取消后卡关掉且没复制任何东西',
+    (await page.$('.ui-modal-mask')) === null && (await page.evaluate(() => window.__copied)) === '');
+
+  /* 填了基址：出链接，且复制到的确实是 share.html#v1.*，解回来干净 */
+  await page.evaluate(() => localStorage.setItem('tn_share_base', 'http://example.org/trace'));
+  await page.evaluate(() => window.plannerShare());
+  await sleep(400);
+  const card2 = await page.$eval('.ui-modal-text', el => el.innerText).catch(() => '');
+  const okLabel = await page.$eval('.ui-modal-mask .ui-btn-primary', el => el.textContent.trim()).catch(() => '');
+  ok('填基址后确认卡给出 share.html 落点', /http:\/\/example\.org\/trace\/share\.html/.test(card2), card2.slice(-46));
+  ok('确定键文案随分支变（生成链接）', okLabel === '生成链接', okLabel);
+  await page.click('.ui-modal-mask .ui-btn-primary');
+  await sleep(700);
+  const copied = await page.evaluate(() => window.__copied);
+  ok('真复制出一条 share.html#v1 链接', /^http:\/\/example\.org\/trace\/share\.html#v1\./.test(copied), copied.slice(0, 50));
+  ok('链接长度在聊天软件上限内', copied.length > 40 && copied.length <= 7000, copied.length + ' 字符');
+  const toast2 = await page.$eval('.ui-toast', el => el.innerText).catch(() => '');
+  ok('复制后 toast 说清去哪粘贴', /链接已复制/.test(toast2), toast2);
+  const back = await page.evaluate(u => {
+    const p = window.Share.decodePayload(u.split('#')[1]);
+    return p ? JSON.stringify(p) : '__解不开__';
+  }, copied);
+  ok('链接解回来不含游记/照片/密钥字段',
+    back !== '__解不开__' && !/photo|"note"|story|aiKey|游记|备注|tn_/.test(back), back.slice(0, 56));
+  ok('分享全程没改坏行程也没报错',
+    (await page.$$eval('#resultBody .day-card', e => e.length)) === nDays
+    && (await page.$$eval('#resultBody .stop', e => e.length)) === nStops && errors.length === errBefore,
+    errors.slice(errBefore).join(' | '));
+
   // 移除一站
   const beforeStop = await page.$$eval('#resultBody .stop', els => els.length);
   await page.evaluate(() => { const b = document.querySelector('#resultBody .mv[aria-label="移除"]'); if (b) b.click(); });

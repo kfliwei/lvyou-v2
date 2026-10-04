@@ -919,6 +919,7 @@
       '<button class="btn" onclick="window.plannerSaveTrip()">'+TI('save')+'保存行程</button>' +
       '<button class="btn" onclick="window.plannerAddAllWish()">'+TI('star')+'加入想去清单</button>' +
       '<button class="btn" onclick="window.plannerCopyPlan()">'+TI('copy')+'复制计划</button>' +
+      '<button class="btn" onclick="window.plannerShare()">'+TI('share')+'分享行程</button>' +
       '<button class="btn" onclick="window.plannerExportGPX()">导出 GPX</button>' +
       '<button class="btn" onclick="window.plannerBuildBook()">'+TI('book')+'导出路书</button>' +
       '<button class="btn" onclick="window.plannerBuildAlbum()">'+TI('gallery')+'生成纪念册</button>' +
@@ -1243,6 +1244,41 @@
     t.days.forEach(function (d, i) { txt += 'Day' + (i + 1) + '：' + dayText(d) + '\n'; });
     copyText(txt);
   };
+
+  /* ---------- 只读分享（批次 9 · P1-5）----------
+     链接能把行程带给没装应用的人，前提是这个页面有个别人打得开的地址：
+     应用部署在 http(s) 上时自动就是当前地址；本机 file:// 时要在设置里填「分享网址」。
+     两者都没有就不硬造打不开的链接，直接给文字版——这是实话，不是偷懒。 */
+  window.plannerShare = function () {
+    var t = state.trip; if (!t) { toast('先排好行程再分享'); return; }
+    if (!window.Share) { toast('分享模块没加载'); return; }
+    var r = Share.build(t);
+    if (r.reason) { toast(r.reason); return; }
+    var s = r.summary || Share.summary(r.payload);
+    var fields = '会分享出去的内容：\n· 标题、出发日期、起讫城市（环线会标注）\n· ' + s.days + ' 天 / ' + s.stops + ' 站 / 约 ' + s.km +
+      ' km 的日程与站点坐标\n· 里程是真实道路还是折算，一并写清\n\n不会分享：游记正文、照片、录音、任何 API Key。';
+    var how = r.ok ? '地址：' + Share.linkBase() + '/share.html（内容写在网址里，对方点开即见，不用装应用）'
+      : (r.degrade === 'too-long'
+        ? '这条行程编码后有 ' + r.chars + ' 字符，超过聊天软件约 ' + r.limit + ' 字符的网址上限，只能发文字版。'
+        : '还没有可让别人打开的网址（本机 file:// 地址对方打不开）。想发链接请到 设置 → 分享网址 填一个已部署的地址；现在先发文字版。');
+    UI.confirm({ title: '分享这份行程', text: fields + '\n\n' + how, okText: r.ok ? '生成链接' : '复制文字', cancelText: '取消' }, function (yes) {
+      if (!yes) return;
+      if (!r.ok) { copyText(r.text); toast(r.degrade === 'too-long' ? '行程太长，已复制文字版' : '已复制文字版'); return; }
+      sendShare(r);
+    });
+  };
+  function sendShare(r) {
+    if (typeof navigator.share === 'function') {
+      try {
+        navigator.share({ title: r.payload.t || '行程分享', text: '送你一份行程：' + (r.payload.t || ''), url: r.url })
+          .then(function () { toast('已调起系统分享'); },
+            function (e) { if (e && e.name === 'AbortError') return; copyText(r.url); toast('链接已复制，去聊天软件里粘贴'); });
+        return;
+      } catch (e) { /* WebView 里 share() 可能是空壳，直接落到复制 */ }
+    }
+    copyText(r.url);
+    toast('链接已复制，去聊天软件里粘贴');
+  }
   window.plannerExportGPX = function () {
     var t = state.trip; if (!t) return;
     var pts = flatStops();

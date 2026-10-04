@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>行程分享 · 行迹</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="一份只读行程，内容写在链接里。">
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px 40px}
+  /* 品牌条：宣纸墨字 + 鎏金短线，别人点开时第一眼就知道是谁家做的 */
+  .sbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;
+    padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;margin:0 0 16px;
+    background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--color-line)}
+  .sbar b{font-family:var(--font-serif);font-size:15px;font-weight:400;letter-spacing:.3em;color:var(--color-ink)}
+  .sbar .sb-seal{width:14px;height:3px;border-radius:99px;background:var(--grad-gold);flex:0 0 auto}
+  .sbar .sb-sub{font-size:11px;letter-spacing:.14em;color:var(--color-muted);flex:1}
+  .sbar .sb-tag{font-size:10px;letter-spacing:.1em;color:var(--color-faint)}
+  .theme-dark .sbar{background:rgba(26,26,24,.92)}
+  /* 卷首 */
+  .hero{padding:6px 0 14px}
+  .hero h1{font-family:var(--font-serif);font-size:25px;font-weight:600;line-height:1.35;letter-spacing:.02em;margin:0 0 8px;color:var(--color-ink)}
+  .hero .route{font-size:13px;color:var(--color-ink-soft);line-height:1.7}
+  .hero .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .hero .chips span{font-size:11.5px;color:var(--color-ink-soft);background:var(--color-surface);border:1px solid var(--color-line);border-radius:999px;padding:5px 12px}
+  .ruler{font-size:11.5px;color:var(--color-muted);line-height:1.7;margin:2px 0 14px;padding-left:10px;border-left:2px solid var(--color-line-strong)}
+  .mapnote{font-size:11px;color:var(--color-muted);line-height:1.7;margin:-6px 0 16px}
+  /* 排期结果 */
+  #mapBox{height:46vh;min-height:220px;border-radius:20px;overflow:hidden;border:1px solid var(--color-line);border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft);margin-bottom:14px}
+  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow .25s}
+  .day-card:hover{box-shadow:var(--shadow-medium)}
+  .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
+  .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
+  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background .15s}
+  .day-card .stop:active{background:var(--color-bg-soft)}
+  .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}
+  .day-card .stop .meta{font-size:11px;color:var(--color-muted)}
+  .stop .lbl{flex:1;min-width:0;word-break:break-all;line-height:1.4}
+  .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
+  .stop-name .lbl{flex:1;min-width:0;word-break:break-word;line-height:1.45}
+  .stop-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-left:28px}
+  /* 转场日（长途赶路）：虚线边 + 无景点行，与正常日游版式区分开 */
+  .day-card.transit{background:var(--color-bg-soft);border-style:dashed}
+  .day-card.transit .dhead{border-bottom-style:dashed}
+  .transit-route{display:flex;align-items:center;gap:10px;font-family:var(--font-serif);font-size:14.5px;line-height:1.6;color:var(--color-ink);padding:2px 0}
+  .transit-route span{color:var(--color-primary);font-size:13px}
+  /* 深色适配 */
+  .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
+  .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
+  .theme-dark .day-card .stop .n{background:rgba(220,174,94,.18);color:var(--color-gold-bright,#DCAE5E)}
+  /* 尾注与文字版 */
+  .foot{margin-top:20px;padding-top:16px;border-top:1px solid var(--color-line);font-size:11.5px;color:var(--color-muted);line-height:1.9}
+  .foot b{font-family:var(--font-serif);font-weight:400;letter-spacing:.24em;color:var(--color-ink-soft);display:block;margin-bottom:6px}
+  .act-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform .14s var(--ease-pop),box-shadow .2s,filter .2s}
+  .btn:active{transform:scale(.96)}
+  #shareText{display:none;width:100%;margin-top:10px;min-height:180px;border:1px solid var(--color-line);border-radius:14px;background:var(--color-bg-soft);color:var(--color-ink);font-family:var(--font-sans);font-size:12.5px;line-height:1.7;padding:12px}
+  .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:12.5px;line-height:1.8}
+  .bad-state{padding:56px 22px;text-align:center;color:var(--color-muted);font-size:13px;line-height:1.9}
+  .bad-state b{display:block;font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--color-ink);margin:6px 0 10px}
+  .bad-state code{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:8px;background:var(--color-bg-soft);color:var(--color-ink-soft);font-size:11.5px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="sbar">
+  <span class="sb-seal"></span>
+  <b>行迹</b>
+  <span class="sb-sub">只读行程</span>
+  <span class="sb-tag">TRACE</span>
+</div>
+<div class="wrap">
+  <div id="page"><div class="empty-tip">正在读取链接…</div></div>
+</div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/pako.min.js"></script>
+<script src="icons.js"></script>
+<script src="ui.js"></script>
+<script src="share.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* 只读渲染：一切数据来自 hash 里的载荷，本页不发任何业务请求（只有地图底图要联网）。
+     三种失败态各给一句实话，不给「出错了」这种没用的话。 */
+  var host = document.getElementById('page');
+  var cur = null;
+
+  function esc(s) { return (window.UI && UI.esc) ? UI.esc(String(s == null ? '' : s)) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function sealClass(i) { return 'day-seal ds-' + (i % 6 + 1); }
+
+  function badState(title, lines) {
+    return '<div class="bad-state"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="足迹线稿"><ellipse cx="34" cy="66" rx="6" ry="9" transform="rotate(-15 34 66)"/><circle cx="30" cy="52" r="2"/><circle cx="36" cy="49" r="1.6"/><circle cx="42" cy="52" r="1.4"/><ellipse cx="66" cy="42" rx="5.4" ry="8" transform="rotate(10 66 42)"/><circle cx="63" cy="30" r="1.8"/><circle cx="69" cy="28" r="1.5"/><circle cx="74" cy="30" r="1.3"/><ellipse cx="96" cy="20" rx="4.4" ry="6.4" transform="rotate(-8 96 20)" opacity=".5"/><path d="M14 84 Q60 76 108 12" stroke-dasharray="3 5" opacity=".3"/></svg>' +
+      '<b>' + esc(title) + '</b>' + lines.map(function (t) { return '<div>' + t + '</div>'; }).join('') + '</div>';
+  }
+
+  function dayCard(d, di) {
+    var head = '<div class="dhead"><span class="' + sealClass(di) + '">D' + (di + 1) + '</span>';
+    if (d.tr) {
+      return '<div class="day-card transit">' + head +
+        '<span class="dmeta">赶路日 · 约 ' + (d.km || 0) + ' km</span></div>' +
+        '<div class="transit-route">' + esc(d.f || '出发地') + '<span>→</span>' + esc(d.o || '目的地') + '</div></div>';
+    }
+    var n = (d.stops || []).length;
+    var body = (d.stops || []).map(function (s, si) {
+      return '<div class="stop"><div class="stop-name"><span class="n">' + (si + 1) + '</span>' +
+        '<span class="lbl">' + esc(s.n) + '</span></div></div>';
+    }).join('');
+    return '<div class="day-card">' + head +
+      '<span class="dmeta">' + n + ' 站 · 约 ' + (d.km || 0) + ' km · 全程 ' + (d.h || 0) + 'h</span></div>' + body + '</div>';
+  }
+
+  function renderTrip(p) {
+    cur = p;
+    var s = Share.summary(p);
+    var route = [p.from, p.to].filter(Boolean).join(p.loop ? ' → （环线回起点）' : ' → ');
+    var h = '<div class="vrow"><span class="vtitle">行迹 · 旅程</span><div style="flex:1;min-width:0">' +
+      '<div class="hero"><h1>' + esc(p.t || '我的行程') + '</h1>' +
+      (p.sd ? '<div class="route">' + esc(p.sd) + ' 出发' + (route ? ' · ' + esc(route) : '') + '</div>' : (route ? '<div class="route">' + esc(route) + '</div>' : '')) +
+      '<div class="chips"><span>共 ' + s.days + ' 天</span><span>' + s.stops + ' 站</span><span>约 ' + s.km + ' km</span>' +
+      (s.h ? '<span>全程约 ' + s.h + ' h</span>' : '') + '</div></div></div></div>';
+    h += '<div class="ruler">' + (p.r ? '日卡里程为高德真实道路里程' : '日卡里程按直线 ×1.35 折算，是估算不是实测') + '</div>';
+    h += '<div id="mapBox"></div>';
+    h += '<div class="mapnote">地图是站点连线示意（真实道路轨迹只在规划者本机有高德 Key 时才画得出，不随链接走）。底图要联网，断网时下面的站点列表照样看得全。</div>';
+    h += (p.days || []).map(dayCard).join('');
+    h += '<div class="foot"><b>关于这份行程</b>' +
+      '内容全部写在链接里，打开即见，不需要账号，也不用下载应用。<br>' +
+      '分享出去的只有站点名称、坐标与天数——不含游记正文，也不含照片。<br>' +
+      '<div class="act-row"><button class="btn" onclick="window.shareCopyText()">' + TI('copy') + ' 复制行程文字</button></div>' +
+      '<textarea id="shareText" readonly aria-label="行程文字版"></textarea>' +
+      '<div style="margin-top:14px;text-align:center;letter-spacing:.24em;font-family:var(--font-serif);color:var(--color-faint)">行迹 TRACE</div>' +
+      '</div>';
+    host.innerHTML = h;
+    drawMap(p);
+  }
+
+  var map = null;
+  function cssColor(name, fb) {
+    try { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fb; } catch (e) { return fb; }
+  }
+  function drawMap(p) {
+    if (!window.L) return;
+    var pts = [];
+    (p.days || []).forEach(function (d) { (d.stops || []).forEach(function (s) { if (s.la != null && s.lo != null) pts.push(s); }); });
+    if (pts.length < 2) return;   /* 单站或全无坐标：没有线可画，空盒子比假地图诚实 */
+    try {
+      map = L.map('mapBox', { zoomControl: false, scrollWheelZoom: false, attributionControl: false }).setView([34.5, 105], 5);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      var tl = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',
+        { subdomains: '1234', maxZoom: 18 });
+      tl.addTo(map);
+      if (window.UI) UI.tileWarn(tl, '地图');
+      var LINE = cssColor('--route-color', '#AE5738'), CASE = cssColor('--color-gold', '#8F5D0E'), bnd = [];
+      for (var i = 1; i < pts.length; i++) {
+        var a = [pts[i - 1].la, pts[i - 1].lo], b = [pts[i].la, pts[i].lo];
+        L.polyline([a, b], { color: CASE, weight: 6, opacity: .35, lineCap: 'round' }).addTo(map);
+        L.polyline([a, b], { color: LINE, weight: 3, opacity: .85, dashArray: '7 7' }).addTo(map);
+      }
+      pts.forEach(function (s, i) {
+        L.marker([s.la, s.lo], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', iconSize: [26, 26], iconAnchor: [13, 24] }) })
+          .bindPopup('<b>' + esc(s.n) + '</b>').addTo(map);
+        bnd.push([s.la, s.lo]);
+      });
+      map.fitBounds(bnd, { padding: [40, 40] });
+      setTimeout(function () { map.invalidateSize(); }, 60);
+    } catch (e) { map = null; }
+  }
+
+  window.shareCopyText = function () {
+    if (!cur) return;
+    var t = Share.textOf(cur);
+    var ta = document.getElementById('shareText');
+    function reveal(msg) {
+      if (!ta) return;
+      ta.value = t; ta.style.display = 'block';
+      try { ta.focus(); ta.setSelectionRange(0, t.length); } catch (e) {}
+      if (window.UI) UI.toast(msg);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(function () { if (window.UI) UI.toast('行程文字已复制'); }, function () { reveal('复制没成功，文字已在下方展开，长按全选即可'); });
+    } else reveal('此处浏览器不给剪贴板权限，文字已在下方展开，长按全选即可');
+  };
+
+  function boot() {
+    if (!window.Share) { host.innerHTML = badState('分享模块没加载', ['<div>请确认 <code>share.js</code> 与本页在同一目录。</div>']); return; }
+    var raw = (location.hash || '');
+    if (raw.charAt(0) === '#') raw = raw.slice(1);
+    if (!raw) {
+      host.innerHTML = badState('这条链接没有带上行程',
+        ['<div>行程写在链接 <code>#</code> 后面那一段里。有些聊天软件会把 <code>#</code> 之后的内容截掉，</div>',
+         '<div>请让对方把完整链接重新发一次，或直接发「复制行程文字」的文本版。</div>']);
+      return;
+    }
+    if (!Share.hasPako()) {
+      host.innerHTML = badState('压缩库没加载，解不开链接',
+        ['<div>本页靠 <code>vendor/pako.min.js</code> 解压，请把整个应用目录一起发送，或部署到网上再生成链接。</div>']);
+      return;
+    }
+    var p = null;
+    try { p = Share.decodePayload(decodeURIComponent(raw)); } catch (e) { p = null; }
+    if (!p) {
+      host.innerHTML = badState('链接内容读不出来',
+        ['<div>多半是链接被聊天软件截断了。请让对方重新发送完整链接，或改用文本版行程。</div>']);
+      return;
+    }
+    renderTrip(p);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+</body>
+</html>

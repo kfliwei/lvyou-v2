@@ -278,6 +278,21 @@
       </div>
       <div id="wdStatus" class="wd-line" style="margin-top:8px"></div>
     </div>
+
+    <!-- 行程分享（批次 9 · P1-5）：只读链接的落点地址 -->
+    <div class="group">
+      <div class="group-title">行程分享</div>
+      <div class="group-sub">「分享行程」生成的链接指向这个地址下的 share.html，行程内容写在网址里，对方点开即见。应用部署在网站上时自动用当前地址，这里不用填；只在手机本机（离线文件）里想发链接时，才填一个别人打得开的地址。</div>
+      <div class="row">
+        <div class="row-label">分享网址</div>
+        <input id="shareBaseInput" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://你的域名/行迹/（留空=只用文字版）">
+      </div>
+      <div class="data-acts">
+        <button class="btn-secondary" id="shareSaveBtn">保存网址</button>
+        <button class="btn-secondary" id="shareClearBtn">清除</button>
+      </div>
+      <div id="shareResult" class="wd-line" style="margin-top:10px"></div>
+    </div>
   </div>
 
 </div>
@@ -289,6 +304,7 @@
 <script src="ui.js"></script>
 <script src="backup.js"></script>
 <script src="sync-webdav.js"></script>
+<script src="share.js"></script>
 <script>
   function fmtSize(mb){ return mb.toFixed(1) + ' MB'; }
   function refreshStorage(){
@@ -607,6 +623,33 @@
     document.documentElement.classList.toggle('theme-dark', dark);
     toast('已切换深色模式');
   });
+  /* ===== 行程分享基址（批次 9 · P1-5）：链接落点，只有别人打得开的地址才有意义 ===== */
+  (function () {
+    var inp = document.getElementById('shareBaseInput');
+    if (!inp || !window.Share) return;
+    function show(msg, cls) {
+      var e = document.getElementById('shareResult'); if (!e) return;
+      e.textContent = msg || ''; e.className = 'wd-line' + (cls ? ' ' + cls : '');
+    }
+    function eff() {
+      var b = Share.linkBase();
+      return b ? '现在会用：' + b + '/share.html' : '现在没有可点开的链接，分享时直接给文字版。';
+    }
+    inp.value = Share.savedBase();
+    show(eff());
+    document.getElementById('shareSaveBtn').onclick = function () {
+      var v = (inp.value || '').trim();
+      if (!v) { show('要填一个完整地址（https:// 开头）', 'err'); return; }
+      var n = Share.setBase(v);
+      if (!n) { show('网址要写成 https://… 或 http://… 的完整地址，末尾带不带 / 都行', 'err'); return; }
+      inp.value = n;
+      show('已保存。' + eff(), 'ok');
+    };
+    document.getElementById('shareClearBtn').onclick = function () {
+      Share.setBase(''); inp.value = '';
+      show('已清除。' + eff(), 'ok');
+    };
+  })();
   loadSettings();
   WDW.boot();
   /* 高德 Web Key（随手记地点识别 / 我的地点搜索） */

@@ -1,0 +1,327 @@
+{
+  "at": "2026-10-04T01:49:53.167Z",
+  "pass": 64,
+  "fail": 0,
+  "checks": [
+    {
+      "name": "有基址时产出链接",
+      "ok": true,
+      "detail": "http://127.0.0.1:8133/share.html#v1.eJxt"
+    },
+    {
+      "name": "链接长度在上限内",
+      "ok": true,
+      "detail": "618"
+    },
+    {
+      "name": "链接不含「photo」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「note」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「audio」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「story」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「AAAA」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「tn_key」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「indexeddb」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「私密备注」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "链接不含「游记正文」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "解码回得到 5 天",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "解码回得到 12 站",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "解码后逐日里程一致",
+      "ok": true,
+      "detail": "48,71,94,117,140"
+    },
+    {
+      "name": "解码后尺子标注为真实道路",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "环线标注",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "白名单外字段为空",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "超长行程拒绝出链接",
+      "ok": true,
+      "detail": "8630"
+    },
+    {
+      "name": "超长行程仍给文本版",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "file:// 无基址时降级",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "降级文本带署名",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "估算里程在文本里说清是折算",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "联网态无页面报错",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "渲染 5 张日卡",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "name": "渲染 12 站",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "标题一致",
+      "ok": true,
+      "detail": "晋陕豫 5 日自驾"
+    },
+    {
+      "name": "起讫与环线标注",
+      "ok": true,
+      "detail": "2026-10-20 出发 · 北京 → （环线回起点）北京"
+    },
+    {
+      "name": "汇总芯片天数",
+      "ok": true,
+      "detail": "共 5 天 | 12 站 | 约 470 km | 全程约 42.5 h"
+    },
+    {
+      "name": "汇总芯片站数",
+      "ok": true,
+      "detail": "共 5 天 | 12 站 | 约 470 km | 全程约 42.5 h"
+    },
+    {
+      "name": "尺子说明为真实道路",
+      "ok": true,
+      "detail": "日卡里程为高德真实道路里程"
+    },
+    {
+      "name": "D1 里程与源行程相等",
+      "ok": true,
+      "detail": "3 站 · 约 48 km · 全程 6.5h"
+    },
+    {
+      "name": "D1 站点名逐个相等",
+      "ok": true,
+      "detail": "五台山,平遥古城,乔家大院"
+    },
+    {
+      "name": "D1 蜡封章走 ds-1",
+      "ok": true,
+      "detail": "day-seal ds-1/D1"
+    },
+    {
+      "name": "D2 里程与源行程相等",
+      "ok": true,
+      "detail": "2 站 · 约 71 km · 全程 7.5h"
+    },
+    {
+      "name": "D2 站点名逐个相等",
+      "ok": true,
+      "detail": "太原晋祠,壶口瀑布"
+    },
+    {
+      "name": "D2 蜡封章走 ds-2",
+      "ok": true,
+      "detail": "day-seal ds-2/D2"
+    },
+    {
+      "name": "D3 里程与源行程相等",
+      "ok": true,
+      "detail": "2 站 · 约 94 km · 全程 8.5h"
+    },
+    {
+      "name": "D3 站点名逐个相等",
+      "ok": true,
+      "detail": "西安城墙,兵马俑"
+    },
+    {
+      "name": "D3 蜡封章走 ds-3",
+      "ok": true,
+      "detail": "day-seal ds-3/D3"
+    },
+    {
+      "name": "D4 里程与源行程相等",
+      "ok": true,
+      "detail": "2 站 · 约 117 km · 全程 9.5h"
+    },
+    {
+      "name": "D4 站点名逐个相等",
+      "ok": true,
+      "detail": "华山,龙门石窟"
+    },
+    {
+      "name": "D4 蜡封章走 ds-4",
+      "ok": true,
+      "detail": "day-seal ds-4/D4"
+    },
+    {
+      "name": "D5 里程与源行程相等",
+      "ok": true,
+      "detail": "3 站 · 约 140 km · 全程 10.5h"
+    },
+    {
+      "name": "D5 站点名逐个相等",
+      "ok": true,
+      "detail": "少林寺,清明上河园,商丘古城"
+    },
+    {
+      "name": "D5 蜡封章走 ds-5",
+      "ok": true,
+      "detail": "day-seal ds-5/D5"
+    },
+    {
+      "name": "地图立针数=站点数",
+      "ok": true,
+      "detail": "12"
+    },
+    {
+      "name": "品牌条在页首",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "卷首竖排题签",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "复制按钮有实现",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "320 宽无横向溢出",
+      "ok": true,
+      "detail": "{\"sw\":320,\"cw\":320}"
+    },
+    {
+      "name": "渲染出的行程内容里没有私密字段",
+      "ok": true,
+      "detail": "五台山,平遥古城,乔家大院|太原晋祠,壶口瀑布|西安城墙,兵马俑|华山,龙门石窟|少林寺,清明上河园,商丘古城晋陕豫 5"
+    },
+    {
+      "name": "剪贴板被拒时展开可见文字版",
+      "ok": true,
+      "detail": "{\"visible\":\"block\",\"len\":323}"
+    },
+    {
+      "name": "展开时告知怎么复制",
+      "ok": true,
+      "detail": "复制没成功，文字已在下方展开，长按全选即可"
+    },
+    {
+      "name": "文字版里没有私密字段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "文字版逐日站点齐全",
+      "ok": true,
+      "detail": "12"
+    },
+    {
+      "name": "断网态无页面报错",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "断网仍渲染 5 天 12 站",
+      "ok": true,
+      "detail": "5"
+    },
+    {
+      "name": "断网日卡里程不变",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "断网有地图失败的实话",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "空载荷不报错",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "空载荷有一句实话",
+      "ok": true,
+      "detail": "这条链接没有带上行程"
+    },
+    {
+      "name": "空载荷用内联线稿",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "截断载荷不报错",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "截断载荷说明被截断",
+      "ok": true,
+      "detail": "链接内容读不出来"
+    }
+  ]
+}
