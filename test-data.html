@@ -10,21 +10,21 @@
   html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .content{padding:22px 20px 50px}
   .group{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:20px;margin-bottom:14px}
-  .group h2{font-family:var(--font-serif);font-size:18px;font-weight:400;color:var(--color-ink);margin:0 0 10px}
-  .group p{font-size:13px;color:var(--color-ink-soft);line-height:1.8;margin:0;font-family:var(--font-sans)}
-  .group ul{margin:10px 0 0;padding-left:18px;font-size:12.5px;color:var(--color-muted);line-height:2;font-family:var(--font-sans)}
+  .group h2{font-family:var(--font-serif);font-size:var(--fs-8);font-weight:400;color:var(--color-ink);margin:0 0 10px}
+  .group p{font-size:var(--fs-4);color:var(--color-ink-soft);line-height:1.8;margin:0;font-family:var(--font-sans)}
+  .group ul{margin:10px 0 0;padding-left:18px;font-size:var(--fs-4);color:var(--color-muted);line-height:2;font-family:var(--font-sans)}
   .photos{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
   .photos img{width:120px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto;border:1px solid var(--color-line)}
-  .btn-primary{width:100%;min-height:52px;border-radius:999px;font-size:15px;font-family:var(--font-sans);box-shadow:0 10px 28px rgba(200,109,75,.3);margin-top:6px}
-  .btn-secondary{width:100%;min-height:48px;border-radius:999px;font-size:14px;font-family:var(--font-sans);margin-top:10px}
-  .status{margin-top:14px;font-size:12.5px;color:var(--color-muted);text-align:center;font-family:var(--font-sans);min-height:18px}
+  .btn-primary{width:100%;min-height:52px;border-radius:999px;font-size:var(--fs-6);font-family:var(--font-sans);box-shadow:0 10px 28px rgba(200,109,75,.3);margin-top:6px}
+  .btn-secondary{width:100%;min-height:48px;border-radius:999px;font-size:var(--fs-5);font-family:var(--font-sans);margin-top:10px}
+  .status{margin-top:14px;font-size:var(--fs-4);color:var(--color-muted);text-align:center;font-family:var(--font-sans);min-height:18px}
 /* v3 CINEMATIC LAYER */
 .group{border-radius:20px}
-.group h2{font-size:19px;font-weight:600;display:flex;align-items:center;gap:9px}
+.group h2{font-size:var(--fs-9);font-weight:600;display:flex;align-items:center;gap:9px}
 .group h2::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--grad-gold-line)}
 .btn-primary{background:var(--grad-primary)}
   .linkrow{display:flex;gap:16px;justify-content:center;margin-top:12px}
-  .linkrow a{font-size:13px;color:var(--color-primary-dark);text-decoration:none;font-family:var(--font-sans)}
+  .linkrow a{font-size:var(--fs-4);color:var(--color-primary-dark);text-decoration:none;font-family:var(--font-sans)}
 
 /* ============================================================
    TRACE 深色模式补丁（覆盖内联浅色浮层/控件 — 跨页面保持深色）

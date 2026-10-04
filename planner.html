@@ -14,26 +14,26 @@
   .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:var(--shadow-soft);padding:18px;margin-bottom:14px;transition:box-shadow var(--motion-mid) var(--ease-out),transform var(--motion-mid) var(--ease-out),border-color var(--motion-mid)}
   .card:hover{box-shadow:var(--shadow-medium)}
   /* 鎏金 eyebrow 分区题 */
-  .ph{display:flex;align-items:center;gap:8px;background:none;font-family:var(--font-sans);font-size:11px;font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:4px 0 12px}
+  .ph{display:flex;align-items:center;gap:8px;background:none;font-family:var(--font-sans);font-size:var(--fs-2);font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:4px 0 12px}
   .ph::before{content:"";width:14px;height:3px;border-radius:99px;flex:0 0 auto;background:var(--grad-gold)}
   .card > .ph:first-child{margin-top:0}
   .wrap > .ph{margin:22px 2px 12px}
-  .sec-title{font-family:var(--font-serif);font-size:19px;font-weight:600;letter-spacing:.04em;color:var(--color-ink);margin:2px 0 12px;display:flex;align-items:center;gap:9px}
+  .sec-title{font-family:var(--font-serif);font-size:var(--fs-9);font-weight:600;letter-spacing:.04em;color:var(--color-ink);margin:2px 0 12px;display:flex;align-items:center;gap:9px}
   .sec-title::before{content:"";width:4px;height:17px;border-radius:99px;flex:0 0 auto;background:var(--grad-primary)}
   /* AI 三段开关 */
   .ai-switch{display:inline-flex;align-items:center;gap:3px;background:var(--color-bg);border:1px solid var(--color-line);border-color:rgba(33,26,19,.08);border-radius:999px;padding:3px 4px;margin-bottom:12px}
-  .ai-switch .lab{font-size:11px;color:var(--color-muted);padding:0 8px 0 10px}
-  .ai-switch button{border:0;background:transparent;color:var(--color-muted);font-size:12px;padding:6px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .ai-switch .lab{font-size:var(--fs-2);color:var(--color-muted);padding:0 8px 0 10px}
+  .ai-switch button{border:0;background:transparent;color:var(--color-muted);font-size:var(--fs-3);padding:6px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
   .ai-switch button.on{background:var(--grad-primary);color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(200,109,75,.28)}
   .ai-switch.locked button{cursor:not-allowed;opacity:.5}
   .ai-switch.locked button.on{opacity:1}
   /* 输入条（16px 防 WebView 聚焦缩放） */
   .input-bar{display:flex;gap:8px;align-items:center}
-  .input-bar input{flex:1;min-width:0;height:48px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:14px;background:var(--color-bg);color:var(--color-ink);padding:0 14px;font-size:16px;transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
+  .input-bar input{flex:1;min-width:0;height:48px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:14px;background:var(--color-bg);color:var(--color-ink);padding:0 14px;font-size:var(--fs-7);transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
   .input-bar input::placeholder{color:var(--color-faint)}
   .input-bar input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
   /* 按钮：主操作独占品牌色 */
-  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:13px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
   .btn:active{transform:scale(.96)}
   .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
   .btn.primary:active{filter:brightness(.96)}
@@ -41,23 +41,23 @@
   .btn:disabled{opacity:.5;cursor:not-allowed}
   /* 种子卡 */
   .seeds{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-  .seed{display:flex;align-items:center;gap:10px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:13px 15px;cursor:pointer;font-size:13px;transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast),border-color var(--motion-fast)}
+  .seed{display:flex;align-items:center;gap:10px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;padding:13px 15px;cursor:pointer;font-size:var(--fs-4);transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast),border-color var(--motion-fast)}
   .seed:active{transform:scale(.98)}
   .seed:hover{transform:translateY(-1px);border-color:rgba(200,109,75,.3);box-shadow:var(--shadow-soft)}
-  .seed .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(219,125,83,.16),rgba(169,76,45,.08));color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:15px}
+  .seed .ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,rgba(219,125,83,.16),rgba(169,76,45,.08));color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:var(--fs-6)}
   .seed .t{flex:1}
-  .seed .t small{display:block;font-size:11px;color:var(--color-muted);margin-top:2px}
-  .seed .arr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:15px}
+  .seed .t small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px}
+  .seed .arr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6)}
   /* chips */
   .chips{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:12px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:all var(--motion-fast) var(--ease-out)}
+  .chip{display:inline-flex;align-items:center;padding:7px 14px;border-radius:999px;font-size:var(--fs-3);border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:all var(--motion-fast) var(--ease-out)}
   .chip.on{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
   .chip:active{transform:scale(.95)}
   /* 意图卡字段 */
   .fld{margin-bottom:12px}
-  .fld label{display:block;font-size:11px;color:var(--color-muted);margin-bottom:6px;letter-spacing:.04em}
+  .fld label{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-bottom:6px;letter-spacing:.04em}
   .fld .row{display:flex;gap:8px;align-items:center}
-  .fld input[type=text],.fld input[type=number],.fld input[type=date]{height:42px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:12px;background:var(--color-bg);color:var(--color-ink);padding:0 12px;font-size:16px}
+  .fld input[type=text],.fld input[type=number],.fld input[type=date]{height:42px;border:1px solid var(--color-line-strong);border-color:rgba(33,26,19,.1);border-radius:12px;background:var(--color-bg);color:var(--color-ink);padding:0 12px;font-size:var(--fs-7)}
   .fld input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
   .fld input[type=number]{width:70px}
   .fld input[type=date]{flex:1}
@@ -65,22 +65,22 @@
   /* 候选卡片 */
   .cand{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--color-line)}
   .cand:last-child{border-bottom:0}
-  .cand .ck{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--color-line-strong);flex:0 0 auto;display:grid;place-items:center;cursor:pointer;color:#fff;font-size:13px;background:var(--color-surface)}
+  .cand .ck{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--color-line-strong);flex:0 0 auto;display:grid;place-items:center;cursor:pointer;color:#fff;font-size:var(--fs-4);background:var(--color-surface)}
   .cand.on .ck{background:var(--grad-primary);border-color:transparent;box-shadow:0 2px 8px rgba(200,109,75,.3)}
   .cand .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
   .cand .main{flex:1;min-width:0}
-  .cand .main b{font-family:var(--font-serif);font-size:15px;font-weight:400;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cand .main small{font-size:11px;color:var(--color-muted);display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cand .main b{font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cand .main small{font-size:var(--fs-2);color:var(--color-muted);display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* 徽标：必去=鎏金语义，不占品牌主色 */
-  .bdg{display:inline-block;font-size:10px;padding:0 6px;border-radius:999px;margin-left:5px;vertical-align:1px}
+  .bdg{display:inline-block;font-size:var(--fs-1);padding:0 6px;border-radius:999px;margin-left:5px;vertical-align:1px}
   .bdg-m{background:var(--grad-gold);color:#2a1f08;font-weight:600}
   .bdg-h{background:var(--color-blue);color:#fff}
   .bdg-n{background:transparent;border:1px solid rgba(186,117,23,.55);color:var(--color-gold)}
   .bdg-t{background:var(--color-muted);color:var(--color-bg)}
   /* 汇总条：夜墨玻璃，抬升到悬浮底栏之上 */
   .summbar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 98px);z-index:90;display:flex;flex-direction:column;align-items:stretch;gap:10px;background:var(--grad-night);border:1px solid rgba(220,174,94,.28);color:#fff;border-radius:22px;padding:12px 16px;box-shadow:var(--shadow-pop);margin-top:4px}
-  .summbar .info{font-size:13px;line-height:1.5}
-  .summbar .info b{font-size:15px}
+  .summbar .info{font-size:var(--fs-4);line-height:1.5}
+  .summbar .info b{font-size:var(--fs-6)}
   .summbar .acts{display:flex;gap:10px}
   .summbar .acts .btn{flex:1;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:var(--color-paper-warm,#F4EDDF)}
   .summbar .acts .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff}
@@ -89,39 +89,39 @@
   .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow var(--motion-mid)}
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
-  .day-card .dhead .dmeta{font-size:11px;color:var(--color-muted);flex:1}
+  .day-card .dhead .dmeta{font-size:var(--fs-2);color:var(--color-muted);flex:1}
   /* 日卡天气位：字形+温度，窄屏靠 dmeta 先收缩。取数未回时挂 .wxh（display:none），不是空位 */
-  .day-card .dhead .wx{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:11px;line-height:1;color:var(--color-muted);white-space:nowrap}
+  .day-card .dhead .wx{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:var(--fs-2);line-height:1;color:var(--color-muted);white-space:nowrap}
   .day-card .dhead .wxh{display:none}
-  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:13px;transition:background var(--motion-fast)}
+  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:var(--fs-4);transition:background var(--motion-fast)}
   .day-card .stop:active{background:var(--color-bg-soft)}
-  .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:11px;font-weight:600;display:inline-grid;place-items:center}
+  .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family:var(--font-sans);font-size:var(--fs-2);font-weight:600;display:inline-grid;place-items:center}
   .day-card .stop.done{opacity:.55}
-  .day-card .stop .meta{font-size:11px;color:var(--color-muted)}
+  .day-card .stop .meta{font-size:var(--fs-2);color:var(--color-muted)}
   .stop .lbl{flex:1;min-width:0;word-break:break-all;line-height:1.4}
   .stop.warn .lbl{color:var(--color-danger,#AE5738)}
   .stop.done .lbl{color:var(--color-muted)}
   .stop .warn-ic{color:var(--color-danger,#AE5738);flex:0 0 auto}
-  .mv{width:30px;height:30px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:12px;cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
+  .mv{width:30px;height:30px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-3);cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
   .mv:active{transform:scale(.9)}
   .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
   .stop-name .lbl{flex:1;min-width:0;word-break:break-word;line-height:1.45}
   .stop-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-left:28px}
   .stop-acts{display:flex;align-items:center;gap:8px;padding-left:28px}
   .stop-acts .ops{margin-left:auto;display:flex;align-items:center;gap:4px}
-  .stop-acts .btn.mini{min-height:28px;padding:0 10px;font-size:11px}
-  .warnline{margin:8px 0;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.6;background:rgba(179,74,63,.08);border:1px solid rgba(179,74,63,.18);color:var(--color-danger,#B34A3F)}
+  .stop-acts .btn.mini{min-height:28px;padding:0 10px;font-size:var(--fs-2)}
+  .warnline{margin:8px 0;padding:9px 12px;border-radius:10px;font-size:var(--fs-3);line-height:1.6;background:rgba(179,74,63,.08);border:1px solid rgba(179,74,63,.18);color:var(--color-danger,#B34A3F)}
   /* 转场日（长途赶路）：虚线边 + 无景点行，与正常日游版式区分开 */
   .day-card.transit{background:var(--color-bg-soft);border-style:dashed}
   .day-card.transit .dhead{border-bottom-style:dashed}
-  .transit-route{display:flex;align-items:center;gap:10px;font-family:var(--font-serif);font-size:14.5px;line-height:1.6;color:var(--color-ink);padding:2px 0}
-  .transit-route span{color:var(--color-primary);font-size:13px}
+  .transit-route{display:flex;align-items:center;gap:10px;font-family:var(--font-serif);font-size:var(--fs-6);line-height:1.6;color:var(--color-ink);padding:2px 0}
+  .transit-route span{color:var(--color-primary);font-size:var(--fs-4)}
   .narr{margin-top:10px;padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(220,174,94,.1),rgba(220,174,94,.03));border:1px solid rgba(201,162,39,.28)}
-  .narr .story{font-family:var(--font-serif);font-size:15px;line-height:1.9;color:var(--color-ink)}
-  .narr .themes{font-size:12px;color:var(--color-muted);margin-top:8px;line-height:1.8}
+  .narr .story{font-family:var(--font-serif);font-size:var(--fs-6);line-height:1.9;color:var(--color-ink)}
+  .narr .themes{font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.8}
   .act-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
-  .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:12.5px;line-height:1.8}
+  .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:var(--fs-4);line-height:1.8}
   /* 深色适配 */
   .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
   .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
@@ -132,9 +132,9 @@
   #candFilter{border-radius:12px!important}
   #candFilter:focus{outline:none;border-color:rgba(200,109,75,.5)!important;box-shadow:0 0 0 3px rgba(200,109,75,.12)!important}
   /* AI 精选路线 */
-  .aroute .dayline{font-size:12.5px;line-height:2;color:var(--color-ink-soft)}
+  .aroute .dayline{font-size:var(--fs-4);line-height:2;color:var(--color-ink-soft)}
   .aroute .dayline b{display:inline-block;min-width:28px;color:var(--color-primary-dark);font-family:var(--font-serif);font-weight:600}
-  .aroute .why{font-size:12px;color:var(--color-muted);margin:-4px 0 10px;line-height:1.7}
+  .aroute .why{font-size:var(--fs-3);color:var(--color-muted);margin:-4px 0 10px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -167,13 +167,13 @@
     <div class="card" id="aiRouteCard">
       <div class="ph">AI 精选路线</div>
       <div class="fld"><label>目的地（哪个省 / 城市）</label><input type="text" id="arDest" placeholder="如：贵州、川西、长沙" autocomplete="off"></div>
-      <div class="fld"><label>游玩天数</label><div class="row"><input type="number" id="arDays" min="1" max="15" value="5" style="width:84px;flex:0 0 auto"><span style="font-size:12px;color:var(--color-muted)">1-15 天</span></div></div>
+      <div class="fld"><label>游玩天数</label><div class="row"><input type="number" id="arDays" min="1" max="15" value="5" style="width:84px;flex:0 0 auto"><span style="font-size:var(--fs-3);color:var(--color-muted)">1-15 天</span></div></div>
       <div class="fld"><label>出行方式</label><div class="chips" id="arTrans">
         <span class="chip on" data-t="自驾">自驾</span><span class="chip" data-t="公共交通">公共交通</span><span class="chip" data-t="其他出行方式">其他</span></div></div>
       <div class="fld"><label>景点偏好</label><div class="chips" id="arPref">
         <span class="chip on" data-p="必去">必去</span><span class="chip" data-p="网红">网红</span><span class="chip" data-p="推荐">推荐</span></div></div>
       <button class="btn primary" id="arBtn" style="width:100%"><svg class="ti" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-sparkles"/></svg>上网查询 · 生成 5 条备选路线</button>
-      <div style="font-size:11px;color:var(--color-muted);margin-top:9px;line-height:1.7">AI 参考全网热门行程出 5 条方案；选一条后可继续增减景点、重新排期（与下方手动规划同一套编辑）。</div>
+      <div style="font-size:var(--fs-2);color:var(--color-muted);margin-top:9px;line-height:1.7">AI 参考全网热门行程出 5 条方案；选一条后可继续增减景点、重新排期（与下方手动规划同一套编辑）。</div>
     </div>
     <div id="aiRouteOut" style="display:none"></div>
 
@@ -205,8 +205,8 @@
     <div class="card" id="intentCard"></div>
     <div class="card" id="candCard" style="display:none">
       <div class="sec-title" id="candTitle">候选景点</div>
-      <input id="candFilter" type="text" placeholder="在候选里筛选（名称/主题/城市）" style="width:100%;height:44px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-bg);color:var(--color-ink);padding:0 12px;font-size:16px;margin-bottom:8px">
-      <div id="candHint" style="display:none;margin:-2px 0 8px;padding:8px 12px;border-radius:10px;font-size:12px;line-height:1.6;background:var(--color-primary-soft);color:var(--color-primary-dark)"></div>
+      <input id="candFilter" type="text" placeholder="在候选里筛选（名称/主题/城市）" style="width:100%;height:44px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-bg);color:var(--color-ink);padding:0 12px;font-size:var(--fs-7);margin-bottom:8px">
+      <div id="candHint" style="display:none;margin:-2px 0 8px;padding:8px 12px;border-radius:10px;font-size:var(--fs-3);line-height:1.6;background:var(--color-primary-soft);color:var(--color-primary-dark)"></div>
       <div id="candList"></div>
     </div>
     <div id="wizardBox" style="display:none"></div>

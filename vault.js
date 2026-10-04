@@ -249,7 +249,7 @@
   function flash(msg) {
     var d = document.createElement('div');
     d.textContent = msg;
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2400);
   }
@@ -395,7 +395,7 @@
       (n.tags && n.tags.length) ? '<p class="meta">标签 · ' + n.tags.map(escH).join(' / ') + '</p>' : ''
     ].join('');
     var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' + escH(n.title || n.siteName || '游记') + '</title>' +
-      '<style>body{max-width:720px;margin:0 auto;padding:32px 20px 60px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#2c2c29;line-height:1.8;background:#faf8f3}h1{font-size:26px;margin:0 0 10px;color:#1f3634}.meta{color:#8a857a;font-size:13px;margin:3px 0}.story{white-space:pre-wrap;margin:22px 0;font-size:15.5px}img{max-width:100%;border-radius:10px;display:block;margin:10px 0}figure{margin:0 0 18px}figcaption{color:#8a857a;font-size:12px;text-align:center;margin-top:4px}audio{width:100%;margin:10px 0}h2{font-size:18px;margin:26px 0 6px;color:#1f3634}.dim{color:#a09a8e;font-size:13px}</style></head><body>' +
+      '<style>body{max-width:720px;margin:0 auto;padding:32px 20px 60px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#2c2c29;line-height:1.8;background:#faf8f3}h1{font-size:26px;margin:0 0 10px;color:#1f3634}.meta{color:#8a857a;font-size:var(--fs-4);margin:3px 0}.story{white-space:pre-wrap;margin:22px 0;font-size:var(--fs-7)}img{max-width:100%;border-radius:10px;display:block;margin:10px 0}figure{margin:0 0 18px}figcaption{color:#8a857a;font-size:var(--fs-3);text-align:center;margin-top:4px}audio{width:100%;margin:10px 0}h2{font-size:var(--fs-8);margin:26px 0 6px;color:#1f3634}.dim{color:#a09a8e;font-size:var(--fs-4)}</style></head><body>' +
       '<h1>' + escH(n.title || n.siteName || '未命名') + '</h1>' + meta +
       '<div class="story">' + escH(n.text || n.raw || '*（这篇游记没有文字内容）*') + '</div>' +
       audio +

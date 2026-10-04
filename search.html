@@ -10,34 +10,34 @@
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
   .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
-  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:16px;color:var(--color-ink);height:36px}
-  .sbar .mic{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:15px;cursor:pointer}
+  .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:var(--fs-7);color:var(--color-ink);height:36px}
+  .sbar .mic{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:var(--fs-6);cursor:pointer}
   .sbar .mic:active{transform:scale(.92)}
   .sbar .mic.rec{background:var(--color-primary);color:var(--bg);animation:mic-pulse var(--motion-flash) ease-in-out infinite}
   @keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,.4)}50%{box-shadow:0 0 0 8px rgba(200,109,75,0)}}
   .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 14px 4px;scrollbar-width:none}
   .chips::-webkit-scrollbar{display:none}
-  .chip{flex:0 0 auto;font-size:12px;padding:6px 14px;border-radius:999px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer}
+  .chip{flex:0 0 auto;font-size:var(--fs-3);padding:6px 14px;border-radius:999px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer}
   .chip.on{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600}
   .result{padding:6px 14px 20px}
-  .sec-t{font-size:0.6875rem;color:var(--color-muted);letter-spacing:.24em;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
-  .sec-t b{font-size:0.8125rem;color:var(--color-ink);letter-spacing:.02em}
-  .sec-t span{font-size:0.6875rem;color:var(--color-muted)}
+  .sec-t{font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.24em;margin:16px 2px 8px;display:flex;align-items:baseline;gap:8px}
+  .sec-t b{font-size:var(--fs-4);color:var(--color-ink);letter-spacing:.02em}
+  .sec-t span{font-size:var(--fs-2);color:var(--color-muted)}
   .item{display:flex;align-items:center;gap:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:14px;padding:11px 14px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow-soft)}
   .item:active{transform:scale(.985)}
   .item .dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%}
   .item .main{flex:1;min-width:0}
-  .item .nm{font-size:14px;font-weight:600;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .item .nm .bdg{display:inline-block;font-size:9.5px;padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600}
+  .item .nm{font-size:var(--fs-5);font-weight:600;color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .nm .bdg{display:inline-block;font-size:var(--fs-1);padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600}
   .bdg-m{background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.38)}
   .bdg-h{background:rgba(255,122,80,.1);color:#C25A38;border:1px solid rgba(255,122,80,.36)}
-  .item .sub{font-size:0.7188rem;color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .item .ds{font-size:0.75rem;color:var(--color-ink-soft);margin-top:3px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .item .arr{flex:0 0 auto;color:var(--color-faint);font-size:14px}
+  .item .sub{font-size:var(--fs-3);color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .ds{font-size:var(--fs-3);color:var(--color-ink-soft);margin-top:3px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item .arr{flex:0 0 auto;color:var(--color-faint);font-size:var(--fs-5)}
   .empty{padding:60px 20px;text-align:center}
   .empty .em{font-family:var(--font-serif);font-size:42px;color:var(--color-faint)}
-  .empty b{display:block;margin-top:12px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
-  .empty span{display:block;margin-top:6px;font-size:12.5px;color:var(--color-muted)}
+  .empty b{display:block;margin-top:12px;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink)}
+  .empty span{display:block;margin-top:6px;font-size:var(--fs-4);color:var(--color-muted)}
   .skel{height:56px;border-radius:14px;background:linear-gradient(90deg,var(--color-bg-soft),var(--color-surface),var(--color-bg-soft));background-size:200% 100%;animation:sk var(--motion-flash) infinite;margin-bottom:8px}
   @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
   /* v3 CINEMATIC LAYER */
@@ -48,11 +48,11 @@
   .chip{border-radius:999px;transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast)}
   .chip.on{background:var(--grad-primary);border-color:transparent;box-shadow:0 6px 14px -4px rgba(172,78,45,.5)}
   .sec-t{margin:18px 2px 9px}
-  .sec-t b{font-family:var(--font-serif);font-size:15px;font-weight:600;color:var(--color-ink);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
+  .sec-t b{font-family:var(--font-serif);font-size:var(--fs-6);font-weight:600;color:var(--color-ink);letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}
   .sec-t b::before{content:"";width:3px;height:13px;border-radius:2px;background:var(--grad-gold-line)}
   .item{border-radius:16px;padding:13px 15px;margin-bottom:10px;transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out)}
   @media(hover:hover){.item:hover{transform:translateY(-2px);box-shadow:var(--shadow-medium)}}
-  .item .arr{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);font-size:13px}
+  .item .arr{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);font-size:var(--fs-4)}
   .item .dot{box-shadow:0 0 0 3px rgba(212,113,74,.10)}
   .empty .em{opacity:.85}
   .theme-dark .sbar{background:rgba(255,255,255,.06)}
@@ -151,7 +151,7 @@
     try{ rec=JSON.parse(localStorage.getItem('tn_recent')||'[]'); }catch(e){}
     var html='';
     if(hist.length){
-      html+='<div class="sec-t"><b>搜索历史</b><span style="font-size:11px;cursor:pointer" id="clrHist">清空</span></div><div class="chip-row" style="flex-wrap:wrap;gap:8px;padding:2px 0 10px" id="histChips">'+
+      html+='<div class="sec-t"><b>搜索历史</b><span style="font-size:var(--fs-2);cursor:pointer" id="clrHist">清空</span></div><div class="chip-row" style="flex-wrap:wrap;gap:8px;padding:2px 0 10px" id="histChips">'+
         hist.map(function(w){ return '<button class="chip" data-h="'+esc(w)+'">'+esc(w)+'</button>'; }).join('')+'</div>';
     }
     if(rec.length){
@@ -202,7 +202,7 @@
         out+='<div class="item" role="button" tabindex="0" aria-label="'+esc(s.label)+'" data-go="'+(key?'topic.html?p='+key+'&q='+encodeURIComponent(s.name):'topic.html?p=nation&q='+encodeURIComponent(s.name))+'"><span class="dot" style="background:#8C7B66"></span><div class="main"><div class="nm">'+esc(s.label)+flagHtml(s)+'</div><div class="sub">'+esc(s.region+' · '+(s.city||'')+(s.county?' · '+s.county:'')+(s.theme?' · '+s.theme:''))+'</div></div><span class="arr">›</span></div>';
       });
       if(!hits.length) out+='<div class="empty" style="padding:30px 20px"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="远山线稿"><path d="M6 78 L34 42 L52 62 L74 30 L114 78 Z"/><path d="M44 51 L52 62 L60 51"/><path d="M6 78 H114" opacity=".35"/><circle cx="94" cy="20" r="5" opacity=".4"/></svg><span>没有匹配的景点，试试其他关键词</span><a href="topic.html?p=nation" style="display:inline-block;margin-top:12px;color:var(--color-primary-dark);font-weight:600">去全国地图逛逛 →</a></div>';
-      else if (hits.length > limit) out+='<div class="sec-t" style="text-align:center;cursor:pointer" id="moreBtn"><span style="color:var(--color-primary-dark);font-size:13px">还有 ' + (hits.length - limit) + ' 处，点击加载更多 ↓</span></div>';
+      else if (hits.length > limit) out+='<div class="sec-t" style="text-align:center;cursor:pointer" id="moreBtn"><span style="color:var(--color-primary-dark);font-size:var(--fs-4)">还有 ' + (hits.length - limit) + ' 处，点击加载更多 ↓</span></div>';
     }
 
     /* 游记组 */

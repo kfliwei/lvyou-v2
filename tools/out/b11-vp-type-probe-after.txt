@@ -1,0 +1,246 @@
+
+########## CSS 视口 320 x 704 ##########
+--- index.html  root=15px  横向溢出=0px
+       27px w400 TRACE Serif     行宽 280px ≈  10 字  「最近的旅行」
+       22px w400 TRACE Serif     行宽 182px ≈   8 字  「红军长征路线地图」
+     16.9px w400 TRACE Serif     行宽  40px ≈   2 字  「迹」
+       15px w400 TRACE Serif     行宽  75px ≈   5 字  「九寨沟彩林」
+       15px w400 PingFang SC     行宽  15px ≈   1 字  「→」
+     14.1px w600 PingFang SC     行宽  15px ≈   1 字  「→」
+     14.1px w400 TRACE Serif     行宽  38px ≈   2 字  「1」
+     13.8px w500 TRACE Serif     行宽  21px ≈   1 字  「壹」
+     13.1px w400 TRACE Serif     行宽 176px ≈  13 字  「行迹」
+     13.1px w400 PingFang SC     行宽 276px ≈  21 字  「Discover S」
+     13.1px w500 PingFang SC     行宽  13px ≈   1 字  「→」
+     12.7px w400 PingFang SC     行宽 182px ≈  14 字  「战役、会议与纪念地，」
+     12.2px w500 TRACE Serif     行宽  26px ≈   2 字  「记」
+     12.2px w400 PingFang SC     行宽 179px ≈  14 字  「距上次备份已超 30」
+     11.3px w400 PingFang SC     行宽 182px ≈  16 字  「江西 · 贵州 · 」
+     11.3px w500 PingFang SC     行宽 182px ≈  16 字  「凡一七九处」
+     10.8px w400 PingFang SC     行宽  78px ≈   7 字  「四川 · 层林尽染」
+     10.3px w600 PingFang SC     行宽  16px ≈   1 字  「34」
+      9.4px w400 PingFang SC     行宽 176px ≈  18 字  「TRACE · MY」
+--- review.html  root=15px  横向溢出=0px
+       23px w600 TRACE Serif     行宽  68px ≈   2 字  「0」
+     16.9px w400 TRACE Serif     行宽  42px ≈   2 字  「0 / 31」
+       15px w400 TRACE Serif     行宽 244px ≈  16 字  「旅程回顾」
+       15px w600 TRACE Serif     行宽 284px ≈  18 字  「成果工坊」
+       15px w600 SF Pro Display  行宽 138px ≈   9 字  「去留下第一篇记录 →」
+     14.1px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+     12.2px w600 SF Pro Display  行宽  91px ≈   7 字  「横版海报」
+     12.2px w400 SF Pro Display  行宽  91px ≈   7 字  「制图海报」
+     11.3px w400 SF Pro Display  行宽 284px ≈  25 字  「生成需要至少 1 篇」
+     11.3px w600 SF Pro Display  行宽  80px ≈   7 字  「还没有标签」
+     10.3px w400 SF Pro Display  行宽  33px ≈   3 字  「日」
+      9.4px w400 SF Pro Display  行宽  32px ≈   3 字  「篇游记」
+--- topic.html  root=15px  横向溢出=0px
+     16.9px w700 PingFang SC     行宽  13px ≈   0 字  「+」
+     14.1px w400 PingFang SC     行宽  36px ≈   2 字  「←」
+     14.1px w700 TRACE Serif     行宽  64px ≈   4 字  「四川风光人文地图」
+     12.2px w600 TRACE Serif     行宽  55px ≈   4 字  「全部」
+     12.2px w400 TRACE Serif     行宽  67px ≈   5 字  「四川省」
+     12.2px w700 SF Pro Display  行宽  22px ≈   1 字  「113」
+     12.2px w500 SF Pro Display  行宽  25px ≈   2 字  「成都」
+     12.2px w400 SF Pro Display  行宽 160px ≈  13 字  「地图瓦片加载失败，请」
+     11.3px w400 TRACE Serif     行宽 107px ≈   9 字  「© OpenStre」
+     11.3px w700 PingFang SC     行宽  21px ≈   1 字  「486」
+     11.3px w400 PingFang SC     行宽  88px ≈   7 字  「古城古镇 60」
+      9.4px w700 SF Pro Display  行宽  46px ≈   4 字  「必去15」
+      8.9px w400 PingFang SC     行宽  59px ≈   6 字  「· 共 486 处（」
+--- planner.html  root=15px  横向溢出=0px
+     14.1px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+     12.2px w600 PingFang SC     行宽  89px ≈   7 字  「开始规划」
+     11.3px w600 SF Pro Display  行宽  39px ≈   3 字  「关」
+     11.3px w400 SF Pro Display  行宽  51px ≈   4 字  「叙事」
+     11.3px w600 PingFang SC     行宽  53px ≈   4 字  「自驾」
+     11.3px w400 PingFang SC     行宽  75px ≈   6 字  「公共交通」
+     10.3px w400 SF Pro Display  行宽 131px ≈  12 字  「把想去的地方串成一场」
+     10.3px w700 SF Pro Display  行宽 250px ≈  24 字  「从哪里开始」
+    卡片: 288×113(90%宽) | 288×435(90%宽)
+  >> 本页族字号集合: 27 23 22 16.9 15 14.1 13.8 13.1 12.7 12.2 11.3 10.8 10.3 9.4 8.9
+
+########## CSS 视口 375 x 825 ##########
+--- index.html  root=16px  横向溢出=0px
+     27.8px w400 TRACE Serif     行宽 335px ≈  12 字  「最近的旅行」
+       22px w400 TRACE Serif     行宽 237px ≈  10 字  「红军长征路线地图」
+       20px w400 TRACE Serif     行宽  40px ≈   2 字  「迹」
+       17px w400 TRACE Serif     行宽  85px ≈   5 字  「九寨沟彩林」
+       16px w400 PingFang SC     行宽  16px ≈   1 字  「→」
+       15px w600 PingFang SC     行宽  16px ≈   1 字  「→」
+       15px w400 TRACE Serif     行宽  38px ≈   2 字  「1」
+     14.7px w500 TRACE Serif     行宽  23px ≈   1 字  「壹」
+       14px w400 TRACE Serif     行宽 187px ≈  13 字  「行迹」
+       14px w400 PingFang SC     行宽 303px ≈  21 字  「Discover S」
+       14px w500 PingFang SC     行宽  14px ≈   1 字  「→」
+     13.5px w400 PingFang SC     行宽 237px ≈  17 字  「战役、会议与纪念地，」
+       13px w500 TRACE Serif     行宽  26px ≈   2 字  「记」
+       13px w400 PingFang SC     行宽 232px ≈  17 字  「距上次备份已超 30」
+       12px w400 PingFang SC     行宽 237px ≈  19 字  「江西 · 贵州 · 」
+       12px w500 PingFang SC     行宽 237px ≈  19 字  「凡一七九处」
+       12px w700 TRACE Serif     行宽  12px ≈   1 字  「征」
+     11.5px w400 PingFang SC     行宽  83px ≈   7 字  「四川 · 层林尽染」
+       11px w600 PingFang SC     行宽  17px ≈   1 字  「34」
+       10px w400 PingFang SC     行宽 187px ≈  18 字  「TRACE · MY」
+--- review.html  root=16px  横向溢出=0px
+       23px w600 TRACE Serif     行宽  81px ≈   3 字  「0」
+       18px w400 TRACE Serif     行宽  53px ≈   2 字  「0 / 31」
+       17px w400 TRACE Serif     行宽 299px ≈  17 字  「旅程回顾」
+       17px w600 TRACE Serif     行宽 339px ≈  19 字  「成果工坊」
+       16px w600 TRACE Serif     行宽 213px ≈  13 字  「旅行图册」
+       16px w600 SF Pro Display  行宽 148px ≈   9 字  「去留下第一篇记录 →」
+       15px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+       13px w600 SF Pro Display  行宽 109px ≈   8 字  「横版海报」
+       13px w400 SF Pro Display  行宽 109px ≈   8 字  「制图海报」
+       12px w400 SF Pro Display  行宽 339px ≈  28 字  「生成需要至少 1 篇」
+       12px w600 SF Pro Display  行宽  84px ≈   7 字  「还没有标签」
+       11px w400 SF Pro Display  行宽  41px ≈   3 字  「日」
+       10px w400 SF Pro Display  行宽  34px ≈   3 字  「篇游记」
+--- topic.html  root=16px  横向溢出=0px
+       20px w700 PingFang SC     行宽  15px ≈   0 字  「+」
+       15px w400 PingFang SC     行宽  36px ≈   2 字  「←」
+       15px w700 TRACE Serif     行宽 115px ≈   7 字  「四川风光人文地图」
+       13px w600 TRACE Serif     行宽  57px ≈   4 字  「全部」
+       13px w400 TRACE Serif     行宽  70px ≈   5 字  「四川省」
+       13px w700 SF Pro Display  行宽  23px ≈   1 字  「113」
+       13px w500 SF Pro Display  行宽  27px ≈   2 字  「成都」
+       13px w400 SF Pro Display  行宽 188px ≈  14 字  「地图瓦片加载失败，请」
+       12px w400 TRACE Serif     行宽 114px ≈   9 字  「© OpenStre」
+       12px w700 PingFang SC     行宽  22px ≈   1 字  「486」
+       12px w400 PingFang SC     行宽  92px ≈   7 字  「古城古镇 60」
+       10px w700 SF Pro Display  行宽  48px ≈   4 字  「必去15」
+      9.5px w400 PingFang SC     行宽 110px ≈  11 字  「· 共 486 处（」
+--- planner.html  root=16px  横向溢出=0px
+       15px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+       13px w600 PingFang SC     行宽  92px ≈   7 字  「开始规划」
+       12px w600 SF Pro Display  行宽  40px ≈   3 字  「关」
+       12px w400 SF Pro Display  行宽  52px ≈   4 字  「叙事」
+       12px w600 PingFang SC     行宽  54px ≈   4 字  「自驾」
+       12px w400 PingFang SC     行宽  78px ≈   6 字  「公共交通」
+       11px w400 SF Pro Display  行宽 140px ≈  12 字  「把想去的地方串成一场」
+       11px w700 SF Pro Display  行宽 305px ≈  27 字  「从哪里开始」
+    卡片: 343×114(91.5%宽) | 343×442(91.5%宽)
+  >> 本页族字号集合: 27.8 23 22 20 18 17 16 15 14.7 14 13.5 13 12 11.5 11 10 9.5
+
+########## CSS 视口 424 x 933 ##########
+--- index.html  root=17.28px  横向溢出=0px
+     31.4px w400 TRACE Serif     行宽 384px ≈  12 字  「最近的旅行」
+       22px w400 TRACE Serif     行宽 286px ≈  13 字  「红军长征路线地图」
+     21.6px w400 TRACE Serif     行宽  40px ≈   1 字  「迹」
+     18.4px w400 TRACE Serif     行宽  92px ≈   4 字  「九寨沟彩林」
+     17.3px w400 PingFang SC     行宽  17px ≈   0 字  「→」
+     16.2px w600 PingFang SC     行宽  17px ≈   1 字  「→」
+     16.2px w400 TRACE Serif     行宽  38px ≈   2 字  「1」
+     15.9px w500 TRACE Serif     行宽  25px ≈   1 字  「壹」
+     15.1px w400 TRACE Serif     行宽 202px ≈  13 字  「行迹」
+     15.1px w400 PingFang SC     行宽 327px ≈  21 字  「Discover S」
+     15.1px w500 PingFang SC     行宽  15px ≈   1 字  「→」
+     14.6px w400 PingFang SC     行宽 286px ≈  19 字  「战役、会议与纪念地，」
+       14px w500 TRACE Serif     行宽  26px ≈   1 字  「记」
+       14px w400 PingFang SC     行宽 278px ≈  19 字  「距上次备份已超 30」
+       13px w400 PingFang SC     行宽 286px ≈  22 字  「江西 · 贵州 · 」
+       13px w500 PingFang SC     行宽 286px ≈  22 字  「凡一七九处」
+       13px w700 TRACE Serif     行宽  13px ≈   0 字  「征」
+     12.4px w400 PingFang SC     行宽  89px ≈   7 字  「四川 · 层林尽染」
+     11.9px w600 PingFang SC     行宽  18px ≈   1 字  「34」
+     10.8px w400 PingFang SC     行宽 202px ≈  18 字  「TRACE · MY」
+--- review.html  root=17.28px  横向溢出=0px
+       23px w600 TRACE Serif     行宽  94px ≈   4 字  「0」
+     19.4px w400 TRACE Serif     行宽  63px ≈   3 字  「0 / 31」
+     18.4px w400 TRACE Serif     行宽 348px ≈  18 字  「旅程回顾」
+     18.4px w600 TRACE Serif     行宽 388px ≈  21 字  「成果工坊」
+     17.3px w600 TRACE Serif     行宽 262px ≈  15 字  「旅行图册」
+     17.3px w600 SF Pro Display  行宽 159px ≈   9 字  「去留下第一篇记录 →」
+     16.2px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+       14px w600 SF Pro Display  行宽 125px ≈   8 字  「横版海报」
+       14px w400 SF Pro Display  行宽 125px ≈   8 字  「制图海报」
+       13px w400 SF Pro Display  行宽 388px ≈  29 字  「生成需要至少 1 篇」
+       13px w600 SF Pro Display  行宽  89px ≈   6 字  「还没有标签」
+     11.9px w400 SF Pro Display  行宽  48px ≈   4 字  「日」
+     10.8px w400 SF Pro Display  行宽  37px ≈   3 字  「篇游记」
+--- topic.html  root=17.28px  横向溢出=0px
+     21.6px w700 PingFang SC     行宽  16px ≈   0 字  「+」
+     16.2px w400 PingFang SC     行宽  36px ≈   2 字  「←」
+     16.2px w700 TRACE Serif     行宽 158px ≈   9 字  「四川风光人文地图」
+       14px w600 TRACE Serif     行宽  59px ≈   4 字  「全部」
+       14px w400 TRACE Serif     行宽  73px ≈   5 字  「四川省」
+       14px w700 SF Pro Display  行宽  25px ≈   1 字  「113」
+       14px w500 SF Pro Display  行宽  29px ≈   2 字  「成都」
+       14px w400 SF Pro Display  行宽 212px ≈  15 字  「地图瓦片加载失败，请」
+       13px w400 TRACE Serif     行宽 122px ≈   9 字  「© OpenStre」
+       13px w700 PingFang SC     行宽  24px ≈   1 字  「486」
+       13px w400 PingFang SC     行宽  97px ≈   7 字  「古城古镇 60」
+     10.8px w700 SF Pro Display  行宽  50px ≈   4 字  「必去15」
+     10.3px w400 PingFang SC     行宽 153px ≈  14 字  「· 共 486 处（」
+--- planner.html  root=17.28px  横向溢出=0px
+     16.2px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+       14px w600 PingFang SC     行宽  96px ≈   6 字  「开始规划」
+       13px w600 SF Pro Display  行宽  41px ≈   3 字  「关」
+       13px w400 SF Pro Display  行宽  54px ≈   4 字  「叙事」
+       13px w600 PingFang SC     行宽  56px ≈   4 字  「自驾」
+       13px w400 PingFang SC     行宽  82px ≈   6 字  「公共交通」
+     11.9px w400 SF Pro Display  行宽 151px ≈  12 字  「把想去的地方串成一场」
+     11.9px w700 SF Pro Display  行宽 354px ≈  29 字  「从哪里开始」
+    卡片: 392×115(92.5%宽) | 392×450(92.5%宽)
+  >> 本页族字号集合: 31.4 23 22 21.6 19.4 18.4 17.3 16.2 15.9 15.1 14.6 14 13 12.4 11.9 10.8 10.3
+
+########## CSS 视口 452 x 995 ##########
+--- index.html  root=17.92px  横向溢出=0px
+     33.4px w400 TRACE Serif     行宽 412px ≈  12 字  「最近的旅行」
+     22.4px w400 TRACE Serif     行宽  40px ≈   1 字  「迹」
+       22px w400 TRACE Serif     行宽 314px ≈  14 字  「红军长征路线地图」
+       19px w400 TRACE Serif     行宽  95px ≈   5 字  「九寨沟彩林」
+     17.9px w400 PingFang SC     行宽  18px ≈   1 字  「→」
+     16.8px w600 PingFang SC     行宽  18px ≈   1 字  「→」
+     16.8px w400 TRACE Serif     行宽  38px ≈   2 字  「1」
+     16.5px w500 TRACE Serif     行宽  26px ≈   1 字  「壹」
+     15.7px w400 TRACE Serif     行宽 210px ≈  13 字  「行迹」
+     15.7px w400 PingFang SC     行宽 339px ≈  21 字  「Discover S」
+     15.7px w500 PingFang SC     行宽  16px ≈   0 字  「→」
+     15.1px w400 PingFang SC     行宽 314px ≈  20 字  「战役、会议与纪念地，」
+     14.6px w500 TRACE Serif     行宽  26px ≈   1 字  「记」
+     14.6px w400 PingFang SC     行宽 304px ≈  20 字  「距上次备份已超 30」
+     13.4px w400 PingFang SC     行宽 314px ≈  23 字  「江西 · 贵州 · 」
+     13.4px w500 PingFang SC     行宽 314px ≈  23 字  「凡一七九处」
+     13.4px w700 TRACE Serif     行宽  13px ≈   1 字  「征」
+     12.9px w400 PingFang SC     行宽  93px ≈   7 字  「四川 · 层林尽染」
+     12.3px w600 PingFang SC     行宽  19px ≈   1 字  「34」
+     11.2px w400 PingFang SC     行宽 210px ≈  18 字  「TRACE · MY」
+--- review.html  root=17.92px  横向溢出=0px
+       23px w600 TRACE Serif     行宽 101px ≈   4 字  「0」
+     20.2px w400 TRACE Serif     行宽  68px ≈   3 字  「0 / 31」
+       19px w400 TRACE Serif     行宽 376px ≈  19 字  「旅程回顾」
+       19px w600 TRACE Serif     行宽 416px ≈  21 字  「成果工坊」
+     17.9px w600 TRACE Serif     行宽 290px ≈  16 字  「旅行图册」
+     17.9px w600 SF Pro Display  行宽 165px ≈   9 字  「去留下第一篇记录 →」
+     16.8px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+     14.6px w600 SF Pro Display  行宽 135px ≈   9 字  「横版海报」
+     14.6px w400 SF Pro Display  行宽 135px ≈   9 字  「制图海报」
+     13.4px w400 SF Pro Display  行宽 416px ≈  31 字  「生成需要至少 1 篇」
+     13.4px w600 SF Pro Display  行宽  91px ≈   6 字  「还没有标签」
+     12.3px w400 SF Pro Display  行宽  52px ≈   4 字  「日」
+     11.2px w400 SF Pro Display  行宽  38px ≈   3 字  「篇游记」
+--- topic.html  root=17.92px  横向溢出=0px
+     22.4px w700 PingFang SC     行宽  17px ≈   0 字  「+」
+     16.8px w400 PingFang SC     行宽  36px ≈   2 字  「←」
+     16.8px w700 TRACE Serif     行宽 184px ≈  10 字  「四川风光人文地图」
+     14.6px w600 TRACE Serif     行宽  60px ≈   4 字  「全部」
+     14.6px w400 TRACE Serif     行宽  75px ≈   5 字  「四川省」
+     14.6px w700 SF Pro Display  行宽  26px ≈   1 字  「113」
+     14.6px w500 SF Pro Display  行宽  30px ≈   2 字  「成都」
+     14.6px w400 SF Pro Display  行宽 226px ≈  15 字  「地图瓦片加载失败，请」
+     13.4px w400 TRACE Serif     行宽 126px ≈   9 字  「© OpenStre」
+     13.4px w700 PingFang SC     行宽  25px ≈   1 字  「486」
+     13.4px w400 PingFang SC     行宽 100px ≈   7 字  「古城古镇 60」
+     11.2px w700 SF Pro Display  行宽  52px ≈   4 字  「必去15」
+     10.6px w400 PingFang SC     行宽 179px ≈  16 字  「· 共 486 处（」
+--- planner.html  root=17.92px  横向溢出=0px
+     16.8px w400 SF Pro Display  行宽  40px ≈   2 字  「←」
+     14.6px w600 PingFang SC     行宽  99px ≈   6 字  「开始规划」
+     13.4px w600 SF Pro Display  行宽  41px ≈   3 字  「关」
+     13.4px w400 SF Pro Display  行宽  55px ≈   4 字  「叙事」
+     13.4px w600 PingFang SC     行宽  57px ≈   4 字  「自驾」
+     13.4px w400 PingFang SC     行宽  84px ≈   6 字  「公共交通」
+     12.3px w400 SF Pro Display  行宽 157px ≈  12 字  「把想去的地方串成一场」
+     12.3px w700 SF Pro Display  行宽 382px ≈  31 字  「从哪里开始」
+    卡片: 420×116(92.9%宽) | 420×457(92.9%宽) | 420×182(92.9%宽)
+  >> 本页族字号集合: 33.4 23 22.4 22 20.2 19 17.9 16.8 16.5 15.7 15.1 14.6 13.4 12.9 12.3 11.2 10.6

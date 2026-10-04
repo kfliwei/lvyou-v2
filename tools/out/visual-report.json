@@ -1,16 +1,17 @@
 {
-  "ranAt": "2026-10-04T06:39:45.580Z",
+  "ranAt": "2026-10-04T12:53:18.906Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
     "320x640",
     "390x844",
+    "452x995",
     "768x1024",
     "1440x900"
   ],
-  "states": 64,
+  "states": 79,
   "fail": 0,
-  "elapsedSec": 269.1,
+  "elapsedSec": 380.6,
   "results": [
     {
       "state": "index.320x640.png",
@@ -20,6 +21,12 @@
     },
     {
       "state": "index.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -49,6 +56,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "topic.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "topic.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -68,6 +81,12 @@
     },
     {
       "state": "search.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -97,6 +116,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "wishlist.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "wishlist.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -116,6 +141,12 @@
     },
     {
       "state": "review.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -145,6 +176,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "settings.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "settings.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -164,6 +201,12 @@
     },
     {
       "state": "me.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -193,6 +236,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "node-manager.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "node-manager.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -212,6 +261,12 @@
     },
     {
       "state": "album.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -241,6 +296,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "album-edit.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "album-edit.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -260,6 +321,12 @@
     },
     {
       "state": "story.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -289,6 +356,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "planner.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "planner.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -313,6 +386,12 @@
       "limitPct": 0.1
     },
     {
+      "state": "md-manager.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
       "state": "md-manager.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
@@ -327,11 +406,17 @@
     {
       "state": "explore-map.320x640.png",
       "status": "PASS",
-      "diffPct": 0,
+      "diffPct": 0.001,
       "limitPct": 0.1
     },
     {
       "state": "explore-map.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -356,6 +441,12 @@
     },
     {
       "state": "travel-map.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "travel-map.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -399,16 +490,16 @@
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1236,
+      "lcpMs": 1624,
       "lcpEl": "SPAN",
       "cls": 0
     },
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 1348,
+      "lcpMs": 1344,
       "lcpEl": "?",
-      "cls": 0
+      "cls": 0.0009
     }
   ]
 }

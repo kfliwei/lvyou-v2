@@ -1,0 +1,32 @@
+
+########## CSS 视口 375 x 825 ##########
+--- index.html  根字号 md=16px / sm=15(93.8%) / lg=17(106.3%)
+    可见叶子文字 75 个，md→lg 真变号 64 个（85.3%），没动 11 个
+    没动的: H2.section-title.fade-up#1=27.75「最近的旅行」 | H2.section-title.fade-up#2=27.75「10 月，去哪？」 | H2.section-title.fade-up#3=27.75「附近，有什么故事」 | DIV.story-item__title#1=22「红军长征路线地图」 | DIV.story-item__title#2=22「广西云南山水地图」 | DIV.story-item__title#3=22「青藏风光地图」 | DIV.story-item__title#4=22「山西古建地图」 | DIV.story-item__title#5=22「四川风光人文地图」
+    横向溢出 md/sm/lg = 0/0/0px
+--- review.html  根字号 md=16px / sm=15(93.8%) / lg=17(106.3%)
+    可见叶子文字 136 个，md→lg 真变号 128 个（94.1%），没动 8 个
+    没动的: B.#1=23「0」 | B.#2=23「0」 | B.#3=23「0」 | B.#4=23「0」 | B.#5=23「0」 | B.#6=23「0」 | B.#7=23「0」 | B.#8=23「—」
+    横向溢出 md/sm/lg = 0/0/0px
+--- planner.html  根字号 md=16px / sm=15(93.8%) / lg=17(106.3%)
+    可见叶子文字 38 个，md→lg 真变号 38 个（100.0%），没动 0 个
+    横向溢出 md/sm/lg = 0/0/0px
+--- settings.html  根字号 md=16px / sm=15(93.8%) / lg=17(106.3%)
+    可见叶子文字 101 个，md→lg 真变号 101 个（100.0%），没动 0 个
+    横向溢出 md/sm/lg = 0/0/0px
+
+########## CSS 视口 452 x 995 ##########
+--- index.html  根字号 md=17.92px / sm=15(83.7%) / lg=17(94.9%)
+    可见叶子文字 75 个，md→lg 真变号 64 个（85.3%），没动 11 个
+    没动的: H2.section-title.fade-up#1=33.45「最近的旅行」 | H2.section-title.fade-up#2=33.45「10 月，去哪？」 | H2.section-title.fade-up#3=33.45「附近，有什么故事」 | DIV.story-item__title#1=22「红军长征路线地图」 | DIV.story-item__title#2=22「广西云南山水地图」 | DIV.story-item__title#3=22「青藏风光地图」 | DIV.story-item__title#4=22「山西古建地图」 | DIV.story-item__title#5=22「四川风光人文地图」
+    横向溢出 md/sm/lg = 0/0/0px
+--- review.html  根字号 md=17.92px / sm=15(83.7%) / lg=17(94.9%)
+    可见叶子文字 136 个，md→lg 真变号 128 个（94.1%），没动 8 个
+    没动的: B.#1=23「0」 | B.#2=23「0」 | B.#3=23「0」 | B.#4=23「0」 | B.#5=23「0」 | B.#6=23「0」 | B.#7=23「0」 | B.#8=23「—」
+    横向溢出 md/sm/lg = 0/0/0px
+--- planner.html  根字号 md=17.92px / sm=15(83.7%) / lg=17(94.9%)
+    可见叶子文字 38 个，md→lg 真变号 38 个（100.0%），没动 0 个
+    横向溢出 md/sm/lg = 0/0/0px
+--- settings.html  根字号 md=17.92px / sm=15(83.7%) / lg=17(94.9%)
+    可见叶子文字 101 个，md→lg 真变号 101 个（100.0%），没动 0 个
+    横向溢出 md/sm/lg = 0/0/0px

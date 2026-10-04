@@ -77,10 +77,11 @@ python -m http.server 8125
 无构建、无测试框架，验证靠**可复跑的闸门**。五条独立命令，没有统一入口脚本（`tools/check-release.js` 不存在，别再找它）：
 
 ```bash
-node tools/verify.js            # 提交前闸门（已装成 .git/hooks/pre-commit）：语法/编码/emoji 逐行登记/nation-index 覆盖/图标依赖/离线壳完整性 + §11 图片/§12 对比度/§13 状态矩阵/§14 品牌签名/§15 启动屏源真值/§16 备份键策略/§17 只读分享闸门/§18 天气闸门/§19 时序与转场/§20 用户画像闸门
+node tools/verify.js            # 提交前闸门（已装成 .git/hooks/pre-commit）：语法/编码/emoji 逐行登记/nation-index 覆盖/图标依赖/离线壳完整性 + §11 图片/§12 对比度/§13 状态矩阵/§14 品牌签名/§15 启动屏源真值/§16 备份键策略/§17 只读分享闸门/§18 天气闸门/§19 时序与转场/§20 用户画像闸门/§21 字号阶梯与品牌字进包/§22 实景图压色与分界描边
 node tools/visual-check.js      # 视觉回归：64 态像素 diff（15 页 × 320/390/768/1440 + 4 张种子态，约 294s）
 node tools/smoke-planner.js     # 行程规划真实浏览器冒烟（84 条断言，桩 fetch + 假 Key；倒数第二段 26 条是日卡天气位，末段 9 条是 AI 画像注入，接口在测试里 mock）
 node tools/smoke-motion.js      # 时序与减动效真浏览器冒烟（31 条：--motion-* 阶梯在浏览器里求值、三处 UI.vt 真被调用、减动效档全页逐元素 ≤1 帧、转场不许冒未捕获异常）
+node tools/smoke-photo.js       # 实景图压色真实浏览器冒烟（16 条：缩略图/封面/裸图三类表面实测吃到 --photo-look、veil、inset 环；map.css 后发的第二条 .ls-img 声明不许吃掉描边；摘掉两个 token 前后封面平均亮度必须差 5–14（0–255 域），证明压色真落到像素上而不是只写在 CSS 里）
 node tools/sync-assets.js       # 改完前端必须同步进 assets：优先交付壳 ../lvyou-v2-android/app/src/main/assets，缺壳才落 android_app/（TRACE_SRC / TRACE_ASSETS_DST 可覆盖）
 ```
 

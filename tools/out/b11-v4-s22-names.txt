@@ -1,0 +1,19 @@
+=== 可能与表面名撞子串的选择器 ===
+.al-ch-img
+.al-ch-img--tall
+.al-ch-img--wide
+.eph
+.eph-empty
+.imgbox
+.ls-img
+.ls-img-ph
+.ls-img-ph-ch
+.p-cell
+.ph
+.ph-ch
+.phText
+.phase
+.phead
+.photo-wall
+.photos
+.story-item__stamp

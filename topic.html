@@ -12,10 +12,10 @@
    把「共 N 处」小字挤进行内被省略号吞掉（2026-10-03 审核发现） */
 .t-row .title{display:flex;flex-direction:column;justify-content:center;overflow:visible}
 .t-row .title .topic-title{font-size:var(--fs-md,16px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
-.t-row .title small{font-family:var(--font-body);font-size:0.5938rem;opacity:.8;font-weight:400;letter-spacing:.08em;white-space:nowrap}
+.t-row .title small{font-family:var(--font-body);font-size:var(--fs-1);opacity:.8;font-weight:400;letter-spacing:.08em;white-space:nowrap}
 .theme-dark .t-row .title,.theme-dark .t-row .title small{color:var(--color-ink)}
-.pop{max-width:200px;font-size:12px}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
-.pop .pm{color:var(--color-muted);margin-top:6px;font-size:0.6875rem}.pop .pfoot{margin-top:10px;display:flex;gap:8px}
+.pop{max-width:200px;font-size:var(--fs-3)}.pop .pscroll{max-height:30vh;overflow-y:auto;padding:8px 10px}
+.pop .pm{color:var(--color-muted);margin-top:6px;font-size:var(--fs-2)}.pop .pfoot{margin-top:10px;display:flex;gap:8px}
 .pop .pa{line-height:1.6}
 /* 批次7-C 卷首竖排题签：#list 无容器内边距，靠这一条给左右呼吸（story 侧 #cards 已有 padding，不重复加） */
 #list .vrow{padding:14px 14px 0}

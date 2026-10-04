@@ -24,7 +24,7 @@ window.FootprintPoster = (function () {
   function esc2(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function flash(msg) {
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:var(--color-primary);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:var(--fs-4);z-index:9600;box-shadow:0 6px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2600);
   }
@@ -53,10 +53,10 @@ window.FootprintPoster = (function () {
     bar.style.cssText = 'display:flex;gap:12px;margin-top:18px';
     var save = document.createElement('button');
     save.textContent = '保存到手机';
-    save.style.cssText = 'min-height:46px;padding:0 26px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:14px;cursor:pointer';
+    save.style.cssText = 'min-height:46px;padding:0 26px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-5);cursor:pointer';
     var close = document.createElement('button');
     close.textContent = '关闭';
-    close.style.cssText = 'min-height:46px;padding:0 26px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:transparent;color:#fff;font-size:14px;cursor:pointer';
+    close.style.cssText = 'min-height:46px;padding:0 26px;border:1px solid rgba(255,255,255,.4);border-radius:999px;background:transparent;color:#fff;font-size:var(--fs-5);cursor:pointer';
     save.onclick = function () { try { savePng(title, dataUrl); } catch (e) { flash('保存失败，请重试'); } };
     close.onclick = function () { mask.remove(); };
     bar.appendChild(save); bar.appendChild(close);

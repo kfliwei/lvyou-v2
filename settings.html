@@ -12,33 +12,33 @@
   /* 内容 */
   .content{padding:18px 16px 40px}
   .group{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px;margin-bottom:14px}
-  .group-title{font-family:var(--font-serif);font-size:15px;color:var(--color-ink);margin-bottom:4px}
-  .group-sub{font-size:0.7188rem;color:var(--color-muted);line-height:1.7;margin-bottom:12px;font-family:var(--font-sans)}
+  .group-title{font-family:var(--font-serif);font-size:var(--fs-6);color:var(--color-ink);margin-bottom:4px}
+  .group-sub{font-size:var(--fs-3);color:var(--color-muted);line-height:1.7;margin-bottom:12px;font-family:var(--font-sans)}
   .row{margin-bottom:14px;display:block}  /* 本页标签在上、控件在下；design.css 的全局 .row:flex 会把长 chips 行的标签挤成竖排，此处恢复堆叠 */
   .row:last-child{margin-bottom:0}
-  .row-label{font-size:12px;color:var(--color-ink-soft);margin-bottom:7px;font-weight:600}
-  input[type=text],input[type=password]{width:100%;min-height:46px;padding:0 14px;border:1px solid var(--color-line);border-radius:12px;font-size:14px;background:var(--color-bg-soft);color:var(--color-ink);outline:0;box-sizing:border-box;font-family:var(--font-sans)}
+  .row-label{font-size:var(--fs-3);color:var(--color-ink-soft);margin-bottom:7px;font-weight:600}
+  input[type=text],input[type=password]{width:100%;min-height:46px;padding:0 14px;border:1px solid var(--color-line);border-radius:12px;font-size:var(--fs-5);background:var(--color-bg-soft);color:var(--color-ink);outline:0;box-sizing:border-box;font-family:var(--font-sans)}
   input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
-  .chips button{padding:8px 16px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:12.5px;cursor:pointer;font-family:var(--font-sans)}
+  .chips button{padding:8px 16px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-4);cursor:pointer;font-family:var(--font-sans)}
   .chips button.on{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600;box-shadow:0 3px 12px rgba(200,109,75,.22)}
   /* 开关 */
   .switchrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0}
-  .switchrow .sw-label{font-size:13.5px;color:var(--color-ink)}
-  .switchrow .sw-sub{font-size:0.6875rem;color:var(--color-muted);margin-top:2px;font-family:var(--font-sans)}
+  .switchrow .sw-label{font-size:var(--fs-5);color:var(--color-ink)}
+  .switchrow .sw-sub{font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;font-family:var(--font-sans)}
   .sw{width:48px;height:28px;border-radius:999px;background:var(--color-primary);position:relative;flex:0 0 auto;cursor:pointer;transition:background var(--duration-normal)}
   .sw::after{content:"";position:absolute;top:3px;right:3px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:right var(--duration-normal)}
   .sw.off{background:var(--color-line-strong)}
   .sw.off::after{right:auto;left:3px}
   /* 存储 */
-  .storage{font-size:14px;color:var(--color-ink-soft);font-weight:600}
+  .storage{font-size:var(--fs-5);color:var(--color-ink-soft);font-weight:600}
   /* 数据管理按钮 */
   .data-acts{display:flex;flex-direction:column;gap:10px}
-  .data-acts .btn-primary,.data-acts .btn-secondary{width:100%;min-height:46px;border-radius:999px;font-size:14px;font-family:var(--font-sans)}
-  .data-danger{width:100%;min-height:46px;border:1px solid var(--color-line-strong);border-radius:999px;background:transparent;color:var(--color-danger,#B34A3F);font-size:14px;cursor:pointer;font-family:var(--font-sans)}
+  .data-acts .btn-primary,.data-acts .btn-secondary{width:100%;min-height:46px;border-radius:999px;font-size:var(--fs-5);font-family:var(--font-sans)}
+  .data-danger{width:100%;min-height:46px;border:1px solid var(--color-line-strong);border-radius:999px;background:transparent;color:var(--color-danger,#B34A3F);font-size:var(--fs-5);cursor:pointer;font-family:var(--font-sans)}
   .data-danger:active{background:rgba(179,74,63,.08)}
   /* 云同步状态行 */
-  .wd-line{font-size:0.7188rem;color:var(--color-muted);line-height:1.7;word-break:break-all;font-family:var(--font-sans)}
+  .wd-line{font-size:var(--fs-3);color:var(--color-muted);line-height:1.7;word-break:break-all;font-family:var(--font-sans)}
   .wd-line.ok{color:var(--color-primary-dark)}
   .wd-line.err{color:var(--color-danger,#B34A3F)}
   .wd-sep{height:1px;background:var(--color-line);margin:14px 0}
@@ -49,7 +49,7 @@
    v3 CINEMATIC LAYER · 设置
    ============================================================ */
   .group{border-radius:20px;padding:18px}
-  .group-title{font-size:16px;font-weight:600;letter-spacing:.03em;display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .group-title{font-size:var(--fs-7);font-weight:600;letter-spacing:.03em;display:flex;align-items:center;gap:9px;margin-bottom:5px}
   .group-title::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--grad-gold-line)}
   input[type=text],input[type=password]{border-radius:14px;background:var(--color-surface);transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
   input:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.10)}
@@ -66,14 +66,14 @@
   body{padding-bottom:112px}
   /* 高级设置折叠组 */
   details.adv{padding:0;overflow:hidden}
-  details.adv .adv-summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-serif);font-size:15px;color:var(--color-ink);padding:16px;user-select:none}
+  details.adv .adv-summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-serif);font-size:var(--fs-6);color:var(--color-ink);padding:16px;user-select:none}
   details.adv .adv-summary::-webkit-details-marker{display:none}
-  details.adv .adv-arr{color:var(--color-faint);font-size:12px;transition:transform var(--motion-mid)}
+  details.adv .adv-arr{color:var(--color-faint);font-size:var(--fs-3);transition:transform var(--motion-mid)}
   details.adv[open] .adv-arr{transform:rotate(180deg)}
   details.adv .adv-body{border-top:1px solid var(--color-line);padding:16px}
   details.adv .adv-item{margin-bottom:18px}
   details.adv .adv-item:last-child{margin-bottom:0}
-  details.adv .adv-sub{font-size:0.7188rem;color:var(--color-muted);margin-top:6px;line-height:1.7;font-family:var(--font-sans)}
+  details.adv .adv-sub{font-size:var(--fs-3);color:var(--color-muted);margin-top:6px;line-height:1.7;font-family:var(--font-sans)}
 </style>
 </head>
 <body>
@@ -100,7 +100,7 @@
         <input type="text" id="inBase" placeholder="https://…/v1/chat/completions" autocomplete="off">
       </div>
       <div class="row">
-        <div class="row-label">② API Key <span id="keyHint" style="font-weight:400;color:var(--color-muted);font-size:11px"></span></div>
+        <div class="row-label">② API Key <span id="keyHint" style="font-weight:400;color:var(--color-muted);font-size:var(--fs-2)"></span></div>
         <input type="password" id="inKey" placeholder="sk-…" autocomplete="off">
       </div>
       <div class="row">
@@ -109,8 +109,8 @@
         <input type="text" id="inModel" placeholder="手动输入模型 ID" autocomplete="off" style="margin-top:8px;display:none">
       </div>
       <div class="row">
-        <button class="btn-secondary" id="btnTest" style="width:100%;min-height:46px;border-radius:999px;font-size:14px">④ 测试连接</button>
-        <div id="testResult" style="margin-top:8px;font-size:12px;line-height:1.7;color:var(--color-muted)"></div>
+        <button class="btn-secondary" id="btnTest" style="width:100%;min-height:46px;border-radius:999px;font-size:var(--fs-5)">④ 测试连接</button>
+        <div id="testResult" style="margin-top:8px;font-size:var(--fs-3);line-height:1.7;color:var(--color-muted)"></div>
       </div>
       <div class="switchrow">
         <div><div class="sw-label">个性化推荐</div><div class="sw-sub">AI 精选路线会带上你去过的省市、心愿单主题、近期标签（只给聚合关键词，不带游记正文）；关掉就一个字都不带</div></div>
@@ -134,7 +134,7 @@
         <div><div class="sw-label">保留原声</div><div class="sw-sub">保存语音原文，可在游记里回放</div></div>
         <div class="sw" id="swKeep" onclick="toggle('swKeep','tn_keepAudio')"></div>
       </div>
-      <div class="voice-diag" id="voiceDiag" style="margin-top:12px;font-size:12px;color:var(--color-muted);line-height:1.8"></div>
+      <div class="voice-diag" id="voiceDiag" style="margin-top:12px;font-size:var(--fs-3);color:var(--color-muted);line-height:1.8"></div>
     </div>
 
     <!-- 游记 -->
@@ -150,7 +150,7 @@
     <details class="group adv" id="advGroup">
       <summary class="adv-summary">
         <span style="flex:1">高级设置</span>
-        <span style="font-size:11px;color:var(--color-muted);letter-spacing:.04em">地图调节与数据迁移</span>
+        <span style="font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.04em">地图调节与数据迁移</span>
         <span class="adv-arr">▾</span>
       </summary>
       <div class="adv-body">
@@ -187,29 +187,29 @@
         <div class="adv-item">
           <div class="row-label">高德地图 Key</div>
           <div style="display:flex;gap:8px;margin-top:4px">
-            <input id="amapKeyInput" type="text" autocomplete="off" placeholder="Web 服务 Key（console.amap.com 免费申请）" style="flex:1;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:13px;padding:0 16px">
-            <button class="btn-secondary" style="flex:0 0 auto;min-height:44px;border-radius:999px;font-size:13px;padding:0 18px" onclick="saveAmapKey()">保存</button>
+            <input id="amapKeyInput" type="text" autocomplete="off" placeholder="Web 服务 Key（console.amap.com 免费申请）" style="flex:1;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4);padding:0 16px">
+            <button class="btn-secondary" style="flex:0 0 auto;min-height:44px;border-radius:999px;font-size:var(--fs-4);padding:0 18px" onclick="saveAmapKey()">保存</button>
           </div>
           <div class="adv-sub">用于「随手记」地点识别与「我的地点」搜索，仅保存在本机。</div>
         </div>
         <div class="adv-item">
           <div class="row-label">管理 MD 库</div>
-          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="location.href='md-manager.html'">管理 MD 库</button>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:var(--fs-5)" onclick="location.href='md-manager.html'">管理 MD 库</button>
           <div class="adv-sub">管理内置的景点讲解文稿（Markdown 格式），一般不用动。</div>
         </div>
         <div class="adv-item">
           <div class="row-label">补全地点信息</div>
-          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="backfillGeoBtn()">补全地点信息</button>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:var(--fs-5)" onclick="backfillGeoBtn()">补全地点信息</button>
           <div class="adv-sub">给早期没有位置信息的游记自动补上省市。</div>
         </div>
         <div class="adv-item">
           <div class="row-label">导出 Obsidian 库</div>
-          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:14px" onclick="expVault()">导出 Obsidian 库</button>
+          <button class="btn-secondary" style="width:100%;min-height:46px;border-radius:999px;font-size:var(--fs-5)" onclick="expVault()">导出 Obsidian 库</button>
           <div class="adv-sub">导出成笔记文件，供 Obsidian 用户整理归档，普通用户可忽略。</div>
         </div>
         <div class="adv-item">
           <div class="row-label">载入示例数据</div>
-          <a href="test-data.html" style="font-size:12.5px;color:var(--color-primary-dark);text-decoration:none">载入示例数据（演示用）→</a>
+          <a href="test-data.html" style="font-size:var(--fs-4);color:var(--color-primary-dark);text-decoration:none">载入示例数据（演示用）→</a>
           <div class="adv-sub">演示用，会添加一批示例游记，正式使用请勿点。</div>
         </div>
       </div>
@@ -247,7 +247,7 @@
         <button class="btn-secondary" onclick="impBackup()">导入备份</button>
         <button class="data-danger" onclick="clearAll()">清除全部数据</button>
       </div>
-      <div style="margin-top:10px;font-size:0.7188rem;color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
+      <div style="margin-top:10px;font-size:var(--fs-3);color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
     </div>
 
     <!-- 云同步（WebDAV 全量备份） -->
@@ -588,7 +588,7 @@
   function toast(msg){
     if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18)';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18)';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function(){ d.remove(); }, 2000);
   }

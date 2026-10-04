@@ -188,7 +188,7 @@
     if (noKey && !hint) {
       hint = document.createElement('div');
       hint.id = 'aiHint';
-      hint.style.cssText = 'font-size:11px;color:var(--color-muted);margin:-4px 0 12px;line-height:1.6';
+      hint.style.cssText = 'font-size:var(--fs-2);color:var(--color-muted);margin:-4px 0 12px;line-height:1.6';
       el.parentNode.insertBefore(hint, el.nextSibling);
     }
     if (hint) hint.textContent = noKey ? '未配置 AI Key，仅规则模式（去「设置」填入后可启用叙事/全量）' : '';
@@ -596,7 +596,7 @@
         + lines
         + '<button class="btn primary" style="width:100%;margin-top:12px" onclick="window.plannerUseAiRoute(' + i + ')">选用此路线</button></div>';
     }).join('')
-      + '<div style="font-size:11px;color:var(--color-muted);line-height:1.7;margin:2px 2px 10px">共 ' + arData.routes.length + ' 条 · 选一条进入排期，之后可随时增减景点或换一条重新生成。</div>'
+      + '<div style="font-size:var(--fs-2);color:var(--color-muted);line-height:1.7;margin:2px 2px 10px">共 ' + arData.routes.length + ' 条 · 选一条进入排期，之后可随时增减景点或换一条重新生成。</div>'
       + '<button class="btn ghost" style="width:100%" onclick="window.plannerAiRoutesAgain()">↻ 换一批路线</button>';
   }
   window.plannerAiRoutesAgain = function () {
@@ -605,7 +605,7 @@
   window.plannerUseAiRoute = function (i) {
     var r = arData && arData.routes[i]; if (!r) return;
     var out = $id('aiRouteOut');
-    out.innerHTML = '<div class="card" style="text-align:center;color:var(--color-muted);font-size:13px;padding:22px">⏳ 正在匹配景点坐标…</div>';
+    out.innerHTML = '<div class="card" style="text-align:center;color:var(--color-muted);font-size:var(--fs-4);padding:22px">⏳ 正在匹配景点坐标…</div>';
     var slots = [];
     r.days.forEach(function (d, di) { (d || []).forEach(function (nm) { slots.push({ name: nm, day: di, node: null }); }); });
     var pos = 0;
@@ -646,7 +646,7 @@
         if (miss) toast('已跳过 ' + miss + ' 处无法定位的景点');
       };
       if (!getAmapKey() || flatAll.length > AMAP_MAX_STOPS) { commitAi(null); return; }
-      out.innerHTML = '<div class="card" style="text-align:center;color:var(--color-muted);font-size:13px;padding:22px">正在取真实道路里程…</div>';
+      out.innerHTML = '<div class="card" style="text-align:center;color:var(--color-muted);font-size:var(--fs-4);padding:22px">正在取真实道路里程…</div>';
       fetchDistMatrix(flatAll, function (dist, failed) {
         if (failed) toast(amapCoverageText(Object.keys(dist).length, Object.keys(dist).length + failed));
         commitAi(dist);
@@ -704,8 +704,8 @@
     if (!provSel) { box.style.display = 'none'; box.innerHTML = ''; return; }
     var ts = provThemes(provSel);
     box.style.display = 'block';
-    box.innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:4px">' + esc(provSel) + ' 的主题（多选，下方景点实时联动）</div>' +
-      (ts.length ? ts.map(function (t) { return '<span class="chip' + (state.prefs.indexOf(t) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleCustomPref(\'' + esc(t) + '\')">' + esc(t) + '</span>'; }).join('') : '<span style="font-size:12px;color:var(--color-muted)">该省暂无主题数据</span>');
+    box.innerHTML = '<div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:4px">' + esc(provSel) + ' 的主题（多选，下方景点实时联动）</div>' +
+      (ts.length ? ts.map(function (t) { return '<span class="chip' + (state.prefs.indexOf(t) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleCustomPref(\'' + esc(t) + '\')">' + esc(t) + '</span>'; }).join('') : '<span style="font-size:var(--fs-3);color:var(--color-muted)">该省暂无主题数据</span>');
   }
   /* 点省：toggle 展开/收起 */
   window.plannerPickProv = function (prov) {
@@ -754,7 +754,7 @@
 
     h += '<div class="fld"><label>出发日期（用于季节提醒，可空）</label><input type="date" id="intentDate" value="' + esc(state.startDate || '') + '"></div>';
     h += '<div id="aiEnhBar"></div>';
-    $id('intentCard').innerHTML = '<div class="sec-title" style="display:flex;align-items:center;justify-content:space-between">这趟怎么玩<span style="font-size:12px;font-weight:400"><a href="javascript:window.plannerBack()" style="color:var(--color-primary-dark);text-decoration:none">← 修改目的地</a></span></div>' + h;
+    $id('intentCard').innerHTML = '<div class="sec-title" style="display:flex;align-items:center;justify-content:space-between">这趟怎么玩<span style="font-size:var(--fs-3);font-weight:400"><a href="javascript:window.plannerBack()" style="color:var(--color-primary-dark);text-decoration:none">← 修改目的地</a></span></div>' + h;
     /* 目的地 chips */
     var all = Object.keys(regionSet || {});
     var rc = all.map(function (r) { return '<span class="chip' + (state.regions.indexOf(r) >= 0 ? ' on' : '') + '" onclick="window.plannerToggleRegion(\'' + esc(r) + '\')">' + esc(r) + '</span>'; }).join('');
@@ -1010,7 +1010,7 @@
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
     var leg = mkLeg(trip.dist);
-    var h = '<div style="font-size:12px;color:var(--color-muted);margin-bottom:4px">' +
+    var h = '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-bottom:4px">' +
       rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
       (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>';
     days.forEach(function (d, di) {
@@ -1021,13 +1021,13 @@
         h += '<div class="day-card transit"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
           '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
-          '<div style="font-size:11.5px;color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div></div>';
+          '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div></div>';
         return;
       }
       var allDone = d.stops.length > 0 && d.stops.every(function (s) { return s.done; });
       h += '<div class="day-card"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
         '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' + wxSlot(trip, di) +
-        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
+        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
       if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
       d.stops.forEach(function (s, si) {
         var det = detailCache[s.name];
@@ -1064,7 +1064,7 @@
     wxHydrate(trip);   /* 缓存没命中的日子在这一步发请求；拿不到就永远不出现 .wx */
   }
   function renderNarrative(n) {
-    $id('narrBox').innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:6px">AI 行程故事</div>' +
+    $id('narrBox').innerHTML = '<div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:6px">AI 行程故事</div>' +
       '<div class="story">' + esc(n.story) + '</div>' +
       (n.dayThemes && n.dayThemes.length ? '<div class="themes">' + n.dayThemes.map(function (t, i) { return 'D' + (i + 1) + ' · ' + esc(t); }).join('　') + '</div>' : '');
   }
@@ -1095,7 +1095,7 @@
     if (trip.narrative && trip.narrative.story) {
       renderNarrative(trip.narrative);
     } else {
-      nb.innerHTML = '<div style="font-size:11px;color:var(--color-muted);margin-bottom:6px">' + (getAILevel() === 'off' ? 'AI 叙事（关）' : 'AI 叙事中…') + '</div>';
+      nb.innerHTML = '<div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:6px">' + (getAILevel() === 'off' ? 'AI 叙事（关）' : 'AI 叙事中…') + '</div>';
       narrate(days, function (n) { if (!n) return; trip.narrative = n; renderNarrative(n); });
     }
     /* 季节校验：懒加载分省详情后重渲染 stop 区（不打断叙事/地图） */
@@ -1117,14 +1117,14 @@
     m.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(20,16,12,.45);display:flex;align-items:flex-end;justify-content:center';
     var items = state.selected.map(function (s, i) {
       return '<div style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--color-line)">' +
-        '<span style="min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--color-primary);color:var(--bg);font-size:11px">' + (i + 1) + '</span>' +
-        '<span style="flex:1;font-size:13.5px">' + esc(s.name || s.label) + '<span style="display:block;font-size:11px;color:var(--color-muted)">' + esc(s.city || s.region || '') + (s.__cur ? ' · 当前位置' : '') + '</span></span>' +
-        '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerRemovePick(' + i + ')">删除</button></div>';
+        '<span style="min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-2)">' + (i + 1) + '</span>' +
+        '<span style="flex:1;font-size:var(--fs-5)">' + esc(s.name || s.label) + '<span style="display:block;font-size:var(--fs-2);color:var(--color-muted)">' + esc(s.city || s.region || '') + (s.__cur ? ' · 当前位置' : '') + '</span></span>' +
+        '<button class="btn ghost" style="padding:4px 10px;font-size:var(--fs-3)" onclick="window.plannerRemovePick(' + i + ')">删除</button></div>';
     }).join('');
     m.innerHTML = '<div style="width:100%;max-width:430px;max-height:78vh;overflow:auto;background:var(--color-surface,#FBF6EC);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.25)">' +
-      '<div style="display:flex;align-items:center;margin-bottom:8px"><b style="font-size:15px">已选景点（' + state.selected.length + '）</b><span style="flex:1"></span>' +
-      '<button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="window.plannerCloseBrowse()">'+TI('close')+'关闭</button></div>' +
-      (items || '<div class="empty" style="padding:20px 0"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="帐篷线稿"><path d="M60 22 L96 76 H24 Z"/><path d="M60 22 L60 76"/><path d="M60 40 L74 76 M60 40 L46 76" opacity=".6"/><path d="M60 22 V12 H72" opacity=".55"/><path d="M6 78 H114" opacity=".35"/><path d="M88 62 Q96 58 104 62 Q112 58 118 62" opacity=".3"/></svg><span style="font-size:12px;color:var(--color-muted)">还没有选景点</span></div>') +
+      '<div style="display:flex;align-items:center;margin-bottom:8px"><b style="font-size:var(--fs-6)">已选景点（' + state.selected.length + '）</b><span style="flex:1"></span>' +
+      '<button class="btn ghost" style="padding:4px 10px;font-size:var(--fs-3)" onclick="window.plannerCloseBrowse()">'+TI('close')+'关闭</button></div>' +
+      (items || '<div class="empty" style="padding:20px 0"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="帐篷线稿"><path d="M60 22 L96 76 H24 Z"/><path d="M60 22 L60 76"/><path d="M60 40 L74 76 M60 40 L46 76" opacity=".6"/><path d="M60 22 V12 H72" opacity=".55"/><path d="M6 78 H114" opacity=".35"/><path d="M88 62 Q96 58 104 62 Q112 58 118 62" opacity=".3"/></svg><span style="font-size:var(--fs-3);color:var(--color-muted)">还没有选景点</span></div>') +
       '<div style="display:flex;gap:8px;margin-top:12px">' +
       '<button class="btn" style="flex:1" id="browseCurLocBtn" onclick="window.plannerAddCurLoc(this)">'+TI('locate')+'当前位置</button>' +
       '<button class="btn" style="flex:1" onclick="window.plannerClearPicks()">'+TI('trash')+'清空</button></div>' +
@@ -1494,8 +1494,8 @@
   function docShell(name, body) {
     return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(name) + '</title><style>' +
       'body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-width:640px;margin:0 auto;padding:24px 20px;color:#26241F;line-height:1.85;background:#F6F3EC}' +
-      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:18px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +
-      '.muted{color:#8C877D;font-size:12px}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:"Songti SC",serif;margin:12px 0}' +
+      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:var(--fs-8);border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +
+      '.muted{color:#8C877D;font-size:var(--fs-3)}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:"Songti SC",serif;margin:12px 0}' +
       '.note{border-bottom:1px solid #E3DED2;padding:12px 0}.note:last-child{border-bottom:0}' +
       '</style></head><body><div class="wrap">' + body + '</div></body></html>';
   }
@@ -1674,8 +1674,8 @@
     var list = loadTrips();
     var html = list.map(function (t, i) {
       return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
-        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:12px" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
-        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:12px;color:var(--color-muted)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
+        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
+        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:var(--fs-3);color:var(--color-muted)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
     }).join('');
     /* 结果页（stageResult）底部的已保存行程 */
     var card = $id('tripsCard');
@@ -1713,7 +1713,7 @@
         var bar = $id('aiEnhBar');
         if (!bar) return;
         var parts = [j.pace && ('节奏·' + j.pace), j.companions && ('同伴·' + j.companions), j.vibe].filter(Boolean);
-        if (parts.length) bar.innerHTML = '<div style="margin:10px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;background:var(--color-primary-soft);color:var(--color-primary-dark)">' + prefix + esc(parts.join('；')) + '</div>';
+        if (parts.length) bar.innerHTML = '<div style="margin:10px 0;padding:9px 12px;border-radius:10px;font-size:var(--fs-4);background:var(--color-primary-soft);color:var(--color-primary-dark)">' + prefix + esc(parts.join('；')) + '</div>';
       };
       if (getAILevel() === 'full' && window.Ai.hasKey()) {
         aiEnhance(text, function (j) { if (j) renderEnhBar(j, TI('sparkles') + 'AI 补充：'); });
@@ -1769,13 +1769,13 @@
       body = '<div class="fld"><label>是否环线</label><div class="row" style="gap:10px">' +
         '<button class="btn' + (state.isLoop ? ' primary' : '') + '" id="wLoopY" style="flex:1">是 · 回到起点</button>' +
         '<button class="btn' + (!state.isLoop ? ' primary' : '') + '" id="wLoopN" style="flex:1">否 · 单程</button></div>' +
-        '<div style="font-size:11.5px;color:var(--color-muted);margin-top:8px;line-height:1.6">环线：末站回到出发地，适合自驾往返；单程：终点即行程结束地。</div></div>';
+        '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">环线：末站回到出发地，适合自驾往返；单程：终点即行程结束地。</div></div>';
     } else if (w.step === 3) {
       var nSel = state.selected.length, nPairs = nSel * (nSel - 1) / 2;
       body = '<div class="fld"><label>排序方式</label><div class="row" style="gap:10px">' +
         '<button class="btn' + (w.sortMode === 'geo' ? ' primary' : '') + '" id="wSortGeo" style="flex:1">按地理最近邻</button>' +
         '<button class="btn' + (w.sortMode === 'amap' ? ' primary' : '') + '" id="wSortAmap" style="flex:1">按高德路线</button></div>' +
-        '<div style="font-size:11.5px;color:var(--color-muted);margin-top:8px;line-height:1.6">' +
+        '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">' +
         (w.sortMode === 'amap'
           ? '按高德真实道路里程排序并计入日卡：当前 ' + nSel + ' 站需逐对查询 ' + nPairs + ' 段' + (nSel > AMAP_MAX_STOPS ? '，已超过上限 ' + AMAP_MAX_STOPS + ' 站，排期会自动退回地理最近邻' : '，免费 Key 配额下建议 ≤ ' + AMAP_MAX_STOPS + ' 站') + '。'
           : '按直线折算的地理邻近排序，不消耗高德配额；日卡里程仍按道路系数折算。') +
@@ -1784,7 +1784,7 @@
         '<button class="btn' + (w.sortOrder === 'asc' ? ' primary' : '') + '" id="wOrderAsc" style="flex:1">正序 · 从起点出发</button>' +
         '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button></div></div>';
     } else {
-      body = '<div style="font-size:13px;line-height:2.1;padding:4px 2px">' +
+      body = '<div style="font-size:var(--fs-4);line-height:2.1;padding:4px 2px">' +
         '<div>出发地：<b>' + (state.start && state.start.name ? esc(state.start.name) : '当前位置') + '</b></div>' +
         '<div>终到地：<b>' + (state.end && state.end.name ? esc(state.end.name) : '单程（不设终点）') + '</b></div>' +
         '<div>环线：<b>' + (state.isLoop ? '是 · 回到起点' : '否 · 单程') + '</b></div>' +

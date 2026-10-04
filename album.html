@@ -20,12 +20,12 @@
     pointer-events:none;
   }
   .al-top > *{pointer-events:auto}
-  .al-back{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--color-line);cursor:pointer;font-size:16px;color:var(--color-ink);flex:0 0 auto}
+  .al-back{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.7);border:1px solid var(--color-line);cursor:pointer;font-size:var(--fs-7);color:var(--color-ink);flex:0 0 auto}
   .al-back:active{transform:scale(.94)}
   .al-progress{flex:1;height:1px;background:var(--color-line-strong);position:relative;overflow:hidden}
   .al-progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--color-primary);transition:width var(--motion-normal)}
-  .al-label{font-size:11px;color:var(--color-muted);letter-spacing:.18em;flex:0 0 auto}
-  .al-edit,.al-export{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--color-line);font-size:12px;color:var(--color-ink-soft);cursor:pointer;letter-spacing:.04em;flex:0 0 auto}
+  .al-label{font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.18em;flex:0 0 auto}
+  .al-edit,.al-export{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--color-line);font-size:var(--fs-3);color:var(--color-ink-soft);cursor:pointer;letter-spacing:.04em;flex:0 0 auto}
   .al-edit{background:var(--color-primary);color:var(--bg);border-color:var(--color-primary);box-shadow:0 4px 14px rgba(200,109,75,.25)}
   .al-edit:active,.al-export:active{transform:scale(.96)}
 
@@ -34,37 +34,37 @@
   .al-cover__img{position:absolute;inset:0}
   .al-cover__shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.05) 55%)}
   .al-cover__content{position:relative;z-index:2;color:#F4F1E7}
-  .al-cover__tag{font-size:11px;letter-spacing:.34em;opacity:.8}
+  .al-cover__tag{font-size:var(--fs-2);letter-spacing:.34em;opacity:.8}
   .al-cover__title{font-family:var(--font-serif);font-size:clamp(46px,13vw,64px);font-weight:400;line-height:1.1;letter-spacing:.04em;margin-top:18px}
-  .al-cover__sub{margin-top:14px;font-family:var(--font-serif);font-size:19px;opacity:.92}
-  .al-cover__year{margin-top:22px;font-size:12px;letter-spacing:.3em;opacity:.75}
-  .al-cover__scroll{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:3;color:#F4F1E7;font-size:10px;letter-spacing:.3em;opacity:.8;animation:alScroll var(--motion-boot) ease-in-out infinite}
+  .al-cover__sub{margin-top:14px;font-family:var(--font-serif);font-size:var(--fs-9);opacity:.92}
+  .al-cover__year{margin-top:22px;font-size:var(--fs-3);letter-spacing:.3em;opacity:.75}
+  .al-cover__scroll{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:3;color:#F4F1E7;font-size:var(--fs-1);letter-spacing:.3em;opacity:.8;animation:alScroll var(--motion-boot) ease-in-out infinite}
   @keyframes alScroll{0%,100%{opacity:.35}50%{opacity:.9}}
 
   /* ---- 页 ---- */
   .al-page{padding:100px 30px 90px}
   .al-opening__title{font-family:var(--font-serif);font-size:44px;font-weight:400;line-height:1.15}
-  .al-opening__dates{margin-top:18px;font-size:13px;color:var(--color-muted);letter-spacing:.12em}
+  .al-opening__dates{margin-top:18px;font-size:var(--fs-4);color:var(--color-muted);letter-spacing:.12em}
   .al-opening__stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:44px}
   .al-os b{display:block;font-family:var(--font-serif);font-size:26px;font-weight:400}
-  .al-os span{font-size:11px;color:var(--color-muted);display:block;margin-top:4px}
-  .al-opening__words{margin-top:64px;font-family:var(--font-serif);font-size:20px;line-height:2;color:var(--color-ink-soft);white-space:pre-wrap}
+  .al-os span{font-size:var(--fs-2);color:var(--color-muted);display:block;margin-top:4px}
+  .al-opening__words{margin-top:64px;font-family:var(--font-serif);font-size:var(--fs-9);line-height:2;color:var(--color-ink-soft);white-space:pre-wrap}
 
   /* ---- Chapter ---- */
-  .al-ch-num{font-size:11px;color:var(--color-muted);letter-spacing:.26em}
+  .al-ch-num{font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.26em}
   .al-ch-title{font-family:var(--font-serif);font-size:clamp(38px,10vw,48px);font-weight:400;line-height:1.15;margin-top:16px}
   .al-ch-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;margin-top:44px;display:block}
   .al-ch-img--wide{aspect-ratio:16/10}
   .al-ch-img--tall{aspect-ratio:3/4}
-  .al-ch-caption{margin-top:10px;font-size:11px;color:var(--color-muted);letter-spacing:.1em;text-align:right}
+  .al-ch-caption{margin-top:10px;font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.1em;text-align:right}
   .al-duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:44px}
   .al-duo .al-ch-img{margin-top:0;aspect-ratio:3/4}
-  .al-ch-lead{margin-top:24px;font-family:var(--font-serif);font-size:17px;line-height:2.05;color:var(--color-ink-soft);white-space:pre-wrap}
+  .al-ch-lead{margin-top:24px;font-family:var(--font-serif);font-size:var(--fs-8);line-height:2.05;color:var(--color-ink-soft);white-space:pre-wrap}
 
   /* ---- 地图插页 ---- */
   .al-map-plate{margin:64px 0 0;border-radius:18px;background:var(--map-bg);padding:34px 24px 28px;position:relative;overflow:hidden}
   .al-map-plate svg{width:100%;height:auto;display:block}
-  .al-mp-title{font-size:11px;letter-spacing:.24em;color:var(--color-muted);text-align:center}
+  .al-mp-title{font-size:var(--fs-2);letter-spacing:.24em;color:var(--color-muted);text-align:center}
 
   /* ---- 声音块 ---- */
   .al-audio{margin-top:44px;display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--color-bg-soft);border-radius:16px}
@@ -73,22 +73,22 @@
   .al-audio__btn.is-playing{background:var(--color-primary);animation:alBreathe var(--motion-breath) ease-in-out infinite}
   @keyframes alBreathe{0%,100%{box-shadow:0 0 0 0 rgba(200,109,75,.25)}50%{box-shadow:0 0 0 18px rgba(200,109,75,0)}}
   .al-audio__meta{flex:1;min-width:0}
-  .al-audio__label{display:block;font-family:var(--font-serif);font-size:16px}
-  .al-audio__place{display:block;font-size:11px;color:var(--color-muted);margin-top:3px}
-  .al-audio__time{font-size:12px;color:var(--color-muted);font-variant-numeric:tabular-nums}
+  .al-audio__label{display:block;font-family:var(--font-serif);font-size:var(--fs-7)}
+  .al-audio__place{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:3px}
+  .al-audio__time{font-size:var(--fs-3);color:var(--color-muted);font-variant-numeric:tabular-nums}
 
   /* ---- Closing ---- */
   .al-closing{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:60px 34px}
   .al-closing__t{font-family:var(--font-serif);font-size:30px;font-weight:400;line-height:2;color:var(--color-ink-soft);white-space:pre-wrap}
   .al-closing__mark{margin-top:44px;font-family:var(--font-serif);font-size:34px;letter-spacing:.1em}
-  .al-closing__link{margin-top:52px;display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--color-primary-dark);cursor:pointer;padding:6px 0;border-bottom:1.5px solid var(--color-primary-dark)}
+  .al-closing__link{margin-top:52px;display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-6);font-weight:500;color:var(--color-primary-dark);cursor:pointer;padding:6px 0;border-bottom:1.5px solid var(--color-primary-dark)}
 
   /* ---- 空状态 ---- */
   .al-empty{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px}
   .al-empty .em{font-family:var(--font-serif);font-size:44px;color:var(--color-faint)}
-  .al-empty b{display:block;margin-top:14px;font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink)}
-  .al-empty span{display:block;margin-top:8px;font-size:12.5px;color:var(--color-muted);line-height:1.9}
-  .al-empty .btn{margin-top:26px;display:inline-flex;min-height:48px;align-items:center;padding:0 28px;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:14px;font-weight:600;cursor:pointer}
+  .al-empty b{display:block;margin-top:14px;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink)}
+  .al-empty span{display:block;margin-top:8px;font-size:var(--fs-4);color:var(--color-muted);line-height:1.9}
+  .al-empty .btn{margin-top:26px;display:inline-flex;min-height:48px;align-items:center;padding:0 28px;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-5);font-weight:600;cursor:pointer}
 
   /* 深色适配 */
   .theme-dark .al-top{background:linear-gradient(to bottom,rgba(29,28,25,.92),rgba(29,28,25,0))}

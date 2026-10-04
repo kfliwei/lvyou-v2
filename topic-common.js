@@ -175,8 +175,8 @@
       nearBar = document.createElement('div');
       nearBar.id = 'nearBar';
       nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(250,248,243,.96);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:5px 6px;z-index:1200;backdrop-filter:blur(16px);max-width:calc(100vw - 24px)';
-      nearBar.innerHTML = [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:6px 9px;border-radius:999px;font-size:12px;color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans);white-space:nowrap">' + k + 'km</span>'; }).join('') +
-        '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:11px;cursor:pointer;flex-shrink:0">' + TI('close', 12) + '</span>';
+      nearBar.innerHTML = [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:6px 9px;border-radius:999px;font-size:var(--fs-3);color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans);white-space:nowrap">' + k + 'km</span>'; }).join('') +
+        '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-2);cursor:pointer;flex-shrink:0">' + TI('close', 12) + '</span>';
       document.getElementById('mapEl').appendChild(nearBar);
       /* 关键：禁止 nearBar 的点击冒泡到地图（否则点半径/关闭按钮会触发地图 click 重新弹回半径条） */
       if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearBar);
@@ -225,7 +225,7 @@
     };
     var tip = function (msg) {
       var d = document.createElement('div');
-      d.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(31,122,90,.95);color:#fff;padding:8px 16px;border-radius:999px;font-size:13px;z-index:9600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+      d.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(31,122,90,.95);color:#fff;padding:8px 16px;border-radius:999px;font-size:var(--fs-4);z-index:9600;box-shadow:0 2px 12px rgba(0,0,0,.2);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
       d.textContent = msg; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 2400);
     };
     var fallback = function () {
@@ -323,14 +323,14 @@
     return '<div class="ls-place">' + esc(s.label) + '</div>' +
       '<div class="ls-loc"><span class="ls-thdot" style="background:' + colorOf(s) + '"></span>' + esc(tk(s)) + ' · ' + locParts(s).join(' · ') + '</div>' +
       (s.elev ? '<div class="ls-elev">' + elevSvg(s) + '</div>' : '') +
-      '<div class="ls-weather" id="lsWeather" style="display:none;font-size:12px;color:var(--color-muted);margin-bottom:8px"></div>' +
+      '<div class="ls-weather" id="lsWeather" style="display:none;font-size:var(--fs-3);color:var(--color-muted);margin-bottom:8px"></div>' +
       img +
       '<div class="ls-desc">' + esc(s.desc) + '</div>' +
       (function(){ try { var _mn = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list().filter(function(n){ return n.lat != null && Math.abs(n.lat - s.lat) < 0.02 && Math.abs(n.lng - s.lng) < 0.02; }) : []; if (_mn.length) return '<div class="ls-mine" onclick="location.href=\'travel-map.html\'">我在 ' + _mn.length + ' 篇记录 · 查看足迹地图</div>'; return ''; } catch(e){ return ''; } })() +
       '<div class="ls-hist" id="lsTicket" style="display:none"></div>' + (s.best ? '<div class="ls-hist"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5H20.5M8 3v4M16 3v4"/></svg><span>最佳季节 · ' + esc(s.best) + '</span></div>' : '') +      '<div class="ls-actions">' +
-            '<button class="btn-primary" aria-label="听讲解" style="min-height:46px;font-size:13px;padding:0 14px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.explain(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10 V14 M8 7 V17 M12 4 V20 M16 7 V17 M20 10 V14"/></svg>听讲解</button>' +
-      '<button class="btn-secondary" aria-label="语音记录" style="min-height:46px;font-size:13px;padding:0 12px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.openPanel(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
-      '<span class="ls-morebtn" aria-label="更多操作" onclick="window.TopicEngine.toggleMore(this)">更多 <b style="font-size:10px">▾</b></span>' +
+            '<button class="btn-primary" aria-label="听讲解" style="min-height:46px;font-size:var(--fs-4);padding:0 14px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.explain(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10 V14 M8 7 V17 M12 4 V20 M16 7 V17 M20 10 V14"/></svg>听讲解</button>' +
+      '<button class="btn-secondary" aria-label="语音记录" style="min-height:46px;font-size:var(--fs-4);padding:0 12px;display:inline-flex;align-items:center;gap:6px" onclick="window.TravelNotes.openPanel(' + i + ')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
+      '<span class="ls-morebtn" aria-label="更多操作" onclick="window.TopicEngine.toggleMore(this)">更多 <b style="font-size:var(--fs-1)">▾</b></span>' +
       '</div>' +
       '<div class="ls-more" id="lsMore">' +
       '<span onclick="window.TopicEngine.toggleTrip(' + i + ')">' + (inT ? TI('check', 12) + ' 已加入行程' : TI('plus', 12) + ' 加入行程') + '</span>' +
@@ -475,7 +475,7 @@
       if (t.h) parts.push(TI('clock', 13) + '<span>' + esc(t.h) + '</span>');
       if (t.p) parts.push(TI('ticket', 13) + '<span>' + esc(t.p) + '</span>');
       if (!parts.length) { el.style.display = 'none'; return; }
-      el.innerHTML = parts.map(function (x) { return '<div style="display:flex;align-items:flex-start;gap:6px">' + x + '</div>'; }).join('<span style="display:block;height:4px"></span>') + (t.u ? '<div style="opacity:.55;font-size:10px;margin-top:3px">' + esc(t.u) + '核对</div>' : '');
+      el.innerHTML = parts.map(function (x) { return '<div style="display:flex;align-items:flex-start;gap:6px">' + x + '</div>'; }).join('<span style="display:block;height:4px"></span>') + (t.u ? '<div style="opacity:.55;font-size:var(--fs-1);margin-top:3px">' + esc(t.u) + '核对</div>' : '');
       el.style.display = 'block';
     });
   }
@@ -944,7 +944,7 @@
     userLatLng = [pos.coords.latitude, pos.coords.longitude];
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker(gxy(userLatLng[0], userLatLng[1]), { icon: userDotIcon(), zIndexOffset: 1000 }).addTo(map);
-    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:13.5px">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:12.5px;font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
+    userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:var(--fs-5)">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
     if (!watchId && navigator.geolocation) watchId = navigator.geolocation.watchPosition(function (p) {
       userLatLng = [p.coords.latitude, p.coords.longitude];
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));
@@ -995,7 +995,7 @@
     if (!netHintEl) {
       netHintEl = document.createElement('div');
       netHintEl.id = 'netHint';
-      netHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(180,84,58,.92);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity var(--motion-normal);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      netHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(180,84,58,.92);color:#fff;border-radius:999px;padding:8px 16px;font-size:var(--fs-3);pointer-events:none;opacity:0;transition:opacity var(--motion-normal);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
       document.body.appendChild(netHintEl);
     }
     netHintEl.textContent = on ? '网络已断开 · 地图瓦片可能无法加载' : '';
@@ -1009,7 +1009,7 @@
     if (!emptyHintEl) {
       emptyHintEl = document.createElement('div');
       emptyHintEl.id = 'emptyHint';
-      emptyHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(32,32,29,.85);color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;pointer-events:none;opacity:0;transition:opacity var(--motion-normal);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+      emptyHintEl.style.cssText = 'position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9400;background:rgba(32,32,29,.85);color:#fff;border-radius:999px;padding:8px 16px;font-size:var(--fs-3);pointer-events:none;opacity:0;transition:opacity var(--motion-normal);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
       document.body.appendChild(emptyHintEl);
     }
     var b = map.getBounds();
@@ -1150,14 +1150,14 @@
     var legBody = $('legBody'); legBody.innerHTML = '';
     /* 图例首行：全部（清除主题筛选） */
     var allRow = document.createElement('div'); allRow.className = 'lg'; allRow.dataset.th = '';
-    allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#AE5738,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-muted);font-family:var(--font-sans)">' + SITES.length + '</span>';
+    allRow.innerHTML = '<span class="dot" style="background:linear-gradient(135deg,#AE5738,#3E7CB1,#5F8A6B,#8A5A44)"></span>全部主题<span class="cnt" style="margin-left:auto;font-size:var(--fs-2);color:var(--color-muted);font-family:var(--font-sans)">' + SITES.length + '</span>';
     allRow.onclick = function () { state.theme = ''; syncChips(); renderAll(); };
     legBody.appendChild(allRow);
     (M.themeOrder || []).forEach(function (th) {
       if (!SITES.some(function (s) { return tk(s) === th; })) return;
       var r = document.createElement('div'); r.className = 'lg'; r.dataset.th = th;
       var cnt = SITES.filter(function (s) { return tk(s) === th; }).length;
-      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + th + '<span class="cnt" style="margin-left:auto;font-size:10.5px;color:var(--color-muted);font-family:var(--font-sans)">' + cnt + '</span>';
+      r.innerHTML = '<span class="dot" style="background:' + M.themes[th] + '"></span>' + th + '<span class="cnt" style="margin-left:auto;font-size:var(--fs-2);color:var(--color-muted);font-family:var(--font-sans)">' + cnt + '</span>';
       /* 图例即标签：点击切换该主题筛选（与顶部 chips 联动） */
       r.onclick = function () {
         state.theme = (state.theme === th ? '' : th);
@@ -1376,7 +1376,7 @@
     var box = document.getElementById('lsMore');
     if (!box) return;
     var open = box.classList.toggle('open');
-    if (btn) btn.innerHTML = open ? '更多 <b style="font-size:10px">▴</b>' : '更多 <b style="font-size:10px">▾</b>';
+    if (btn) btn.innerHTML = open ? '更多 <b style="font-size:var(--fs-1)">▴</b>' : '更多 <b style="font-size:var(--fs-1)">▾</b>';
   }
   window.TopicEngine = { get _map() { return map; },
     init: init,

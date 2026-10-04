@@ -1,0 +1,5 @@
+<!doctype html>
+<!-- UI-4 探针的落脚页：只放一块画布。存在的理由——file:// 图源必须在 file:// 文档里解码才能喂进 canvas，
+     about:blank / data: 文档拿不到相对路径，且没有 --allow-file-access-from-files 会污染画布。 -->
+<meta charset="utf-8"><title>probe</title>
+<canvas id="c" width="64" height="64"></canvas>

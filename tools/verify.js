@@ -230,7 +230,9 @@ const EMOJI_MARK = 'emoji-ok:';
    配对表是"实际渲染组合"清单（fg 用在哪个底上），新增文字类 UI 时往表里加行，
    而不是在使用处写死颜色救急。 */
 {
-  const css = fs.readFileSync('design.css', 'utf8');
+  // 注释必须先剥：:root 块按「第一个 }」截断，注释里举一个 html{...} 反例就会把 token 表切短一截，
+  // 后半段 --color-ink 之类全解析不出（§21 变异自测的 P7 撞出来的）。
+  const css = fs.readFileSync('design.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ');
   function collectBlock(re) {
     const map = {}; let m; const rx = new RegExp(re, 'g');
     while ((m = rx.exec(css))) {
@@ -1333,6 +1335,328 @@ const EMOJI_MARK = 'emoji-ok:';
   console.log('画像闸门: 聚合口径（省市/主题/标签）逐条钉死、160 字上限、零正文；注入点唯一（定义+调用各 1）且带目的地护栏；开关 tn_plan_pref=prefs/默认开；设置页可见开关落键；冒烟四档在案');
   fail += bad;
 }
+
+/* ============================================================
+   21. 字号阶梯 · 真机档 · 品牌字进包闸门（V3 · 2026-10-04）
+   这一节守的是一条「看着像审美、其实是账」的线：收口前全站 998 处 font-size（同一口径：顶层
+   css/html/js 61 个文件、排除 *-data.js 与 sw.js、注释剥成空白）只有 17 处
+   走 token、57 个字号并存（11/11.5/12/12.5/13/13.5…），且除 9 行 clamp 外全是裸 px——
+   于是（a）真机（一加 Ace 6T，CSS 视口 424–452dp）上标题按 vw 浮了 20%、正文一点不浮，
+   层级比例随屏幕漂；（b）设置页那套「小字/标准/大字」和系统字体缩放只能作用到 17 处引用上，
+   等于 shipped 了一个假功能。所以这里既钉阶梯，也钉「根字号必须是相对值」。
+   ============================================================ */
+{
+  let bad = 0;
+  const F21 = m => { console.log('字号阶梯闸门 FAIL: ' + m); bad++; };
+  const read21 = f => { if (!fs.existsSync(f)) { F21('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  /* 注释里的写法不是声明：不剥掉，「html{font-size:16px}」这种讲解用例会把探针和字面量计数一起打红
+     （本轮就踩了一次：design.css 的「阅读字号」块在注释里举了改前的坏写法）。
+     占位成同长度的空白而不是删掉——行内扫描按行走，跨行注释一旦被压成一行，
+     相邻声明就会并到同一行被 clamp 的跳过规则误吞。 */
+  const blank21 = m => m.replace(/[^\n]/g, ' ');
+  const strip21 = s => s.replace(/\/\*[\s\S]*?\*\//g, blank21).replace(/<!--[\s\S]*?-->/g, blank21);
+  const code21 = f => strip21(read21(f));
+  const D = read21('design.css'), SW = read21('sw.js'), SY = read21('tools/sync-assets.js');
+  const Dc = strip21(D), SWc = strip21(SW);
+
+  /* --- ① 阶梯逐值核定：十档必须全是 rem，值逐个比，多一档/缺/改值都红 --- */
+  const WANT21 = { 1: 0.625, 2: 0.6875, 3: 0.75, 4: 0.8125, 5: 0.875, 6: 0.9375, 7: 1, 8: 1.0625, 9: 1.25, 10: 1.5 };
+  const rung21 = {};
+  (Dc.match(/^\s*--fs-\d+:[^;]+;/gm) || []).forEach(s => {
+    const n = /--fs-(\d+):/.exec(s)[1], m = /:\s*(\d*\.?\d+)rem\s*;/.exec(s);
+    if (!m) { F21('--fs-' + n + ' 不是裸 rem（' + s.trim() + '）：阶梯用 rem，px 会把系统字体缩放钉死'); return; }
+    rung21[n] = parseFloat(m[1]);
+  });
+  Object.keys(WANT21).forEach(n => {
+    if (!(n in rung21)) F21('字号阶梯缺 --fs-' + n + '（期望 ' + WANT21[n] + 'rem）');
+    else if (rung21[n] !== WANT21[n]) F21('--fs-' + n + ' 应为 ' + WANT21[n] + 'rem，实际 ' + rung21[n] + 'rem');
+  });
+  Object.keys(rung21).forEach(n => { if (!(n in WANT21)) F21('字号阶梯多出一档 --fs-' + n + '=' + rung21[n] + 'rem，未在本闸门核定'); });
+  /* 撞值=两档其实是同一档，留着只会让人随手挑错 */
+  const dup21 = Object.keys(rung21).filter((n, i, a) => a.some((o, j) => j < i && +rung21[o] === +rung21[n]));
+  if (dup21.length) F21('字号阶梯撞档（同值等于没有这一档）：' + dup21.join(','));
+
+  /* --- ② 旧名必须是阶梯的别名，不许偷偷带回字面量 --- */
+  ['xs', 'sm', 'md', 'lg', 'xl'].forEach(n => {
+    const m = new RegExp('--fs-' + n + ':\\s*([^;]+);').exec(Dc);
+    if (!m) F21('旧字号别名 --fs-' + n + ' 不见了（16 处存量引用会一起失效）');
+    else if (!/^var\(--fs-\d+\)$/.test(m[1].trim())) F21('--fs-' + n + ' 不再是纯别名：' + m[1].trim());
+  });
+
+  /* --- ③ 根字号必须是相对值：html/:root 上出现 px 字号就是红 ---
+     探针先自证：已知坏样本必须抓到、正确写法不许误报，否则这条线是永久绿灯。 */
+  const ROOTPX = /(?:^|[\s;}])(?:html|:root)\s*\{[^}]*font-size:\s*\d*\.?\d+px/;
+  if (!ROOTPX.test('html{font-size:16px}')) F21('根字号探针自身失效：已知坏样本 html{font-size:16px} 没被抓到');
+  if (ROOTPX.test('html{font-size:var(--fs-7)}') || ROOTPX.test('@media x{html{font-size:112%}}')) F21('根字号探针误报：rem/% 写法被当成钉死');
+  fs.readdirSync('.').filter(f => /\.(css|html)$/.test(f)).forEach(f => {
+    const src = code21(f);
+    (src.match(/(?:html|:root)\s*\{[^}]*\}/g) || []).forEach(b => { if (ROOTPX.test(' ' + b)) F21(f + ' 把根字号钉成 px（用户在系统里调的字体大小会整个失效）：' + b.slice(0, 60)); });
+  });
+
+  /* --- ④ 机型档 / 用户档逐串在案：少一档就是某个屏幕或某个设置项没人管 ---
+     两条乘数相乘（bucket = 屏幕那一档、stage = 用户在设置页选的档），根字号全库只有一处声明。
+     这不是洁癖：原来三条 `html{font-size:…}` 各写各的，而 `html.font-sm` 比媒体查询里的 `html`
+     更具体，真机 452 档上选「大字」掉回 17px、比「标准」的 17.92 还小——档位倒挂。 */
+  [[':root{--fs-bucket:1;--fs-stage:1}', '两档乘数的默认值'],
+   ['html{font-size:calc(100% * var(--fs-bucket) * var(--fs-stage))}', '根字号唯一声明（机型×用户相乘）'],
+   ['html.font-sm{--fs-stage:.9375}', '设置页小字档乘数'],
+   ['html.font-lg{--fs-stage:1.0625}', '设置页大字档乘数'],
+   ['@media (min-width:400px) and (max-width:439px){:root{--fs-bucket:1.08}}', '424dp 真机档'],
+   ['@media (min-width:440px) and (max-width:479px){:root{--fs-bucket:1.12}}', '452dp 真机档'],
+   [':root{--fs-bucket:.9375}', '320dp 收紧档乘数'],
+   ['@media (max-width:360px)', '320dp 收紧档的媒体条件']]
+    .forEach(([s, what]) => { if (!Dc.includes(s)) F21('缺' + what + '，逐字应为 ' + s); });
+  {
+    const rootDecls = (Dc.match(/(?:^|[\s;}])html(?:\.font-(?:sm|lg))?\s*\{[^}]*font-size:/g) || []).length;
+    if (rootDecls !== 1) F21('design.css 里根字号声明有 ' + rootDecls + ' 处（只许 1 处）：机型档与用户档必须出乘数，各写一条 font-size 就是让 specificity 互相吃掉');
+    fs.readdirSync('.').filter(f => /\.(css|html)$/.test(f) && f !== 'design.css').forEach(f => {
+      if (/(?:^|[\s;}])(?:html|:root)\s*\{[^}]*font-size:/.test(code21(f))) F21(f + ' 也声明了根字号：两处 font-size 会互相吃掉（真机上「大字」比「标准」还小就是这么来的）');
+    });
+  }
+
+  /* --- ⑤ 字面量归零：第一方 css/html/js 里 font-size:<数字>(px|rem) 只许 ≥21px 尾巴与 clamp 例外 ---
+     LIT 天生匹配不进 clamp( 里（数字前面是 `clamp(`），所以原来那行
+     `if (line.includes('clamp(')) continue;` 一次都没生效过——变异自测把它摘掉 verify 仍 exit=0。
+     例外就得点名：clamp 处数逐值钉死，这行才是活的。 */
+  const LIT = /font-size:\s*(\d+(?:\.\d+)?)(px|rem)/g;
+  let litBad = 0, tail = 0, used = 0, clampN = 0;
+  const TAIL_MAX = 59;      /* 2026-10-04 收口时实测：≥21px 的展示级/海报数字，本轮有意不动，只许降不许升 */
+  const LIT_MIN_USE = 600;  /* 走 token 的下限：收口后实测 929 处，掉下这条说明有人在批量退回字面量（下限留低是因为它还兼做「扫描面非空」的反向自证） */
+  const CLAMP_MAX = 9;      /* 2026-10-04 实测：design.css 2 / album.html 2 / index.html 3 / album.js 2 */
+  fs.readdirSync('.').filter(f => /\.(css|html|js)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js')
+    .forEach(f => {
+      const src = code21(f);
+      src.split('\n').forEach(line => {
+        clampN += (line.match(/font-size:clamp\(/g) || []).length;
+        let m; LIT.lastIndex = 0;
+        while ((m = LIT.exec(line))) {
+          const v = m[2] === 'px' ? parseFloat(m[1]) : parseFloat(m[1]) * 16;
+          if (v > 20) { tail++; continue; }
+          litBad++;
+          if (litBad <= 6) F21('阶梯外字号字面量（' + f + '）：' + m[0].trim());
+        }
+        used += (line.match(/font-size:var\(--fs-/g) || []).length;
+      });
+    });
+  if (litBad) F21('还有 ' + litBad + ' 处 ≤20px 的字号没进阶梯（跑 tools/out/ladder-sweep.js --write）');
+  if (tail > TAIL_MAX) F21('≥21px 字号尾巴从 ' + TAIL_MAX + ' 涨到 ' + tail + ' 处：新写的展示级字号也要走阶梯');
+  if (used < LIT_MIN_USE) F21('font-size 走阶梯的引用只剩 ' + used + ' 处（下限 ' + LIT_MIN_USE + '）：疑似批量退回字面量');
+  if (clampN !== CLAMP_MAX) F21('font-size:clamp(...) 从登记的 ' + CLAMP_MAX + ' 处变成 ' + clampN + ' 处：clamp 是绕开阶梯和根字号的例外（vw 驱动，不随真机档上浮），每加一处都要先点名');
+
+  /* --- ⑥ 品牌衬线进包对账：文件在、字节指纹对、预缓存里有、同步白名单里有、缺字登记不漂 --- */
+  let COV = null;
+  try { COV = JSON.parse(read21('fonts/coverage.json')); } catch (e) { F21('fonts/coverage.json 读不到/不是合法 JSON：' + e.message); }
+  if (COV) {
+    Object.keys(COV.files).forEach(name => {
+      const p = 'fonts/' + name;
+      if (!fs.existsSync(p)) { F21('清单登记了 ' + p + ' 但文件不在'); return; }
+      const buf = fs.readFileSync(p);
+      if (buf.length !== COV.files[name].bytes) F21(p + ' 字节数漂了：清单 ' + COV.files[name].bytes + ' 实际 ' + buf.length);
+      const hex = require('crypto').createHash('sha256').update(buf).digest('hex');
+      if (hex !== COV.files[name].sha256) F21(p + ' sha256 与清单不符（字体被换过，覆盖率结论作废）');
+      if (!SWc.includes('./fonts/' + name)) F21(p + ' 不在 sw.js 预缓存清单里：离线首屏会没有品牌字');
+    });
+    if (!fs.existsSync('fonts/OFL-1.1.txt')) F21('缺 fonts/OFL-1.1.txt：SIL OFL 要求授权文本随字体同行');
+    if (COV.missingCjk.length !== 94) F21('缺字数从登记的 94 漂到 ' + COV.missingCjk.length + '：语料加字或换字库后要重跑 tools/out/font-coverage.py 并同步这里');
+    if (COV.corpusCjkChars - COV.covered !== COV.missingCjk.length) F21('覆盖率三数不自洽：语料 ' + COV.corpusCjkChars + ' − 覆盖 ' + COV.covered + ' ≠ 缺字 ' + COV.missingCjk.length);
+  }
+  if (!/['"]fonts['"]/.test(SY)) F21('tools/sync-assets.js 的目录白名单里没有 fonts：APK assets 会漏字体');
+  if (!/--font-display:\s*'TRACE Serif'/.test(D)) F21('--font-display 队首不是 TRACE Serif：包内字库白装了');
+
+  /* --- ⑦ 卡片边界单一来源：.card 只许定义一次，且必须吃 --edge-hair --- */
+  const cardRules = (Dc.match(/^\.card\{/gm) || []).length;
+  if (cardRules !== 1) F21('.card 基础规则出现 ' + cardRules + ' 次（应为 1）：皮肤层再写第二遍就是当年「保存键被藏死」那个坑');
+  {
+    const m = /^\.card\{[^}]*\}/m.exec(Dc);
+    if (m && !/var\(--edge-hair\)/.test(m[0])) F21('.card 没引用 --edge-hair：边界又准备靠淡投影，450ppi 亮屏下会看不见');
+  }
+  ['--edge-hair:rgba(33,26,19,.14)', '--edge-hair:rgba(239,233,220,.16)'].forEach(s => { if (!Dc.includes(s)) F21('缺一条 --edge-hair（浅色/暗色各一）：' + s); });
+
+  console.log('字号阶梯闸门: 阶梯 ' + Object.keys(rung21).length + ' 档逐值核定且全 rem；旧名 5 个纯别名；根字号禁 px（探针带正反向自证）；' +
+    '机型/用户档 8 串在案且根字号全库单一声明（424/452dp 真机 × 大小字两个乘数 + 320dp 收紧）；' +
+    '阶梯外 ≤20px 字面量 ' + litBad + ' 处、≥21px 尾巴 ' + tail + '/' + TAIL_MAX + '、clamp 例外 ' + clampN + '/' + CLAMP_MAX + '、走阶梯 ' + used + ' 处；' +
+    '字体两档字节+sha256 与清单逐条相等且在 sw 预缓存、缺字 94 三数自洽、sync-assets 白名单含 fonts；.card 单定义吃 --edge-hair');
+  fail += bad;
+}
+
+/* ============================================================
+   22. 实景图统一压色 + 分界描边闸门（UI-4 · 2026-10-04）
+   这节守的是「75 张来路不同的实景照贴在同一个纸面上」这件事。取数探针
+   tools/out/photo-tint-probe.js 在 64×64 采样上算了整批照片的离散度，三档结论：
+     · 乘性滤镜（saturate/brightness 一类）只会把整批一起压，σ(S) 才降 4%——它治「艳」，不治「乱」；
+     · 真压批内离散度的是「向同一个颜色做凸组合」的那层 veil：每通道 σ 乘 (1−α)，
+       α=.10 + 轻滤镜合起来 σ(S)−15%、σ(色温 R−B)−16%，明度均值只从 45.3% 掉到 41.5%；
+     · α 有上限：α=.18 时「过暗样本」从 4 张涨到 8 张，压色反过来吃掉暗部。
+   所以档位不是手感，是算出来的，闸门逐值钉住；要改就重跑探针。
+   比档位更容易出事的是「表面清单」和「后发覆盖」：
+     · 少一条表面＝那张照片这一轮没人管，全站看上去就是一半压过一半没压；
+     · map.css 有两条 .ls-img（894 与 1331 的后发装饰段），第二条一旦漏写 inset 环，
+       封面描边整块消失——同一元素只有一个 ::after，自带影与 veil 必须合并成一条声明。
+   ============================================================ */
+{
+  let bad = 0;
+  const F22 = m => { console.log('实景图闸门 FAIL: ' + m); bad++; };
+  const read22 = f => { if (!fs.existsSync(f)) { F22('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const blank22 = m => m.replace(/[^\n]/g, ' ');
+  const strip22 = s => s.replace(/\/\*[\s\S]*?\*\//g, blank22).replace(/<!--[\s\S]*?-->/g, blank22);
+  const code22 = f => strip22(read22(f));
+  const FILES22 = fs.readdirSync('.').filter(f => /\.(css|html|js)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js');
+  const esc22 = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const flat22 = s => s.replace(/\s+/g, ' ').trim();
+
+  /* 逗号在 :has() 的括号里不算选择器分隔符 */
+  const splitSels = s => {
+    const out = []; let depth = 0, cur = '';
+    for (const ch of s) {
+      if (ch === '(') depth++; else if (ch === ')') depth--;
+      if (ch === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += ch;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out.filter(Boolean);
+  };
+  /* 把 css 拍平成「选择器 → 声明体」的账本：按声明反查它挂在哪些选择器上，
+     这样「表面清单少一条」和「这条表面没挂上这条声明」都当场红，不靠数行数。 */
+  const parse = src => {
+    const f = flat22(src), out = [], re = /([^{}]+)\{([^{}]*)\}/g;
+    let m, i = 0;
+    while ((m = re.exec(f))) {
+      const body = m[2].trim();
+      /* 一条规则展开成 N 条「选择器→声明体」，rule 号留着：
+         「挂载点唯一」这类判据问的是几条**规则**，不是几条选择器。 */
+      splitSels(m[1]).forEach(sel => out.push({ sel, body, rule: i }));
+      i++;
+    }
+    return out;
+  };
+  const D = code22('design.css'), MAP = code22('map.css');
+  const DR = parse(D), MR = parse(MAP);
+  const has = (rules, sel, decl) => rules.some(r => r.sel === sel && r.body.includes(decl));
+  const need = (label, list, rules, decl) => list.forEach(s => { if (!has(rules, s, decl)) F22(label + '：' + s + ' 缺 ' + decl); });
+  const countSel = (rules, sel) => rules.filter(r => r.sel === sel).length;
+
+  /* --- ① 三个 token 逐值核定：档位是探针算出来的，改值必须重跑 tools/out/photo-tint-probe.js --- */
+  const TOKS = ['--photo-veil:rgba(33,26,19,.10)', '--photo-look:saturate(.94)', '--photo-edge:rgba(33,26,19,.20)'];
+  TOKS.forEach(t => {
+    const n = (flat22(D).match(new RegExp(esc22(t), 'g')) || []).length;
+    if (n !== 1) F22('design.css 里 ' + t + ' 出现 ' + n + ' 次（应为 1）：veil 的 α 有实测上限（.18 时过暗样本 4→8），改档请重跑探针再同步这里');
+  });
+  /* 字面量双写：token 声明之外全站不许再出现这三个值，否则等于某处绕过 token 自己调一档 */
+  ['rgba(33,26,19,.10)', 'rgba(33,26,19,.20)', 'saturate(.94)'].forEach(lit => {
+    let n = 0;
+    FILES22.forEach(f => { n += (flat22(code22(f)).match(new RegExp(esc22(lit), 'g')) || []).length; });
+    if (n !== 1) F22(lit + ' 在全站出现 ' + n + ' 次（只许 token 声明那 1 处）：别处再写一遍就是绕开 --photo-* 的第二个真相');
+  });
+
+  /* --- ② 表面清单逐条在案（design.css 那块统一声明是唯一的挂载点） --- */
+  const WANT_LOOK = ['.card .ph img', '.ls-img>img', '.al-ch-img', '.photo-wall img', '.md-item .thumbs img',
+    '.eph img', '.p-cell img', '.n-item .th img', '.story-item__stamp img', '.imgbox>img'];
+  const WANT_POS = ['.card .ph', '.eph', '.p-cell', '.n-item .th', '.trip-feature__img', '.imgbox'];
+  const WANT_VEIL = ['.card .ph:has(>img)::after', '.eph:has(>img)::after', '.p-cell:has(>img)::after',
+    '.n-item .th:has(>img)::after', '.trip-feature__img::after', '.imgbox:has(>img)::after'];
+  const WANT_INSET = ['.card .ph:has(>img)', '.n-item .th:has(>img)', '.trip-feature__img', '.imgbox:has(>img)'];
+  const WANT_OUTER = ['.al-ch-img', '.photo-wall img', '.md-item .thumbs img'];
+  const WANT_DARK = ['.theme-dark .al-ch-img', '.theme-dark .photo-wall img', '.theme-dark .md-item .thumbs img'];
+  need('滤镜表面清单', WANT_LOOK, DR, 'filter:var(--photo-look)');
+  need('压色容器需有定位', WANT_POS, DR, 'position:relative');
+  need('veil 表面清单', WANT_VEIL, DR, 'background:var(--photo-veil)');
+  need('容器分界描边清单', WANT_INSET, DR, 'box-shadow:inset 0 0 0 1px var(--photo-edge)');
+  need('裸图外圈描边清单', WANT_OUTER, DR, 'box-shadow:0 0 0 1px var(--photo-edge)');
+  need('暗色外圈翻转清单', WANT_DARK, DR, 'box-shadow:0 0 0 1px var(--edge-hair)');
+  {
+    const n = DR.filter(r => r.body.includes('filter:var(--photo-look)')).length;
+    if (n !== WANT_LOOK.length) F22('吃 --photo-look 的表面有 ' + n + ' 条（清单 ' + WANT_LOOK.length + ' 条）：清单与实际挂载不一致');
+  }
+  /* 滤镜只许一处真相：多条规则分头写 --photo-look，改一档就会漏掉另一档 */
+  {
+    const rules = new Set(DR.filter(r => /(?:^|;)filter:var\(--photo-look\)/.test(r.body)).map(r => r.rule));
+    if (rules.size !== 1) F22('filter:var(--photo-look) 写在 ' + rules.size + ' 条规则里（应为 1 条）：拆成多条就是将来只改一条、另一半照片悄悄没压');
+  }
+
+  /* --- ③ 不变式：描边不许脱离压色，外圈不许脱离滤镜，台账不许漂多 ---
+     全部按「实际挂载」算。拿 WANT_* 常量互相比是永真的死断言（S2 变异一砸才发现：
+     删掉一条 veil 选择器时它一声不吭，因为两边的常量都还在原地）。 */
+  const norm = s => s.replace(/::after$/, '').replace(/:has\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  const act = pred => [...new Set(DR.filter(pred).map(r => norm(r.sel)))];
+  const ACT_VEIL = act(r => /(?:^|;)background:var\(--photo-veil\)/.test(r.body));
+  const ACT_INSET = act(r => /(?:^|;)box-shadow:inset 0 0 0 1px var\(--photo-edge\)/.test(r.body));
+  const ACT_OUT = act(r => /(?:^|;)box-shadow:0 0 0 1px var\(--photo-edge\)/.test(r.body));
+  const ACT_LOOK = act(r => /(?:^|;)filter:var\(--photo-look\)/.test(r.body));
+  const LEDG_VEIL = WANT_VEIL.map(norm), LEDG_INSET = WANT_INSET.map(norm);
+  ACT_VEIL.forEach(b => { if (!LEDG_VEIL.includes(b)) F22('挂了 veil 却不在清单里的表面 ' + b + '：新增表面必须先登记，否则这一轮的对账不成立'); });
+  ACT_INSET.forEach(b => {
+    if (!LEDG_INSET.includes(b)) F22('挂了 inset 描边却不在清单里的表面 ' + b);
+    if (!ACT_VEIL.includes(b)) F22('容器 ' + b + ' 有 inset 描边却没挂 veil：描边压在没收拾过的照片上，等于没分层');
+  });
+  ACT_OUT.forEach(b => {
+    if (!WANT_OUTER.map(norm).includes(b)) F22('挂了外圈描边却不在清单里的表面 ' + b);
+    if (!ACT_LOOK.includes(b)) F22('裸图 ' + b + ' 有外圈描边但没吃 --photo-look：环内的照片还是原来的色温');
+  });
+
+  /* --- ④ 封面（map.css 两条 .ls-img）：后发声明不许吃掉描边，::after 只能有一条 --- */
+  {
+    const n = countSel(MR, '.ls-img');
+    if (n !== 2) F22('.ls-img 规则 ' + n + ' 条（现为 894 与后发装饰段共 2 条）：条数变了要重看后发覆盖');
+    MR.filter(r => r.sel === '.ls-img').forEach(r => {
+      /* 不写「有 box-shadow 才检查」：把整条 box-shadow 删掉同样会丢描边，那种写法正好给它放行 */
+      if (!r.body.includes('box-shadow:inset 0 0 0 1px var(--photo-edge)'))
+        F22('.ls-img 的一条声明里没有 inset 环（后发段整条覆盖 box-shadow 也算）：' + r.body.slice(0, 90));
+    });
+    const af = MR.filter(r => r.sel === '.ls-img::after');
+    if (af.length !== 1) F22('.ls-img::after 有 ' + af.length + ' 条：同一元素只能有一个 ::after，分两处写会互相吃掉');
+    af.forEach(r => {
+      if (!r.body.includes('linear-gradient(180deg,transparent 60%,rgba(32,32,29,.22))')) F22('.ls-img::after 丢了封面自带「下压式」影：' + r.body.slice(0, 90));
+      if (!r.body.includes('var(--photo-veil)')) F22('.ls-img::after 没把 veil 并进同一条 background');
+    });
+  }
+
+  /* --- ⑤ 照片表面不许另写字面量滤镜（各页自调一档是「一半压过一半没压」的来路） --- */
+  const SURF_RE = /(?:^|[\s>+~,])(\.ls-img|\.card \.ph|\.al-ch-img|\.photo-wall|\.md-item \.thumbs|\.eph|\.p-cell|\.n-item \.th|\.story-item__stamp|\.imgbox|\.trip-feature__img)(?![\w-])/;
+  const LOOK_RE = /(?:^|;)filter:/;
+  const litFilter = rules => rules.filter(r => SURF_RE.test(r.sel) && LOOK_RE.test(r.body) && !r.body.includes('var(--photo-look)'));
+  {
+    /* 探针正反向自证：⑤ 扫的是「解析出的规则」，正则一旦写坏就永久绿灯，
+       所以先拿内存里的坏样本证明抓得到，再拿五类反例证明不误报。 */
+    const BAD = '.ls-img>img{filter:saturate(1.3)contrast(1.1)}';
+    const OK = ['.imgbox--plain{filter:brightness(1.02)}', '.eph-empty{filter:grayscale(.2)}',
+      '.card:hover .ls-img-ph{filter:sepia(.3)}', '.leaflet-tile{filter:sepia(.32) saturate(.52)}',
+      '.btn.primary:active{filter:brightness(.96)}', '.card .ph img{filter:var(--photo-look)}'].join('');
+    if (!litFilter(parse(BAD)).length) F22('照片滤镜探针自身失效：已知坏样本 ' + BAD + ' 抓不到（⑤ 从此是永久绿灯）');
+    const fp = litFilter(parse(OK)).length;
+    if (fp) F22('照片滤镜探针误报 ' + fp + ' 处：修饰态/占位态/瓦片/:active 不是照片表面，不该被拦');
+  }
+  FILES22.forEach(f => {
+    if (!/\.css$/.test(f)) return;
+    const rules = parse(code22(f));
+    litFilter(rules).forEach(r => F22(f + ' 给照片表面 ' + r.sel + ' 另写了滤镜：' + r.body.slice(0, 70)));
+    /* 照片上的分界线不随主题翻（它画在照片自己身上）；暗色只翻 UI 侧外圈 */
+    rules.forEach(r => {
+      if (/theme-dark/.test(r.sel) && /--photo-/.test(r.body)) F22(f + ' 在 .theme-dark 里重定义了 --photo-* token：' + r.sel);
+    });
+  });
+
+  /* --- ⑥ 死规则不许复活：.card .media 一族零调用者，留着就是「看着有其实没有」 --- */
+  {
+    let n = 0;
+    FILES22.forEach(f => { n += (flat22(code22(f)).match(/\.card \.media/g) || []).length; });
+    if (n) F22('.card .media 又出现 ' + n + ' 次：这套选择器没有任何调用者，已删作欠账登记');
+  }
+
+  /* --- ⑦ 登记在案：浏览器侧闸门存在且 README 指得到 --- */
+  if (!fs.existsSync('tools/smoke-photo.js')) F22('缺 tools/smoke-photo.js（16 条真浏览器断言：计算值 + 像素对账）');
+  {
+    const R = read22('README.md');
+    if (!/smoke-photo\.js/.test(R)) F22('README 没登记 smoke-photo.js：下一个人不会知道压色是有浏览器闸门的');
+    if (!/§22/.test(R)) F22('README 的 verify.js 闸门清单里没有 §22');
+  }
+
+  console.log('实景图闸门: --photo-veil/.10 --photo-look/saturate(.94) --photo-edge/.20 逐值核定且字面量全站双写 0 处；' +
+    '表面清单 10+6+6+4+3+3 条逐条挂载、滤镜单一挂载点；' +
+    '按实际挂载算出的三条不变式成立（inset⊆veil、外圈⊆滤镜、清单零漂多）；' +
+    '封面 .ls-img 两条声明都含 inset 环且 ::after 恰 1 条（自带影与 veil 合并）；' +
+    '照片表面零字面量滤镜、暗色零 --photo-* 重定义；.card .media 零复活；smoke-photo.js 与 README 在案');
+  fail += bad;
+}
+
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

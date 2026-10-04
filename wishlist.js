@@ -84,8 +84,8 @@ window.Wish = (function () {
         checkNearby(function (near) {
           var s = near[0];
           var d = document.createElement('div');
-          d.style.cssText = 'position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:13px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
-          d.innerHTML = '<span style="flex:1">你已在 <b></b> 附近（3km 内），记录一下？</span><button style="flex:0 0 auto;border:0;border-radius:999px;background:var(--color-primary,#AE5738);color:var(--bg);padding:8px 16px;font-size:12.5px;cursor:pointer">去打卡</button>';
+          d.style.cssText = 'position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:var(--fs-4);display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+          d.innerHTML = '<span style="flex:1">你已在 <b></b> 附近（3km 内），记录一下？</span><button style="flex:0 0 auto;border:0;border-radius:999px;background:var(--color-primary,#AE5738);color:var(--bg);padding:8px 16px;font-size:var(--fs-4);cursor:pointer">去打卡</button>';
           d.querySelector('b').textContent = s.label;  /* label 用户可控，走 textContent 防注入 */
           d.querySelector('button').onclick = function () { d.remove(); location.href = 'wishlist.html'; };
           document.body.appendChild(d);

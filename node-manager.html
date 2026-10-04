@@ -12,60 +12,60 @@
   html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink);overflow:hidden}
   #mapEl{position:absolute;inset:0;z-index:1}
   .nm-topbar{position:fixed;left:0;right:0;top:0;z-index:9500;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px;background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.07)}
-  .nm-topbar .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .nm-topbar .title{font-family:var(--font-serif);font-weight:400;font-size:18px;color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-  .nm-topbar .title small{font-family:var(--font-sans);font-size:11px;color:var(--color-muted);margin-left:4px;letter-spacing:.06em}
+  .nm-topbar .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .nm-topbar .title{font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .nm-topbar .title small{font-family:var(--font-sans);font-size:var(--fs-2);color:var(--color-muted);margin-left:4px;letter-spacing:.06em}
   .sbar{flex:1;display:flex;align-items:center;gap:6px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:3px 6px 3px 10px;min-width:110px}
-  .sbar .keybtn{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .sbar .keybtn{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .sbar .keybtn:active{background:var(--color-bg-soft)}
-  .sbar input{flex:1;min-width:44px;border:0;outline:0;background:transparent;font-size:14px;color:var(--color-ink);height:36px}
+  .sbar input{flex:1;min-width:44px;border:0;outline:0;background:transparent;font-size:var(--fs-5);color:var(--color-ink);height:36px}
   /* 底部搜索栏：毛玻璃浮动卡片（不贴边沿，左右留边、底部留距） */
   .nsearch-bar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(250,248,243,.82);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.6);border-radius:22px;box-shadow:0 8px 30px rgba(32,32,29,.12),0 2px 8px rgba(32,32,29,.06);transition:box-shadow var(--motion-mid)}
   .nsearch-bar:focus-within{box-shadow:0 10px 34px rgba(200,109,75,.16),0 2px 8px rgba(32,32,29,.06)}
-  .nsearch-bar .keybtn{flex:0 0 auto;width:42px;height:42px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .nsearch-bar .keybtn{flex:0 0 auto;width:42px;height:42px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-muted);font-size:var(--fs-7);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .nsearch-bar .keybtn:active{background:var(--color-bg-soft)}
-  .nsearch-bar input{flex:1;min-width:0;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);font-size:14px;color:var(--color-ink);height:42px;padding:0 16px;outline:0}
+  .nsearch-bar input{flex:1;min-width:0;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);font-size:var(--fs-5);color:var(--color-ink);height:42px;padding:0 16px;outline:0}
   .nsearch-bar input:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
-  .nsearch-bar .go{flex:0 0 auto;min-height:42px;padding:0 20px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:13px;cursor:pointer;font-family:var(--font-sans)}
+  .nsearch-bar .go{flex:0 0 auto;min-height:42px;padding:0 20px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);cursor:pointer;font-family:var(--font-sans)}
   .theme-dark .nsearch-bar{background:rgba(29,28,25,.75);border-color:rgba(255,255,255,.08);box-shadow:0 8px 30px rgba(0,0,0,.4)}
-  .sbar .go{flex:0 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:13px;cursor:pointer;font-family:var(--font-sans)}
-  .nm-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;z-index:9400;background:rgba(32,32,29,.88);color:#fff;font-size:12px;padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity var(--motion-mid)}
+  .sbar .go{flex:0 0 auto;min-height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);cursor:pointer;font-family:var(--font-sans)}
+  .nm-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;z-index:9400;background:rgba(32,32,29,.88);color:#fff;font-size:var(--fs-3);padding:7px 14px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity var(--motion-mid)}
   .nm-tip.show{opacity:1}
   /* 搜索结果面板 */
   #rsSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:72dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:16px 16px 12px;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard)}
   #rsSheet.show{display:block;transform:translateY(0)}
   .rs-head{display:flex;align-items:center;margin-bottom:10px}
-  .rs-head b{flex:1;font-family:var(--font-serif);font-weight:400;font-size:16px;color:var(--color-ink)}
-  .rs-head .x{border:0;background:none;color:var(--color-muted);font-size:15px;cursor:pointer;padding:6px}
-  .rs-sec{font-size:11px;color:var(--color-muted);letter-spacing:.16em;margin:12px 2px 6px}
+  .rs-head b{flex:1;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-7);color:var(--color-ink)}
+  .rs-head .x{border:0;background:none;color:var(--color-muted);font-size:var(--fs-6);cursor:pointer;padding:6px}
+  .rs-sec{font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.16em;margin:12px 2px 6px}
   .rs-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;cursor:pointer}
   .rs-item:active{background:var(--color-bg-soft)}
-  .rs-item .ic{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;background:var(--color-primary-soft);color:var(--color-primary-dark)}
+  .rs-item .ic{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:var(--fs-4);background:var(--color-primary-soft);color:var(--color-primary-dark)}
   .rs-item .main{flex:1;min-width:0}
-  .rs-item .nm{font-size:13.5px;color:var(--color-ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .rs-item .nm .bdg{display:inline-block;font-size:10px;padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600;background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.38)}
+  .rs-item .nm{font-size:var(--fs-5);color:var(--color-ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rs-item .nm .bdg{display:inline-block;font-size:var(--fs-1);padding:0 6px;border-radius:999px;margin-left:6px;vertical-align:1px;font-weight:600;background:rgba(201,162,39,.14);color:#8A6D1F;border:1px solid rgba(201,162,39,.38)}
   .rs-item .nm .bdg.mine{background:rgba(95,122,78,.14);color:#5F7A4E;border-color:rgba(95,122,78,.4)}
-  .rs-item .sub{font-size:11.5px;color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .rs-item .act{flex:0 0 auto;font-size:12px;color:var(--color-primary-dark);font-weight:600}
-  .rs-empty{padding:26px 10px;text-align:center;color:var(--color-muted);font-size:13px;line-height:1.8}
+  .rs-item .sub{font-size:var(--fs-3);color:var(--color-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rs-item .act{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-primary-dark);font-weight:600}
+  .rs-empty{padding:26px 10px;text-align:center;color:var(--color-muted);font-size:var(--fs-4);line-height:1.8}
   /* 节点信息面板 */
   #infoSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:70dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;box-shadow:0 18px 50px rgba(30,30,28,.22);padding:18px 18px 14px;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard)}
   #infoSheet.show{display:block;transform:translateY(0)}
   #infoSheet .is-place{font-family:var(--font-serif);font-size:21px;color:var(--color-ink);margin-bottom:4px}
-  #infoSheet .is-loc{font-size:12.5px;color:var(--color-muted);margin-bottom:10px}
-  #infoSheet .is-desc{font-size:13px;color:var(--color-ink-soft);line-height:1.7;margin-bottom:8px;white-space:pre-line}
-  #infoSheet .is-coord{font-size:11.5px;color:var(--color-muted);font-family:ui-monospace,Consolas,monospace;margin-bottom:12px}
+  #infoSheet .is-loc{font-size:var(--fs-4);color:var(--color-muted);margin-bottom:10px}
+  #infoSheet .is-desc{font-size:var(--fs-4);color:var(--color-ink-soft);line-height:1.7;margin-bottom:8px;white-space:pre-line}
+  #infoSheet .is-coord{font-size:var(--fs-3);color:var(--color-muted);font-family:ui-monospace,Consolas,monospace;margin-bottom:12px}
   #infoSheet .is-tags{margin-bottom:12px}
-  #infoSheet .is-tags span{display:inline-block;font-size:11px;background:var(--color-primary-soft);color:var(--color-primary-dark);border-radius:999px;padding:2px 9px;margin:0 5px 5px 0}
+  #infoSheet .is-tags span{display:inline-block;font-size:var(--fs-2);background:var(--color-primary-soft);color:var(--color-primary-dark);border-radius:999px;padding:2px 9px;margin:0 5px 5px 0}
   #infoSheet .is-acts{display:flex;gap:10px}
-  #infoSheet .is-btn{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:13.5px;cursor:pointer;font-family:var(--font-sans)}
+  #infoSheet .is-btn{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-5);cursor:pointer;font-family:var(--font-sans)}
   #infoSheet .is-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600}
   #infoSheet .is-btn.danger{color:var(--color-danger,#b34a3f);border-color:rgba(179,74,63,.4)}
   .theme-dark .nm-topbar{background:rgba(29,28,25,.92)}
   /* 缩放按钮：右上（顶栏下方避让）+ 毛玻璃圆角风格 */
   .leaflet-top.leaflet-right{margin-top:64px;margin-right:10px}
   .leaflet-control-zoom{border:0 !important;border-radius:14px !important;box-shadow:0 6px 20px rgba(32,32,29,.14) !important;overflow:hidden}
-  .leaflet-control-zoom a{width:40px !important;height:40px !important;line-height:40px !important;background:var(--color-surface) !important;color:var(--color-ink) !important;border:0 !important;font-size:17px !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .leaflet-control-zoom a{width:40px !important;height:40px !important;line-height:40px !important;background:var(--color-surface) !important;color:var(--color-ink) !important;border:0 !important;font-size:var(--fs-8) !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .leaflet-control-zoom a:active{background:var(--color-bg-soft) !important}
   .leaflet-control-zoom a.leaflet-control-zoom-in{border-bottom:1px solid rgba(32,32,29,.08) !important}
   .theme-dark #rsSheet,.theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
@@ -459,16 +459,16 @@
       '<div class="ui-modal-text nm-body">' +
       '<div style="display:flex;gap:8px;align-items:center">' +
       '<input id="aiNodeInput" class="nm-in" style="flex:1;min-width:0;margin-bottom:0" placeholder="输入地点或一句话，如：我想加成都武侯祠，三国文化" autocomplete="off">' +
-      '<button id="aiNodeMic" type="button" class="ui-btn" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:18px;line-height:1" aria-label="语音输入">'+TI('mic', 18)+'</button>' +
+      '<button id="aiNodeMic" type="button" class="ui-btn" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:var(--fs-8);line-height:1" aria-label="语音输入">'+TI('mic', 18)+'</button>' +
       '</div>' +
-      '<div style="font-size:11.5px;color:var(--color-muted);margin-top:6px;line-height:1.6">一句话（我想加/我要加…）自动识别省市与分类直接添加；或输入关键词列出相近地点点选</div>' +
-      '<div style="margin-top:10px"><div style="font-size:11px;color:var(--color-muted);margin-bottom:5px">示例 · 点一下直接搜索</div>' +
-      '<button class="nm-example" data-t="故宫" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">故宫</button>' +
-      '<button class="nm-example" data-t="鼓浪屿" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">鼓浪屿</button>' +
-      '<button class="nm-example" data-t="大熊猫基地" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">大熊猫基地</button>' +
-      '<button class="nm-example" data-t="正觉寺" style="display:inline-block;font-size:11.5px;color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">正觉寺</button>' +
+      '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:6px;line-height:1.6">一句话（我想加/我要加…）自动识别省市与分类直接添加；或输入关键词列出相近地点点选</div>' +
+      '<div style="margin-top:10px"><div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:5px">示例 · 点一下直接搜索</div>' +
+      '<button class="nm-example" data-t="故宫" style="display:inline-block;font-size:var(--fs-3);color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">故宫</button>' +
+      '<button class="nm-example" data-t="鼓浪屿" style="display:inline-block;font-size:var(--fs-3);color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">鼓浪屿</button>' +
+      '<button class="nm-example" data-t="大熊猫基地" style="display:inline-block;font-size:var(--fs-3);color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">大熊猫基地</button>' +
+      '<button class="nm-example" data-t="正觉寺" style="display:inline-block;font-size:var(--fs-3);color:var(--color-ink-soft);background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;padding:4px 11px;margin:0 6px 6px 0;cursor:pointer">正觉寺</button>' +
       '</div>' +
-      '<div id="aiNodeStatus" style="font-size:12px;color:var(--color-primary-dark);margin-top:8px;display:none"></div>' +
+      '<div id="aiNodeStatus" style="font-size:var(--fs-3);color:var(--color-primary-dark);margin-top:8px;display:none"></div>' +
       '<div id="aiNodeList" style="display:none;margin-top:8px;max-height:46vh;overflow-y:auto;border-top:1px solid var(--color-line);padding-top:6px"></div>' +
       '</div>' +
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="aiNodeCancel">取消</button><button class="ui-btn ui-btn-primary" id="aiNodeGo">搜索</button></div></div>';
@@ -498,10 +498,10 @@
     function renderList(list, kw, hasKey) {
       listBox.style.display = 'block';
       if (!list.length) {
-        listBox.innerHTML = '<div style="padding:14px 4px;font-size:12.5px;color:var(--color-muted);text-align:center;line-height:1.8">没找到「' + esc(kw) + '」的相近地点</div>' +
+        listBox.innerHTML = '<div style="padding:14px 4px;font-size:var(--fs-4);color:var(--color-muted);text-align:center;line-height:1.8">没找到「' + esc(kw) + '」的相近地点</div>' +
           '<div style="display:flex;gap:8px;margin-top:6px">' +
-          (hasKey ? '' : '<button id="aiNodeCfgKey" class="ui-btn" style="flex:1;min-height:40px;font-size:13px">配置高德 Key</button>') +
-          '<button id="aiNodePick" class="ui-btn ui-btn-primary" style="flex:1;min-height:40px;font-size:13px">地图点选位置</button></div>';
+          (hasKey ? '' : '<button id="aiNodeCfgKey" class="ui-btn" style="flex:1;min-height:40px;font-size:var(--fs-4)">配置高德 Key</button>') +
+          '<button id="aiNodePick" class="ui-btn ui-btn-primary" style="flex:1;min-height:40px;font-size:var(--fs-4)">地图点选位置</button></div>';
         var ck = listBox.querySelector('#aiNodeCfgKey');
         if (ck) ck.onclick = function () { promptKey(function () { run(); }); };
         listBox.querySelector('#aiNodePick').onclick = function () { m.remove(); startPickPreset({ name: kw, city: '', category: '', tags: [], desc: '' }); };
@@ -530,7 +530,7 @@
           '<span class="act"' + (exist ? ' style="color:#5F7A4E"' : '') + '>' + (exist ? '已添加' : '＋ 添加') + '</span></div>';
       });
       if (!hasKey) {
-        html += '<button id="aiNodeCfgKey2" style="display:block;width:100%;border:0;background:none;color:var(--color-primary-dark);font-size:12px;padding:8px 4px;cursor:pointer">＋ 配置高德 Key，可搜到更多本地商铺 / 小店</button>';
+        html += '<button id="aiNodeCfgKey2" style="display:block;width:100%;border:0;background:none;color:var(--color-primary-dark);font-size:var(--fs-3);padding:8px 4px;cursor:pointer">＋ 配置高德 Key，可搜到更多本地商铺 / 小店</button>';
       }
       listBox.innerHTML = html;
       listBox.querySelectorAll('[data-i]').forEach(function (it) {
@@ -582,7 +582,7 @@
       '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
       '<div class="ui-modal-title">配置高德搜索 Key</div>' +
       '<div class="ui-modal-text nm-body">' +
-      '<div style="font-size:12.5px;color:var(--color-muted);line-height:1.7;margin-bottom:10px">本地没有找到该节点，需调用高德地图 POI 搜索。请填入高德开放平台（console.amap.com）申请的 Web 服务 Key（免费），仅保存在本机。</div>' +
+      '<div style="font-size:var(--fs-4);color:var(--color-muted);line-height:1.7;margin-bottom:10px">本地没有找到该节点，需调用高德地图 POI 搜索。请填入高德开放平台（console.amap.com）申请的 Web 服务 Key（免费），仅保存在本机。</div>' +
       '<input id="akKey" class="nm-in" placeholder="高德 Web 服务 Key" value="">' +
       '<div class="nm-dup"></div>' +
       '</div>' +
@@ -723,7 +723,7 @@
   function openSysInfo(s) {
     var box = $('isBody');
     box.innerHTML =
-      '<div class="is-place">' + esc(s.label || s.name) + ' <span style="font-size:11px;color:var(--color-muted);vertical-align:2px">系统地点 · 已存在</span></div>' +
+      '<div class="is-place">' + esc(s.label || s.name) + ' <span style="font-size:var(--fs-2);color:var(--color-muted);vertical-align:2px">系统地点 · 已存在</span></div>' +
       '<div class="is-loc">' + esc(s.theme + ' · ' + [s.region, s.city].filter(Boolean).join(' · ')) + '</div>' +
       (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
       '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
@@ -746,7 +746,7 @@
     var loc = [u.category, u.city].filter(Boolean).join(' · ') + (u.elev ? ' · 海拔 ' + u.elev + 'm' : '') + (u.address ? ' · ' + u.address : '');
     box.innerHTML =
       (u.coverImage ? '<div style="width:100%;height:150px;border-radius:14px;overflow:hidden;margin-bottom:10px"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + u.coverImage + '" alt="' + esc(u.name) + '" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
-      '<div class="is-place">' + esc(u.name) + ' <span style="font-size:11px;color:#5F7A4E;vertical-align:2px">我的地点</span></div>' +
+      '<div class="is-place">' + esc(u.name) + ' <span style="font-size:var(--fs-2);color:#5F7A4E;vertical-align:2px">我的地点</span></div>' +
       '<div class="is-loc">' + esc(loc) + '</div>' +
       (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
       (u.tags && u.tags.length ? '<div class="is-tags">' + u.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
@@ -820,11 +820,11 @@
       '<div class="ui-modal-title">' + (preset && preset.uid ? '编辑地点' : '添加地点') + '</div>' +
       '<div class="ui-modal-text nm-body">' +
       '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">' +
-      '<div style="flex:0 0 64px;height:64px;border-radius:12px;overflow:hidden;background:var(--color-bg-soft);display:grid;place-items:center;color:var(--color-faint);font-size:10px;text-align:center;position:relative" id="nmPhotoBox">' +
+      '<div style="flex:0 0 64px;height:64px;border-radius:12px;overflow:hidden;background:var(--color-bg-soft);display:grid;place-items:center;color:var(--color-faint);font-size:var(--fs-1);text-align:center;position:relative" id="nmPhotoBox">' +
       (preset && preset.coverImage ? '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="nmPhotoImg" src="' + preset.coverImage + '" style="width:100%;height:100%;object-fit:cover">' : '<span id="nmPhotoTxt">封面<br>照片</span>') +
       '</div>' +
       '<div style="flex:1;min-width:0">' +
-      (preset && preset.lat != null ? '<div class="nm-coord" style="margin-bottom:6px">'+TI('pin', 12)+'' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + (preset.uid ? ' <button id="nmRepick" type="button" style="border:0;background:none;color:var(--color-primary-dark);font-size:11.5px;cursor:pointer;padding:0">移动位置 ›</button>' : '') + '</div>' : '') +
+      (preset && preset.lat != null ? '<div class="nm-coord" style="margin-bottom:6px">'+TI('pin', 12)+'' + (+preset.lat).toFixed(5) + ', ' + (+preset.lng).toFixed(5) + (preset.gcj ? ' · 高德坐标' : '') + (preset.uid ? ' <button id="nmRepick" type="button" style="border:0;background:none;color:var(--color-primary-dark);font-size:var(--fs-3);cursor:pointer;padding:0">移动位置 ›</button>' : '') + '</div>' : '') +
       '<input id="nmName" class="nm-in" placeholder="名称（必填）" value="' + esc((preset && preset.name) || '') + '">' +
       '<input id="nmCity" class="nm-in" placeholder="城市（如 长沙）" value="' + esc((preset && preset.city) || '') + '">' +
       '</div></div>' +
@@ -836,7 +836,7 @@
       '<input id="nmElev" class="nm-in" type="number" placeholder="海拔（米，自动获取）" style="flex:1;margin-bottom:0" value="' + esc((preset && preset.elev) || '') + '">' +
       '<button id="nmElevGo" type="button" class="ui-btn" style="min-height:40px;flex:0 0 auto;padding:0 14px" aria-label="重新获取海拔">⟳</button></div>' +
       '<textarea id="nmDesc" class="nm-ta" placeholder="地点介绍（可自动生成）" rows="3">' + esc((preset && preset.desc) || '') + '</textarea>' +
-      '<div style="text-align:right;margin:-2px 0 8px"><button id="nmGenDesc" type="button" class="ui-btn" style="min-height:34px;padding:0 12px;font-size:12px">'+TI('sparkles', 13)+'生成介绍</button></div>' +
+      '<div style="text-align:right;margin:-2px 0 8px"><button id="nmGenDesc" type="button" class="ui-btn" style="min-height:34px;padding:0 12px;font-size:var(--fs-3)">'+TI('sparkles', 13)+'生成介绍</button></div>' +
       '<div class="nm-dup" id="nmDup"></div>' +
       '</div>' +
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmCancel">取消</button><button class="ui-btn ui-btn-primary" id="nmSave">保存</button></div></div>';
@@ -957,7 +957,7 @@
     m.className = 'ui-modal-mask nm-mask';
     m.innerHTML =
       '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
-      '<div class="ui-modal-title">我的地点 <small style="font-size:12px;color:var(--color-muted)">' + arr.length + ' 个</small></div>' +
+      '<div class="ui-modal-title">我的地点 <small style="font-size:var(--fs-3);color:var(--color-muted)">' + arr.length + ' 个</small></div>' +
       '<div class="ui-modal-text nm-list" id="nmList"></div>' +
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmClose">关闭</button></div></div>';
     document.body.appendChild(m);
@@ -966,14 +966,14 @@
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     var box = m.querySelector('#nmList');
     if (!arr.length) {
-      box.innerHTML = '<div style="text-align:center;color:var(--color-muted);padding:20px 0">还没有自己添加的地点<br><span style="font-size:12px">顶部搜索 → 高德地点 → 一键添加</span></div>';
+      box.innerHTML = '<div style="text-align:center;color:var(--color-muted);padding:20px 0">还没有自己添加的地点<br><span style="font-size:var(--fs-3)">顶部搜索 → 高德地点 → 一键添加</span></div>';
       return;
     }
     box.innerHTML = arr.map(function (u) {
       var _w = window.Wish && Wish.isWished(u);
       return '<div class="nm-item">' +
         (u.coverImage ? '<div style="flex:0 0 44px;height:44px;border-radius:10px;overflow:hidden"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + u.coverImage + '" alt="" style="width:100%;height:100%;object-fit:cover"></div>' : '') +
-        '<div class="nm-item-main"><b>' + esc(u.name) + (_w ? ' <span style="font-size:10px;color:var(--color-primary-dark)">想去</span>' : '') + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ') + (u.elev ? ' · ' + u.elev + 'm' : '')) + '</small></div>' +
+        '<div class="nm-item-main"><b>' + esc(u.name) + (_w ? ' <span style="font-size:var(--fs-1);color:var(--color-primary-dark)">想去</span>' : '') + '</b><small>' + esc([u.city, u.category].filter(Boolean).join(' · ') + (u.elev ? ' · ' + u.elev + 'm' : '')) + '</small></div>' +
         '<button class="nm-item-btn" onclick="window.NM.locate(\'' + u.id + '\')">定位</button>' +
         '<button class="nm-item-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
         '<button class="nm-item-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button></div>';
