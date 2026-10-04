@@ -107,6 +107,9 @@ var SHELL = [
   './vendor/leaflet/leaflet.js',
   './vendor/pako.min.js',
   './images/icon.svg',
+  /* ---- 包内品牌衬线（V1）：缺了这两个，标题在手机上就退回整机字体，宋体调性全丢 ---- */
+  './fonts/NotoSerifSC-400.woff2',
+  './fonts/NotoSerifSC-700.woff2',
   './manifest.webmanifest',
   /* ---- 主题插图 ---- */
   './art/empty-compass.svg',

@@ -1,4 +1,4 @@
-/* sync-assets.js — 前端文件同步到 Android assets（html/js/css/vendor/art/images，保留 assets 特有内容） */
+/* sync-assets.js — 前端文件同步到 Android assets（html/js/css/vendor/art/fonts/images，保留 assets 特有内容） */
 const fs = require('fs');
 const path = require('path');
 /* 原先两行是硬编码 'F:/MyAi/Trace' 与 'F:/MyAi/Trace/android_app/...'，那是仓库搬进 lvyou-v2/ 之前的布局；
@@ -35,8 +35,9 @@ if (fs.existsSync(path.join(SRC, 'manifest.webmanifest'))) {
   fs.copyFileSync(path.join(SRC, 'manifest.webmanifest'), path.join(DST, 'manifest.webmanifest'));
   total++;
 }
-/* 目录（合并覆盖） */
-['vendor', 'art', 'images', 'images_chz', 'images_gs', 'images_gxyn', 'images_gz', 'images_qz', 'images_sc', 'images_xj', 'img-test'].forEach(d => {
+/* 目录（合并覆盖）。fonts/ 是包内品牌衬线（Noto Serif SC，SIL OFL 1.1）：
+   OFL 要求字体分发时授权文本同行，所以 OFL-1.1.txt 必须跟 woff2 一起进 assets，不能只拷 woff2 */
+['vendor', 'art', 'fonts', 'images', 'images_chz', 'images_gs', 'images_gxyn', 'images_gz', 'images_qz', 'images_sc', 'images_xj', 'img-test'].forEach(d => {
   total += copyDir(path.join(SRC, d), path.join(DST, d));
 });
 console.log('synced files:', total);
