@@ -63,10 +63,12 @@ public class XfVoiceEngine {
         if (xf == null || listening) return;
         try {
             sb.setLength(0);
+            // 老 SDK 同一实例重复 startListening 可能崩溃：先 cancel 重置（修复"第二次录音闪退"）
+            try { xf.cancel(); } catch (Throwable ignored) {}
             xf.setParameter(SpeechConstant.DOMAIN, "iat");
             xf.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
             xf.setParameter(SpeechConstant.ACCENT, "mandarin");
-            xf.setParameter(SpeechConstant.VAD_BOS, "4000");
+            xf.setParameter(SpeechConstant.VAD_BOS, "6000");
             xf.setParameter(SpeechConstant.VAD_EOS, String.valueOf(vadEos));
             xf.setParameter(SpeechConstant.NET_TIMEOUT, "10000");
             listening = true;

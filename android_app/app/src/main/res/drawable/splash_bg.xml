@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 批次7 启动屏首帧（Android 11 及以下走 windowBackground）：宣纸底 + 居中远山线稿。
+     Android 12+ 由 values-v31/themes.xml 把 windowBackground 换回纯色，避免系统启动屏
+     之后再叠一层带图首帧造成「双份 logo 闪一下」。 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/paper_bg" />
+    <item
+        android:width="108dp"
+        android:height="108dp"
+        android:gravity="center"
+        android:drawable="@drawable/splash_brand" />
+</layer-list>

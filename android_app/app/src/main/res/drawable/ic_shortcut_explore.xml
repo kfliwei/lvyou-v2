@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 快捷菜单：去探索（地图定位标） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="48dp" android:height="48dp"
+  android:viewportWidth="24" android:viewportHeight="24">
+  <path
+    android:fillColor="#FFFFFF"
+    android:pathData="M12,2a7,7 0,0 0,-7 7c0,5.25 6.1,11.2 6.6,11.7a0.6,0.6 0,0 0,0.8 0c0.5,-0.5 6.6,-6.45 6.6,-11.7A7,7 0,0 0,12 2z" />
+  <path
+    android:fillColor="#F7F5EF"
+    android:pathData="M12,6.5a2.5,2.5 0,1 0,0 5,2.5 2.5,0 0,0 0,-5z" />
+</vector>

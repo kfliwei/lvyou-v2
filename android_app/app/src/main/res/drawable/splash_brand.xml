@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 批次7 启动屏品牌图形：与 Web 端空态「远山」线稿同一几何（art/empty-mountain.svg），
+     按 0.5 缩放 + 居中偏移 (24,29) 换算，笔触落在 108×108 的自适应安全区内
+     （Android 12 启动图标可见区约为中心 72dp）。
+     线宽等比应为 1.0，这里提到 1.8：启动屏是一眼扫过的远观场景，太细会糊成一条灰。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 山脊线 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/gold_deep"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M27,68 L41,50 L50,60 L61,44 L81,68 Z" />
+    <!-- 雪线 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/gold_deep"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M46,54.5 L50,60 L54,54.5" />
+    <!-- 地平线 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/gold_deep"
+        android:strokeWidth="1.8"
+        android:strokeAlpha="0.35"
+        android:pathData="M27,68 L81,68" />
+    <!-- 日：画稿是 r=5 / stroke=2，等比缩后 r=2.5 就得配 1.0 的线宽。
+         跟着山脊用 1.8 会糊成实心甜甜圈（改前/改后对比图里实测到的）。 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="@color/gold_deep"
+        android:strokeWidth="1.0"
+        android:strokeAlpha="0.4"
+        android:pathData="M71,39 m2.5,0 a2.5,2.5 0 1,0 -5,0 a2.5,2.5 0 1,0 5,0" />
+</vector>

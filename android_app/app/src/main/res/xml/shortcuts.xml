@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 桌面长按快捷菜单（App Shortcuts） -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut
+    android:shortcutId="anywhere"
+    android:enabled="true"
+    android:icon="@drawable/ic_shortcut_anywhere"
+    android:shortcutShortLabel="@string/shortcut_anywhere_label"
+    android:shortcutLongLabel="@string/shortcut_anywhere_long">
+    <intent
+      android:action="android.intent.action.MAIN"
+      android:targetPackage="com.gujian.guditu"
+      android:targetClass="com.gujian.guditu.MainActivity">
+      <extra android:name="tn_shortcut" android:value="anywhere" />
+    </intent>
+  </shortcut>
+  <shortcut
+    android:shortcutId="explore"
+    android:enabled="true"
+    android:icon="@drawable/ic_shortcut_explore"
+    android:shortcutShortLabel="@string/shortcut_explore_label"
+    android:shortcutLongLabel="@string/shortcut_explore_long">
+    <intent
+      android:action="android.intent.action.MAIN"
+      android:targetPackage="com.gujian.guditu"
+      android:targetClass="com.gujian.guditu.MainActivity">
+      <extra android:name="tn_shortcut" android:value="explore" />
+    </intent>
+  </shortcut>
+</shortcuts>

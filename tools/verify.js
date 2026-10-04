@@ -498,12 +498,15 @@ const EMOJI_MARK = 'emoji-ok:';
    ③ Android 12+ 走系统启动屏属性，同时 windowBackground 必须退回纯色，否则系统屏结束后
       又叠一层带图首帧 = logo 闪两次；
    ④ 同名 style 是整体替换不是合并，values/themes.xml 的每一项都要在 values-v31 里重抄。
-   壳目录不在本机时打 SKIP，把覆盖缺口写明，不假装通过。 */
+   壳目录与仓库内的壳源副本都不在本机时才打 SKIP，把覆盖缺口写明，不假装通过。 */
 {
   const SHELL = (process.env.TRACE_ANDROID_SHELL || 'F:/MyAi/trace/lvyou-v2-android').replace(/\\/g, '/');
-  const RES = SHELL + '/app/src/main/res';
-  if (!fs.existsSync(RES)) {
-    console.log('启动屏闸门: SKIP（外部壳 ' + SHELL + ' 不在本机，APK 首帧不在本闸门覆盖内）');
+  const RES_SHELL = SHELL + '/app/src/main/res';
+  const RES_REPO = 'android_app/app/src/main/res';
+  /* 交付壳优先；壳不在本机（另一台机器、CI）时退回仓库内的壳源副本，两边都没有才 SKIP */
+  const RES = fs.existsSync(RES_SHELL) ? RES_SHELL : (fs.existsSync(RES_REPO) ? RES_REPO : null);
+  if (!RES) {
+    console.log('启动屏闸门: SKIP（外部壳 ' + SHELL + ' 与 ' + RES_REPO + ' 都不在本机，APK 首帧不在本闸门覆盖内）');
   } else {
     let bad = 0;
     const F = m => { console.log('启动屏 FAIL: ' + m); bad++; };
@@ -578,7 +581,7 @@ const EMOJI_MARK = 'emoji-ok:';
     const namesOf = s => (s.match(/<item name="[^"]+"/g) || []).map(m => m.slice(12, -1));
     const miss = namesOf(th).filter(n => !namesOf(th31).includes(n));
     if (miss.length) F('values-v31 漏重抄：' + miss.join(',') + '（同名 style 整体替换，漏一项等于把那项退回系统默认）');
-    console.log('启动屏闸门: 外部壳 ' + SHELL + ' 对账，线稿色 ' + (cm || '-') + '，几何 ' + geoOk + '/' + geoTotal + ' 吻合，v31 首帧双 logo 抑制 ' + (wb31 && !/@drawable\//.test(wb31) ? 'OK' : '红'));
+    console.log('启动屏闸门: ' + (RES === RES_SHELL ? '外部壳 ' : '仓库壳源副本 ') + RES + ' 对账，线稿色 ' + (cm || '-') + '，几何 ' + geoOk + '/' + geoTotal + ' 吻合，v31 首帧双 logo 抑制 ' + (wb31 && !/@drawable\//.test(wb31) ? 'OK' : '红'));
     fail += bad;
   }
 }

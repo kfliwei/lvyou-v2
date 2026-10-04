@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 行迹设计语言：宣纸 / 墨 / 朱砂 / 鎏金 -->
+    <color name="paper_100">#F7F5EF</color>
+    <color name="paper_200">#EFE9DD</color>
+    <color name="ink_900">#211A13</color>
+    <color name="ink_600">#5C5346</color>
+    <color name="ink_400">#8B8174</color>
+    <color name="cinnabar">#B44A2D</color>
+    <color name="cinnabar_soft">#C86D4B</color>
+    <color name="gold_500">#DCAE5E</color>
+    <color name="gold_hairline">#33DCAE5E</color>
+    <!-- 启动屏线稿用「深鎏金」，与 Web 端 design.css 的 gold 令牌同值（宣纸底上 3.9:1）；
+         XML 注释里不能出现连字符对，所以这里不写 CSS 变量原名 -->
+    <color name="gold_deep">#8F5D0E</color>
+    <color name="paper_bg">#f6f1e7</color>
+</resources>

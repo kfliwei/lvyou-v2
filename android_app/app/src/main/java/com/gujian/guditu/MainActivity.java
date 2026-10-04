@@ -13,6 +13,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.GeolocationPermissions;
+import android.webkit.HttpAuthHandler;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -43,6 +44,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /* 桌面快捷菜单：读取待执行动作（随手记/去探索） */
+        pendingShortcut = getIntent() != null ? getIntent().getStringExtra("tn_shortcut") : null;
+        // 崩溃兜底：把 Java 崩溃堆栈写入私有文件，供设置页诊断显示（定位"语音闪退"等真机问题）
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override public void uncaughtException(Thread t, Throwable e) {
+                try {
+                    java.io.File f = new java.io.File(getFilesDir(), "crash.log");
+                    java.io.FileOutputStream os = new java.io.FileOutputStream(f, false);
+                    os.write((new java.util.Date().toString() + "\n" + android.util.Log.getStackTraceString(e)).getBytes("UTF-8"));
+                    os.close();
+                } catch (Throwable ignored) {}
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(1);
+            }
+        });
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webview);
@@ -51,32 +67,33 @@ public class MainActivity extends Activity {
         ws.setDomStorageEnabled(true);
         ws.setGeolocationEnabled(true);
         ws.setAllowFileAccess(true);
-        ws.setAllowFileAccessFromFileURLs(true); // SPA 路由：file:// 页面可 fetch 同目录片段
         ws.setAllowContentAccess(true);
+        /* file:// 页面允许跨域请求（高德 API JSONP 兜底；fetch 场景也放行） */
+        ws.setAllowUniversalAccessFromFileURLs(true);
+        ws.setAllowFileAccessFromFileURLs(true);
+        // file:// 页面发起跨域 fetch（Open-Meteo 天气 / BigDataCloud 逆地理）：
+        // Android WebView 默认禁止 file 源的跨域请求，即使服务器返回 ACAO:* 也会被拦，
+        // 导致天气自动记录与地点补全静默失败（地图瓦片走 <img> 不受影响，故"地图正常但天气缺失"）。
+        ws.setAllowUniversalAccessFromFileURLs(true);
+        ws.setAllowFileAccessFromFileURLs(true);
         // 让 WebView 严格遵循页面 viewport（width=device-width）自适应，
         // 而非按宽视口渲染再缩放（后者会导致 UI 组件偏大、不自适应）
         ws.setLoadWithOverviewMode(false);
         ws.setUseWideViewPort(false);
         // 允许 file:// 页面加载 https 地图瓦片
         ws.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        // 缓存策略：LOAD_DEFAULT 按 HTTP 头判断新鲜度（瓦片有 cache-control，正常走缓存）
+        // 关闭缓存：assets 更新后每次启动强制加载最新版（避免旧 JS/CSS 残留）
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
-        // 仅在版本号变化时清理缓存（避免每次冷启动都清空地图瓦片，自驾弱网首屏白板）
-        try {
-            String curVer = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            String lastVer = getSharedPreferences("_app", MODE_PRIVATE).getString("lastVer", "");
-            if (!curVer.equals(lastVer)) {
-                webView.clearCache(true);
-                getSharedPreferences("_app", MODE_PRIVATE).edit().putString("lastVer", curVer).apply();
-                Log.d(TAG, "版本变化 " + lastVer + " → " + curVer + "，已清理缓存");
-            }
-        } catch (Exception e) {
-            // 读取版本失败则不清缓存（保底不破坏正常使用）
-        }
+        webView.clearCache(true);
         // 追加自定义 UA 标记，供网页识别"是否运行在 App 内"（用于直接拉起高德深链）
         ws.setUserAgentString(ws.getUserAgentString() + " GuJianApp");
 
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                fireShortcut();   /* 页面加载完成后执行桌面快捷动作 */
+            }
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // 高德导航/标记链接：甩给系统，调起高德 App（或网页版）
@@ -90,6 +107,12 @@ public class MainActivity extends Activity {
                     }
                 }
                 return false;
+            }
+            @Override
+            public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+                // 壳内不弹系统 Basic Auth 框：WebDAV 的账密由页面 fetch 自己带头，
+                // 走到这里说明有裸 URL 请求在要账密，弹框既没有输入处也会盖住页面，直接拒掉。
+                handler.cancel();
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -126,10 +149,17 @@ public class MainActivity extends Activity {
 
         // 语音桥：页面通过 window.AndroidVoice.startVoice() 调用
         webView.addJavascriptInterface(new AndroidVoice(), "AndroidVoice");
+        // 桌面卡片桥：页面通过 window.AndroidCard.updateCard(json) 推送摘要
+        webView.addJavascriptInterface(new AndroidCard(), "AndroidCard");
 
         // 讯飞引擎（主）：国内直连；初始化异步，ready 前自动回退 Google
         xfEngine = new XfVoiceEngine(this, new XfVoiceEngine.Callback() {
-            @Override public void onStart() { voiceBusy = true; jsCall("window.__tnOnVoiceStart&&__tnOnVoiceStart()"); }
+            @Override public void onStart() {
+                voiceBusy = true;
+                // 检测到说话才开始录原声（减少与识别引擎并发占用麦克风的冲突窗口，防闪退）
+                startRecorder();
+                jsCall("window.__tnOnVoiceStart&&__tnOnVoiceStart()");
+            }
             @Override public void onPartial(String t) { jsCall("window.__tnOnVoicePartial&&__tnOnVoicePartial(" + jsStr(t) + ")"); }
             @Override public void onResult(String t) {
                 voiceBusy = false;
@@ -196,6 +226,30 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String getVoiceInfo() {
+            // 语音引擎诊断：讯飞初始化状态 + Google 可用性（供设置页显示，便于定位"语音几秒退出"）
+            boolean xfOk = xfEngine != null && xfEngine.isReady();
+            boolean googleOk = false;
+            try { googleOk = SpeechRecognizer.isRecognitionAvailable(MainActivity.this); } catch (Throwable t) {}
+            return "{\"xf\":" + xfOk + ",\"google\":" + googleOk + "}";
+        }
+
+        @JavascriptInterface
+        public String getCrashLog() {
+            // 读取崩溃日志（uncaughtExceptionHandler 写入 files/crash.log），供设置页诊断
+            try {
+                java.io.File f = new java.io.File(getFilesDir(), "crash.log");
+                if (!f.exists()) return "";
+                byte[] b = new byte[(int) f.length()];
+                java.io.FileInputStream is = new java.io.FileInputStream(f);
+                int off = 0;
+                while (off < b.length) { int n = is.read(b, off, b.length - off); if (n <= 0) break; off += n; }
+                is.close();
+                return new String(b, "UTF-8");
+            } catch (Throwable t) { return ""; }
+        }
+
+        @JavascriptInterface
         public void startVoice() {
             Log.d(TAG, "startVoice called, busy=" + voiceBusy + ", xfReady=" + (xfEngine != null && xfEngine.isReady()));
             runOnUiThread(() -> {
@@ -206,8 +260,7 @@ public class MainActivity extends Activity {
                     jsCall("window.__tnOnVoiceError&&__tnOnVoiceError('no_perm')");
                     return;
                 }
-                // 主引擎：讯飞（国内直连）；未就绪回退 Google
-                startRecorder();
+                // 主引擎：讯飞（国内直连）；未就绪回退 Google（原声录音改在"检测到说话"后启动，见 onStart/onBeginningOfSpeech）
                 if (xfEngine != null && xfEngine.isReady()) {
                     xfEngine.start();
                     return;
@@ -356,9 +409,32 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** 桌面卡片桥：Web 层保存数据后推送摘要 → SharedPreferences → 刷新「行迹卡片」 */
+    private class AndroidCard {
+        @JavascriptInterface
+        public void updateCard(String json) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(json);
+                String quote = o.optString("quote");
+                if (quote.length() > 160) quote = quote.substring(0, 160);
+                getSharedPreferences(TraceWidget.PREFS, MODE_PRIVATE).edit()
+                        .putInt("cities", o.optInt("cities"))
+                        .putInt("notes", o.optInt("notes"))
+                        .putInt("wishes", o.optInt("wishes"))
+                        .putString("place", o.optString("place"))
+                        .putString("quote", quote)
+                        .putLong("ts", System.currentTimeMillis())
+                        .apply();
+            } catch (Throwable t) {
+                Log.w(TAG, "updateCard failed: " + t);
+            }
+            runOnUiThread(() -> TraceWidget.refresh(MainActivity.this));
+        }
+    }
+
     private final RecognitionListener listener = new RecognitionListener() {
         @Override public void onReadyForSpeech(Bundle params) { Log.d(TAG, "onReadyForSpeech"); }
-        @Override public void onBeginningOfSpeech() { Log.d(TAG, "onBeginningOfSpeech"); }
+        @Override public void onBeginningOfSpeech() { Log.d(TAG, "onBeginningOfSpeech"); startRecorder(); }
         @Override public void onRmsChanged(float rmsdB) {}
         @Override public void onBufferReceived(byte[] buffer) {}
 
@@ -410,6 +486,29 @@ public class MainActivity extends Activity {
         Log.d(TAG, "jsCall: " + js.substring(0, Math.min(60, js.length())));
         runOnUiThread(() -> {
             if (webView != null) webView.evaluateJavascript(js, null);
+        });
+    }
+
+    /* 桌面快捷菜单动作（随手记/去探索）：当前页支持则直接执行，否则回首页带参数执行 */
+    private String pendingShortcut = null;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && intent.getStringExtra("tn_shortcut") != null) {
+            pendingShortcut = intent.getStringExtra("tn_shortcut");
+            fireShortcut();
+        }
+    }
+
+    private void fireShortcut() {
+        if (pendingShortcut == null) return;
+        final String a = pendingShortcut;
+        pendingShortcut = null;
+        runOnUiThread(() -> {
+            if (webView == null) return;
+            jsCall("window.__tnShortcut ? window.__tnShortcut('" + a + "') : (location.href='index.html?shortcut=" + a + "')");
         });
     }
 

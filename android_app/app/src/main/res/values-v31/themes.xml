@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 批次7 品牌时刻⑤：Android 12+ 系统启动屏（API 31 起）。
+     同名 style 是「整体替换」不是「合并」，所以 values/themes.xml 的每一项都要在这里重抄一遍。
+     windowBackground 退回纯色：否则系统启动屏结束后又叠一层带图首帧，视觉上等于 logo 闪两次。 -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="Theme.GuJianMap" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#7a241a</item>
+        <item name="android:navigationBarColor">#7a241a</item>
+        <item name="android:colorBackground">@color/paper_bg</item>
+        <item name="android:windowBackground">@color/paper_bg</item>
+        <item name="android:windowSplashScreenBackground">@color/paper_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_brand</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/paper_bg</item>
+    </style>
+</resources>

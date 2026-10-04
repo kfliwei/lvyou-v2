@@ -3,6 +3,8 @@
     <style name="Theme.GuJianMap" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">#7a241a</item>
         <item name="android:navigationBarColor">#7a241a</item>
-        <item name="android:colorBackground">#f6f1e7</item>
+        <item name="android:colorBackground">@color/paper_bg</item>
+        <!-- 批次7 品牌时刻⑤：首帧就是宣纸 + 远山线稿，不再是白屏（Android 11 及以下路径） -->
+        <item name="android:windowBackground">@drawable/splash_bg</item>
     </style>
 </resources>

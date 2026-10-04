@@ -1,0 +1,8 @@
+OK    基线（无壳）→ exit=0 | 启动屏闸门: 仓库壳源副本 android_app/app/src/main/res 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+OK    砸 colors.xml → exit=1 启动屏FAIL行数=1 命中预期短语=true
+OK    砸 themes.xml → exit=1 启动屏FAIL行数=1 命中预期短语=true
+OK    砸 splash_brand.xml → exit=1 启动屏FAIL行数=1 命中预期短语=true
+OK    壳在场 + 仓库副本已砸 → exit=0 | 启动屏闸门: 外部壳 F:/MyAi/trace/lvyou-v2-android/app/src/main/res 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+OK    还原后复跑（无壳）→ exit=0 | 启动屏闸门: 仓库壳源副本 android_app/app/src/main/res 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+MUT SELF-TEST(§15 退回): 全部命中且还原干净
+MUT_EXIT=0

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 卡片底：宣纸渐变圆角 + 鎏金细边 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="rectangle">
+      <gradient
+        android:startColor="@color/paper_100"
+        android:endColor="@color/paper_200"
+        android:angle="315"/>
+      <corners android:radius="22dp"/>
+      <stroke android:width="1dp" android:color="@color/gold_hairline"/>
+    </shape>
+  </item>
+</layer-list>

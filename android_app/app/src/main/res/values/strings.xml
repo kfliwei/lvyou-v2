@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">行迹 TRACE</string>
+    <string name="shortcut_anywhere_label">随手记</string>
+    <string name="shortcut_anywhere_long">随手记 · 语音记录当前位置</string>
+    <string name="shortcut_explore_label">去探索</string>
+    <string name="shortcut_explore_long">去探索 · 全国地图</string>
+    <string name="widget_label">行迹 · 足迹卡片</string>
+    <string name="widget_desc">走过的城市、留下的记录、待圆的心愿，一瞥最近的旅途</string>
 </resources>
