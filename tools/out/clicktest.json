@@ -459,7 +459,7 @@
  },
  {
   "page": "settings.html",
-  "tried": 14,
+  "tried": 15,
   "noop": [],
   "errors": [],
   "items": [
@@ -484,9 +484,9 @@
     "err": ""
    },
    {
-    "i": 4,
+    "i": 5,
     "el": "button",
-    "text": "Kimi",
+    "text": "硅基流动",
     "outcome": "reacted",
     "blocked": "",
     "clicked": 1,
@@ -504,49 +504,39 @@
     "err": ""
    },
    {
-    "i": 9,
-    "el": "button#btnTest.btn-secondary",
-    "text": "④ 测试连接",
-    "outcome": "reacted",
-    "blocked": "",
-    "clicked": 1,
-    "toast": "",
-    "err": ""
-   },
-   {
-    "i": 11,
-    "el": "button.on",
-    "text": "5 秒",
-    "outcome": "reacted",
-    "blocked": "",
-    "clicked": 1,
-    "toast": "",
-    "err": ""
-   },
-   {
-    "i": 13,
-    "el": "div#swKeep.sw",
-    "text": "",
-    "outcome": "reacted",
-    "blocked": "",
-    "clicked": 1,
-    "toast": "",
-    "err": ""
-   },
-   {
-    "i": 16,
-    "el": "button.on",
-    "text": "标准",
-    "outcome": "reacted",
-    "blocked": "",
-    "clicked": 1,
-    "toast": "",
-    "err": ""
-   },
-   {
-    "i": 18,
+    "i": 10,
     "el": "button",
-    "text": "更密集",
+    "text": "3 秒",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 12,
+    "el": "button",
+    "text": "8 秒",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 15,
+    "el": "button",
+    "text": "快速展开",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 17,
+    "el": "button",
+    "text": "延迟聚合",
     "outcome": "reacted",
     "blocked": "",
     "clicked": 1,
@@ -574,13 +564,13 @@
     "err": ""
    },
    {
-    "i": 25,
-    "el": "button.on",
-    "text": "跟随系统",
+    "i": 24,
+    "el": "button.btn-secondary",
+    "text": "导出 Obsidian 库",
     "outcome": "reacted",
     "blocked": "",
     "clicked": 1,
-    "toast": "已切换深色模式",
+    "toast": "还没有游记，先记录几篇",
     "err": ""
    },
    {
@@ -601,6 +591,26 @@
     "blocked": "",
     "clicked": 1,
     "toast": "正在打开导入面板…",
+    "err": ""
+   },
+   {
+    "i": 32,
+    "el": "button#wdSaveBtn.btn-secondary",
+    "text": "保存配置",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
+    "err": ""
+   },
+   {
+    "i": 34,
+    "el": "button#wdPullBtn.btn-secondary",
+    "text": "从云端恢复（与本机合并）",
+    "outcome": "reacted",
+    "blocked": "",
+    "clicked": 1,
+    "toast": "",
     "err": ""
    }
   ]

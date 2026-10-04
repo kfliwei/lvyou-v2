@@ -1,0 +1,26 @@
+基线：verify.js exit=0（绿，闸门当前全通过）
+✓ M1 文档字段表漏一行（tn_wishlist）
+    exit=1 · 红在：文档字段表漏键 tn_wishlist
+✓ M2 文档字段表合并语义写错（tn_lod dict→whole）
+    exit=1 · 红在：键 tn_lod 两说不一致
+✓ M3 产品代码新增未登记存储键字面量
+    exit=1 · 红在：未登记的存储键字面量
+✓ M4 密钥键被搬进白名单（tn_aiKey 从 NEVER 进 KEYS）
+    exit=1 · 红在：哨兵扫描失效：塞进 tn_aiKey
+✓ M5 NEVER 里悄悄加禁入键且闸门不给理由
+    exit=1 · 红在：禁入键没在闸门登记理由：tn_mut_never
+✓ M6 闸门白名单里的禁入条目已失效（代码再也扫不到）
+    exit=1 · 红在：闸门里的禁入条目已失效，代码里再也扫不到：tn_mut_gone
+✓ M7 去掉恢复写入口 replaceNotes
+    exit=1 · 红在：travel-notes.js 没导出 replaceNotes
+✓ M8 sw.js SHELL 漏掉 backup.js
+    exit=1 · 红在：sw.js SHELL 缺 ./backup.js
+✓ M9 sync-webdav.js 丢掉 MKCOL 建目录链路
+    exit=1 · 红在：没有 MKCOL 建目录链路
+✓ M10 恢复后不刷新页面
+    exit=1 · 红在：恢复后没刷新页面
+✓ M11 口令输入框退回明文
+    exit=1 · 红在：口令输入框不是 type=password
+还原对账：7 个文件，未还原 0 个
+还原后 verify.js exit=0
+=== §16 变异自测: 11 条按要求变红 / 0 条异常 / 共 11 ===

@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v54';
+var CACHE = 'trace-v55';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -26,6 +26,8 @@ var SHELL = [
   './travel-notes.js',
   './results.js',
   './vault.js',
+  './backup.js',
+  './sync-webdav.js',
   './quotes.js',
   './topic-meta.js',
   './topic-common.js',

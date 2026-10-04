@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const FILES = ['ui.js','index.html','search.html','wishlist.html','travel-map.html','md-manager.html','settings.html','me.html','explore-map.html','topic.html','review.html','story.html','test-data.html','node-manager.html','topic-common.js','design.css','nation-index.js','travel-notes.js','results.js','poster.js','node-lod.js','wishlist.js','geo.js','quotes.js','vault.js','theme.js'].filter(f => fs.existsSync(f));
+const FILES = ['ui.js','index.html','search.html','wishlist.html','travel-map.html','md-manager.html','settings.html','me.html','explore-map.html','topic.html','review.html','story.html','test-data.html','node-manager.html','topic-common.js','design.css','nation-index.js','travel-notes.js','results.js','poster.js','node-lod.js','wishlist.js','geo.js','quotes.js','vault.js','theme.js','backup.js','sync-webdav.js'].filter(f => fs.existsSync(f));
 
 let fail = 0;
 
@@ -581,6 +581,146 @@ const EMOJI_MARK = 'emoji-ok:';
     console.log('启动屏闸门: 外部壳 ' + SHELL + ' 对账，线稿色 ' + (cm || '-') + '，几何 ' + geoOk + '/' + geoTotal + ' 吻合，v31 首帧双 logo 抑制 ' + (wb31 && !/@drawable\//.test(wb31) ? 'OK' : '红'));
     fail += bad;
   }
+}
+
+/* 16. 备份与云同步闸门（P1-4 · 批次8）。三道锁，一把比一把难绕：
+   ① 在沙箱里真跑 backup.js，拿它**自己的**策略函数对账（不做正则影子）：代码里每一个形似
+      存储键的字符串字面量必须落在「采集 / 禁入 / 未登记」三态之一，未登记即红；
+      采集集与文档字段表逐键、逐组、逐合并语义相等；禁入集与闸门里带理由的 EXPECT_NEVER 相等
+      —— 想悄悄加一个禁入键、或偷偷注册一个采集键，两头都会红。
+   ② 接线：设置页卡片 11 个控件、sw.js SHELL、TravelNotes.replaceNotes、恢复后刷新页面。
+   ③ 纪律：backup.js 不许裸写游记库（回灌只能走 persist 的 diff 通道）；云同步模块不留 console 输出。 */
+{
+  let bad = 0;
+  const F16 = m => { console.log('备份闸门 FAIL: ' + m); bad++; };
+  const NL16 = /\r?\n/;
+  const read16 = f => { if (!fs.existsSync(f)) { F16('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const BK = read16('backup.js'), WD = read16('sync-webdav.js');
+  const SET = read16('settings.html'), TN16 = read16('travel-notes.js'), SW = read16('sw.js');
+  read16('tools/smoke-backup.js'); read16('tools/webdav-stub.js');
+  read16('改进实施方案与验收标准.md');
+
+  /* 沙箱：backup.js 只在函数体里碰 indexedDB / TravelNotes，加载期只要一个内存 localStorage */
+  const bstore = {}, bwin = {};
+  const bctx = vm.createContext({
+    window: bwin, console,
+    localStorage: {
+      getItem: k => (k in bstore ? bstore[k] : null),
+      setItem: (k, v) => { bstore[k] = String(v); },
+      removeItem: k => { delete bstore[k]; },
+      key: i => Object.keys(store0())[i] === undefined ? null : Object.keys(store0())[i],
+      get length() { return Object.keys(bstore).length; }
+    }
+  });
+  function store0() { return bstore; }
+  try { vm.runInContext(BK, bctx, { filename: 'backup.js' }); }
+  catch (e) { F16('backup.js 在沙箱里跑不起来：' + e.message); }
+  const B = bwin.Backup;
+  if (!B) { F16('backup.js 没导出 window.Backup'); }
+  else {
+    if (B.SCHEMA !== 2) F16('SCHEMA 应为 2，实际 ' + B.SCHEMA);
+    if (B.KIND !== 'trace-backup-full') F16('KIND 漂移：' + B.KIND);
+    ['collect', 'serialize', 'validate', 'describe', 'apply', 'policyOf', 'classOf', 'mergeById', 'mergeDict', 'secretHits']
+      .forEach(fn => { if (typeof B[fn] !== 'function') F16('缺导出 ' + fn); });
+
+    /* --- ① 全量存储键对账：扫产品文件里所有形似存储键的字面量（含走包装函数的，正则只认整串） --- */
+    const seen = new Map();
+    fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f)).forEach(f => {
+      const s = fs.readFileSync(f, 'utf8');
+      (s.match(/'tn_[A-Za-z0-9_]+'|'travelNotes'/g) || []).forEach(m => {
+        const k = m.slice(1, -1);
+        if (!seen.has(k)) seen.set(k, new Set());
+        seen.get(k).add(f);
+      });
+    });
+    const collected = [], neverSeen = [], unreg = [];
+    seen.forEach((where, k) => {
+      const c = B.classOf(k);
+      if (c === 'unregistered') unreg.push(k + ' ← ' + [...where].join(','));
+      else if (c === 'never') neverSeen.push(k);
+      else collected.push({ k: k, g: c });
+    });
+    if (unreg.length) F16('未登记的存储键字面量 ' + unreg.length + ' 个：' + unreg.join(' | ')
+      + '（新键必须先在 backup.js 策略表登记，或明确禁入并在本闸门留理由——宁可漏采，也不要把没审计过的东西同步出去）');
+
+    /* 禁入集要与闸门里逐条带理由的表**两边相等**：多一条要理由，少一条要解释 */
+    const EXPECT_NEVER = {
+      'tn_aiKey': '旧版单站点 AI Key', 'tn_key_': '各站点 AI Key 前缀', 'tn_amap_key': '高德 Web Key',
+      'tn_webdav': 'WebDAV 账号与口令', 'tn_webdav_autosync': '自动上传开关绑这台机器的凭据', 'tn_webdav_last': '上次同步结果只对本机展示',
+      'tn_photo_': '图片镜像缓存，可再生', 'tn_rt_': '车程耗时缓存', 'tn_d_': '距离缓存', 'tn_tk_': '门票信息缓存', 'tn_weather_': '天气缓存',
+      'tn_storefail_warned': '存储写满告警位（只提示一次）', 'tn_b64_warned': '内嵌告警位', 'tn_lastVoiceError': '语音诊断回显',
+      'tn_lastBackup': '本机导出时间', 'tn_rc_idx': 'planner 撤销栈下标', 'tn_emptyClosed': '空态卡片关闭位',
+      'tn_model': '旧版单站点模型名，migrate() 归位后由 tn_model_deepseek 进备份'
+    };
+    const neverHit = k => Object.keys(EXPECT_NEVER).find(e => /_$/.test(e) ? k.indexOf(e) === 0 : k === e);
+    neverSeen.forEach(k => { if (!neverHit(k)) F16('禁入键没在闸门登记理由：' + k + '（backup.js 里悄悄加了 NEVER？）'); });
+    Object.keys(EXPECT_NEVER).forEach(e => {
+      if (![...seen.keys()].some(k => /_$/.test(e) ? k.indexOf(e) === 0 : k === e)) F16('闸门里的禁入条目已失效，代码里再也扫不到：' + e + '（删掉这行或说明为什么还留着）');
+    });
+    /* 哨兵扫描本身要活着：把三类密钥塞回包里，serialize 必须抛 */
+    ['tn_aiKey', 'tn_key_deepseek', 'tn_amap_key'].forEach(k => {
+      const e = { kind: B.KIND, schema: 2, notes: [], albums: [], storage: { data: {}, prefs: {} } };
+      e.storage.prefs[k] = 'x';
+      let threw = false;
+      try { B.serialize(e); } catch (err) { threw = /禁入键/.test(err.message); }
+      if (!threw) F16('哨兵扫描失效：塞进 ' + k + ' 居然还能出包');
+    });
+
+    /* 采集集 ↔ 文档字段表逐键相等（组与合并语义也比，防止文档只写个名字） */
+    const doc = fs.readFileSync('改进实施方案与验收标准.md', 'utf8');
+    const anchor = '### 批次 8 落地（2026-10-04）：BACKUP_SCHEMA 2 字段表与合并语义';
+    const at = doc.indexOf(anchor);
+    if (at < 0) F16('文档缺字段表小节：' + anchor);
+    else {
+      const next = doc.indexOf('\n### ', at + anchor.length);
+      const seg = doc.slice(at, next < 0 ? doc.length : next);
+      const rows = {};
+      seg.split(NL16).forEach(l => {
+        const m = l.match(/^\|\s*`([^`]+)`\s*\|\s*(data|prefs)\s*\|\s*(id|dict|whole)\s*\|/);
+        if (m) rows[m[1]] = { g: m[2], m: m[3] };
+      });
+      const code = {};
+      B.KEYS.forEach(e => { code[e.k || e.p] = { g: e.g, m: e.m }; });
+      Object.keys(code).forEach(k => { if (!rows[k]) F16('文档字段表漏键 ' + k); });
+      Object.keys(rows).forEach(k => {
+        if (!code[k]) F16('文档字段表多出一个代码并不采集的键 ' + k);
+        else if (rows[k].g !== code[k].g || rows[k].m !== code[k].m)
+          F16('键 ' + k + ' 两说不一致：文档 ' + rows[k].g + '/' + rows[k].m + ' · 代码 ' + code[k].g + '/' + code[k].m);
+      });
+      console.log('备份闸门: 存储键字面量 ' + seen.size + ' 个（采集 ' + collected.length + ' / 禁入 ' + neverSeen.length
+        + ' / 未登记 ' + unreg.length + '），策略表 ' + B.KEYS.length + ' 条与文档字段表 ' + Object.keys(rows).length + ' 行逐键相等');
+    }
+  }
+
+  /* --- ② 接线 --- */
+  ['backup.js', 'sync-webdav.js'].forEach(f => {
+    if (!SET.includes('<script src="' + f + '"></script>')) F16('settings.html 没引 ' + f);
+  });
+  ['wdUrl', 'wdDir', 'wdUser', 'wdPass', 'wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn', 'swWdAuto', 'wdStatus']
+    .forEach(i => { if (!SET.includes('id="' + i + '"')) F16('云同步卡片缺控件 #' + i); });
+  if (!/id="wdPass"\s+type="password"/.test(SET)) F16('口令输入框不是 type=password，会在设置页明文回显');
+  if (!/group-title">云同步</.test(SET)) F16('缺「云同步」分组标题');
+  if (!/绝不进备份/.test(SET)) F16('卡片没向用户写明密钥不进备份');
+  /* 恢复后要刷新：锚点必须钉在「拉取成功」那条提示上——字体重置也有一处 location.reload，
+     只扫整页会被它蒙过去（§16 变异自测 M10 抓到的假绿） */
+  const pullMsg = SET.split(NL16).findIndex(l => l.indexOf('页面即将刷新') >= 0);
+  if (pullMsg < 0) F16('找不到恢复成功提示（文案「页面即将刷新」漂移）');
+  else if (!/location\.reload/.test(SET.split(NL16).slice(pullMsg, pullMsg + 3).join(NL16)))
+    F16('恢复后没刷新页面（各页启动时现读存储，不刷新等于没恢复）');
+  ['./backup.js', './sync-webdav.js'].forEach(f => { if (!SW.includes("'" + f + "'")) F16('sw.js SHELL 缺 ' + f); });
+  if (!/replaceNotes:\s*function/.test(TN16)) F16('travel-notes.js 没导出 replaceNotes（恢复没有写入口）');
+
+  /* --- ③ 纪律 --- */
+  BK.split(NL16).forEach((line, i) => {
+    if (/gujian-notes/.test(line) && /readwrite|createObjectStore|\.put\(/.test(line))
+      F16('backup.js:' + (i + 1) + ' 疑似裸写游记库，回灌必须走 TravelNotes.replaceNotes 的 persist diff 通道');
+  });
+  if (!/trace-full-backup\.json/.test(WD)) F16('sync-webdav.js 远端文件名漂移（不是 trace-full-backup.json）');
+  if (!/MKCOL/.test(WD)) F16('sync-webdav.js 没有 MKCOL 建目录链路');
+  if (!/tn_webdav_autosync/.test(WD) || !/=== '1'/.test(WD)) F16('sync-webdav.js 自动同步开关不是「显式打开才生效」');
+  if (!/function redact/.test(WD)) F16('sync-webdav.js 缺口令抹除函数');
+  if (/console\.(log|warn|error|info)\(/.test(WD)) F16('sync-webdav.js 里有 console 输出——别把带口令的 URL 打进日志');
+  fail += bad;
 }
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');

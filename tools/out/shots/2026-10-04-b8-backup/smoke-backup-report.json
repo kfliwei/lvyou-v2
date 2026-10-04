@@ -1,0 +1,270 @@
+{
+ "when": "2026-10-04T00:25:22.882Z",
+ "results": [
+  {
+   "name": "种子就绪：游记从 IDB 载入内存",
+   "ok": true,
+   "detail": "sm_a,sm_b"
+  },
+  {
+   "name": "Backup.collect 无错且拿到 2 篇游记 + 1 本图册",
+   "ok": true,
+   "detail": "2 notes / 1 albums"
+  },
+  {
+   "name": "备份包 schema=2 且 kind 正确",
+   "ok": true,
+   "detail": "trace-backup-full"
+  },
+  {
+   "name": "正向对照：6 个业务键全部入包",
+   "ok": true,
+   "detail": "tn_dayMoods,tn_recent,tn_search_hist,tn_trips,tn_userNodes,tn_wishlist"
+  },
+  {
+   "name": "前缀规则：tn_mappos_t 归到 prefs",
+   "ok": true,
+   "detail": "tn_dark,tn_mappos_t,tn_model_deepseek"
+  },
+  {
+   "name": "前缀规则：tn_model_deepseek 入包（模型名不是密钥）",
+   "ok": true,
+   "detail": "tn_dark,tn_mappos_t,tn_model_deepseek"
+  },
+  {
+   "name": "密钥值一个都不在备份里",
+   "ok": true,
+   "detail": "clean"
+  },
+  {
+   "name": "禁入键名被白名单挡在外面（含媒体缓存与一次性告警位）",
+   "ok": true,
+   "detail": "blocked"
+  },
+  {
+   "name": "serialize 带哨兵扫描：把禁入键塞回去就拒绝出包",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "validate 接受自己出的包",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "validate 拒绝旧版单游记备份并说明原因",
+   "ok": true,
+   "detail": "备份 schema=1，本版本只认 2"
+  },
+  {
+   "name": "validate 拒绝结构不符的包",
+   "ok": true,
+   "detail": "notes 字段缺失或不是数组"
+  },
+  {
+   "name": "mergeById 取并集（a,b,c 三条都在）",
+   "ok": true,
+   "detail": "a,b,c"
+  },
+  {
+   "name": "同 id 冲突：本机优先时留本机版",
+   "ok": true,
+   "detail": "L"
+  },
+  {
+   "name": "同 id 冲突：指定云端优先时留云端版",
+   "ok": true,
+   "detail": "R"
+  },
+  {
+   "name": "mergeDict 按属性并集且同名本机赢",
+   "ok": true,
+   "detail": "{\"d2\":\"L\",\"d3\":\"R\",\"d1\":\"L\"}"
+  },
+  {
+   "name": "apply(merge) 无错",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "合并恢复：云端新记录进来（a,b,c 三篇）",
+   "ok": true,
+   "detail": "sm_a,sm_b,sm_c"
+  },
+  {
+   "name": "合并恢复：同 id 的本机原文没被云端版盖掉",
+   "ok": true,
+   "detail": "本地原文 A"
+  },
+  {
+   "name": "合并恢复：想去清单按 id 并集（本机的鹳雀楼 + 云端的西厢记）",
+   "ok": true,
+   "detail": "鹳雀楼|40.5|110.2,西厢记|1|2"
+  },
+  {
+   "name": "合并恢复：本机没有的偏好从云端补进来（tn_font）",
+   "ok": true,
+   "detail": "lg"
+  },
+  {
+   "name": "合并恢复：本机已有的偏好保持不动（tn_dark）",
+   "ok": true,
+   "detail": "auto"
+  },
+  {
+   "name": "合并恢复：本机独有的数据键原样保留（tn_trips）",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "name": "刷新后仍是 3 篇：恢复真的写进了 IndexedDB（replaceNotes 走 persist 通道）",
+   "ok": true,
+   "detail": "sm_a,sm_b,sm_c"
+  },
+  {
+   "name": "图册也并集进库（本机 + 云端各一本）",
+   "ok": true,
+   "detail": "album_sm1,album_sm2"
+  },
+  {
+   "name": "apply(replace) 无错",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "替换式恢复：游记整库只剩云端那一条",
+   "ok": true,
+   "detail": "sm_z"
+  },
+  {
+   "name": "替换式恢复：登记键里云端没有的会被清掉（tn_trips/tn_mappos_t）",
+   "ok": true,
+   "detail": "trips=null mappos=null"
+  },
+  {
+   "name": "替换式恢复不动密钥：tn_aiKey / tn_key_deepseek / tn_amap_key 全部存活",
+   "ok": true,
+   "detail": "SECRET-AI-KEY-DO-NOT-SYNC / SECRET-DS-KEY-DO-NOT-SYNC / SECRET-AMAP-KEY"
+  },
+  {
+   "name": "密码错时 push 报「账号或密码不对」而不是裸 HTTP",
+   "ok": true,
+   "detail": "账号或密码不对（401）"
+  },
+  {
+   "name": "失败信息里不含任何口令内容",
+   "ok": true,
+   "detail": "账号或密码不对（401）"
+  },
+  {
+   "name": "网络层失败也提示可能是账号或密码被拒",
+   "ok": true,
+   "detail": "连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）"
+  },
+  {
+   "name": "网络层失败信息里同样不带口令",
+   "ok": true,
+   "detail": "连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）"
+  },
+  {
+   "name": "push 成功（自动建目录后 PUT 拿到 201）",
+   "ok": true,
+   "detail": "HTTP 201"
+  },
+  {
+   "name": "409 后逐级 MKCOL 再重试 PUT（PUT→MKCOL×3→PUT 的真实顺序，不是 PUT 顺手建目录）",
+   "ok": true,
+   "detail": "PUT /行迹备份/2026/trace-full-backup.json | MKCOL / | MKCOL /行迹备份/ | MKCOL /行迹备份/2026/ | PUT /行迹备份/2026/trace-full-backup.json"
+  },
+  {
+   "name": "远端文件是 schema 2 全量包且带回了刚恢复的那篇",
+   "ok": true,
+   "detail": "sm_z"
+  },
+  {
+   "name": "上传到远端的正文里没有密钥值",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "备份正文里没有 WebDAV 账号口令",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "remoteInfo 读回云端摘要",
+   "ok": true,
+   "detail": "1 篇游记 · 1 本图册 · 1 项数据键 / 0 项偏好 · 0 KB · 备份于 2026-10-04 08:25"
+  },
+  {
+   "name": "测试连接走 PROPFIND 并回报成功",
+   "ok": true,
+   "detail": "连接成功（HTTP 207）"
+  },
+  {
+   "name": "pull 前本机已删掉云端那条（只剩 sm_local_only）",
+   "ok": true,
+   "detail": "sm_local_only"
+  },
+  {
+   "name": "pull 合并：本机新增留下、云端已删的记录回得来（无墓碑的既定语义）",
+   "ok": true,
+   "detail": "sm_local_only,sm_z"
+  },
+  {
+   "name": "覆盖式恢复弹危险确认（danger + 说清会被清掉）",
+   "ok": true,
+   "detail": "用云端备份覆盖本机"
+  },
+  {
+   "name": "确认后本机独有条目被清掉，只剩云端那一条",
+   "ok": true,
+   "detail": "sm_z"
+  },
+  {
+   "name": "离线时 push 立刻报「当前离线」",
+   "ok": true,
+   "detail": "当前离线，稍后再试"
+  },
+  {
+   "name": "离线时确实一个请求都没发出去",
+   "ok": true,
+   "detail": "0 hits"
+  },
+  {
+   "name": "自动上传默认关闭",
+   "ok": true,
+   "detail": "false"
+  },
+  {
+   "name": "关着时 scheduleSync 不发请求",
+   "ok": true,
+   "detail": "0 hits"
+  },
+  {
+   "name": "开着时防抖到点真的 PUT 一次",
+   "ok": true,
+   "detail": "1 PUT"
+  },
+  {
+   "name": "自动上传挂在 TravelNotes 保存回调链上（_afterSave 已被接管）",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "云同步卡片 11 个控件全在且挂在「云同步」组里",
+   "ok": true,
+   "detail": "云同步"
+  },
+  {
+   "name": "卡片说明写清密钥不进备份",
+   "ok": true,
+   "detail": "把全量数据（游记 / 图册 / 行程 / 想去清单 / 自建地点 / 偏好）备份…"
+  },
+  {
+   "name": "五个同步按钮触控目标 ≥44px",
+   "ok": true,
+   "detail": "ok"
+  }
+ ]
+}

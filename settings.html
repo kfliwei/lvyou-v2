@@ -37,6 +37,12 @@
   .data-acts .btn-primary,.data-acts .btn-secondary{width:100%;min-height:46px;border-radius:999px;font-size:14px;font-family:var(--font-sans)}
   .data-danger{width:100%;min-height:46px;border:1px solid var(--color-line-strong);border-radius:999px;background:transparent;color:var(--color-danger,#B34A3F);font-size:14px;cursor:pointer;font-family:var(--font-sans)}
   .data-danger:active{background:rgba(179,74,63,.08)}
+  /* 云同步状态行 */
+  .wd-line{font-size:0.7188rem;color:var(--color-muted);line-height:1.7;word-break:break-all;font-family:var(--font-sans)}
+  .wd-line.ok{color:var(--color-primary-dark)}
+  .wd-line.err{color:var(--color-danger,#B34A3F)}
+  .wd-sep{height:1px;background:var(--color-line);margin:14px 0}
+  .data-acts button:disabled{opacity:.45}
   body{padding-bottom:80px}
 
   /* ============================================================
@@ -225,13 +231,52 @@
     <!-- 数据管理 -->
     <div class="group">
       <div class="group-title">数据管理</div>
-      <div class="group-sub">数据仅保存在本机，建议定期导出备份。</div>
+      <div class="group-sub">「导出备份」只含游记（文字与配图），不含行程、想去清单和设置；要全量迁移请用下面的云同步。</div>
       <div class="data-acts">
         <button class="btn-secondary" onclick="expBackup()">导出备份</button>
         <button class="btn-secondary" onclick="impBackup()">导入备份</button>
         <button class="data-danger" onclick="clearAll()">清除全部数据</button>
       </div>
       <div style="margin-top:10px;font-size:0.7188rem;color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
+    </div>
+
+    <!-- 云同步（WebDAV 全量备份） -->
+    <div class="group">
+      <div class="group-title">云同步</div>
+      <div class="group-sub">把全量数据（游记 / 图册 / 行程 / 想去清单 / 自建地点 / 偏好）备份到自己的 WebDAV 网盘：坚果云、Nextcloud、群晖等都可以。账号密码与 AI Key 只存本机，绝不进备份内容。</div>
+      <div class="row">
+        <div class="row-label">服务地址</div>
+        <input id="wdUrl" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://dav.jianguoyun.com/dav/">
+      </div>
+      <div class="row">
+        <div class="row-label">子目录（可留空）</div>
+        <input id="wdDir" type="text" autocomplete="off" placeholder="行迹备份">
+      </div>
+      <div class="row">
+        <div class="row-label">账号</div>
+        <input id="wdUser" type="text" autocomplete="off" placeholder="网盘登录邮箱 / 用户名">
+      </div>
+      <div class="row">
+        <div class="row-label">密码</div>
+        <input id="wdPass" type="password" autocomplete="off" placeholder="坚果云等平台请用「应用密码」">
+      </div>
+      <div class="data-acts">
+        <button class="btn-secondary" id="wdTestBtn">测试连接</button>
+        <button class="btn-secondary" id="wdSaveBtn">保存配置</button>
+      </div>
+      <div id="wdResult" class="wd-line" style="margin-top:10px"></div>
+
+      <div class="wd-sep"></div>
+      <div class="data-acts">
+        <button class="btn-primary" id="wdPushBtn">上传到云端</button>
+        <button class="btn-secondary" id="wdPullBtn">从云端恢复（与本机合并）</button>
+        <button class="data-danger" id="wdForceBtn">用云端备份覆盖本机</button>
+      </div>
+      <div class="switchrow" style="margin-top:6px">
+        <div><div class="sw-label">记录后自动上传</div><div class="sw-sub">每次写完游记 30 秒后自动上传一次；默认关闭</div></div>
+        <div class="sw" id="swWdAuto"></div>
+      </div>
+      <div id="wdStatus" class="wd-line" style="margin-top:8px"></div>
     </div>
   </div>
 
@@ -242,6 +287,8 @@
 <script src="vault.js"></script>
 <script src="icons.js"></script>
 <script src="ui.js"></script>
+<script src="backup.js"></script>
+<script src="sync-webdav.js"></script>
 <script>
   function fmtSize(mb){ return mb.toFixed(1) + ' MB'; }
   function refreshStorage(){
@@ -291,6 +338,96 @@
     el.innerHTML = lines.join('<br>');
     el.style.color = (last.indexOf('授权') >= 0) ? 'var(--color-primary-dark)' : 'var(--color-muted)';
   }
+  /* ===== 云同步（WebDAV 全量备份） ===== */
+  var WDW = (function () {
+    function $(id) { return document.getElementById(id); }
+    function val(id) { var e = $(id); return e ? e.value.trim() : ''; }
+    function form() { return { url: val('wdUrl'), dir: val('wdDir'), user: val('wdUser'), pass: val('wdPass') }; }
+    function line(id, msg, cls) {
+      var e = $(id); if (!e) return;
+      e.textContent = msg || '';
+      e.className = 'wd-line' + (cls ? ' ' + cls : '');
+    }
+    function busy(ids, on) {
+      ids.forEach(function (id) { var b = $(id); if (b) { b.disabled = on; } });
+    }
+    function status() {
+      var l = window.WebDAV ? WebDAV.last() : null;
+      if (!l) { line('wdStatus', window.WebDAV && WebDAV.cfg() ? '配置已保存，还没同步过。' : '还没有配置同步服务。'); return; }
+      var d = new Date(l.ts);
+      function p(n) { return (n < 10 ? '0' : '') + n; }
+      line('wdStatus', '上次同步 ' + (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '：' + (l.msg || ''), l.ok ? 'ok' : 'err');
+    }
+    function render() {
+      if (!window.WebDAV) return;
+      var c = WebDAV.cfg();
+      if (c) {
+        $('wdUrl').value = c.url; $('wdDir').value = c.dir; $('wdUser').value = c.user; $('wdPass').value = c.pass;
+      }
+      $('swWdAuto').className = 'sw' + (WebDAV.autosyncOn() ? '' : ' off');
+      status();
+    }
+    function boot() {
+      if (!window.WebDAV || !window.Backup) return;
+      $('wdTestBtn').onclick = function () {
+        var f = form();
+        if (!/^https?:\/\//i.test(f.url)) { line('wdResult', '服务地址要写成 https://… 的完整 WebDAV 根地址', 'err'); return; }
+        busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], true);
+        $('wdTestBtn').textContent = '测试中…';
+        line('wdResult', '正在连接 ' + WebDAV.redact(f.url.replace(/\/+$/, '') + '/') + ' …');
+        WebDAV.test(function (r) {
+          busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], false);
+          $('wdTestBtn').textContent = '测试连接';
+          line('wdResult', r.msg, r.ok ? 'ok' : 'err');
+        }, f);
+      };
+      $('wdSaveBtn').onclick = function () {
+        if (!WebDAV.saveCfg(form())) { line('wdResult', '保存失败：服务地址要写成 https://… 的完整 WebDAV 根地址', 'err'); return; }
+        line('wdResult', WebDAV.cfg() ? '配置已保存到本机。' : '配置已清除。', 'ok');
+        status();
+      };
+      $('wdPushBtn').onclick = function () {
+        if (!WebDAV.cfg()) { line('wdResult', '先保存配置', 'err'); return; }
+        busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], true);
+        $('wdPushBtn').textContent = '正在上传…';
+        WebDAV.push(function (err, r) {
+          busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], false);
+          $('wdPushBtn').textContent = '上传到云端';
+          if (err) { line('wdResult', '上传失败：' + err.message, 'err'); status(); return; }
+          line('wdResult', '已上传：' + Backup.describe(r.env), 'ok');
+          status();
+        });
+      };
+      $('wdPullBtn').onclick = function () {
+        if (!WebDAV.cfg()) { line('wdResult', '先保存配置', 'err'); return; }
+        UI.confirm({ title: '从云端恢复', text: '把云端备份与本机合并：两边的记录取并集，同一条以本机为准。恢复后页面会刷新。', okText: '开始恢复' }, function (ok) {
+          if (!ok) return;
+          runPull(false);
+        });
+      };
+      $('wdForceBtn').onclick = function () { runPull(true); };
+      function runPull(force) {
+        busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], true);
+        line('wdResult', '正在从云端读取…');
+        WebDAV.pull({ force: force }, function (err, r) {
+          busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], false);
+          if (err) { line('wdResult', '恢复失败：' + err.message, 'err'); status(); return; }
+          if (r && r.cancelled) { line('wdResult', '已取消，本机数据未改动。'); return; }
+          line('wdResult', '已恢复：游记 ' + r.notes + ' 篇（新增 ' + r.notesAdded + '）· 图册 ' + r.albums + ' 本 · 页面即将刷新', 'ok');
+          setTimeout(function () { location.reload(); }, 1800);
+        });
+      }
+      $('swWdAuto').onclick = function () {
+        var on = this.classList.contains('off');
+        if (on && !WebDAV.cfg()) { line('wdResult', '先保存配置再开自动上传', 'err'); return; }
+        WebDAV.setAutosync(on);
+        this.className = 'sw' + (on ? '' : ' off');
+        toast(on ? '已开启自动上传' : '已关闭自动上传');
+      };
+      render();
+    }
+    return { render: render, boot: boot };
+  })();
   function loadSettings(){
     renderAiUi();
     var v = localStorage.getItem('tn_vad') || '5000';
@@ -471,6 +608,7 @@
     toast('已切换深色模式');
   });
   loadSettings();
+  WDW.boot();
   /* 高德 Web Key（随手记地点识别 / 我的地点搜索） */
   var akEl = document.getElementById('amapKeyInput');
   if (akEl) {

@@ -113,7 +113,7 @@
 <script>
 (function () {
   'use strict';
-  var USER_KEY = 'tn_user' + 'Nodes';
+  var USER_KEY = 'tn_userNodes';   /* 整串字面量：备份键策略闸门按字面量对账，拆成两段会漏审 */
   var AMAP_KEY = 'tn_amap_key';
   var SITES = [], map = null, pickMarker = null;
 

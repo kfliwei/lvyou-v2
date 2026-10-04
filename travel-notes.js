@@ -2119,6 +2119,14 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     exportNotes: exportNotes,
     importNotes: importNotes,
     clearNotes: function () { notes = []; persist(); if (window.TravelNotes._afterSave) window.TravelNotes._afterSave(); flash('已清除全部数据'); },
+    /* 全量替换游记（供 backup.js 恢复调用）：必须走 persist() 的 diff 通道，
+       直接写 IDB 会被下一次 persist() 用内存快照覆盖回去 */
+    replaceNotes: function (list) {
+      notes = (Array.isArray(list) ? list : []).filter(function (n) { return n && typeof n.id === 'string' && n.id; });
+      persist();
+      renderTNLayer();
+      if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
+    },
     explain: function (iOrSite) { buildUI(); if (startGuideRef) startGuideRef(iOrSite); else flash('讲解暂不可用'); },
     count: function () { return notes.length; },
     list: function () { return notes.slice(); },

@@ -1,0 +1,91 @@
+### 1 sync-assets
+sync 目标: F:\MyAi\trace\lvyou-v2-android\app\src\main\assets（交付壳 lvyou-v2-android）
+synced files: 3036
+explore-map.html → OK（与源一致）
+index.html → OK（与源一致）
+review.html → OK（与源一致）
+nav.js → OK（与源一致）
+icons.js → OK（与源一致）
+sw.js → OK（与源一致）
+topic-common.js → OK（与源一致）
+travel-notes.js → OK（与源一致）
+### 2 verify
+  正文 D --color-muted         /--color-bg      5.42:1  暗色竖排题签
+对比度审计: 62 组配对，4 组装饰豁免，不达标 0
+状态矩阵闸门（P1-8）
+状态矩阵闸门: 核心页 8，errorBox 页 4，矩阵行 8
+品牌签名闸门: 组件类 3，空态内联挂载 6 处，画稿对账 6/6，竖排挂载 2 处，token 档 12
+启动屏闸门: 外部壳 F:/MyAi/trace/lvyou-v2-android 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+备份闸门: 存储键字面量 42 个（采集 23 / 禁入 19 / 未登记 0），策略表 22 条与文档字段表 22 行逐键相等
+=== ALL CHECKS PASSED ===
+### 3 smoke-backup
+PASS  云同步卡片 11 个控件全在且挂在「云同步」组里   [云同步]
+PASS  卡片说明写清密钥不进备份   [把全量数据（游记 / 图册 / 行程 / 想去清单 / 自建地点 / 偏好）备份…]
+PASS  五个同步按钮触控目标 ≥44px   [ok]
+
+=== smoke-backup: 53 PASS / 0 FAIL / 共 53 ===
+截图与报告目录：F:\MyAi\trace\lvyou-v2\tools\out\shots\2026-10-04-b8-backup
+### 4 smoke-states
+  PASS travel-map.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS album.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS review.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html#ai :: {"errorBoxOnFail":true}
+smoke-states: 9 项，失败 0
+### 5 visual-check
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+PASS explore-map.320x640.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+PASS travel-map.320x640.png  diff 0.00%
+PASS travel-map.390x844.png  diff 0.00%
+PASS travel-map.768x1024.png  diff 0.00%
+PASS travel-map.1440x900.png  diff 0.00%
+PASS review.seed.390x844.png  diff 0.00%
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1280ms(<2500) 元素=SPAN | CLS 0.0000(<0.05)
+PASS 性能预算 topic.html — LCP 1336ms(<2500) 元素=? | CLS 0.0001(<0.05)
+---
+耗时 284.6s（64 张，报告 tools/out/visual-report.json）
+比对 64 张: 64 PASS, 0 FAIL
+### 6 clicktest
+review.html         实点  14 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+settings.html       实点  15 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+me.html             实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+node-manager.html   实点   6 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album.html          实点   2 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+album-edit.html     实点  12 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+story.html          实点   5 · 无反应   2 · 被遮   0 · 出屏   0 · 报错  0
+planner.html        实点   7 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+md-manager.html     实点   4 · 无反应   1 · 被遮   0 · 出屏   0 · 报错  0
+explore-map.html    实点   1 · 无反应   0 · 被遮   0 · 出屏   0 · 报错  0
+
+→ tools/out/clicktest.json
+### 7 deadclicks
+wishlist.html         可点外观   11 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+review.html           可点外观   51 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+settings.html         可点外观   52 · 零绑定   3 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+me.html               可点外观   14 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+node-manager.html     可点外观    6 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+album.html            可点外观    2 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+album-edit.html       可点外观   13 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+story.html            可点外观   11 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+planner.html          可点外观   51 · 零绑定  15 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+md-manager.html       可点外观    4 · 零绑定   0 · 过小   0 · 屏外  0 · 死引用 0 · 报错 0
+
+→ tools/out/deadclicks.json
+### 8 icons
+album-edit.html/dark: sprite 图标 1 个（基线样本 1，未收口内联 SVG 0，出屏裁切 0） → OK
+story.html/light: sprite 图标 5 个（基线样本 0，未收口内联 SVG 2，出屏裁切 0） → OK
+story.html/dark: sprite 图标 5 个（基线样本 0，未收口内联 SVG 2，出屏裁切 0） → OK
+16px 联络表: 10 个在用字形，无墨 0，低对比 0
+    图: shots/2026-10-04-p01/glyph-16px-sheet.png（认不认识需人审）
+基线样本合计 12 处（阈值 ±2.5px，实测最大 1.59px）
+余量: 最低图标对比 3.05:1（线 3），最小 icon-only 热区 40px（线 40）
+=== 图标审计 ALL OK ===
+### BATTERY DONE
