@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-04T12:53:18.906Z",
+  "ranAt": "2026-10-05T01:59:06.745Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -11,7 +11,7 @@
   ],
   "states": 79,
   "fail": 0,
-  "elapsedSec": 380.6,
+  "elapsedSec": 409.4,
   "results": [
     {
       "state": "index.320x640.png",
@@ -406,7 +406,7 @@
     {
       "state": "explore-map.320x640.png",
       "status": "PASS",
-      "diffPct": 0.001,
+      "diffPct": 0,
       "limitPct": 0.1
     },
     {
@@ -490,14 +490,14 @@
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1624,
-      "lcpEl": "SPAN",
+      "lcpMs": 1748,
+      "lcpEl": "A",
       "cls": 0
     },
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 1344,
+      "lcpMs": 1072,
       "lcpEl": "?",
       "cls": 0.0009
     }

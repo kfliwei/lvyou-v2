@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-04T10:32:34.132Z",
+  "generatedAt": "2026-10-05T01:44:56.807Z",
   "viewports": [
     "320x640",
     "390x844",
@@ -11,320 +11,320 @@
   "count": 79,
   "files": {
     "index.320x640.png": {
-      "sha": "c9cd02158b6888d9",
-      "bytes": 654661
+      "sha": "3efd3f8356970c9e",
+      "bytes": 646925
     },
     "index.390x844.png": {
-      "sha": "aa16e793875429cb",
-      "bytes": 1020397
+      "sha": "539f3e1066769dc1",
+      "bytes": 1009085
     },
     "index.452x995.png": {
-      "sha": "8aff434da24d91b1",
-      "bytes": 1395345
+      "sha": "295b728df6b87f39",
+      "bytes": 1384985
     },
     "index.768x1024.png": {
-      "sha": "bba97d31a907ced4",
-      "bytes": 1702145
+      "sha": "b999d04f1fd2e65d",
+      "bytes": 2268719
     },
     "index.1440x900.png": {
-      "sha": "510e71995d06ff64",
-      "bytes": 1551200
+      "sha": "658dc32d0b604b11",
+      "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "1985b30e182b78b4",
-      "bytes": 193242
+      "sha": "4270044a9c9782ad",
+      "bytes": 179266
     },
     "topic.390x844.png": {
-      "sha": "9b15dd733a38fc8e",
-      "bytes": 248601
+      "sha": "87acaede2db97518",
+      "bytes": 223285
     },
     "topic.452x995.png": {
-      "sha": "729aff4cb6a9df01",
-      "bytes": 275278
+      "sha": "be7d683bfc8c1b49",
+      "bytes": 248662
     },
     "topic.768x1024.png": {
-      "sha": "b75a8361cb45e1f3",
-      "bytes": 339636
+      "sha": "7f5e4adead210c3a",
+      "bytes": 329485
     },
     "topic.1440x900.png": {
-      "sha": "ca713ae16f1a3b15",
-      "bytes": 397909
+      "sha": "6c87333229fb778a",
+      "bytes": 387005
     },
     "search.320x640.png": {
-      "sha": "33af1f05e8a650f5",
-      "bytes": 113078
+      "sha": "7158f61a008c434f",
+      "bytes": 403253
     },
     "search.390x844.png": {
-      "sha": "df2895d8de6a1f47",
-      "bytes": 122904
+      "sha": "a77adc9ea7d2d211",
+      "bytes": 538827
     },
     "search.452x995.png": {
-      "sha": "e8002fe70a14586a",
-      "bytes": 137656
+      "sha": "52ea0bb3fc078a1b",
+      "bytes": 645083
     },
     "search.768x1024.png": {
-      "sha": "821c5655a30d09e4",
-      "bytes": 147762
+      "sha": "d9b66db94d9fd1fc",
+      "bytes": 806256
     },
     "search.1440x900.png": {
-      "sha": "7cdedadeb6f70deb",
-      "bytes": 160876
+      "sha": "95891737fd921984",
+      "bytes": 791673
     },
     "wishlist.320x640.png": {
-      "sha": "969a9f5eec030044",
-      "bytes": 129349
+      "sha": "32b10db8c6da414d",
+      "bytes": 443125
     },
     "wishlist.390x844.png": {
-      "sha": "4819f2e455b572ca",
-      "bytes": 138048
+      "sha": "c0a598e30a1b0b05",
+      "bytes": 472699
     },
     "wishlist.452x995.png": {
-      "sha": "075b9f8e01e32aab",
-      "bytes": 154805
+      "sha": "278de9a703ac9ca4",
+      "bytes": 500414
     },
     "wishlist.768x1024.png": {
-      "sha": "831d59fc23928214",
-      "bytes": 155948
+      "sha": "dd1126c421cc92c7",
+      "bytes": 506211
     },
     "wishlist.1440x900.png": {
-      "sha": "be188ba6cf541bf6",
-      "bytes": 174106
+      "sha": "63a9efd6ef5b7323",
+      "bytes": 540999
     },
     "review.320x640.png": {
-      "sha": "11830096b18150de",
-      "bytes": 178142
+      "sha": "47a9eccdac319b42",
+      "bytes": 379638
     },
     "review.390x844.png": {
-      "sha": "a5ad9c851cd1b520",
-      "bytes": 235858
+      "sha": "a97050e1c50710d6",
+      "bytes": 501370
     },
     "review.452x995.png": {
-      "sha": "f43ce6c5360b45d3",
-      "bytes": 302908
+      "sha": "81de5a6439787cf3",
+      "bytes": 596717
     },
     "review.768x1024.png": {
-      "sha": "16bb5faafaec486b",
-      "bytes": 329471
+      "sha": "03b910b33ba18ec4",
+      "bytes": 1080227
     },
     "review.1440x900.png": {
-      "sha": "52f5acb39db1505b",
-      "bytes": 323852
+      "sha": "46b1e0b567a07ec9",
+      "bytes": 1042647
     },
     "settings.320x640.png": {
-      "sha": "47f0002d5edcbced",
-      "bytes": 165558
+      "sha": "89c86ea4c35f1b46",
+      "bytes": 263233
     },
     "settings.390x844.png": {
-      "sha": "4ec4d6744b39e555",
-      "bytes": 228137
+      "sha": "c42f5803f612a32d",
+      "bytes": 370872
     },
     "settings.452x995.png": {
-      "sha": "82230a5902c160f4",
-      "bytes": 292266
+      "sha": "4880851e805f9c0d",
+      "bytes": 465261
     },
     "settings.768x1024.png": {
-      "sha": "163f452dbb0b54fd",
-      "bytes": 299626
+      "sha": "058b2a1f371639d0",
+      "bytes": 1002389
     },
     "settings.1440x900.png": {
-      "sha": "17d3c43032824d8f",
-      "bytes": 301858
+      "sha": "d1b0c757d6f3a48b",
+      "bytes": 963284
     },
     "me.320x640.png": {
-      "sha": "cd6a1fc09c64df5b",
-      "bytes": 227024
+      "sha": "a375ee699c9a74fd",
+      "bytes": 383234
     },
     "me.390x844.png": {
-      "sha": "e3e394e7702214e9",
-      "bytes": 296169
+      "sha": "8658401a7e88a5e3",
+      "bytes": 545975
     },
     "me.452x995.png": {
-      "sha": "050b6c8362fa6372",
-      "bytes": 351835
+      "sha": "2404e026287f818c",
+      "bytes": 650298
     },
     "me.768x1024.png": {
-      "sha": "7d75ba0c73d8e22e",
-      "bytes": 403950
+      "sha": "afcf2a17add7aa2b",
+      "bytes": 1200741
     },
     "me.1440x900.png": {
-      "sha": "8d230a111574bc07",
-      "bytes": 401921
+      "sha": "4f389e07b5ce6752",
+      "bytes": 1152337
     },
     "node-manager.320x640.png": {
-      "sha": "f27c749ff334ddb3",
-      "bytes": 84187
+      "sha": "c05e5d6cbb00837c",
+      "bytes": 81038
     },
     "node-manager.390x844.png": {
-      "sha": "e8c830a1290fe347",
-      "bytes": 91911
+      "sha": "1a79d1b5a3de9da7",
+      "bytes": 88411
     },
     "node-manager.452x995.png": {
-      "sha": "1a3fa3069d994729",
-      "bytes": 99343
+      "sha": "27011a3ae96d448f",
+      "bytes": 95981
     },
     "node-manager.768x1024.png": {
-      "sha": "2c95f38bf7d4942f",
-      "bytes": 103636
+      "sha": "995b63d06d0c80c3",
+      "bytes": 100735
     },
     "node-manager.1440x900.png": {
-      "sha": "106795c130df0c2d",
-      "bytes": 115011
+      "sha": "f1fd03df41226e2b",
+      "bytes": 111625
     },
     "album.320x640.png": {
-      "sha": "6126104a103ecb91",
-      "bytes": 45922
+      "sha": "025ad2c4ec6bdd8a",
+      "bytes": 436386
     },
     "album.390x844.png": {
-      "sha": "a2950a41600ab591",
-      "bytes": 50517
+      "sha": "480677ba48645337",
+      "bytes": 573551
     },
     "album.452x995.png": {
-      "sha": "6a7a13bbe4ec645b",
-      "bytes": 60052
+      "sha": "0feb1be0d39ca798",
+      "bytes": 676029
     },
     "album.768x1024.png": {
-      "sha": "a9cd15add583550d",
-      "bytes": 59798
+      "sha": "20941166b21b9501",
+      "bytes": 721165
     },
     "album.1440x900.png": {
-      "sha": "eaea17fc0ea6b4b7",
-      "bytes": 70969
+      "sha": "6c651038d8aa385b",
+      "bytes": 711545
     },
     "album-edit.320x640.png": {
-      "sha": "f5b629e9f3bccff3",
-      "bytes": 169361
+      "sha": "a05e45b0e7370faa",
+      "bytes": 261731
     },
     "album-edit.390x844.png": {
-      "sha": "4d96c907411a1967",
-      "bytes": 225181
+      "sha": "c83734b26c693b7b",
+      "bytes": 349054
     },
     "album-edit.452x995.png": {
-      "sha": "731c2814b0a203c6",
-      "bytes": 274045
+      "sha": "ae32d9f7938bf51f",
+      "bytes": 422209
     },
     "album-edit.768x1024.png": {
-      "sha": "f181939624230a19",
-      "bytes": 449603
+      "sha": "ccfb88b882538990",
+      "bytes": 775725
     },
     "album-edit.1440x900.png": {
-      "sha": "06f1816adab2157c",
-      "bytes": 492274
+      "sha": "9433c914ccbc519f",
+      "bytes": 1058174
     },
     "story.320x640.png": {
-      "sha": "3ec04b9c2f9e8f15",
-      "bytes": 104475
+      "sha": "1c4bbcb0040c3d0b",
+      "bytes": 103865
     },
     "story.390x844.png": {
-      "sha": "71a8f4ccab92bbf8",
-      "bytes": 119241
+      "sha": "35485277e2b2b89d",
+      "bytes": 119473
     },
     "story.452x995.png": {
-      "sha": "74c9e2de3e3425f4",
-      "bytes": 135740
+      "sha": "02be7f44149fac68",
+      "bytes": 135009
     },
     "story.768x1024.png": {
-      "sha": "0de34b109a8e64d3",
-      "bytes": 142949
+      "sha": "49faacd5f7c0972f",
+      "bytes": 142012
     },
     "story.1440x900.png": {
-      "sha": "cbca1491a61afada",
-      "bytes": 154091
+      "sha": "e559ec7e37f7a392",
+      "bytes": 153423
     },
     "planner.320x640.png": {
-      "sha": "f41cce076add6d7a",
-      "bytes": 161560
+      "sha": "2605486861ed4e4a",
+      "bytes": 307180
     },
     "planner.390x844.png": {
-      "sha": "e87ee6b1a9d97e73",
-      "bytes": 235626
+      "sha": "745fefe1ddfc1aa7",
+      "bytes": 456151
     },
     "planner.452x995.png": {
-      "sha": "0cb62e56c7305d57",
-      "bytes": 293186
+      "sha": "81974c653ab16521",
+      "bytes": 534757
     },
     "planner.768x1024.png": {
-      "sha": "10e698953b7ac777",
-      "bytes": 315277
+      "sha": "4844c48d80ceffc3",
+      "bytes": 976263
     },
     "planner.1440x900.png": {
-      "sha": "c654853e987bf549",
-      "bytes": 320819
+      "sha": "ac47355639f84acc",
+      "bytes": 946917
     },
     "md-manager.320x640.png": {
-      "sha": "8922611e9361f2fc",
-      "bytes": 84674
+      "sha": "2d839ce4f2de77cf",
+      "bytes": 350624
     },
     "md-manager.390x844.png": {
-      "sha": "4707019c229632f5",
-      "bytes": 99940
+      "sha": "9b68500a7d39fad2",
+      "bytes": 516288
     },
     "md-manager.452x995.png": {
-      "sha": "239e133daf90d145",
-      "bytes": 110249
+      "sha": "911f5a77f415ac64",
+      "bytes": 636014
     },
     "md-manager.768x1024.png": {
-      "sha": "38ded8728170e1f6",
-      "bytes": 116457
+      "sha": "5567594656e0888c",
+      "bytes": 797726
     },
     "md-manager.1440x900.png": {
-      "sha": "d2116216d28cd39f",
-      "bytes": 130631
+      "sha": "7a753fa4d98caf69",
+      "bytes": 777771
     },
     "explore-map.320x640.png": {
-      "sha": "2bd9b2a5c8c56372",
-      "bytes": 173347
+      "sha": "c9fa7b38d814a9b0",
+      "bytes": 500167
     },
     "explore-map.390x844.png": {
-      "sha": "f16640b0ba1478df",
-      "bytes": 233120
+      "sha": "2a1b8327fd964e9a",
+      "bytes": 709599
     },
     "explore-map.452x995.png": {
-      "sha": "2c52fc5a6ac94f64",
-      "bytes": 306624
+      "sha": "40c6807ea3e78449",
+      "bytes": 902045
     },
     "explore-map.768x1024.png": {
-      "sha": "b9498357c7ad98af",
-      "bytes": 362955
+      "sha": "06c8882d46324137",
+      "bytes": 1064020
     },
     "explore-map.1440x900.png": {
-      "sha": "bce5b064ca80100e",
-      "bytes": 341889
+      "sha": "4c35f1febdc090c3",
+      "bytes": 992006
     },
     "travel-map.320x640.png": {
-      "sha": "ea5b95684d2f9819",
-      "bytes": 137076
+      "sha": "d3b18d5368d9c72f",
+      "bytes": 137456
     },
     "travel-map.390x844.png": {
-      "sha": "04dbfa5a995685f1",
-      "bytes": 150988
+      "sha": "d4c1226832182e83",
+      "bytes": 150967
     },
     "travel-map.452x995.png": {
-      "sha": "2d246b07c6592133",
-      "bytes": 162917
+      "sha": "5b8637c5e7cc7531",
+      "bytes": 163105
     },
     "travel-map.768x1024.png": {
-      "sha": "f6aa82d65347b15d",
-      "bytes": 171104
+      "sha": "3cdd0d9321862158",
+      "bytes": 171186
     },
     "travel-map.1440x900.png": {
-      "sha": "f045dd48517539fc",
-      "bytes": 185741
+      "sha": "b82a2d9e8eb482d9",
+      "bytes": 186628
     },
     "review.seed.390x844.png": {
-      "sha": "331803bc4138fc94",
-      "bytes": 241366
+      "sha": "a308808f052313aa",
+      "bytes": 507125
     },
     "album.seed.390x844.png": {
-      "sha": "e03c08d547681f32",
-      "bytes": 144563
+      "sha": "23a617a588142f2b",
+      "bytes": 130416
     },
     "story.seed.390x844.png": {
-      "sha": "4a7989bd4d91ddd0",
-      "bytes": 158787
+      "sha": "97b4f313ead5c8cc",
+      "bytes": 158331
     },
     "travel-map.seed.390x844.png": {
-      "sha": "1dbe0ac8344fe62f",
-      "bytes": 151119
+      "sha": "98e7930b30d04389",
+      "bytes": 143523
     }
   }
 }

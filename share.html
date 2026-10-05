@@ -10,12 +10,12 @@
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
-  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
   .wrap{max-width:560px;margin:0 auto;padding:0 16px 40px}
   /* 品牌条：宣纸墨字 + 鎏金短线，别人点开时第一眼就知道是谁家做的 */
   .sbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;
     padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;margin:0 0 16px;
-    background:rgba(250,248,243,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--color-line)}
+    background:var(--paper-bar);border-bottom:1px solid var(--color-line)}
   .sbar b{font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400;letter-spacing:.3em;color:var(--color-ink)}
   .sbar .sb-seal{width:14px;height:3px;border-radius:99px;background:var(--grad-gold);flex:0 0 auto}
   .sbar .sb-sub{font-size:var(--fs-2);letter-spacing:.14em;color:var(--color-muted);flex:1}
@@ -30,8 +30,8 @@
   .ruler{font-size:var(--fs-3);color:var(--color-muted);line-height:1.7;margin:2px 0 14px;padding-left:10px;border-left:2px solid var(--color-line-strong)}
   .mapnote{font-size:var(--fs-2);color:var(--color-muted);line-height:1.7;margin:-6px 0 16px}
   /* 排期结果 */
-  #mapBox{height:46vh;min-height:220px;border-radius:20px;overflow:hidden;border:1px solid var(--color-line);border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft);margin-bottom:14px}
-  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:0 6px 18px rgba(40,38,32,.06);padding:16px 17px;margin-bottom:14px;transition:box-shadow var(--motion-mid)}
+  #mapBox{height:46vh;min-height:220px;border-radius:20px;overflow:hidden;border:1px solid var(--color-line);border-color:var(--edge-hair-soft);box-shadow:var(--shadow-soft);margin-bottom:14px}
+  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padding:16px 17px;margin-bottom:14px;transition:box-shadow var(--motion-mid)}
   .day-card:hover{box-shadow:var(--shadow-medium)}
   .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-bottom:9px}
   .day-card .dhead .dmeta{font-size:var(--fs-2);color:var(--color-muted);flex:1}

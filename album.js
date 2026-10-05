@@ -377,7 +377,9 @@
     return h.join('');
   }
 
-  /* ---------- 导出独立 HTML（内联 base64；file:// 音频注明 App 内回听） ---------- */
+  /* ---------- 导出独立 HTML（内联 base64；file:// 音频注明 App 内回听） ----------
+     下面那段 :root 是 design.css 的手工副本（导出件要能脱离 App 打开），
+     其中 --scrim-photo 与 design.css 同值，由 verify.js §23 逐条对账。 */
   function exportHTML(album) {
     var body = renderAlbumHTML(album);
     var audioNote = '';
@@ -388,13 +390,13 @@
       + '<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">'
       + '<title>' + esc(album.title) + ' · 旅行图册</title>'
       + '<style>'
-      + ':root{--color-bg:#F7F5EF;--color-bg-soft:#F0EDE5;--color-ink:#20201D;--color-ink-soft:#4C4A45;--color-muted:#6A675E;--color-faint:#AAA59B;--color-line:rgba(32,32,29,.09);--color-primary:#AE5738;--color-primary-dark:#96472F;--font-serif:"Songti SC","STSong","Noto Serif SC",serif;--font-sans:"PingFang SC","Noto Sans SC",sans-serif}'
+      + ':root{--color-bg:#F7F5EF;--color-bg-soft:#F0EDE5;--color-ink:#20201D;--color-ink-soft:#4C4A45;--color-muted:#6A675E;--color-faint:#AAA59B;--color-line:rgba(32,32,29,.09);--color-primary:#AE5738;--color-primary-dark:#96472F;--scrim-photo:rgba(0,0,0,.55);--font-serif:"Songti SC","STSong","Noto Serif SC",serif;--font-sans:"PingFang SC","Noto Sans SC",sans-serif}'
       + '*{box-sizing:border-box;margin:0;padding:0}'
       + 'body{background:var(--color-bg);color:var(--color-ink);font-family:var(--font-sans);line-height:1.75}'
       + '.al{max-width:720px;margin:0 auto;min-height:100vh}'
       + '.al-cover{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:64px 30px 56px;overflow:hidden}'
       + '.al-cover__img{position:absolute;inset:0}'
-      + '.al-cover__shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,.05) 55%)}'
+      + '.al-cover__shade{position:absolute;inset:0;background:linear-gradient(to top,var(--scrim-photo),rgba(0,0,0,.05) 55%)}'
       + '.al-cover__content{position:relative;z-index:2;color:#F4F1E7}'
       + '.al-cover__tag{font-size:var(--fs-2);letter-spacing:.34em;opacity:.8}'
       + '.al-cover__title{font-family:var(--font-serif);font-size:clamp(46px,13vw,64px);font-weight:400;line-height:1.1;letter-spacing:.04em;margin-top:18px}'

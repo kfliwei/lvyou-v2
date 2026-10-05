@@ -15,6 +15,13 @@
  *       它一声不吭，等于永久绿灯。改成按**实际解析出的挂载**算，并补 X1–X4 四条专砸它。
  *    ② ④ 原先写成「.ls-img 里**有 box-shadow 的**那条必须含 inset 环」，于是「把整条 box-shadow 删掉」
  *       （描边照样没了）静默放行。改成「每一条 .ls-img 规则都必须含 inset 环」，C3 就是砸这个。
+ *  · UI-5（质感收口）把封面影与下压影令牌化之后，这一栏跟着改了三轮，并补了四条：
+ *    ① C8/C9：`::after` 现在写 `var(--scrim-cover)`，只断言「含这个 var()」是不够的——token 被改值
+ *       或被整条删掉（var() 解析失败会连带丢掉整条 background）都照样绿。所以闸门锁双面：认 var()，
+ *       又钉 design.css 里 `--scrim-cover:rgba(32,32,29,.22)` 逐值存在。
+ *    ② V4：LOOK_RE 少了 `\s*` 时，多行规则 flat 后是「; filter:」，一条也抓不到（⑤ 变永久绿灯）。
+ *       这是 UI-5 探针**当场撞到**的洞，不是假想：闸门里补 BAD_ML 多行正样本自证，V4 砸回原形。
+ *    ③ V2 因此改成 only:false：正则整体瞎掉时单行/多行两条自证该一起红，只红 1 条反而说明多行那条是摆设。
  */
 const fs = require('fs');
 const path = require('path');
@@ -29,8 +36,10 @@ const LOOK_RULE = '.card .ph img,.ls-img>img,.al-ch-img,.photo-wall img,.md-item
 const VEIL_RULE = '.card .ph:has(>img)::after,.eph:has(>img)::after,.p-cell:has(>img)::after,.n-item .th:has(>img)::after,.trip-feature__img::after,.imgbox:has(>img)::after';
 const INSET_RULE = '.card .ph:has(>img),.n-item .th:has(>img),.trip-feature__img,.imgbox:has(>img){box-shadow:inset 0 0 0 1px var(--photo-edge)}';
 const OUT_RULE = '.al-ch-img,.photo-wall img,.md-item .thumbs img{box-shadow:0 0 0 1px var(--photo-edge)}';
-const AFTER = '.ls-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(32,32,29,.22)),var(--photo-veil);pointer-events:none}';
-const LATE = '.ls-img{border-radius:18px;box-shadow:inset 0 0 0 1px var(--photo-edge),0 12px 32px rgba(40,38,32,.12)}';
+/* UI-5 后这两条长锚改了：封面下压影进 --scrim-cover，外层影进暖墨族 */
+const AFTER = '.ls-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,var(--scrim-cover)),var(--photo-veil);pointer-events:none}';
+const LATE = '.ls-img{border-radius:18px;box-shadow:inset 0 0 0 1px var(--photo-edge),var(--shadow-medium)}';
+const FIRST = 'overflow:hidden;box-shadow:inset 0 0 0 1px var(--photo-edge),var(--shadow-medium)}';
 
 const MUTS = [
   /* ============ ① 三个 token 逐值 + 字面量双写 ============ */
@@ -81,17 +90,17 @@ const MUTS = [
     exp: '裸图 .md-item .thumbs 有外圈描边但没吃 --photo-look', only: false, why: '错挂同时打红「清单漂多」「外圈⊄滤镜」「清单逐条挂载」三条' },
 
   /* ============ ④ 封面 .ls-img：后发覆盖与 ::after 唯一 ============ */
-  { name: 'C1 首发的 .ls-img 只留外扩影、丢掉 inset 环（894 行那样，封面与纸面失去分界）',
-    ed: [[MAP, 'box-shadow:inset 0 0 0 1px var(--photo-edge),0 10px 30px', 'box-shadow:0 10px 30px', 1]],
+  { name: 'C1 首发的 .ls-img 只留外扩影、丢掉 inset 环（封面与纸面失去分界）',
+    ed: [[MAP, FIRST, 'overflow:hidden;box-shadow:var(--shadow-medium)}', 1]],
     exp: '.ls-img 的一条声明里没有 inset 环' },
-  { name: 'C2 后发装饰段（1331 行）覆盖 box-shadow 时没带上 inset 环——本轮实测就是这个写法才救回来的',
-    ed: [[MAP, LATE, '.ls-img{border-radius:18px;box-shadow:0 12px 32px rgba(40,38,32,.12)}', 1]],
+  { name: 'C2 后发装饰段（1327 行）覆盖 box-shadow 时没带上 inset 环——本轮实测就是这个写法才救回来的',
+    ed: [[MAP, LATE, '.ls-img{border-radius:18px;box-shadow:var(--shadow-medium)}', 1]],
     exp: '.ls-img 的一条声明里没有 inset 环' },
   { name: 'C3 后发段把整条 box-shadow 删掉（描边照样没了：这就是「有 box-shadow 才检查」那个洞）',
     ed: [[MAP, LATE, '.ls-img{border-radius:18px}', 1]],
     exp: '.ls-img 的一条声明里没有 inset 环' },
   { name: 'C4 封面 veil 没并进自带影那条 background（下压影独吞 ::after，压色整层消失）',
-    ed: [[MAP, AFTER, '.ls-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(32,32,29,.22));pointer-events:none}', 1]],
+    ed: [[MAP, AFTER, '.ls-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,var(--scrim-cover));pointer-events:none}', 1]],
     exp: '.ls-img::after 没把 veil 并进同一条 background' },
   { name: 'C5 封面的「下压式」影被删（::after 只剩 veil，封面顶部不再向下压）',
     ed: [[MAP, AFTER, '.ls-img::after{content:"";position:absolute;inset:0;background:var(--photo-veil);pointer-events:none}', 1]],
@@ -102,6 +111,12 @@ const MUTS = [
   { name: 'C7 追加第三条 .ls-img 后发段（账本上现在只有两条；新那条还没带环）',
     ed: [[MAP, LATE, LATE + '\r\n.ls-img{border-radius:20px}', 1]],
     exp: '.ls-img 规则 3 条', only: false, why: '多一条后发段同时打红「条数」与「每条必须含 inset 环」' },
+  { name: 'C8 --scrim-cover 的档位漂成 .30（::after 现在认 token，闸门必须同时钉住 token 的值，否则 var() 被改值照样绿）',
+    ed: [[CSS, '  --scrim-cover:rgba(32,32,29,.22);', '  --scrim-cover:rgba(32,32,29,.30);', 1]],
+    exp: '--scrim-cover 没在 design.css 里定义成 rgba(32,32,29,.22)' },
+  { name: 'C9 --scrim-cover 整条定义删掉（var() 解析失败会连带丢掉整条 background，封面下压影静默消失）',
+    ed: [[CSS, '  --scrim-cover:rgba(32,32,29,.22);\n', '', 1]],
+    exp: '--scrim-cover 没在 design.css 里定义成 rgba(32,32,29,.22)' },
 
   /* ============ ⑤ 照片表面不许另写字面量滤镜 / 暗色不许重定义 token ============ */
   { name: 'L1 某页给封面另调 saturate(1.3)（一批照片里只有一张艳的，正是「一半压过一半没压」的来路）',
@@ -129,8 +144,12 @@ const MUTS = [
     ed: [[VF, '(?![\\w-])/', '(?=.)/', 1]],
     exp: '照片滤镜探针误报' },
   { name: 'V2 把 LOOK_RE 写坏成抓不到 filter（正向自证失效：坏样本溜过去＝⑤ 永久绿灯）',
-    ed: [[VF, 'const LOOK_RE = /(?:^|;)filter:/;', 'const LOOK_RE = /(?:^|;)zfilter:/;', 1]],
-    exp: '照片滤镜探针自身失效' },
+    ed: [[VF, 'const LOOK_RE = /(?:^|;)\\s*filter\\s*:/;', 'const LOOK_RE = /(?:^|;)\\s*zfilter\\s*:/;', 1]],
+    exp: '照片滤镜探针自身失效', only: false,
+    why: '正则整体瞎掉时，单行 BAD 与多行 BAD_ML 两条正向自证会一起红——红 2 条才是对的，只红 1 条说明多行那条自证是摆设' },
+  { name: 'V4 把 LOOK_RE 的 \\s* 去掉（UI-5 探针当场撞到的洞：多行规则 flat 后是「; filter:」，去掉就整条放过）',
+    ed: [[VF, 'const LOOK_RE = /(?:^|;)\\s*filter\\s*:/;', 'const LOOK_RE = /(?:^|;)filter:/;', 1]],
+    exp: '照片滤镜探针漏多行写法' },
   { name: 'V3 把「吃 token 的不算违规」那条件写错（反向自证失效：全站每条合规滤镜都被判违规）',
     ed: [[VF, "!r.body.includes('var(--photo-look)')", "!r.body.includes('var(--photo-lookzz)')", 1]],
     exp: '照片滤镜探针误报', only: false, why: '排除条件写坏后 design.css 自己那条合规规则也会一起红' },

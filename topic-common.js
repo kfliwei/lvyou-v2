@@ -142,8 +142,16 @@
     /* 区域统计：全专题生效（规范 §32） */
     map.on('moveend', scheduleRegionStats);
     map.on('zoomend', scheduleRegionStats);
-    /* 聚合胶囊避让：平移/缩放后重测屏幕占位（node-lod 重渲染是异步的，延迟一拍） */
-    map.on('moveend zoomend', function () { clearTimeout(capsuleAvoid._t); capsuleAvoid._t = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); }, 170); });
+    /* 避让重排：平移/缩放后重测屏幕占位（node-lod 重渲染是异步的，延迟一拍）。
+       以前标签避让只挂在渲染回调上，而那次回调可能跑在节点入场动画的第一帧里
+       （见 refitAvoid 的注释），量到的是 0.6 倍矩形，动画结束后没人补测 →
+       首屏留下「两个名称叠在一起」的残态，同一份代码两次拍屏结果还不一样。 */
+    map.on('moveend zoomend', function () { clearTimeout(capsuleAvoid._t); capsuleAvoid._t = setTimeout(refitAvoid, 170); });
+    /* 节点入场动画收尾再补测一次：减动效档（.01ms）与正常档（--motion-enter）都走这条路 */
+    document.addEventListener('animationend', function (e) {
+      if (!e.animationName || e.animationName.indexOf('node-fade-in') !== 0) return;
+      clearTimeout(refitAvoid._t); refitAvoid._t = setTimeout(refitAvoid, 120);
+    });
     /* 空白区域提示 */
     map.on('moveend', scheduleEmptyHint);
     map.on('zoomend', scheduleEmptyHint);
@@ -174,7 +182,7 @@
     if (!nearBar) {
       nearBar = document.createElement('div');
       nearBar.id = 'nearBar';
-      nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(250,248,243,.96);border:1px solid rgba(32,32,29,.08);border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.12);padding:5px 6px;z-index:1200;backdrop-filter:blur(16px);max-width:calc(100vw - 24px)';
+      nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:4px;background:var(--paper-bar);border:1px solid var(--edge-hair-soft);border-radius:999px;box-shadow:var(--shadow-medium);padding:5px 6px;z-index:1200;max-width:calc(100vw - 24px)';
       nearBar.innerHTML = [10, 30, 50, 100].map(function (k) { return '<span class="nk" data-k="' + k + '" style="padding:6px 9px;border-radius:999px;font-size:var(--fs-3);color:var(--color-ink-soft);cursor:pointer;font-family:var(--font-sans);white-space:nowrap">' + k + 'km</span>'; }).join('') +
         '<span id="nearX" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-2);cursor:pointer;flex-shrink:0">' + TI('close', 12) + '</span>';
       document.getElementById('mapEl').appendChild(nearBar);
@@ -282,11 +290,21 @@
     return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
   }
   function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
+  /* 避让补测的统一入口。为什么要等两拍 rAF：.tr-node 带入场动画 node-fade-in
+     （design.css:940，from 是 scale(.6)），节点创建的同一帧里 getBoundingClientRect
+     量到的是动画首帧的盒子（实测标签宽 67px，稳定后 112px），labelAvoid 据此判重叠就漏隐藏。
+     两拍之后动画至少推进过一帧；正常档（非减动效）动画更长，由 initMap 里的 animationend 再补一次。 */
+  function refitAvoid() {
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      if (window.capsuleAvoid) capsuleAvoid('#mapEl');
+      if (window.labelAvoid) labelAvoid('#mapEl');
+    }); });
+  }
   function renderMarkers(list) {
     lastMarkerList = list;
     /* 标签避让（2026-08-15）：重叠隐藏低优先级 */
     clearTimeout(renderMarkers._av);
-    renderMarkers._av = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); if (window.labelAvoid) labelAvoid('#mapEl'); }, 120);
+    renderMarkers._av = setTimeout(refitAvoid, 120);
     /* LOD 重渲染：清理「查附近」补画节点层（残留高亮 marker 会盖住重画节点并拦截点击） */
     if (nearNodeLayer) { try { nearNodeLayer.clearLayers(); } catch (e) {} }
     /* TRACE v2 统一分层分级（node-lod.js 引擎）：
@@ -303,7 +321,7 @@
       colorOf: colorOf,
       onNode: function (s) { openSheet(s.__i); },
       majorOf: isMajorSite,
-      onRendered: function () { clearTimeout(window.__cavT); window.__cavT = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); if (window.labelAvoid) labelAvoid('#mapEl'); }, 80); },
+      onRendered: function () { clearTimeout(window.__cavT); window.__cavT = setTimeout(refitAvoid, 80); },
       regionOf: function (s) { return s.region; },
       cityOf: function (s) { return s.city; },
       countyOf: function (s) { return s.county; },

@@ -7,7 +7,7 @@
 <script src="theme.js"></script>
 <link rel="stylesheet" href="design.css">
 <style>
-  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:110px}
   .sbar{flex:1;display:flex;align-items:center;gap:8px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:4px 6px 4px 14px;min-width:0}
   .sbar input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:var(--fs-7);color:var(--color-ink);height:36px}
@@ -41,7 +41,7 @@
   .skel{height:56px;border-radius:14px;background:linear-gradient(90deg,var(--color-bg-soft),var(--color-surface),var(--color-bg-soft));background-size:200% 100%;animation:sk var(--motion-flash) infinite;margin-bottom:8px}
   @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
   /* v3 CINEMATIC LAYER */
-  .sbar{border:1.5px solid rgba(33,26,19,.08);box-shadow:var(--shadow-soft);background:rgba(255,255,255,.82);transition:box-shadow var(--motion-fast),border-color var(--motion-fast)}
+  .sbar{border:1.5px solid var(--edge-hair-soft);box-shadow:var(--shadow-soft);background:rgba(255,255,255,.82);transition:box-shadow var(--motion-fast),border-color var(--motion-fast)}
   .sbar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
   .sbar .mic{background:linear-gradient(145deg,rgba(219,125,83,.20),rgba(169,76,45,.09));color:var(--color-ember-deep)}
   .sbar .mic.rec{background:var(--grad-primary);color:#fff}

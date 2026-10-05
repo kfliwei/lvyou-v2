@@ -298,6 +298,69 @@ async function newPage(browser, opts) {
   const durl = await pf.evaluate(function () { return location.href; });
   check('D3 file:// 下跨文档导航到达（@view-transition 在 opaque origin 不许拦路）', /topic\.html$/.test(durl), durl);
 
+  /* ================= E · 节点入场动画 × 标签避让 ================= */
+  /* .tr-node 的入场动画从 scale(.6) 起（design.css:939–940，--motion-enter:480ms），
+     而 labelAvoid/capsuleAvoid 用 getBoundingClientRect 判重叠。避让若跑在动画进行中，
+     量到的是缩过 0.6 倍的盒子 → 该隐藏的标签漏隐藏，首屏留下叠字；
+     像素闸门 topic.1440/768 的 0.02%/0.05% 双态就是这个竞态（同一份代码两种终态）。
+     这一档故意用**正常动效**跑：480ms 的窗口足够宽，漏挂补测必挂。 */
+  const pe = await newPage(browser, { errors: errs });
+  /* 390 档 LOD 只到聚合胶囊，一个 .node-label 都没有 → E1/E2 会因"没东西可测"假绿。
+     桌面宽才落到节点层（实测 452 档标签 0 个、768 档 24 个）。 */
+  await pe.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await pe.goto(BASE + '/topic.html', { waitUntil: 'load', timeout: 30000 });
+  await sleep(2600);
+  const e1 = await pe.evaluate(function () {
+    const vis = [].slice.call(document.querySelectorAll('.node-label')).filter(function (x) { return !x.classList.contains('hidden'); });
+    const R = vis.map(function (x) { return x.getBoundingClientRect(); });
+    const pairs = [];
+    for (var i = 0; i < R.length; i++) for (var j = i + 1; j < R.length; j++) {
+      var a = R[i], b = R[j];
+      if (!(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom)) pairs.push(vis[i].textContent + '×' + vis[j].textContent);
+    }
+    return { labels: document.querySelectorAll('.node-label').length, hidden: document.querySelectorAll('.node-label.hidden').length, pairs: pairs };
+  });
+  check('E1 地图标签确实渲染出来了（0 个标签会让 E2 假绿）', e1.labels >= 8, '标签=' + e1.labels);
+  check('E2 避让真的动过手：至少隐藏 1 个重叠标签（正向对照）', e1.hidden >= 1, '隐藏=' + e1.hidden);
+  check('E3 动画全部结束后，可见标签两两不重叠', e1.pairs.length === 0, e1.pairs.slice(0, 3).join(' ,') || '0 对');
+  /* E4 视野变化之后：光量几何会被假绿——实测 zoomIn 之后标签互相散开，隐藏数归 0、
+     一对重叠都量不出来，摘掉补测照样绿。所以取 zoomOut（标签互相靠拢，才暴露漏补测），
+     并且同时要求「避让确实又被调过一次」。
+     取样时机必须是**入场动画全部结束之后**，不是固定 900ms：`tools/out/probe-e4-timeline.js`
+     实测 zoomOut 之后 +700/+900ms 那两帧有 37 个节点还在跑 node-fade-in（避让此时量到的仍是
+     0.6 倍盒）→ 重叠 2 对；+1400ms 动画跑完、animationend 那条补测路生效才归 0。
+     固定 900ms 等于拿中间态当终态——同一份代码一次绿一次红，变异自测的"打死"也就成了撞运气。 */
+  const e4 = await pe.evaluate(async function () {
+    window.__la = 0;
+    const real = window.labelAvoid;
+    window.labelAvoid = function () { window.__la++; return real.apply(this, arguments); };
+    const running = function () {
+      return [].slice.call(document.querySelectorAll('.tr-node,.mem-node')).some(function (el) {
+        return el.getAnimations && el.getAnimations().some(function (a) {
+          return a.animationName === 'node-fade-in' && a.playState === 'running';
+        });
+      });
+    };
+    document.getElementById('zoomOut').click();
+    let waited = 0, sawRun = 0;
+    while (waited < 5000) {
+      if (running()) sawRun = 1;
+      else if (sawRun || waited >= 800) break;   /* 没观察到动画也要给 zoomend 一点时间，别把"没跑到"当成"跑完了" */
+      await new Promise(function (r) { setTimeout(r, 50); }); waited += 50;
+    }
+    await new Promise(function (r) { setTimeout(r, 250); });
+    const vis = [].slice.call(document.querySelectorAll('.node-label')).filter(function (x) { return !x.classList.contains('hidden'); });
+    const R = vis.map(function (x) { return x.getBoundingClientRect(); });
+    let n = 0;
+    for (var i = 0; i < R.length; i++) for (var j = i + 1; j < R.length; j++) {
+      const a = R[i], b = R[j];
+      if (!(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom)) n++;
+    }
+    return { calls: window.__la, n: n, waited: waited, hidden: document.querySelectorAll('.node-label.hidden').length };
+  });
+  check('E4 缩小视野后补测真的又跑过、且可见标签仍不重叠', e4.calls >= 1 && e4.n === 0,
+    '避让被调 ' + e4.calls + ' 次 / 重叠 ' + e4.n + ' 对 / 隐藏 ' + e4.hidden + '（等动画跑完用了 ' + e4.waited + 'ms）');
+
   check('D4 全程无页面未捕获异常', errs.length === 0, errs.slice(0, 3).join(' | ') || '0 条');
 
   await browser.close();

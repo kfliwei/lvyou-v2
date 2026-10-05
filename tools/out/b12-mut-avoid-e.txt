@@ -1,0 +1,7 @@
+ABORT M1 摘 animationend 补测：变异锚点命中 0 次（要 1 次）
+NOISE M2 摘 moveend/zoomend 补测 → E4 PASS
+     PASS E4 缩放之后仍不重叠（视野变化的补测通道在跑）  [0 对 / 隐藏 0]
+ABORT M3 整段退回改动前：变异锚点命中 0 次（要 1 次）
+已还原 topic-common.js（与原文逐字节相等：true）
+
+结论：3 处变异没打死对应断言 —— E 段是装饰，别当闸门用

@@ -249,7 +249,7 @@
   function flash(msg) {
     var d = document.createElement('div');
     d.textContent = msg;
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9800;box-shadow:var(--shadow-medium);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2400);
   }

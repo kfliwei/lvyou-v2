@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="design.css">
 <script src="theme.js"></script>
 <style>
-  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:60px}
   .content{padding:16px 16px 40px}
   /* 统计条 */
@@ -54,7 +54,7 @@
   .footbar .btn-primary{box-shadow:0 10px 28px rgba(200,109,75,.3)}
   body{padding-bottom:90px}
   /* ---------- 详情视图 ---------- */
-  .detail-bar{position:sticky;top:0;z-index:90;background:rgba(250,248,243,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(32,32,29,.06);padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px}
+  .detail-bar{position:sticky;top:0;z-index:90;background:var(--paper-bar);border-bottom:1px solid var(--edge-hair-soft);padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px}
   .article{padding:22px 20px 30px}
   .article h1.art-title{margin:0;font-family:var(--font-serif);font-size:27px;font-weight:400;line-height:1.35;color:var(--color-ink);letter-spacing:-.01em}
   .article .art-meta{margin-top:10px;font-size:var(--fs-3);color:var(--color-muted);letter-spacing:.04em}
@@ -109,7 +109,7 @@
   .stats div{position:relative}
   .stats div + div::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:var(--color-line)}
   .stats b{font-size:22px;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--color-gold-bright)}
-  .search-bar{border-radius:999px;border-color:rgba(33,26,19,.08);box-shadow:var(--shadow-soft)}
+  .search-bar{border-radius:999px;border-color:var(--edge-hair-soft);box-shadow:var(--shadow-soft)}
   .search-bar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
   .chips button.on{background:var(--grad-primary);border-color:transparent}
   .month b{font-size:var(--fs-8);font-weight:600}
@@ -119,7 +119,7 @@
   .md-item .thumbs img{border-radius:12px}
   .footbar .btn-primary{background:var(--grad-primary)}
   .footbar button{white-space:nowrap;font-size:var(--fs-4)}
-  .detail-bar{background:rgba(248,244,236,.85);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+  .detail-bar{background:var(--paper-bar)}
   .d-exp,.ed-save{background:var(--grad-primary)}
   .article h1.art-title{font-size:28px}
   .theme-dark .detail-bar{background:rgba(27,23,19,.85)}
@@ -282,7 +282,7 @@
   function toast(msg) {
     if (window.UI) { UI.toast(msg); return; }
     var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9999;box-shadow:0 8px 24px rgba(30,30,28,.18);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
+    d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9999;box-shadow:var(--shadow-medium);white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis';
     d.textContent = msg; document.body.appendChild(d);
     setTimeout(function () { d.remove(); }, 2200);
   }

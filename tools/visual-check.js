@@ -7,7 +7,7 @@
  *   页面加载会写 localStorage），种子基线一律用全量 --update 拍，别用 --seed --update。
  *   node tools/visual-check.js index.html   # 只跑指定页的空库态
  *   node tools/visual-check.js --reindex    # 把当前基线本体登记进指纹清单（不重新截图）
- * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
+ * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层 + 摘除短命 toast（`.ui-toast` 活 2.9s，与 SETTLE 抢时机）后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
  * 阈值: 普通页 > 0.1% FAIL；种子态 > 0.05%。数值按实测噪声定，见 THRESH 注释。
  * 稳定性: 时钟、performance.now、rAF 时间戳、Math.random、CSS 动画全部钉死，所有 http(s) 请求拦掉
  *         （瓦片一类的外部内容不进基线），并统一在 prefers-reduced-motion 下拍（hero 粒子的
@@ -242,9 +242,21 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
        iteration-count 1、delay 0s），不是来自 animations:'disabled'：实测 puppeteer-core 25.6.0
        根本没实现这个选项（包里 grep 不到 animations，同一页 disabled / allow 两张图像素一致）。
        留着它是为了将来内核真实现时口径不变，别把它当「动画已定格」的依据。 */
+    /* 短命提示不进基线（与跳过首启引导蒙层同一口径）：`.ui-toast` 活 2600ms+320ms 退场，
+       而 SETTLE 是 1400ms——它在不在画面里取决于截图那一刻落在生命周期的哪一格，本质是掷硬币。
+       实测：album.seed 的 diff 5.06% 全部落在 y 18–145 那条 toast 带上（tools/out/probe-vdiff-where.js
+       读包围盒定位），基线里有、当前跑没有，看着像改版其实是不确定性。
+       摘掉而不是拉长等待：拉长只是把硬币换成正面更多的硬币，且 79 态各多等 3s。
+       摘除条数打进日志与报告——这条路径必须可见，否则哪天 toast 选择器改了就成了静默失效。 */
+    const toasts = await pg.evaluate(() => {
+      const n = document.querySelectorAll('.ui-toast').length;
+      document.querySelectorAll('.ui-toast').forEach(e => e.remove());
+      return n;
+    });
     const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
     if (KEEP) fs.writeFileSync(path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png'), buf);
     testN++;
+    if (toasts) console.log('NOTE ' + tag + ' — 截图前摘除 ' + toasts + ' 条短命 toast（不进基线）');
 
     if (UPDATE) {
       fs.writeFileSync(baseF, buf);
@@ -279,7 +291,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     const lim = st.seed ? THRESH_SEED : THRESH;
     const ok = ratio <= lim;
     fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
-    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2) });
+    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined });
     if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
     else { console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag); failN++; }
   }

@@ -46,3 +46,8 @@ tools/out/shots/audit/
 tools/out/shots/capsule/
 tools/out/shots/icon-demo/
 tools/out/shots/*.png
+# UI-5 前后对比的原始截图（tools/out/shots-ui5-review.js 的产物，随时可重拍）；
+# 人审要留下的条带图另存 tools/out/shots/<日期>-ui5/ 并按惯例逐个 git add
+tools/out/ui5-review/
+# 探针的临时截图（tools/out/_*.png，调查现场用，结论已写进文档就不再留二进制）
+tools/out/_*.png

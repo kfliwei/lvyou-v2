@@ -1,0 +1,74 @@
+基线：verify.js exit=0（绿）
+✓ P1 --shadow-soft 的弥散层 α 从 .14 漂成 .16（台账逐值核定：手感档漂了没人重跑探针）
+    §23 红 1 条 · 命中：--shadow-soft 的整串定义出现 0 次
+✓ P2 --shadow-rise 自己调成 -26px/52px（不再是 medium 的 y 反向镜像，「同族反向档」名存实亡）
+    §23 红 2 条 · 命中：不再是 --shadow-medium 的 y 反向镜像
+✓ P3 --shadow-pop 从单层补成双层（弹层专用档被改成贴地档）
+    §23 红 1 条 · 命中：--shadow-pop 不是那一条单层影
+✓ P4 冷灰族字面量复活（新写一条 rgba(30,30,28,…) 影）
+    §23 红 1 条 · 命中：冷灰族字面量 rgba(30,30,28 还有 1 处
+✓ P5 旧别名 --sh-sm 回到 :root（删掉的族换个名字又能用了）
+    §23 红 1 条 · 命中：旧冷灰投影档 --sh-* 又出现了
+✓ P6 .card 直接写暖墨外影字面量（绕开 --shadow-* 档，UI-2 定案的「卡面不靠影」也被推翻）
+    §23 红 1 条 · 命中：有暖墨族字面量外影
+✓ P7 把豁免中的蜡封章影 α 从 .35 改成 .30（豁免是逐值的，改值等于新档）
+    §23 红 2 条 · 命中：品牌实物影
+✓ P8 .theme-dark 里重定义 --shadow-soft（暗档自己画一套影=第二套物理感觉）
+    §23 红 1 条 · 命中：.theme-dark 里重定义了质感 token
+✓ G1 底导漏写 -webkit- 前缀（Android WebView 只认带前缀那条，这台机器上毛玻璃直接没有）
+    §23 红 1 条 · 命中：的 -webkit- 前缀与标准写法不配对
+✓ G2 把 bar 档改成字面 blur(14px)（第三档，且没人知道这层 GPU 谁付）
+    §23 红 4 条 · 命中：只许 var(--blur-bar)/var(--blur-sheet)/none
+✓ G3 底导底色从 --glass-bar 换成实心 --paper-bar（底是实心的，blur 看不见但每帧照付）
+    §23 红 1 条 · 命中：挂了 var(--blur-bar) 却没有同档透底
+✓ G4 拆掉底导的 blur 只留半透底（那不是毛玻璃，是脏）
+    §23 红 1 条 · 命中：用了 var(--glass-bar) 却没挂 var(--blur-bar)
+✓ G5 删掉 design.css 里 .location-sheet 的 blur-sheet 挂点（豁免名单的前提就没了，map.css 那条后发覆盖成了唯一的「像毛玻璃」）
+    §23 红 2 条 · 命中：豁免名单里的 map.css|.location-sheet
+✓ G6 --glass-bar 的定义在别处再写一遍（token 之外第二个真相，改 α 时它不动）
+    §23 红 1 条 · 命中：--glass-bar:rgba(250,248,243,.82); 全站出现 2 次（应为 1）
+✓ G7 挂点预算线（闸门侧锚点）：把 HOOK_BUDGET 从 20 压成 5，必须当场报「18 条 > 预算 5」
+    §23 红 1 条 · 命中：毛玻璃挂点 18 条 > 预算 5
+✓ T1 --grain-page 去掉 feColorMatrix（彩色噪声直接贴米纸，紫绿杂点）
+    §23 红 1 条 · 命中：--grain-page 没先去色
+✓ T2 --grain-page 强度从 .14 抬到 .30（改强度不重跑亮度标准差核定就是「纸面出斑」）
+    §23 红 1 条 · 命中：--grain-page 的强度不是 .14
+✓ T3 给海报档 --grain 也加去色（两档 grain 差在去不去色，加了就分不出哪层是页面底）
+    §23 红 1 条 · 命中：--grain 不该去色
+✓ T4 卡面再铺一层 --grain-page（纸上糊沙；grain 引用应当恰好 2 处）
+    §23 红 2 条 · 命中：grain 引用 3 处（应为 2
+✓ T5 body 铺颗粒但删掉 background-size（噪声按自身尺寸平铺，颗粒粗细和别处不一致）
+    §23 红 1 条 · 命中：铺了 grain 却没有 background-size:140px 140px
+✓ T6 首页 body 用回 background 简写（把 --grain-page 复位成 none，CSS 一声不吭——UI-5 抓到 18 处那一条）
+    §23 红 1 条 · 命中：会把 body 上的 --grain-page 复位成 none
+✓ T7 导出文档串里的 body 简写改了值却没改豁免（豁免条目必须活着，否则名单会变万能洞）
+    §23 红 2 条 · 命中：body 简写豁免条目已失效
+✓ S1 --scrim-modal 的 α 从 .45 漂成 .50（压住多少背景是逐值核定的）
+    §23 红 1 条 · 命中：--scrim-modal:rgba(32,32,29,.45); 全站 0 次（应为 1）
+✓ S2 album.js 导出文档自带的 --scrim-photo 定义被删（离线打开相册时 var() 解析失败，整条 background 一起丢）
+    §23 红 1 条 · 命中：--scrim-photo 的定义在 design.css（应为 design.css + album.js 两处
+✓ S3 --scrim-cover 在别处再写一遍（改 token 时它不动）
+    §23 红 1 条 · 命中：--scrim-cover:rgba(32,32,29,.22); 全站 2 次（应为 1）
+✓ E1 --edge-hair-soft 的 α 从 .08 漂成 .06（两档是按 α 归的，漂了就分不清哪档）
+    §23 红 1 条 · 命中：--edge-hair-soft:rgba(33,26,19,.08); 全站 0 次（应为 1）
+✓ E2 .card 描边写回暖墨字面量（.theme-dark 下等于没有线；同时砸掉 §21 的「.card 吃 --edge-hair」）
+    §23 红 1 条 · 同时惊动别的闸门：字号阶梯闸门 FAIL: .card 没引用 --edge-hair：边界又准备靠淡投影，450ppi 亮屏下会 · 命中：描边还写着暖墨字面量
+✓ B1 声明末尾多一个 )（整条声明被静默丢弃，肉眼看不出）
+    §23 红 1 条 · 命中：声明括号不配对
+✓ B2 行内 style 里多一个 )（本轮抓到的一处真 bug 就在内联串里，不在 {} 里）
+    §23 红 1 条 · 命中：[内联] animation-delay
+✓ B3 --blur-bar 少一个 (（② 的逐值与 ⑥ 的括号两条线都要红，证明同一件事有两面在守）
+    §23 红 3 条 · 命中：声明括号不配对
+✓ X1 注释里写 backdrop-filter:blur(9px) 讲解反例
+    反向自证 OK：exit=0（strip23 先把注释拉平；把它当声明的话字面 blur( 计数会从 2 变 3，② 见谁都红）
+✓ X2 新挂点只写 backdrop-filter:none 复位（含 -webkit- 成对）
+    反向自证 OK：exit=0（none 是复位不是第三档；同时「全挂点都是 none」那条自证要求它不能把已有挂点全淹没）
+✓ X3 .body-x / body.theme-dark 长写法 / body 后代元素三种一起注入
+    反向自证 OK：exit=0（body 简写探针只看「最后一个复合选择器是不是 body 元素」，误报会把改 token 的人逼去删闸门）
+✓ X4 注入 inset 描边环与白描边各一条
+    反向自证 OK：exit=0（inset 环是描边的另一种写法、白描边画在照片上，两类都不算「暖墨外影」也不算「暖墨字面量描边」）
+✓ X5 把 .tn-cfm 的两条 backdrop-filter 成对删除（底是 --scrim-modal）
+    反向自证 OK：exit=0（整条挂点消失时不该报「前缀不配对」也不该报「blur 没透底」；遮罩档本来就允许有 blur 也允许没有）
+还原对账：5 个文件，未还原 0 个
+还原后 verify.js exit=0（绿）
+=== §23 变异自测: 35 条按要求变红/变绿 / 0 条异常 / 共 35 条 ===

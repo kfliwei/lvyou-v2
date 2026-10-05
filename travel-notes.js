@@ -331,7 +331,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-mic.ok{background:linear-gradient(145deg,#c9a227,#96700a);color:#241B10;border-color:rgba(245,240,228,.6);box-shadow:0 10px 26px rgba(184,134,11,.4),inset 0 2px 6px rgba(255,255,255,.15)}\
 .tn-miclabel{margin-top:6px;font-size:var(--fs-3);color:#7d7a6e;text-align:center}\
 .tn-miclabel b{color:var(--color-primary)}\
-.tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:var(--fs-8);line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:150px;max-height:62vh;overflow-y:auto;box-shadow:0 2px 10px rgba(84,66,32,.08)}\
+.tn-recbox{width:100%;margin-top:12px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:var(--fs-8);line-height:1.8;color:#26241f;font-family:var(--fd);flex:1 1 auto;min-height:150px;max-height:62vh;overflow-y:auto;box-shadow:var(--shadow-soft)}\
 .tn-recbox b{font-family:var(--fb);display:block;font-size:var(--fs-1);color:#9c958a;margin-bottom:7px;font-weight:400;letter-spacing:1px}\
 .tn-recbox textarea{width:100%;background:transparent;border:0;color:#26241f;font-size:var(--fs-8);line-height:1.8;resize:vertical;outline:0;min-height:150px;font-family:var(--fd)}\
 .tn-panel.is-done .tn-prompt,.tn-panel.is-editing .tn-prompt{display:none}\
@@ -359,7 +359,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-loading::before{content:"";display:inline-block;width:22px;height:22px;border:3px solid rgba(184,134,11,.25);border-top-color:#b8860b;border-radius:50%;animation:tnspin var(--motion-spin) linear infinite;margin-right:8px;vertical-align:-5px}\
 @keyframes tnspin{to{transform:rotate(360deg)}}\
 .tn-ai{margin-top:12px;width:100%;background:var(--color-surface);border:1px solid var(--color-line);border-radius:12px;padding:14px;font-size:var(--fs-6);line-height:1.9;color:#3a3731;white-space:pre-wrap;display:none;max-height:30vh;overflow-y:auto;font-family:var(--fd)}\
-.tn-foot{padding:4px 20px calc(env(safe-area-inset-bottom,0px) + 18px);position:relative;z-index:2;flex:0 0 auto;background:rgba(239,233,220,.55);border-top:1px solid rgba(38,36,31,.08)}\
+.tn-foot{padding:4px 20px calc(env(safe-area-inset-bottom,0px) + 18px);position:relative;z-index:2;flex:0 0 auto;background:rgba(239,233,220,.55);border-top:1px solid var(--edge-hair-soft)}\
 .tn-acts{display:flex;gap:10px;margin-top:12px}\
 .tn-acts button{flex:1;min-height:46px;border:0;border-radius:12px;font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:transform var(--tf),opacity var(--tf)}\
 .tn-acts button:active{transform:scale(.97)}\
@@ -376,7 +376,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 /* ---- v3 精修（2026-08-14）：整体质感升级 ---- */\
 .tn-panel{background:linear-gradient(175deg,var(--color-surface) 0%,var(--color-bg-soft) 60%,var(--color-bg-soft) 100%)}\
 .tn-panel::before{background:radial-gradient(circle at 78% 6%,rgba(200,109,75,.10),transparent 46%),radial-gradient(circle at 12% 90%,rgba(113,128,108,.08),transparent 52%)}\
-.tn-head{background:linear-gradient(135deg,var(--color-surface),var(--color-bg-soft));border-bottom:1px solid rgba(200,109,75,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}\
+.tn-head{background:linear-gradient(135deg,var(--color-surface),var(--color-bg-soft));border-bottom:1px solid rgba(200,109,75,.18)}\
 .tn-head .tn-x{background:var(--color-bg-soft);color:var(--color-muted);border-radius:50%;width:34px;height:34px}\
 .tn-title{color:var(--color-ink);font-weight:600;font-size:var(--fs-7)}\
 .tn-title small{color:var(--color-muted);font-family:var(--fb)}\
@@ -394,7 +394,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-mic.live{background:linear-gradient(145deg,#C45540,#8F2D1F);box-shadow:0 12px 34px rgba(168,50,42,.45),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 10px rgba(200,109,75,.08),0 0 0 20px rgba(200,109,75,.05);animation:tnMicBreath var(--motion-pulse) ease-in-out infinite}\
 @keyframes tnMicBreath{0%,100%{box-shadow:0 12px 34px rgba(168,50,42,.45),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 8px rgba(200,109,75,.07)}50%{box-shadow:0 12px 34px rgba(168,50,42,.5),inset 0 2px 8px rgba(255,255,255,.2),0 0 0 18px rgba(200,109,75,.04)}}\
 .tn-miclabel{font-size:var(--fs-4);color:var(--color-muted);letter-spacing:.04em}\
-.tn-recbox{background:rgba(255,255,255,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(200,109,75,.14);border-radius:16px;box-shadow:0 6px 24px rgba(84,66,32,.07),inset 0 1px 0 rgba(255,255,255,.7)}\
+.tn-recbox{background:var(--color-surface);border:1px solid rgba(200,109,75,.14);border-radius:16px;box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.7)}\
 .tn-tags{border-radius:999px;border:1px solid var(--color-line);padding:12px 16px}\
 .tn-acts button{border-radius:999px;font-weight:600}\
 .tn-save{background:var(--grad-primary);color:#fff;box-shadow:0 6px 18px rgba(200,109,75,.32)}\
@@ -531,7 +531,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-tl-year.collapsed .ar,.tn-tl-month.collapsed .ar{transform:rotate(-90deg)}\
 .tn-tl-year small,.tn-tl-month small{font-family:var(--fb);font-weight:400;color:var(--i5);font-size:var(--fs-2)}\
 .tn-timeline .tn-tl-date{margin-top:6px}\
-.tn-cfm{position:fixed;inset:0;z-index:9700;display:flex;align-items:center;justify-content:center;background:rgba(32,32,29,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}\
+.tn-cfm{position:fixed;inset:0;z-index:9700;display:flex;align-items:center;justify-content:center;background:var(--scrim-modal);backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-sheet)}\
 .tn-cfm .tc-box{background:#faf8f3;border-radius:16px;padding:22px 20px 18px;width:82vw;max-width:320px;box-shadow:0 12px 32px rgba(0,0,0,.3);text-align:center}\
 .tn-cfm .tc-txt{font-size:var(--fs-5);color:#2c2c29;line-height:1.7;margin-bottom:16px;font-family:var(--fb)}\
 .tn-cfm .tc-btns{display:flex;gap:10px}\
@@ -550,7 +550,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 .tn-panel.is-idle .tn-recbox textarea{min-height:44px}\
 .tn-panel.is-idle .tn-more{display:none}\
 /* —— 编辑屏：转写卡=绝对主角 —— */\
-.tn-panel.is-done .tn-recbox{background:#fffdf8;border:1px solid rgba(200,109,75,.22);border-radius:18px;padding:16px 16px 18px;box-shadow:0 10px 30px rgba(84,66,32,.12)}\
+.tn-panel.is-done .tn-recbox{background:#fffdf8;border:1px solid rgba(200,109,75,.22);border-radius:18px;padding:16px 16px 18px;box-shadow:var(--shadow-medium)}\
 .tn-panel.is-editing .tn-recbox,.tn-panel.is-done .tn-recbox{display:flex;flex-direction:column}\
 .tn-panel.is-editing .tn-recbox textarea,.tn-panel.is-done .tn-recbox textarea{flex:1 1 auto;min-height:220px;resize:none;height:auto}\
 .tn-panel.is-done .tn-recbox b{color:var(--color-primary);letter-spacing:1.5px}\
@@ -2259,7 +2259,7 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
   mask.id = 'placePicker';
   mask.style.cssText = 'position:fixed;inset:0;z-index:9700;background:rgba(20,19,15,.5);display:flex;align-items:flex-end;justify-content:center;animation:tnPickFade var(--motion-fast) ease';
   var sheet = document.createElement('div');
-  sheet.style.cssText = 'width:100%;max-width:560px;background:var(--color-surface);border-radius:26px 26px 0 0;padding:4px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -12px 44px rgba(20,19,15,.22);animation:tnPickUp var(--motion-normal) cubic-bezier(.22,.9,.32,1)';
+  sheet.style.cssText = 'width:100%;max-width:560px;background:var(--color-surface);border-radius:26px 26px 0 0;padding:4px 18px calc(env(safe-area-inset-bottom, 0px) + 16px);max-height:74vh;display:flex;flex-direction:column;box-shadow:var(--shadow-rise);animation:tnPickUp var(--motion-normal) cubic-bezier(.22,.9,.32,1)';
   /* ---- 头部：印章 + 标题 ---- */
   var head = document.createElement('div');
   head.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 2px 10px';
@@ -2269,7 +2269,7 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
     '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">'+TI('close', 14)+'</button>';
   /* ---- 当前位置卡片 ---- */
   var cur = document.createElement('div');
-  cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:0 4px 16px rgba(84,66,32,.07);cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)';
+  cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:var(--shadow-soft);cursor:pointer';
   cur.innerHTML = '<span style="display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--grad-primary);color:#fff;flex:0 0 auto;box-shadow:0 6px 14px rgba(200,109,75,.3)">' + pinSvg + '</span>' +
     '<span style="flex:1;min-width:0"><b style="display:block;font-size:var(--fs-6);font-weight:600;color:var(--color-ink)">当前位置</b>' +
     '<small style="color:var(--color-muted);font-size:var(--fs-3);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(addr || 'GPS 定位') + '</small></span>' +

@@ -22,7 +22,7 @@
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   function flash(msg) {
     var f = document.createElement('div');
-    f.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:11px 20px;border-radius:10px;font-size:var(--fs-5);font-weight:700;z-index:9500;box-shadow:0 6px 24px rgba(30,30,28,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
+    f.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:11px 20px;border-radius:10px;font-size:var(--fs-5);font-weight:700;z-index:9500;box-shadow:var(--shadow-medium);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis';
     f.textContent = msg; document.body.appendChild(f);
     setTimeout(function () { f.remove(); }, 2400);
   }
@@ -73,7 +73,7 @@
   /* 保存 HTML 文档（App 下载 / 浏览器下载 / 复制） */
   function saveDoc(name, html) {
     var d = el('div', 'rz-dlg');
-    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:0 -10px 40px rgba(30,30,28,.18);display:block';
+    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:var(--shadow-float);display:block';
     d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:var(--color-ink)">' + esc(name) + ' <button id="rzX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:var(--fs-6);cursor:pointer"'+TI('close', 14)+'</button></div>'
       + '<div id="rzPrev" style="border:1px solid var(--color-line);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:var(--fs-2);color:var(--color-muted);padding:12px;white-space:pre-wrap;background:var(--color-surface)">' + esc(html.slice(0, 2000)) + (html.length > 2000 ? '…（共 ' + html.length + ' 字符）' : '') + '</div>'
       + '<button id="rzSave" class="btn-primary" style="width:100%;margin-top:12px">保存文档</button>'
@@ -240,22 +240,22 @@
     var opts = geoOptions(all);
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
+    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:var(--shadow-float);max-height:88vh;overflow-y:auto">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-9);color:#20201D;margin-bottom:4px">' + icon + ' ' + label + '</div>'
       + '<div style="font-size:var(--fs-4);color:#7D7970;margin-bottom:14px">选择范围后生成，支持按省 / 市 / 时间筛选</div>'
       + '<div style="font-size:var(--fs-3);color:#6A675E;margin-bottom:6px">省份（可多选跳过则不限）</div>'
-      + '<select id="fp" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
+      + '<select id="fp" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
       + '<option value="">全部省份</option>' + opts.provs.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('')
       + '</select>'
-      + '<select id="fc" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
+      + '<select id="fc" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
       + '<option value="">全部城市</option>' + opts.cities.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('')
       + '</select>'
-      + '<select id="ft" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px">'
+      + '<select id="ft" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px">'
       + '<option value="0">全部时间</option><option value="30">最近 30 天</option><option value="90">最近 90 天</option><option value="365">最近一年</option><option value="custom">自定义日期范围</option>'
       + '</select>'
       + '<div id="fdate" style="display:none;gap:8px;margin-bottom:10px">'
-      + '<input type="date" id="ffrom" placeholder="开始日期" style="flex:1;min-width:0;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 8px;background:#fff;color:#20201D">'
-      + '<input type="date" id="fto" placeholder="结束日期" style="flex:1;min-width:0;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 8px;background:#fff;color:#20201D">'
+      + '<input type="date" id="ffrom" placeholder="开始日期" style="flex:1;min-width:0;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 8px;background:#fff;color:#20201D">'
+      + '<input type="date" id="fto" placeholder="结束日期" style="flex:1;min-width:0;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 8px;background:#fff;color:#20201D">'
       + '</div>'
       + '<div id="fcount" style="font-size:var(--fs-3);color:#6A675E;margin-bottom:12px">共 <b style="color:#AE5738">' + all.length + '</b> 篇</div>'
       + '<button id="fgo" style="width:100%;height:48px;border:0;border-radius:12px;background:#AE5738;color:#fff;font-size:var(--fs-6);font-weight:700;cursor:pointer;font-family:&quot;Songti SC&quot;,serif">生成' + label + '</button>'
@@ -378,7 +378,7 @@
       if (!notes.length) { flash('该范围没有游记'); return; }
       var d = el('div', 'rz-dlg');
       d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-      d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3)">'
+      d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:var(--shadow-float)">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:4px">生成旅程故事</div>'
         + '<div style="font-size:var(--fs-3);color:#7D7970;margin-bottom:12px">' + notes.length + ' 篇游记 · ' + prov + ' / ' + city + ' · ' + range + '</div>'
         + '<div id="sbody" style="margin-top:12px;max-height:44vh;overflow-y:auto;line-height:1.9;font-size:var(--fs-5);color:#333;white-space:pre-wrap;display:none"></div>'
@@ -457,11 +457,11 @@
     if (!sites.length) { flash('还没有可用的景点：先去专题地图选点，或记录带位置的游记'); return; }
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(30,30,28,.3);max-height:88vh;overflow-y:auto">'
+    d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:var(--shadow-float);max-height:88vh;overflow-y:auto">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button id="ix" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:var(--fs-6);cursor:pointer"'+TI('close', 14)+'</button></div>'
       + '<div style="font-size:var(--fs-4);color:#7D7970;margin-bottom:8px">告诉我你想怎么走，基于真实景点生成每日行程：</div>'
-      + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
-      + '<input id="ipref" style="width:100%;height:44px;border:1px solid rgba(32,32,29,.09);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'
+      + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
+      + '<input id="ipref" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'
       + '<div id="iout" style="margin-top:8px;font-size:var(--fs-4);color:#333;line-height:1.8;white-space:pre-wrap;display:none"></div>'
       + '<div style="font-size:var(--fs-3);color:#6A675E;margin-top:8px">可用景点 ' + sites.length + ' 处。会为你挑选并给出衔接建议，生成后可参考现有「路线」页导航。</div>'
       + '<button id="igo" class="btn-primary" style="width:100%;margin-top:14px">生成路书</button>'

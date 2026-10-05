@@ -1095,8 +1095,9 @@ const EMOJI_MARK = 'emoji-ok:';
 /* ============================================================
    19. 时序与转场闸门（批次 11 · P2-7）
    动效烂掉的方式通常不是「不工作」，而是各写各的时长：改一处 token 别处不动、
-   减动效只管 duration 不管 delay、转场把导航拦住。闸门盯五件事——
-   唯一时序来源、阶梯逐值核定、减动效全覆盖、三处转场接线且不拦路、以及浏览器那头确实在测。
+   减动效只管 duration 不管 delay、转场把导航拦住。闸门盯六件事——
+   唯一时序来源、阶梯逐值核定、减动效全覆盖、三处转场接线且不拦路、动画中间态不许拿来量几何、
+   以及浏览器那头确实在测。
    ============================================================ */
 {
   let bad = 0;
@@ -1217,9 +1218,28 @@ const EMOJI_MARK = 'emoji-ok:';
     ['B8 验收口径「所有动画时长 ≤1 帧」实测', '减动效全页逐元素实测'],
     ['D4 全程无页面未捕获异常', '转场不许冒未捕获拒绝'],
     ['C12 随手记面板开合各走一次转场', '随手记两处接线'],
-    ['C4 首页搜索框挂了共享元素名', '共享元素名落地']]
+    ['C4 首页搜索框挂了共享元素名', '共享元素名落地'],
+    ['E3 动画全部结束后，可见标签两两不重叠', '入场动画 × 标签避让的回归'],
+    ['E4 缩小视野后补测真的又跑过', '视野变化后的避让补测']]
     .forEach(([s, why]) => { if (SMOKE.indexOf(s) < 0) F19('smoke-motion.js 缺' + why + '的断言行：闸门写了不等于测过'); });
   if (RD.indexOf('smoke-motion.js') < 0) F19('README 闸门清单没登记 smoke-motion.js');
+
+  /* --- ⑨b 入场动画 × 标签避让：几何只能在动画结束后量（批次 12 · V5 附） ---
+     .tr-node 的 node-fade-in 首帧是 translateY(8px) scale(.6)，而 labelAvoid/capsuleAvoid 靠
+     getBoundingClientRect 判重叠。渲染回调在节点创建后 80/120ms 就跑，可能正好落进动画第一帧，
+     量到 0.6 倍矩形（实测标签宽 67px vs 稳定 112px）→ 隐藏集是错的，且错态活到截图。
+     这条是 topic.1440/768 双态的根因，四条各钉修法的一面，少一条就退回掷硬币。 */
+  {
+    const TC = read19('topic-common.js');
+    if (!/function refitAvoid\(\)[\s\S]{0,220}?requestAnimationFrame\(function \(\) \{ requestAnimationFrame/.test(TC))
+      F19('refitAvoid 不是「两拍 rAF」：一拍只保证回调排进本轮 rAF，两拍才保证动画至少推进过一帧');
+    ['renderMarkers._av = setTimeout(refitAvoid, 120);', 'window.__cavT = setTimeout(refitAvoid, 80);']
+      .forEach(s => { if (TC.indexOf(s) < 0) F19('避让补测的调用点丢了（' + s + '）：渲染回调里直调 capsuleAvoid/labelAvoid 就是在动画中间态上量几何'); });
+    if (!/map\.on\('moveend zoomend'[\s\S]{0,180}?refitAvoid/.test(TC))
+      F19('moveend zoomend 没走 refitAvoid：视野变了只补胶囊，标签避让不再重测，缩放后新撞出来的重叠没人收');
+    if (!/animationend[\s\S]{0,240}?node-fade-in[\s\S]{0,240}?refitAvoid/.test(TC))
+      F19('animationend 收尾补测没了：正常档 --motion-enter 480ms 比 80/120ms 的补测长得多，动画结束后不补测就是把错态留到截图');
+  }
 
   /* --- ⑩ 文档口径：判据换过、结论回写 --- */
   {
@@ -1234,7 +1254,8 @@ const EMOJI_MARK = 'emoji-ok:';
   }
   console.log('时序转场闸门: 阶梯 ' + Object.keys(rung).length + ' 档逐值核定且无撞档；'
     + '第一方 css/html 声明内裸时序 0 处（探针带正反向自证）；减动效 duration+delay+循环+滚动+转场伪元素全覆盖；'
-    + '跨文档开通且 root 时长走 token；三处 UI.vt 接线 + 共享元素名同页唯一；UI.vt 三 promise 全 catch；smoke-motion 断言在案');
+    + '跨文档开通且 root 时长走 token；三处 UI.vt 接线 + 共享元素名同页唯一；UI.vt 三 promise 全 catch；'
+    + '避让只在动画结束后量几何（两拍 rAF + 两条渲染回调 + moveend/zoomend + animationend 收尾各钉一处）；smoke-motion 断言在案');
   fail += bad;
 }
 
@@ -1604,23 +1625,30 @@ const EMOJI_MARK = 'emoji-ok:';
     const af = MR.filter(r => r.sel === '.ls-img::after');
     if (af.length !== 1) F22('.ls-img::after 有 ' + af.length + ' 条：同一元素只能有一个 ::after，分两处写会互相吃掉');
     af.forEach(r => {
-      if (!r.body.includes('linear-gradient(180deg,transparent 60%,rgba(32,32,29,.22))')) F22('.ls-img::after 丢了封面自带「下压式」影：' + r.body.slice(0, 90));
+      /* UI-5 起这条压色收进 --scrim-cover；闸门跟着改认 token，
+         并单独确认 :root 里真的声明了它——否则 var() 会被解析成无效值，整条 background 一起丢。 */
+      if (!r.body.includes('linear-gradient(180deg,transparent 60%,var(--scrim-cover))')) F22('.ls-img::after 丢了封面自带「下压式」影：' + r.body.slice(0, 90));
+      if (!/--scrim-cover\s*:\s*rgba\(32,32,29,\.22\)/.test(flat22(code22('design.css')))) F22('--scrim-cover 没在 design.css 里定义成 rgba(32,32,29,.22)：::after 的 var() 会整条失效');
       if (!r.body.includes('var(--photo-veil)')) F22('.ls-img::after 没把 veil 并进同一条 background');
     });
   }
 
   /* --- ⑤ 照片表面不许另写字面量滤镜（各页自调一档是「一半压过一半没压」的来路） --- */
   const SURF_RE = /(?:^|[\s>+~,])(\.ls-img|\.card \.ph|\.al-ch-img|\.photo-wall|\.md-item \.thumbs|\.eph|\.p-cell|\.n-item \.th|\.story-item__stamp|\.imgbox|\.trip-feature__img)(?![\w-])/;
-  const LOOK_RE = /(?:^|;)filter:/;
+  /* 必须允许 ; 与属性名之间有空白：多行规则 flat 之后是「; filter:」，漏了 \s* 就整条放过（永久绿灯） */
+  const LOOK_RE = /(?:^|;)\s*filter\s*:/;
   const litFilter = rules => rules.filter(r => SURF_RE.test(r.sel) && LOOK_RE.test(r.body) && !r.body.includes('var(--photo-look)'));
   {
     /* 探针正反向自证：⑤ 扫的是「解析出的规则」，正则一旦写坏就永久绿灯，
        所以先拿内存里的坏样本证明抓得到，再拿五类反例证明不误报。 */
     const BAD = '.ls-img>img{filter:saturate(1.3)contrast(1.1)}';
+    /* 换行写法：同一件事，只是把声明拆成多行。这一条专门盯 LOOK_RE 的 \s* */
+    const BAD_ML = '.card .ph img{\n  border-radius:8px;\n  filter:saturate(1.2) contrast(1.05);\n}';
     const OK = ['.imgbox--plain{filter:brightness(1.02)}', '.eph-empty{filter:grayscale(.2)}',
       '.card:hover .ls-img-ph{filter:sepia(.3)}', '.leaflet-tile{filter:sepia(.32) saturate(.52)}',
       '.btn.primary:active{filter:brightness(.96)}', '.card .ph img{filter:var(--photo-look)}'].join('');
     if (!litFilter(parse(BAD)).length) F22('照片滤镜探针自身失效：已知坏样本 ' + BAD + ' 抓不到（⑤ 从此是永久绿灯）');
+    if (!litFilter(parse(BAD_ML)).length) F22('照片滤镜探针漏多行写法：' + BAD_ML.replace(/\n/g, '\\n') + ' 抓不到，说明 LOOK_RE 丢了 \\s*');
     const fp = litFilter(parse(OK)).length;
     if (fp) F22('照片滤镜探针误报 ' + fp + ' 处：修饰态/占位态/瓦片/:active 不是照片表面，不该被拦');
   }
@@ -1654,6 +1682,376 @@ const EMOJI_MARK = 'emoji-ok:';
     '按实际挂载算出的三条不变式成立（inset⊆veil、外圈⊆滤镜、清单零漂多）；' +
     '封面 .ls-img 两条声明都含 inset 环且 ::after 恰 1 条（自带影与 veil 合并）；' +
     '照片表面零字面量滤镜、暗色零 --photo-* 重定义；.card .media 零复活；smoke-photo.js 与 README 在案');
+  fail += bad;
+}
+
+/* ============================================================
+   23. 质感语言闸门（UI-5 · 2026-10-05）
+   这一节把「一张纸、一族影、两档毛玻璃」三件事钉成可复跑的判据。为什么值得钉：
+   改之前全站 171 条字面量 box-shadow 分 5 个色族、blur 半径 8/12/14/16/18/20/22/26 八档、
+   半透纸底 .82/.90/.94/.96/.97 五档混用——单看每一处都「差不多」，叠在一起就是「差点意思」。
+   口径三条：
+     · 一族投影：只留暖墨双层影（接触影 + 弥散影），品牌辉光/照片白内圈/纯黑另族本轮不动（欠账见文档）；
+     · 两档毛玻璃：blur 只有 bar/sheet 两档，且**只在挂点内**——底色 α≥.90 时 blur 看不见但每帧 GPU 照付；
+     · 纸是真的纸：颗粒只铺 body 一层，卡面干净；糊在纸上的「半透但不 blur」一律换实心纸 + 细描边。
+   实现上有两条坑是这一节形状的成因，别再走回头路：
+     ① 检查必须跑在**声明**上。按行扫全站括号会产生 207 条噪声；按「深度 0 的 ;」切整文件
+        又会被 JS 字符串/注释里的括号污染（travel-notes.js 实测收尾 depth=-1）。
+        现在按最内层 {} 块切，块内再按深度 0 的 ; 切声明，只审「prop:value」形状的声明。
+     ② 切层不能 split(',')：rgba(32,31,27,.14) 里的逗号不是层分隔符，直接 split 会把
+        一条暖墨影切成四片，于是「暖墨外影残留 0 处」永远绿——那是假绿灯。
+   括号不配对 = 整条声明被静默丢掉且 CSS 不报错，本轮实测抓到 6 处这种真 bug，
+   所以第⑥组不是风格检查，是错误检查。
+   ============================================================ */
+{
+  let bad = 0;
+  const F23 = m => { console.log('质感闸门 FAIL: ' + m); bad++; };
+  const read23 = f => { if (!fs.existsSync(f)) { F23('缺 ' + f); return ''; } return fs.readFileSync(f, 'utf8'); };
+  const blank23 = m => m.replace(/[^\n]/g, ' ');
+  const strip23 = s => s.replace(/\/\*[\s\S]*?\*\//g, blank23).replace(/<!--[\s\S]*?-->/g, blank23);
+  const code23 = f => strip23(read23(f));
+  const FILES23 = fs.readdirSync('.').filter(f => /\.(css|html|js)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js');
+  const esc23 = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const flat23 = s => s.replace(/\s+/g, ' ').trim();
+  const ALL23 = FILES23.map(f => ({ f: f, src: code23(f) }));
+  /* 全站（限本表口径的文件集）字面出现次数 */
+  const siteCount = needle => ALL23.reduce((n, o) => n + (flat23(o.src).match(new RegExp(esc23(needle), 'g')) || []).length, 0);
+  /* 「整文件当一个 CSS 源」扫最内层 {} 块：多认几条假块无所谓，漏一条就是闸门的洞。
+     不按 <style>/引号串切语境实测会漏——js 模板字符串用反斜杠续行，
+     引号正则里的 \\. 匹配不到「反斜杠+换行」，整段孤岛找不到。 */
+  const selOf = (src, bi) => {
+    let j = bi - 1;
+    while (j >= 0 && src[j] !== '}' && src[j] !== ';' && src[j] !== '{' && bi - j < 260) j--;
+    const raw = src.slice(j + 1, bi).replace(/\\/g, ' ');
+    const m = raw.match(/([^{};]*[#.*:\w][^{};]*)$/);
+    return m ? flat23(m[1]) : '';
+  };
+  const blocks = src => {
+    const out = [], st = [];
+    for (let i = 0; i < src.length; i++) {
+      if (src[i] === '{') st.push(i);
+      else if (src[i] === '}') {
+        const s = st.pop();
+        if (s === undefined) break;
+        const nx = src.indexOf('{', s + 1);
+        if (nx !== -1 && nx < i) continue;                 /* 含子块的不算最内层；indexOf 返回 -1 表示全站此后再无「{」，正是文件最后一个块，必须参与检查 */
+        out.push({ sel: selOf(src, s), body: flat23(src.slice(s + 1, i)) });
+      }
+    }
+    return out;
+  };
+  /* 括号感知切分：rgba()/var()/url() 里的分隔符不算分隔符 */
+  const byDepth = (s, sep) => {
+    const out = []; let d = 0, cur = '';
+    for (const ch of s) {
+      if (ch === '(' || ch === '[') d++; else if (ch === ')' || ch === ']') d--;
+      if (ch === sep && d === 0) { out.push(cur); cur = ''; } else cur += ch;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  };
+  const decls = body => byDepth(body, ';').map(flat23).filter(t => /^[a-z-]+\s*:/.test(t));
+  const D23 = code23('design.css');
+
+  /* --- ① 一族投影：四档双层暖墨影逐值核定，档位含义（接触影 ≤6px / 弥散 ≥12px）也钉住 --- */
+  const TIERS = [
+    ['--shadow-soft', '0 1px 2px rgba(33,26,19,.04)', '0 12px 30px -14px rgba(33,26,19,.14)'],
+    ['--shadow-medium', '0 2px 6px rgba(33,26,19,.05)', '0 22px 48px -18px rgba(33,26,19,.22)'],
+    ['--shadow-float', '0 4px 14px rgba(33,26,19,.08)', '0 30px 66px -22px rgba(33,26,19,.32)'],
+    ['--shadow-rise', '0 -2px 6px rgba(33,26,19,.05)', '0 -22px 48px -18px rgba(33,26,19,.22)'],
+  ];
+  TIERS.forEach(t => {
+    const def = t[0] + ':' + t[1] + ',' + t[2] + ';';
+    const n = (flat23(D23).match(new RegExp(esc23(def), 'g')) || []).length;
+    if (n !== 1) F23('design.css 里 ' + t[0] + ' 的整串定义出现 ' + n + ' 次（应为 1）：三档暖墨影是逐值核定的，改档请同时改这里的台账');
+    const y = parseFloat(t[1].split(' ')[1]);
+    const blur = parseFloat(t[2].split(' ')[2]);
+    if (!(Math.abs(y) <= 6 && y !== 0)) F23(t[0] + ' 的接触影 y 偏移 = ' + y + 'px：接触影必须非零且 ≤6px，否则那是一条悬浮影不是接触影');
+    if (blur < 12) F23(t[0] + ' 的弥散层 blur = ' + blur + 'px：弥散层 <12px 时两层会糊成一圈硬边，等于回到单层影');
+  });
+  /* --shadow-rise 的全部意义是「贴底面板的影只能往上打」：它必须是 medium 的 y 取负镜像，
+     自己另调一套值就不叫「同一族」。 */
+  {
+    const mirrored = TIERS[1].slice(1).map(l => l.replace(/^0 (-?\d+)px/, (m0, v) => '0 ' + (-v) + 'px')).join(',');
+    const n = (flat23(D23).match(new RegExp(esc23('--shadow-rise:' + mirrored + ';'), 'g')) || []).length;
+    if (n !== 1) F23('--shadow-rise 不再是 --shadow-medium 的 y 反向镜像：贴底面板要有「同族反向档」，别单独调一套');
+  }
+  if ((flat23(D23).match(new RegExp(esc23('--shadow-pop:0 20px 44px -18px rgba(27,23,19,.42);'), 'g')) || []).length !== 1)
+    F23('--shadow-pop 不是那一条单层影（弹层专用，靠 -18px 收边）：单层是给「离地很高」用的，双层是给贴地卡片用的');
+  /* 旧档（无接触影的冷灰单层）不许复活，也不许再有别名指向它 */
+  if (siteCount('--sh-')) F23('旧冷灰投影档 --sh-* 又出现了 ' + siteCount('--sh-') + ' 处：它没有接触影，整族已删，要加影就加 --shadow-* 四档');
+  ['rgba(30,30,28', 'rgba(40,38,32', 'rgba(30,40,35'].forEach(c => {
+    const n = siteCount(c);
+    if (n) F23('冷灰族字面量 ' + c + ' 还有 ' + n + ' 处：那族影子偏蓝偏绿，压在米色纸上看着脏');
+  });
+  /* 暗档不得重画投影/blur/grain：影和模糊是物理量，纸翻深了影不会自己变浅 */
+  {
+    const redefined = [];
+    ALL23.forEach(o => blocks(o.src).forEach(b => {
+      if (!/\.theme-dark/.test(b.sel)) return;
+      const hit = b.body.match(/--(?:shadow|blur|grain|photo|scrim)[a-z-]*\s*:/g);
+      if (hit) redefined.push(o.f + ' [' + b.sel.slice(0, 44) + '] ' + hit.join(' '));
+    }));
+    if (redefined.length) redefined.forEach(r => F23('.theme-dark 里重定义了质感 token：' + r));
+  }
+  /* 暖墨族外影零字面量：品牌实物（蜡封章、地图针）两条逐值豁免，其余一律走 token */
+  const INKF = /^inset\b|\binset\b|^0 0 0 /;
+  const INK_LIT = /rgba\(\s*(?:32,32,29|33,26,19|32,31,27|27,23,19|30,28,24|38,36,31)\s*,/;
+  const SHADOW_EXEMPT = ['0 1px 4px rgba(32,31,27,.14)', '0 2px 6px rgba(32,31,27,.35)'];
+  const inkOuter = src => {
+    const hits = [];
+    (flat23(src).match(/box-shadow\s*:\s*[^;'"`}]{0,300}/g) || []).forEach(d => {
+      byDepth(d.replace(/box-shadow\s*:\s*/, ''), ',').forEach(l => {
+        const s = flat23(l);
+        if (!INK_LIT.test(s) || INKF.test(s)) return;
+        hits.push(s);
+      });
+    });
+    return hits;
+  };
+  {
+    const found = [];
+    ALL23.forEach(o => inkOuter(o.src).forEach(h => found.push({ f: o.f, layer: h })));
+    found.forEach(x => {
+      if (SHADOW_EXEMPT.indexOf(x.layer) < 0) F23(x.f + ' 有暖墨族字面量外影「' + x.layer + '」：中性影只能走 --shadow-soft/medium/float/rise，新档要先在 :root 立起来');
+    });
+    SHADOW_EXEMPT.forEach(e => {
+      const n = found.filter(x => x.layer === e).length;
+      if (n !== 1) F23('品牌实物影「' + e + '」出现 ' + n + ' 次（应为 1，蜡封章/地图针各一条）：豁免是逐值的，不是整族放行');
+    });
+    /* 探针自证：切层用 split(',') 会把 rgba 里的逗号当层分隔，于是这条永远抓不到 */
+    const BAD = '.x{box-shadow:0 3px 10px rgba(33,26,19,.2)}';
+    if (!inkOuter(BAD).length) F23('暖墨外影探针自身失效：已知坏样本 ' + BAD + ' 抓不到（① 从此永久绿灯）');
+    const OK = ['.y{box-shadow:inset 0 0 0 1px rgba(32,32,29,.10)}',
+      '.z{box-shadow:0 0 0 5px rgba(32,32,29,.06),0 3px 10px rgba(0,0,0,.15)}',
+      '.w{box-shadow:var(--shadow-soft)}'].join('');
+    const fp = inkOuter(OK).length;
+    if (fp) F23('暖墨外影探针误报 ' + fp + ' 处：inset 环与 0 0 0 扩散环是描边的另一种写法，纯黑一族本轮不并族');
+  }
+
+  /* --- ② 两档毛玻璃：blur 只有 bar/sheet 两档，且必须和同档透底同体出现 --- */
+  ['--blur-bar:blur(20px) saturate(1.5);', '--blur-sheet:blur(26px) saturate(1.6);'].forEach(t => {
+    const n = (flat23(D23).match(new RegExp(esc23(t), 'g')) || []).length;
+    if (n !== 1) F23('design.css 里 ' + t + ' 出现 ' + n + ' 次（应为 1）：两档 blur 是「挂点经济学」的产物，加第三档请先说明谁付这份 GPU');
+  });
+  {
+    /* 字面 blur( 只许出现在那两行 token 里：别处写 blur(14px) 就是第三档 */
+    let lit = 0;
+    ALL23.forEach(o => (flat23(o.src).match(/[^-\w]blur\(/g) || []).forEach(() => lit++));
+    if (lit !== 2) F23('全站字面 blur( 出现 ' + lit + ' 次（只许 --blur-bar/--blur-sheet 两条定义各 1 次）');
+  }
+  const GLASS_EXEMPT = { 'map.css|.location-sheet': '同族在 design.css 已挂 blur-sheet，这条只是后发覆盖圆角/底色' };
+  const hooks = [];
+  ALL23.forEach(o => blocks(o.src).forEach(b => {
+    const re = /(?:^|[^-\w])(-webkit-)?backdrop-filter\s*:\s*([^;]+)/g;
+    const std = [], wk = [];
+    let m2;
+    while ((m2 = re.exec(b.body))) (m2[1] ? wk : std).push(flat23(m2[2]));
+    if (!std.length && !wk.length) return;
+    hooks.push({ f: o.f, sel: b.sel, body: b.body, std: std, wk: wk });
+  }));
+  {
+    const TIER = { 'var(--blur-bar)': 'bar', 'var(--blur-sheet)': 'sheet', 'none': 'none' };
+    hooks.forEach(h => {
+      h.std.concat(h.wk).forEach(v => { if (!TIER[v]) F23(h.f + ' [' + h.sel.slice(0, 40) + '] 的 backdrop-filter 值是「' + v + '」：只许 var(--blur-bar)/var(--blur-sheet)/none'); });
+      if (h.std.sort().join('|') !== h.wk.sort().join('|'))
+        F23(h.f + ' [' + h.sel.slice(0, 40) + '] 的 -webkit- 前缀与标准写法不配对（标准 ' + h.std.join(',') + ' / webkit ' + h.wk.join(',') + '）：Android WebView 只认带前缀那条，漏写等于这台机器上没有毛玻璃');
+      h.std.forEach(v => {
+        const t = TIER[v];
+        if (!t || t === 'none') return;
+        const okBg = t === 'bar' ? h.body.indexOf('var(--glass-bar)') >= 0 : /var\(--glass-sheet\)|var\(--scrim-/.test(h.body);
+        if (!okBg) F23(h.f + ' [' + h.sel.slice(0, 40) + '] 挂了 ' + v + ' 却没有同档透底：底是实心的话 blur 看不见，每帧 GPU 照付');
+      });
+    });
+    /* 「用了 --glass-* 的底必须同体挂 blur」不能只在有 backdrop-filter 的块里查：
+       把 blur 整条删掉恰恰是最常见的退化，而删掉的行不会进 hooks，只在挂点内部自检等于对这种退化永久绿灯
+       ——变异 G4 当场砸出来的洞。所以这里扫全站每一条引用 --glass-* 的声明块。 */
+    const GLASS_NEED = { 'var(--glass-bar)': 'var(--blur-bar)', 'var(--glass-sheet)': 'var(--blur-sheet)' };
+    ALL23.forEach(o => blocks(o.src).forEach(b => {
+      Object.keys(GLASS_NEED).forEach(g => {
+        if (b.body.indexOf(g) < 0 || b.body.indexOf(GLASS_NEED[g]) >= 0) return;
+        if (GLASS_EXEMPT[o.f + '|' + b.sel]) return;
+        F23(o.f + ' [' + b.sel.slice(0, 40) + '] 用了 ' + g + ' 却没挂 ' + GLASS_NEED[g] + '：那是「脏」不是毛玻璃，不在豁免名单（' + Object.keys(GLASS_EXEMPT).join('/') + '）就一律换实心纸');
+      });
+    }));
+    Object.keys(GLASS_EXEMPT).forEach(k => {
+      const sel = k.split('|')[1];
+      if (!hooks.some(h => h.sel === sel && h.std.indexOf('var(--blur-sheet)') >= 0))
+        F23('豁免名单里的 ' + k + ' 现在全站找不到对应 blur-sheet 挂点：豁免的前提是同族别处挂过，挂点被删就该把这条改回实心纸');
+    });
+    const HOOK_BUDGET = 20;
+    if (hooks.length > HOOK_BUDGET) F23('毛玻璃挂点 ' + hooks.length + ' 条 > 预算 ' + HOOK_BUDGET + '：加挂点要写清为什么这层不能是纸');
+    if (!hooks.length) F23('一条 backdrop-filter 都没扫到：多半是 blocks() 或正则坏了，不是真的没有毛玻璃');
+    /* 反向自证：none 是复位不是第三档；注释里的示例不算挂点 */
+    const SELF = hooks.filter(h => h.std.indexOf('none') >= 0).length;
+    if (hooks.some(h => h.std.some(v => v === 'none') && h.std.length > 1)) F23('有规则把 backdrop-filter:none 和 var(--blur-*) 写在同一条里：复位和挂点混写，后者会被前者吃掉');
+    const FAKE = '.ghost{color:#000}/* .ghost2{backdrop-filter:blur(9px)} */';
+    if (blocks(strip23(FAKE)).some(b => /backdrop-filter/.test(b.body))) F23('质感探针把注释里的示例当成声明了：strip23 失效，② 会误报');
+    if (SELF === hooks.length) F23('所有挂点都是 none：blur 档位形同虚设，请核对 --blur-* 是否被删');
+  }
+  /* α 与底色：四组值各 1 处（token 定义自身），别处再写一遍就是第二个真相 */
+  ['--glass-bar:rgba(250,248,243,.82);', '--glass-sheet:rgba(250,248,243,.90);',
+    '--paper-bar:#FAF8F3;', '--glass-bar:rgba(29,28,25,.82);', '--glass-sheet:rgba(29,28,25,.90);', '--paper-bar:#1D1C19;']
+    .forEach(t => {
+      const n = siteCount(t);
+      if (n !== 1) F23(t + ' 全站出现 ' + n + ' 次（应为 1）：亮/暗各一条定义，别处再写一遍就是绕过 token 的第二个真相');
+    });
+  {
+    /* 暗档翻三样（两档玻璃 + 实心纸），其余质感 token 不翻 */
+    const dark = blocks(D23).filter(b => b.sel === '.theme-dark');
+    if (dark.length !== 1) F23('.theme-dark token 块 ' + dark.length + ' 条（应为 1）');
+    dark.forEach(b => {
+      ['--glass-bar:rgba(29,28,25,.82)', '--glass-sheet:rgba(29,28,25,.90)', '--paper-bar:#1D1C19',
+        '--edge-hair:rgba(239,233,220,.16)', '--edge-hair-soft:rgba(239,233,220,.09)'].forEach(t => {
+        if (b.body.indexOf(t) < 0) F23('.theme-dark 缺暗档 ' + t + '：暗底上的毛玻璃/描边必须翻，不翻就是「没有线」');
+      });
+    });
+  }
+
+  /* --- ③ 纸是真的纸：颗粒只铺 body，卡面干净 --- */
+  {
+    const pgDef = D23.match(/--grain-page:[^;]+;/);
+    const grDef = D23.match(/--grain:[^;]+;/);
+    if (!pgDef || !grDef) F23('--grain / --grain-page 定义不见了');
+    else {
+      if (pgDef[0].indexOf("feColorMatrix type='saturate' values='0'") < 0) F23('--grain-page 没先去色：彩色噪声贴在米色纸上会带紫绿杂点');
+      if (pgDef[0].indexOf("opacity='0.14'") < 0) F23('--grain-page 的强度不是 .14：页面底没有中间层可乘，强度只能写死在图里，改值要重跑 tools/smoke-texture.js 的亮度标准差核定');
+      if (grDef[0].indexOf('feColorMatrix') >= 0) F23('--grain 不该去色：海报那层靠元素 opacity + overlay 混合控制，去色是 --grain-page 的差别所在');
+    }
+    const refs = [];
+    ALL23.forEach(o => blocks(o.src).forEach(b => {
+      if (b.body.indexOf('var(--grain-page)') >= 0) refs.push({ f: o.f, sel: b.sel, tier: 'page', body: b.body });
+      if (b.body.indexOf('var(--grain)') >= 0) refs.push({ f: o.f, sel: b.sel, tier: 'grain', body: b.body });
+    }));
+    if (refs.length !== 2) F23('grain 引用 ' + refs.length + ' 处（应为 2：body 一次、.cine-grain 一次）：卡面再铺一层就是「纸上糊沙」');
+    refs.forEach(r => {
+      if (r.tier === 'page' && r.sel !== 'body') F23(r.f + ' 把 --grain-page 挂在 [' + r.sel.slice(0, 34) + ']：页面颗粒只许铺 body');
+      if (r.tier === 'grain' && !/cine-grain/.test(r.sel)) F23(r.f + ' 把 --grain 挂在 [' + r.sel.slice(0, 34) + ']：彩色噪声只给电影海报那层用');
+      if (r.body.indexOf('background-size:140px 140px') < 0) F23(r.f + ' [' + r.sel.slice(0, 34) + '] 铺了 grain 却没有 background-size:140px 140px：噪声图会按自身尺寸平铺或被拉伸，颗粒大小不一致');
+    });
+    /* 纸颗粒铺在 body 的 background-image 上，而 `background` 简写会把没写到的 longhand 复位成初始值。
+       每个页自己 <style> 里那行 body{background:var(--color-bg)} 加载在 design.css 之后，
+       于是 grain「源码里写着、手机上看不见」，CSS 一声不吭——UI-5 就是靠这条抓到 18 处。
+       口径只管 App 内页面：导出/打印文档自带独立 :root、不加载 design.css，那里没有 grain 可抹，
+       所以这类点走 BODY_KILL_EXEMPT 逐值豁免（豁免条目失效也要红，防止它变成万能洞）。 */
+    const subjectOf = sel => String(sel).split(',').pop().trim().split(/\s+|>/).pop().replace(/^[^-\w.#]+/, '');
+    const isBodySel = sel => /^body($|[.:#\[])/.test(subjectOf(sel));
+    const bodyKill = src => blocks(src).filter(b => isBodySel(b.sel) && /(?:^|[;\s])background\s*:/.test(b.body))
+      .map(b => ({ sel: subjectOf(b.sel), decl: 'background:' + flat23(/(?:^|[;\s])background\s*:\s*([^;]+)/.exec(b.body)[1]) }));
+    const BODY_KILL_EXEMPT = {
+      'results.js|background:#F7F5EF': '导出文档的 body（独立 HTML，不加载 design.css）',
+      'results.js|background:#fff': '导出文档里的 @media print 串：打印稿自带白纸面',
+      'travel-notes.js|background:#fff!important': '导出游记 HTML 串里的 @media print，同上',
+      'album.js|background:var(--color-bg)': '导出相册 HTML 自带 :root（④ 就靠这份离线自足），页面底色由它自己定',
+      'planner.js|background:#F6F3EC': '导出路线文档的 body（独立 HTML）',
+      'vault.js|background:#faf8f3': '导出密库文档的 body（独立 HTML）',
+      'icons-demo.html|background:#F7F5EF': '图标目录页：开发工具，整页不链 design.css，没有 grain 可抹',
+    };
+    {
+      const hits = [];
+      ALL23.forEach(o => bodyKill(o.src).forEach(h => hits.push({ f: o.f, sel: h.sel, decl: h.decl, key: o.f + '|' + h.decl })));
+      const open = hits.filter(h => !BODY_KILL_EXEMPT[h.key]);
+      open.forEach(h => F23('body 规则用了 background 简写，会把 body 上的 --grain-page 复位成 none：' + h.f + ' [' + h.sel.slice(0, 24) + '] ' + h.decl.slice(0, 40) + ' —— 改成 background-color'));
+      Object.keys(BODY_KILL_EXEMPT).forEach(k => {
+        if (hits.map(h => h.key).indexOf(k) < 0) F23('body 简写豁免条目已失效：' + k + '（' + BODY_KILL_EXEMPT[k] + '）—— 这条已经不在源码里了，把豁免一起删掉');
+      });
+      const BAD = ['html,body{background:var(--color-bg)}', "var s='a{b}' + 'body{background:#fff}';"];
+      BAD.forEach(b => { if (bodyKill(b).length !== 1) F23('body 简写探针自身失效：已知坏样本 ' + b + ' 抓到 ' + bodyKill(b).length + ' 条（应为 1），③ 的这半条是假绿灯'); });
+      const OK = 'body{background-color:var(--color-bg)} .body-x{background:#fff} body.theme-dark{background-color:#1D1C19} body .sheet{background:var(--glass-sheet)} body>.card{background:#fff} body{background-image:var(--grain-page)}';
+      const fp = bodyKill(OK).length;
+      if (fp) F23('body 简写探针误报 ' + fp + ' 处：background-color 长写法、background-image、.body-x、body 的后代元素都不该被拦');
+    }
+    if (!fs.existsSync('tools/smoke-texture.js')) F23('缺 tools/smoke-texture.js：grain 强度、毛玻璃挂点、投影档都要在真浏览器计算值上对账');
+    const R23 = read23('README.md');
+    if (!/smoke-texture\.js/.test(R23)) F23('README 没登记 smoke-texture.js');
+    if (!/§23/.test(R23)) F23('README 的 verify.js 闸门清单里没有 §23');
+  }
+
+  /* --- ④ 遮罩三档逐值 + 零双写（album.js 导出文档要自带一份，逐条对账同值） --- */
+  ['--scrim-cover:rgba(32,32,29,.22);', '--scrim-modal:rgba(32,32,29,.45);'].forEach(t => {
+    const n = siteCount(t);
+    if (n !== 1) F23(t + ' 全站 ' + n + ' 次（应为 1）：暖墨遮罩改 α 会同时改「压住多少背景」，别处双写就是第二档');
+  });
+  {
+    const photoDefs = ALL23.filter(o => flat23(o.src).indexOf('--scrim-photo:rgba(0,0,0,.55);') >= 0).map(o => o.f).sort();
+    if (photoDefs.join(' ') !== 'album.js design.css')
+      F23('--scrim-photo 的定义在 ' + photoDefs.join(' / ') + '（应为 design.css + album.js 两处且只有这两处）：album.js 导出的相册 HTML 要离线自足，必须自带一份，两处必须同值');
+    ['cover', 'modal', 'photo'].forEach(t => {
+      const n = siteCount('var(--scrim-' + t + ')');
+      if (!n) F23('--scrim-' + t + ' 没有任何引用：这档遮罩是死的，删掉或挂上去，别留着当「看起来有」');
+    });
+    const modalN = siteCount('var(--scrim-modal)');
+    if (modalN < 2) F23('--scrim-modal 引用 ' + modalN + ' 处（现在 ≥2：到达确认 + 删除确认）：对话框遮罩少了就是弹层直接压在内容上');
+  }
+
+  /* --- ⑤ 描边一族：亮/暗逐值 + border 声明里暖墨字面量归零 --- */
+  ['--edge-hair:rgba(33,26,19,.14);', '--edge-hair-soft:rgba(33,26,19,.08);'].forEach(t => {
+    const n = siteCount(t);
+    if (n !== 1) F23(t + ' 全站 ' + n + ' 次（应为 1）：两档描边按 α 归的（≤.10 归 soft，>.10 归 hair），别处再写就是第三档');
+  });
+  {
+    const BORDER_INK = /\bborder(?:-[a-z]+)*\s*:\s*[^;()"'`]*?rgba\((?:32,32,29|33,26,19|38,36,31|30,28,24|32,31,27)\s*,/;
+    const borderInk = src => (flat23(src).match(new RegExp(BORDER_INK.source, 'g')) || []);
+    const found = [];
+    ALL23.forEach(o => borderInk(o.src).forEach(h => found.push(o.f + ' ' + flat23(h).slice(0, 70))));
+    found.forEach(x => F23('描边还写着暖墨字面量：' + x + ' —— 写死的 rgba 在 .theme-dark 下等于没有线'));
+    const BAD = ['.a{border:1px solid rgba(32,32,29,.08)}', '.b{border-top:1px solid rgba(33,26,19,.14)}'].join('');
+    if (borderInk(BAD).length !== 2) F23('描边探针自身失效：两条已知坏样本只抓到 ' + borderInk(BAD).length + ' 条（应为 2），⑤ 是假绿灯');
+    const OK = ['.c{border:1px solid var(--edge-hair)}', '.d{border-color:var(--edge-hair-soft)}',
+      '.e{border:1px solid rgba(255,255,255,.6)}', '.f{border-left:3px solid #C86D4B}'].join('');
+    if (borderInk(OK).length) F23('描边探针误报 ' + borderInk(OK).length + ' 处：token/白描边(画在照片上)/品牌色不算暖墨字面量');
+  }
+
+  /* --- ⑥ 声明级括号平衡：多一个 ) 会让整条声明静默消失，CSS 不报错、肉眼看不出 --- */
+  {
+    const badDecl = body => decls(body).filter(d => {
+      const o = (d.match(/\(/g) || []).length, c = (d.match(/\)/g) || []).length;
+      return o !== c;
+    });
+    const strays = [];
+    ALL23.forEach(o => blocks(o.src).forEach(b => badDecl(b.body).forEach(d => strays.push(o.f + ' [' + b.sel.slice(0, 30) + '] ' + d.slice(0, 74)))));
+    /* 内联 style 与 cssText 不在 {} 里，单独扫：本轮抓到的一处真 bug 就在这里 */
+    ALL23.forEach(o => {
+      const strs = (o.src.match(/\bstyle\s*=\s*"([^"]*)"/g) || []).concat(o.src.match(/cssText\s*=\s*'([^']*)'/g) || []);
+      strs.forEach(s => badDecl(s.replace(/^.*?["']/, '').replace(/["']$/, '')).forEach(d => strays.push(o.f + ' [内联] ' + d.slice(0, 74))));
+    });
+    strays.forEach(s => F23('声明括号不配对（整条会被静默丢弃）：' + s));
+    const BAD1 = '.x{box-shadow:var(--shadow-medium))}', BAD2 = ".y{cursor:pointer)'",
+      BAD3 = '.z{box-shadow:0 10px 34px rgba(200,109,75,.18))}';
+    [[BAD1, 1], [BAD2, 1], [BAD3, 1]].forEach(p => {
+      if (badDecl(p[0].replace(/^.*?\{/, '').replace(/\}$/, '')).length !== p[1])
+        F23('括号探针自身失效：已知坏样本 ' + p[0] + ' 没抓到，⑥ 是假绿灯');
+    });
+    const OK = 'transform:rotate(-90deg);width:calc(100% - env(safe-area-inset-bottom, 0px) + 12px);' +
+      'background:var(--glass-bar);color:rgba(32,32,29,.14);padding:0 14px;box-shadow:inset 0 0 0 1px var(--edge-hair);';
+    if (badDecl(OK).length) F23('括号探针误报：' + badDecl(OK).join(' | ') + ' —— rotate/calc/env/嵌套 var 都是配对的');
+    /* 按行扫全站括号会有 207 条噪声：这行盯的就是「必须跑在声明上」这条口径 */
+    const lineWise = (D23.match(/\(/g) || []).length !== (D23.match(/\)/g) || []).length;
+    if (lineWise && !strays.length) F23('整文件括号总数不等但没有声明级命中：说明有声明被块扫描漏掉了，请核对 blocks() 的边界');
+  }
+
+  /* --- ⑦ 实心纸优先：「不糊却半透」的底色一律换成 --paper-bar --- */
+  {
+    const solidPaper = src => (flat23(src).match(/background(?:-color)?\s*:\s*rgba\(250,248,243/g) || []);
+    const found = [];
+    ALL23.forEach(o => solidPaper(o.src).forEach(() => found.push(o.f)));
+    if (found.length) F23('还有 ' + found.length + ' 处 background:rgba(250,248,243…)（' + found.join(' / ') +
+      '）：不在毛玻璃挂点名单里的半透米白，手机上看着像脏纸，换 --paper-bar + --edge-hair 细描边');
+    const BAD = '.q{background:rgba(250,248,243,.94)}';
+    if (!solidPaper(BAD).length) F23('实心纸探针自身失效：已知坏样本 ' + BAD + ' 判不出来，⑦ 是假绿灯');
+    const OK = '.r{background:var(--paper-bar)} .s{background:var(--glass-bar)} .t{background:#FAF8F3}';
+    if (solidPaper(OK).length) F23('实心纸探针误报 token 写法：' + solidPaper(OK).join(' | '));
+  }
+
+  console.log('质感闸门: 投影四档+pop 逐值核定（rise 必须是 medium 的 y 反向镜像，接触影 ≤6px/弥散 ≥12px 是含义不是手感）；' +
+    '冷灰族与 --sh-* 零残留，暖墨外影除品牌实物 2 条逐值豁免外归零（探针带正反向自证）；' +
+    'blur 只有 bar/sheet 两档且字面 blur( 全站 2 处，' + hooks.length + ' 个挂点逐条同体配对 -webkit-、逐条与同档透底配对（' +
+    Object.keys(GLASS_EXEMPT).join('/') + ' 按同族已挂过豁免并要求挂点仍在）；' +
+    '引用 var(--glass-*) 的块不分「有没有 backdrop-filter」一律同体要求对应 blur（G4 那类「把 blur 整条删掉」的退化在 hooks 里看不见）；' +
+    'α/底色亮暗各 1 处零双写，.theme-dark 只翻玻璃·纸·描边且零质感 token 重定义；' +
+    'grain 引用 2 处（body + .cine-grain）且带 background-size，去色只在 page 档；遮罩三档逐值 + 三档都有调用者；' +
+    '描边一族亮暗各 2 条逐值、border 暖墨字面量 0 处；' +
+    '声明级括号平衡（三条真 bug 形态自证 + rotate/calc/env/嵌套 var 不误报）；「不糊却半透」底色 0 处');
   fail += bad;
 }
 

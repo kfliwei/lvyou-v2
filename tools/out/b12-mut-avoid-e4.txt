@@ -1,0 +1,10 @@
+OK   M1 摘 animationend 补测 → [smoke] E3 FAIL（同因连带红 E4）
+     FAIL E3 动画全部结束后，可见标签两两不重叠  [成都博物馆×人民公园 ,成都太古里×太古里]
+OK   M2 摘 moveend/zoomend 补测 → [verify §19 ⑨b] exit=1 命中 1 行
+     时序转场闸门 FAIL: moveend zoomend 没走 refitAvoid：视野变了只补胶囊，标签避让不再重测，缩放后新撞出来的重叠没人收
+     旁证（只记录不断言）：E3=PASS / E4=PASS —— 浏览器侧被 animationend 补测兜住，故本条归属源码锚点
+OK   M3 整段退回改动前 → [smoke] E3 FAIL（同因连带红 E4）
+     FAIL E3 动画全部结束后，可见标签两两不重叠  [成都博物馆×人民公园 ,成都太古里×太古里 ,锦里×武侯祠]
+已还原 topic-common.js（与原文逐字节相等：true）
+
+结论：三条变异各打死自己那条（M1/M3 走浏览器 E3，M2 走源码 §19 ⑨b），避让回归是活闸

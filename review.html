@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="design.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
-  html,body{height:100%;margin:0;font-family:var(--font-sans);background:var(--color-bg);color:var(--color-ink)}
+  html,body{height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
   .page{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:60px}
   .content{padding:16px 16px 40px}
   .stats{display:flex;gap:0;margin:2px 0 14px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);overflow:hidden}
@@ -151,7 +151,7 @@
 /* 日历 */
 .cal-card{border-radius:20px;padding:16px}
 .cal-head b{font-weight:600;font-size:var(--fs-8);letter-spacing:.03em}
-.cal-head .nav button{background:var(--color-bg);border-color:rgba(33,26,19,.08);transition:transform var(--motion-tap),background var(--motion-fast)}
+.cal-head .nav button{background:var(--color-bg);border-color:var(--edge-hair-soft);transition:transform var(--motion-tap),background var(--motion-fast)}
 .cal-head .nav button:hover{background:var(--color-primary-soft);color:var(--color-primary-dark)}
 .cal-cell.has{
   background:linear-gradient(135deg,rgba(219,125,83,.2),rgba(169,76,45,.1));
@@ -661,7 +661,7 @@ document.getElementById('calNext').onclick=function(){
 function toast(msg){
   if (window.UI) { UI.toast(msg); return; }
   var d=document.createElement('div');
-  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9800;box-shadow:0 8px 24px rgba(30,30,28,.18)';
+  d.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:rgba(32,32,29,.92);color:#fff;padding:12px 22px;border-radius:999px;font-size:var(--fs-4);z-index:9800;box-shadow:var(--shadow-medium)';
   d.textContent=msg; document.body.appendChild(d);
   setTimeout(function(){ d.remove(); },2200);
 }

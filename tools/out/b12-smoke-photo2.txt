@@ -1,0 +1,20 @@
+PASS A1 列表里有带本地镜像实景照的缩略图  [ph]
+PASS A2 .card .ph 的 ::after 压色层真的在（veil 色 + inset 满铺）  [afterBg=none afterColor=rgba(33, 26, 19, 0.1)]
+PASS A3 .card .ph 吃内描边（inset 0 0 0 1px 暖墨）  [rgba(33, 26, 19, 0.2) 0px 0px 0px 1px inset]
+PASS A4 缩略图 <img> 吃 --photo-look 滤镜  [filter=saturate(0.94)]
+PASS A5 占位态（首字占位、没有 <img>）不被压色，否则空态被压成脏灰  [{"img":"none","col":"rgba(0, 0, 0, 0)"}]
+PASS B1 打开一个有实景照的景点面板  [老君山]
+PASS B2 封面描边在 map.css 第二条 box-shadow 声明之后仍然在（inset 环没被覆盖掉）  [rgba(33, 26, 19, 0.2) 0px 0px 0px 1px inset, rgba(33, 26, 19, 0.05) 0px 2px 6px ]
+PASS B3 封面压色层自带影 + veil 两层（同一元素只有一个 ::after，必须合并写；veil 落在末层背景色上）  [afterBg=linear-gradient(rgba(0, 0, 0, 0) 60%, rgba(32, 32, 29, 0.22)), none afterColor=rgba(33, 26, 19, 0.1)]
+PASS B4 封面 <img> 吃 --photo-look  [filter=saturate(0.94)]
+     （带压色 平均亮度 98.04）
+     （摘掉两个 token 平均亮度 106.67）
+PASS C1 压色真的改到像素：veil+filter 让封面平均亮度下降 5–14（0–255 域）  [原样=106.67 压色后=98.04 降幅=8.63]
+PASS D1 首页精选大图的 ::after 压色层在  [afterBg=none afterColor=rgba(33, 26, 19, 0.1)]
+PASS D2 首页精选大图吃内描边  [rgba(33, 26, 19, 0.2) 0px 0px 0px 1px inset]
+PASS D3 它是背景图表面：容器必须自己站住 position:relative  [position=relative]
+PASS E1 相册章节图吃滤镜 + 外圈描边  [filter=saturate(0.94) shadow=rgba(33, 26, 19, 0.2) 0px 0px 0px 1px]
+PASS E2 暗色档下外圈描边翻成 --edge-hair（画在表面上，不翻就等于没有）  [edge-hair=rgba(33,26,19,.14) shadow=rgba(239, 233, 220, 0.16) 0px 0px 0px 1px]
+PASS E3 随笔缩略图吃滤镜 + 外圈描边  [filter=saturate(0.94) shadow=rgba(33, 26, 19, 0.2) 0px 0px 0px 1px]
+
+=== smoke-photo: 16/16 通过 ===

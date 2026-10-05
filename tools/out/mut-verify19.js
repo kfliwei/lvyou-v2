@@ -5,7 +5,7 @@
  * 跑完从内存快照逐字节还原，还原后再跑一遍 verify.js 必须绿。
  * 锚点先断出现次数，替换一律 split/join（String.replace 只换第一处）。
  * 行尾：本仓库实测混用——design.css / backup.js / smoke-motion.js 是 LF，ui.js / planner.js /
- * travel-notes.js / 各 html / verify.js / README / 文档 是 CRLF。所以除 LF 那三个文件外，
+ * travel-notes.js / topic-common.js / 各 html / verify.js / README / 文档 是 CRLF。所以除 LF 那三个文件外，
  * 所有锚点都不跨行（跨行要写 \r\n，写错就是 0 次命中，第一轮 M25 就这么空跑过一次）。
  * 备注：verify.js 单次 ~1.0s，所以本 harness 敢把 §19/§20 的每条断言都单独砸一次。
  *
@@ -36,6 +36,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 
 const CSS = 'design.css', UI = 'ui.js', PL = 'planner.js', TN = 'travel-notes.js',
   IDX = 'index.html', TOP = 'topic.html', STO = 'story.html', SET = 'settings.html',
+  TPC = 'topic-common.js',
   BK = 'backup.js', SM = 'tools/smoke-motion.js', SMOKEP = 'tools/smoke-planner.js',
   VF = 'tools/verify.js', RD = 'README.md', DOC = '改进实施方案与验收标准.md';
 
@@ -57,8 +58,8 @@ const MUTS = [
     why: 'token 变成 var 后既「不是裸时长」又「缺 --motion-mid」' },
 
   /* ==================== §19 ② 裸时序归零：三条扫描面各砸一次 ==================== */
-  { g: G19, name: 'M5 design.css 里一个 transition 退回字面量 .25s',
-    ed: [[CSS, 'transition:var(--t-fast);border:1px solid rgba(255,255,255,.12);', 'transition:opacity .25s;border:1px solid rgba(255,255,255,.12);', 1]],
+  { g: G19, name: 'M5 design.css 里一个 transition 退回字面量 .25s（锚点在批次 12 漂过：原锚那行的 border 字面量已被 UI-5 收进 --edge-hair，整串不在了 → 复跑全网才发现，正是「锚点随文件漂移」这个坑）',
+    ed: [[CSS, 'transition:var(--t-fast);height:var(--chip-h);', 'transition:opacity .25s;height:var(--chip-h);', 1]],
     exp: '裸时序字面量（design.css）' },
   { g: G19, name: 'M6 页面 <style> 里的 animation 退回字面量 .7s（批次 11 前有 133 处就在这）',
     ed: [[IDX, '.fade-up{opacity:0;animation:fadeUp var(--motion-long) var(--ease-standard) forwards}', '.fade-up{opacity:0;animation:fadeUp .7s var(--ease-standard) forwards}', 1]],
@@ -166,6 +167,32 @@ const MUTS = [
     ed: [[DOC, '### 批次 11-A/B 落地', '### 二期-A/B 落地', 1], [DOC, '改前（批次 11 起点的 HEAD）', '改前（起点 HEAD）', 1]], exp: '§P2-7 没回写批次 11 的实测结论' },
   { g: G19, name: 'M34 §P2-7 又留了一个未勾选项（批次当没收工）',
     ed: [[DOC, '- [x] `--motion-*` 为唯一时序来源', '- [ ] `--motion-*` 为唯一时序来源', 1]], exp: '§P2-7 还有未勾选项' },
+
+  /* ==================== §19 ⑨b 入场动画 × 标签避让（批次 12 · V5 附） ====================
+     这一组是 topic.1440/768 双态的根因回归。四条各钉修法的一面：两拍 rAF、两个渲染回调的补测入口、
+     视野变化后的补测、动画收尾的补测。少任何一条，避让就重新跑在 node-fade-in 的 scale(.6) 首帧上。 */
+  { g: G19, name: 'M35 两拍 rAF 退回一拍（一拍只保证回调排进本轮 rAF，量到的还是动画首帧的 0.6 倍矩形）',
+    ed: [[TPC, '    requestAnimationFrame(function () { requestAnimationFrame(function () {', '    requestAnimationFrame(function () {', 1]],
+    exp: 'refitAvoid 不是「两拍 rAF」' },
+  { g: G19, name: 'M36 标签渲染回调退回直调 capsuleAvoid（批次 12 之前的写法，几何在动画中间态上量）',
+    ed: [[TPC, 'renderMarkers._av = setTimeout(refitAvoid, 120);', "renderMarkers._av = setTimeout(function () { capsuleAvoid('#mapEl'); }, 120);", 1]],
+    exp: '避让补测的调用点丢了' },
+  { g: G19, name: 'M37 NodeLOD 的 onRendered 退回直调（另一条渲染路径同样会在首帧量）',
+    ed: [[TPC, 'window.__cavT = setTimeout(refitAvoid, 80);', "window.__cavT = setTimeout(function () { capsuleAvoid('#mapEl'); }, 80);", 1]],
+    exp: '避让补测的调用点丢了' },
+  { g: G19, name: 'M38 moveend zoomend 退回只补胶囊（标签避让从此不在视野变化后重测，缩放后的新重叠没人收）',
+    ed: [[TPC, "map.on('moveend zoomend', function () { clearTimeout(capsuleAvoid._t); capsuleAvoid._t = setTimeout(refitAvoid, 170); });",
+      "map.on('moveend zoomend', function () { clearTimeout(capsuleAvoid._t); capsuleAvoid._t = setTimeout(function () { if (window.capsuleAvoid) capsuleAvoid('#mapEl'); }, 170); });", 1]],
+    exp: 'moveend zoomend 没走 refitAvoid' },
+  { g: G19, name: 'M39 摘掉 animationend 收尾补测（正常档 --motion-enter 480ms 比 80/120ms 长得多，错态一路留到截图）',
+    ed: [[TPC, '      clearTimeout(refitAvoid._t); refitAvoid._t = setTimeout(refitAvoid, 120);', '      /*（变异：动画收尾不再补测）*/', 1]],
+    exp: 'animationend 收尾补测没了' },
+  { g: G19, name: 'M40 冒烟里 E3「动画结束后标签两两不重叠」那条断言改名',
+    ed: [[SM, "check('E3 动画全部结束后，可见标签两两不重叠'", "check('E3 标签两两不重叠'", 1]],
+    exp: '缺入场动画 × 标签避让的回归的断言行' },
+  { g: G19, name: 'M41 冒烟里 E4「缩小视野后避让真被再调一次」那条断言改名（E4 是这段唯一的正向对照，改名等于摘掉）',
+    ed: [[SM, "check('E4 缩小视野后补测真的又跑过", "check('E4 缩放后补测跑过", 1]],
+    exp: '缺视野变化后的避让补测的断言行' },
 
   /* ==================== §20 ① 聚合函数：默认值、开关、上限、不碰正文 ==================== */
   { g: G20, name: 'N1 prefSummary 顺手读了游记正文（画像链路的唯一红线：正文一个字都不许出门）',

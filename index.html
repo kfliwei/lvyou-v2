@@ -13,7 +13,7 @@
      业务逻辑保留：refreshHome / drawRoute / __tnAnywhere /
      TravelNotes.init / SITES_* 计数 / Results.open
      ============================================================ */
-  html,body{background:var(--color-bg);color:var(--color-ink);font-family:var(--font-body)}
+  html,body{background-color:var(--color-bg);color:var(--color-ink);font-family:var(--font-body)}
   .app-page{width:min(100%,520px);margin:0 auto;position:relative;overflow-x:clip;padding-bottom:120px}
 
   /* ---- Hero ---- */
@@ -42,9 +42,9 @@
     view-transition-name:search-field;
     position:relative;z-index:2;margin-top:22px;width:100%;max-width:400px;height:52px;
     display:flex;align-items:center;gap:12px;padding:0 18px;cursor:pointer;
-    border:1px solid rgba(32,32,29,.08);border-radius:18px;
-    background:rgba(255,255,255,.58);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    box-shadow:0 10px 30px rgba(30,30,28,.04);
+    border:1px solid var(--edge-hair-soft);border-radius:18px;
+    background:var(--color-surface);
+    box-shadow:var(--shadow-medium);
     font-size:var(--fs-6);color:var(--color-muted);
     transition:box-shadow var(--duration-normal) var(--ease-standard);
   }
@@ -59,8 +59,8 @@
   .search-panel{
     position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 8px);
     width:min(100%,400px);max-height:340px;overflow-y:auto;
-    background:rgba(250,248,243,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-    border:1px solid rgba(32,32,29,.07);border-radius:20px;box-shadow:var(--shadow-float);
+    background:var(--paper-bar);
+    border:1px solid var(--edge-hair-soft);border-radius:20px;box-shadow:var(--shadow-float);
     padding:10px 8px;z-index:9500;text-align:left;
   }
   .sp-group{padding:4px 6px}
