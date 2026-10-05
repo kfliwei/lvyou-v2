@@ -70,6 +70,50 @@
     requestAnimationFrame(function () { m.classList.add('show'); ok.focus(); });
   }
 
+  /* 页内一次性提示条（产品唯一的提醒位：不做系统推送）。文案一律走 textContent，
+     调用方把用户可控的字拼进 html 串是注入面，这里不给那个口子。 */
+  function nudge(o) {
+    if (!o || (!o.text && !o.strong)) return null;
+    var d = document.createElement('div');
+    d.className = 'ui-nudge';
+    d.setAttribute('role', 'status');
+    var msg = document.createElement('span');
+    msg.className = 'txt';
+    if (o.pre) msg.appendChild(document.createTextNode(o.pre));
+    if (o.strong) { var b = document.createElement('b'); b.textContent = o.strong; msg.appendChild(b); }
+    msg.appendChild(document.createTextNode(o.text || ''));
+    d.appendChild(msg);
+    if (o.actionText) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = o.actionText;
+      btn.onclick = function () { d.remove(); if (o.onAction) o.onAction(); };
+      d.appendChild(btn);
+    }
+    document.body.appendChild(d);
+    /* 10s 自移除是提醒纪律，不是可选项：常驻会把页面挤成广告位 */
+    setTimeout(function () { if (d.parentNode) d.remove(); }, o.ms || 10000);
+    return d;
+  }
+
+  /* 图片附件的统一压缩档（800px / jpeg .72）：随手记的照片与「我的票」的票据截图共用一把尺子 */
+  function compressImage(dataUrl, cb) {
+    try {
+      var img = new Image();
+      img.onload = function () {
+        var max = 800, w = img.width, h = img.height;
+        if (w > max || h > max) { var r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(cv.toDataURL('image/jpeg', 0.72));
+        cv.width = cv.height = 0;
+      };
+      img.onerror = function () { cb(null); };
+      img.src = dataUrl;
+    } catch (e) { cb(null); }
+  }
+
   function tileWarn(layer, name) {
     if (!layer || !layer.on) return;
     layer.on('tileerror', function () {
@@ -292,7 +336,7 @@
     } catch (e) { fn(); return null; }
   }
 
-  window.UI = { toast: toast, confirm: confirm, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt };
+  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt };
 
   /* 载入即安装离线条（幂等，见 __uiOfflineBarOn）；引 ui.js 的每个页面自动获得离线态，无需逐页接线 */
   if (typeof document !== 'undefined') {

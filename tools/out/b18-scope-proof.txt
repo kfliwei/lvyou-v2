@@ -1,0 +1,37 @@
+批次 18-G · 像素基线改动范围证明（HEAD 清单 vs 重拍后清单，逐条 sha 对账）
+
+一、重拍前只读一遍（tools/out/b18-visual-readclean1.txt，392.0s）
+   79 张：78 PASS 且逐条 diff 0.00% / 1 FAIL
+   唯一红：第 15 行 `FAIL topic.1440x900.png  diff 28.70% > 0.1%`
+   ⇒ 本批唯一被像素闸门认定的改版态＝专题页 1440 双栏。
+
+二、重拍后清单对账（HEAD 的 visual-baseline.json vs 工作区，逐条 sha）
+   sha 变化 4 / 79：
+     topic.1440x900.png   387005B → 722707B   ← 双栏改版（列表进左栏 + 地图右移 380px）
+     topic.320x640.png    226057B → 226054B   ← 亚阈值漂移（见下）
+     topic.390x844.png    268292B → 268391B   ← 同上
+     topic.768x1024.png   331053B → 331052B   ← 同上
+   其余 75 条逐字节相同（含手机主档 topic.452x995）。
+
+三、那 3 条亚阈值漂移的定性
+   HEAD 清单的 generatedAt = 2026-10-05T07:08:54Z（本地 15:08），早于批次 15（19:01）/16（20:25）/17/18 四次落地，
+   所以它是「四个批次的累积」而不是本批单独造成的；重拍前该三态 diff 0.00%（阈值 0.1%，量级 ≤0.005% 像素＝约 10 px），
+   重拍后两遍只读逐条恒 0.000% ⇒ 当前代码自洽，漂移已随重拍收口。
+   本批 design.css 只动 900 媒体查询（§31 段落范围检：双栏选择器落在媒体查询之外 0 处），手机档 CSS 零改动。
+
+四、重拍后两遍只读（不并行、单独跑）
+   tools/out/b18-visual-read2.txt：79/79 PASS，379.6s，report.results 里 diffPct>0 的条数 = 0
+   tools/out/b18-visual-read3.txt：79/79 PASS，382.8s，同上 = 0
+   ⇒ 手机三档 49 态（320x640 / 390x844 / 452x995）逐条 0.000%（不是四舍五入到 0）＝「手机档一根 CSS 没动」的几何侧证明。
+
+五、人审留证
+   改版后的 1440 真图：tools/out/shots/b18-eyeball-1440/topic.png（左栏列表 + 右栏地图 + 两条胶囊 dock 在左栏）
+   对照的 768 单栏真图：tools/out/shots/b18-eyeball-768/topic.png（地图满宽，左栏没偷偷出现）
+   过程坑（登记，防下次重犯）：`--update` 会为每个态覆写 visual-diff/*.png，所以「改版前 vs 改版后」那张
+   diff 图在重拍后就没了。要留 diff 图，必须在 --update 之前先把它拷出去。
+
+六、顺带量掉的一条疑点（结论：不改）
+   1440 左栏底部 dock 了两条悬浮胶囊，看真图像是盖住了列表。实测（tools/out/probe-b18-scroll2.js）：
+   #list 是滚动容器，滚到底时最后一张卡 bottom=692，而统计条 top=745、tabbar top=818，
+   卡片下方余量 208px（#grid 自带 padding-bottom:112px + .view:not(#map) 的 96px）> 最深那条带 155px。
+   ⇒ 内容能整卡滚出统计条，中途划过是悬浮层的正常行为，与手机档一致，不加第二条 padding。

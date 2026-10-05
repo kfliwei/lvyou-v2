@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v66';
+var CACHE = 'trace-v68';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -9,6 +9,7 @@ var SHELL = [
   './',
   './album-edit.html',
   './album.html',
+  './checklist.html',
   './explore-map.html',
   './index.html',
   './md-manager.html',
@@ -46,6 +47,8 @@ var SHELL = [
   './backup.js',
   './sync-webdav.js',
   './share.js',
+  './checklist.js',
+  './ticketbox.js',
   /* ---- 各省数据/美食（预缓存，离线开箱可用） ---- */
   './ah-data.js',
   './bj-data.js',

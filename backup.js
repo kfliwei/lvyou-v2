@@ -28,6 +28,7 @@
   var KEYS = [
     { k: 'tn_wishlist', g: 'data', m: 'id' },
     { k: 'tn_trips', g: 'data', m: 'id' },
+    { k: 'tn_checklist', g: 'data', m: 'id' },  /* 行前清单：条目 id 由 tripId+text 散列，两台机各补几条能并起来 */
     { k: 'tn_userNodes', g: 'data', m: 'id' },
     { k: 'travelNotes', g: 'data', m: 'id' },      /* IDB 不可用时的游记回退，与 notes 同构 */
     { k: 'tn_dayMoods', g: 'data', m: 'dict' },

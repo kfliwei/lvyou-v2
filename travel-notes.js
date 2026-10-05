@@ -1246,20 +1246,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     })(files[i]);
   }
   function compressPhoto(dataUrl, cb) {
-    try {
-      var img = new Image();
-      img.onload = function () {
-        var max = 800, w = img.width, h = img.height;
-        if (w > max || h > max) { var r = Math.min(max / w, max / h); w = Math.round(w * r); h = Math.round(h * r); }
-        var cv = document.createElement('canvas');
-        cv.width = w; cv.height = h;
-        cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        cb(cv.toDataURL('image/jpeg', 0.72));
-        cv.width = cv.height = 0;
-      };
-      img.onerror = function () { cb(null); };
-      img.src = dataUrl;
-    } catch (e) { cb(null); }
+    /* 压缩档收进 UI.compressImage（单点）：票据附件要同一档，两处各写 800/0.72 迟早一升一降 */
+    UI.compressImage(dataUrl, cb);
   }
   function renderPhotos() {
     var box = $X(ui.panel, '#tnPhotos');

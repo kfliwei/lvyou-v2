@@ -2152,7 +2152,7 @@ const EMOJI_MARK = 'emoji-ok:';
   const A24 = [
     ['topic-common.js', "var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];", 1, '带名单整串相等（4 条；.ctl 不在里面——它是点状遮挡，扣进去等于把整条右边判死）'],
     ['topic-common.js', "USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];", 1, '同上（去 var 的宽松式，防写法漂移）'],
-    ['topic-common.js', 'ix < el.width * 0.6', 1, '横向没压满 60% 就不算带（顶栏实测占宽 .326 时确实不该扣）'],
+    ['topic-common.js', 'ix >= el.width * 0.6', 1, '横向没压满 60% 就不算带（顶栏实测占宽 .326 时确实不该扣）——批次18 补横向分支后这条改成「压满才算上下带」的正向形'],
     ['topic-common.js', 'Math.min(ins.top, size.y - 40)', 1, '带不许把可用区吃光（横屏/极矮视口保险）'],
     ['topic-common.js', 'Math.min(ins.bottom, size.y - 40)', 1, '同上（底带）'],
     ['topic-common.js', 'ins.left = Math.max(0, Math.min(ins.left, size.x - 40));', 1, '四条边都有保险，不只上下'],
@@ -2246,7 +2246,7 @@ const EMOJI_MARK = 'emoji-ok:';
   else {
     const sm = fs.readFileSync(SM24, 'utf8');
     for (let i = 0; i <= 13; i++)
-      if (sm.indexOf("'U" + i) < 0 && sm.indexOf('U' + i + ' ') < 0) F24(SM24 + ' 缺 U' + i + ' 这条判据（U0–U13 是一整组，少一条就是有个退化没人管）');
+      if (sm.indexOf("'U" + i + ' ') < 0) F24(SM24 + ' 缺 U' + i + ' 这条判据（U0–U13 是一整组，少一条就是有个退化没人管）');
     if (sm.indexOf('BANDS = [') < 0) F24(SM24 + ' 不再自己量内缩了：闸门必须独立复算一遍再和产品对账，只读产品函数等于自我实现');
   }
   const RD = fs.existsSync('README.md') ? fs.readFileSync('README.md', 'utf8') : '';
@@ -2746,6 +2746,438 @@ const EMOJI_MARK = 'emoji-ok:';
   console.log('导出闸门: ' + A28.length + ' 条代码锚点 + 4 组函数体/区段抽取（icsFold 字符切片期望 0 为本批灵魂）+ ICS 区段 toLocale* 零残留 + ' +
     'html 加载顺序 + icsEsc 转义顺序；每条期望 0 都配了正向对照；README 与方案文档已登记');
   fail += bad28;
+}
+
+
+
+/* ============ §29 行前清单闸门（批次 17-A/B） ============
+   这一节盯三种「今天看着好、下次刷新就坏」的坏法：
+   ① 阈值漂移。ELEV_HIGH/MID/LOW 与两组月份是规则表的骨架，一旦有人「顺手把 3000 改成 2500」
+      而不动这条锚，预填条目会整批改口却没有任何一处会说红。所以四条阈值各钉一条整串锚。
+   ② 重算洗掉勾选。syncAuto 每次进结果页都跑，它的权力边界是「只拥有 by==='auto' 那一半」：
+      用户条目原样留下、已勾状态靠 doneMap 收回、数据没到齐时 prune 必须传 false。
+      这三条各有一根整串锚，外加 ckId 体断言（id 绝不能掺时间戳——掺了就不幂等，
+      每次刷新算出不同 id，两台机的并集去重和 doneMap 同时失效）。
+   ③ 新增页面/脚本忘进离线壳。checklist.html 这次是「页面进了 SHELL、两个 js 没进」的形状
+      （生成器的 CORE_JS 是手抄名单），所以下面 ③ 做**双向反向对账**：磁盘页面 ↔ SHELL、
+      SHELL ↔ 磁盘、每个页面的本地 <script>/<link> 依赖 ↔ SHELL，三个方向都走真实磁盘列表，
+      不手抄清单。§21 的字体段、§28 的 M37/M38 是同一事故形状的两次前科。
+   口径沿用 §24/§27/§28：四元组形状不整即红；期望 0 一律配正向对照；锚点串不许落在块注释里。
+   .html 的视图只归一空白、**不剥注释**——页面里的 CSS/JS 片段是字符串字面量，注释里只要出现一个
+   块注释闭合符，剥注释的匹配器就会从更早的那个开注释符一路吃到页面底部，把整段 <script> 连同
+   结构一起吞掉（本批实测：吞完 'checklist.js' 命中数从 1 变 0，页面结构在闸门眼里整个消失）。
+   ============================================================ */
+{
+  let bad29 = 0;
+  const F29 = m => { bad29++; console.log('FAIL §29 行前清单闸门: ' + m); };
+  const ws29 = s => s.replace(/\s+/g, ' ').trim();
+  const flat29 = s => ws29(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt29 = (s, n) => s.split(n).length - 1;
+  const rd29 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view29 = f => /\.html$/.test(f) ? ws29(rd29(f)) : flat29(rd29(f));
+
+  const FILES29 = ['checklist.js', 'checklist.html', 'planner.js', 'planner.html', 'design.css',
+    'backup.js', 'sw.js', 'README.md', '改进实施方案与验收标准.md', 'tools/smoke-checklist.js', 'tools/gen-sw-shell.cjs'];
+  const V29 = {};
+  FILES29.forEach(f => {
+    if (!fs.existsSync(f)) { F29('缺 ' + f); V29[f] = ''; return; }
+    V29[f] = view29(f);
+  });
+
+  /* 函数体抽取（与 §28 同一套：抽不出=红，不许静默跳过） */
+  const fnBody29 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+
+  /* ① 代码锚点 */
+  const A29 = [
+    ['checklist.js', "var KEY = 'tn_checklist';", 1, '存储键只有一个定义点；改键名等于把所有人的清单清零，必须过这道'],
+    ['checklist.js', "var CATS = ['证件', '衣物', '健康', '装备', '预约', '其他'];", 1, '分类枚举单点（catRank 与 UI 的分组都读它，加一类只能改这一行）'],
+    ['checklist.js', 'var ELEV_HIGH = 3000, ELEV_MID = 2000, ELEV_LOW = 1000;', 1, '三个海拔阈值同处定义：阈值是建议的骨架，微调必须同时动这条锚，不许在规则里写裸数字'],
+    ['checklist.js', 'var MON_RAIN = [6, 7, 8];', 1, '雨季月份窗口单点（折叠伞/驱蚊液两条只看它，改它=改全表文案的触发条件）'],
+    ['checklist.js', 'var MON_COLD = [11, 12, 1, 2, 3];', 1, '冷季月份窗口单点（羽绒/暖手宝/防滑鞋三条）'],
+    ['checklist.js', "if (!s || s.indexOf('全年') >= 0) return [];", 1, '「全年」= 没有季节信息，必须返回空集：返回 1..12 会把每个季节规则都点亮'],
+    ['checklist.js', 'var em = new Date(+startDate.slice(0, 4), sm - 1, d + (n - 1)).getMonth() + 1;', 1, '行程月份末日按真实日历算：7-31 出发玩 3 天要跨进 8 月，起始月+天数会漏掉跨月'],
+    ['checklist.js', "return 'c' + h.toString(36);", 1, '条目 id＝tripId+text 散列（FNV），这是 syncAuto 幂等与两台机并集去重的地基'],
+    ['checklist.js', "done: doneMap[id] || 0", 1, '重算必须把已勾状态从旧条目收回来，否则刷新一次掉一半进度'],
+    ['checklist.js', "if (x.tripId !== tripId || x.by !== 'auto') return true;", 1, '重算只拥有 auto 那一半：用户条目原样留下'],
+    ['checklist.js', 'prune = prune !== false;', 1, '剪枝默认开、调用方显式传 false 才不剪（数据没到齐时剪＝把上一轮建议连勾选一起删）'],
+    ['checklist.js', 'var quote = [d.best, t && t.h, t && t.p].filter(function (x) { return x && /预约/.test(x); })[0] || \'\';', 1, '「原文」必须自己就含触发词：先在 p+h 拼接串上判命中再挑 p 整串印出去，只有 h 写着「需预约」的站点就会把一句票价当预约依据印到清单上（建议没错，依据是假的；smoke-checklist C27 从运行时对账）'],
+    ['checklist.js', "if (!tripId || !t) return null;", 1, '空文本/无行程不产条目，也不产孤儿桶'],
+    ['checklist.js', "catch (e) { if (window.UI && UI.toast) UI.toast('本地存储已满，行前清单本次未保存成功'); return false; }", 1, 'LS 写满要说真话：静默 return false 会让用户以为勾上了'],
+    ['planner.js', 'Checklist.syncAuto(tid, pretripInput(), factsSettled());', 1, '结果页「出发前」卡是 auto 组唯一生长点，第三参是分省数据到货守卫（写成常量 true 就是本批要挡的）'],
+    ['planner.js', 'if (removed && removed.id && window.Checklist) Checklist.clearTrip(removed.id);', 1, '删行程要连带清桶：孤儿桶会无界攒在 localStorage 里（这条是 clearTrip 的唯一调用点，零调用者=能力没接）'],
+    ['planner.js', "location.href = 'checklist.html?trip=' + encodeURIComponent(ensureTripId(trip));", 1, '入口跳转带 trip 参数并过编码（行程名里的 & 会劈开查询串）'],
+    ['planner.html', 'pretripCard', 1, '结果页那张卡的容器 id 还在（planner.js 判 !box 就整段静默不渲染）'],
+    ['backup.js', "{ k: 'tn_checklist', g: 'data', m: 'id' },", 1, '清单键必须进 KEYS，且合并语义是 id 并集：分桶对象只能整桶择优，两台机各补几条会被覆盖掉一半（§16 已经保证代码与文档字段表逐键相等，这条钉这个具体键）'],
+    ['checklist.html', '<script src="checklist.js"></script>', 1, '页面引到数据层（漏了就是 window.Checklist undefined，整页白卡）'],
+    ['checklist.html', 'class="ckbox', 1, '勾选框用 design.css 的共享组件类，不在本页另起一套'],
+    ['design.css', '.ckbox{', 1, '勾选样式定义点恰 1 处（下面 ④ 要求除它以外全站 0 处）'],
+    ['design.css', '.ckbox.on{', 1, '已勾态单点'],
+    ['sw.js', "'./checklist.html'", 1, '清单页在离线壳里：不在的话离线打开＝一条网络请求'],
+    ['tools/gen-sw-shell.cjs', "'share.js', 'checklist.js', 'ticketbox.js']", 1, '生成器的 CORE_JS 名单必须含两个新模块：漏列的话跑一次生成器就把它们从 SHELL 抹掉（§21 字体段、§28 M37/M38 同形状）'],
+    ['tools/smoke-checklist.js', "[].slice.call(document.querySelectorAll('.ui-toast')).pop()", 3, '浏览器腿的 toast 采样取栈尾：toast 是堆叠的，读第一条量到的是队列顺序（本批 B16 就是这么假红过一次）'],
+  ];
+  A29.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F29('A29 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没写）');
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V29)) { F29('A29 登记了 §29 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt29(V29[file], needle);
+    if (got !== want) F29(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A29.length < 26) F29('锚点表被削减：' + A29.length + ' 条（批次 17 落地时实测 26 条，整组删掉就等于这节没了）');
+
+  /* ② ckId 体断言：本节的灵魂。id 掺进时间戳＝syncAuto 不再幂等，doneMap 与两台机并集同时失效，
+        而它在单机上看着完全正常（每次刷新条目一样，只是 id 每轮都换） */
+  const ckBody = fnBody29(V29['checklist.js'], 'function ckId(tripId, text)');
+  if (!ckBody) F29('抽不出 ckId 函数体（改名或内联进 syncAuto 都会让这条断言哑掉）');
+  else {
+    if (cnt29(ckBody, '2166136261') !== 1) F29('ckId 体里没有 FNV 初值 2166136261（散列被换掉＝同一句话两台机两个 id，并集去重失效）');
+    if (cnt29(ckBody, 'Date.now') !== 0)
+      F29('ckId 体里出现了 Date.now：条目 id 掺时间戳会让 syncAuto 每轮算出新 id，已勾状态与跨设备并集一起失效');
+    const CTRL29 = flat29('function ckId(tripId, text) { return "c" + tripId + Date.now(); }');
+    if (cnt29(CTRL29, 'Date.now') < 1) F29('「Date.now」这条期望 0 的正向对照失效了（造出来的改前形态都数不出命中，上面那个 0 不是证据）');
+  }
+
+  /* ③ html ↔ SHELL 双向反向对账：三个方向都向磁盘取真名单，不手抄 */
+  const SW29 = rd29('sw.js');
+  const shellM = SW29.match(/var SHELL = \[([\s\S]*?)\];/);
+  if (!shellM) F29('sw.js 里抽不出 var SHELL = [...] 块（下面整组反向对账会哑掉）');
+  else {
+    const items = (shellM[1].match(/'([^']+)'/g) || []).map(x => x.slice(1, -1));
+    const has = p => items.indexOf(p) >= 0;
+    const pages = fs.readdirSync('.').filter(f => /\.html$/.test(f) && !/^(test-|icons-demo)/.test(f)).sort();
+    let htmlIn = 0;
+    pages.forEach(p => {
+      if (p === 'index.html') { if (!has('./')) F29('SHELL 缺首页条目 ./（生成器把 index.html 写成 ./，改写法＝首屏离线直连网络）'); return; }
+      htmlIn++;
+      if (!has('./' + p)) F29('磁盘上有 ' + p + '，SHELL 没列它：离线打开这一页会走网络（新增页面忘跑 node tools/gen-sw-shell.cjs）');
+    });
+    items.filter(x => /^\.\/.+\.html$/.test(x)).forEach(x => {
+      if (!fs.existsSync(x.replace('./', ''))) F29('SHELL 列了 ' + x + '，磁盘上没有这个页面（addAll 会整批 reject，预缓存静默全丢）');
+    });
+    /* 页面依赖：每个 html 引的本地 js/css 都必须在 SHELL 里 */
+    let depN = 0;
+    const depMiss = [];
+    pages.concat(['index.html']).forEach(p => {
+      const html = rd29(p);
+      const tags = (html.match(/<script[^>]+src="[^"]+"/g) || []).map(t => t.replace(/.*src="/, '').replace(/".*/, ''))
+        .concat((html.match(/<link[^>]+href="[^"]+\.css"[^>]*>/g) || []).map(t => t.replace(/.*href="/, '').replace(/".*/, '')));
+      tags.forEach(src => {
+        if (/^([a-z]+:|\/\/|\.\.\/)/i.test(src)) return;   /* 外部脚本与绝对地址不归壳管 */
+        depN++;
+        if (!has('./' + src)) depMiss.push(p + ' → ' + src);
+      });
+    });
+    depMiss.forEach(m => F29('页面依赖没进 SHELL：' + m + '（本批 checklist.js/ticketbox.js 就是这个形状——页面进了壳、脚本没进）'));
+    if (items.length < 150) F29('SHELL 只剩 ' + items.length + ' 项（生成器跑出来 150 项；数量掉这么多说明有分组被抹）');
+    console.log('  · 反向对账：磁盘页面 ' + pages.length + ' 个 · SHELL 内 html ' + htmlIn + ' 条 · 页面本地依赖 ' + depN + ' 处（缺失 ' + depMiss.length + '）· SHELL 共 ' + items.length + ' 项');
+  }
+
+  /* ④ 期望 0：勾选样式单点 + 页面不许自己摸 LS */
+  const htmlFiles = fs.readdirSync('.').filter(f => /\.html$/.test(f));
+  htmlFiles.forEach(f => {
+    const s = ws29(rd29(f));
+    if (cnt29(s, '.ckbox{') !== 0) F29(f + ' 里自己声明了 .ckbox{：勾选样式必须在 design.css 单点收口（第三种 .ck 变体就是从这里长出来的）');
+    if (f === 'checklist.html' && cnt29(s, 'localStorage.setItem') !== 0)
+      F29('checklist.html 里出现 localStorage.setItem：清单写盘只许走 Checklist.save，页面自己摸 LS 会绕过合并语义与容量告警');
+  });
+  const CTRL29B = ws29('<style>.ckbox{width:20px}</style>');
+  if (cnt29(CTRL29B, '.ckbox{') < 1) F29('「.ckbox{」这条期望 0 的正向对照失效了');
+
+  if (V29['README.md'].indexOf('§29') < 0) F29('README.md 的 verify 清单没提 §29（新闸门不写进 README 就等于没装）');
+  if (V29['改进实施方案与验收标准.md'].indexOf('`tn_checklist`') < 0) F29('改进实施方案与验收标准.md 的字段表没有 tn_checklist 这一行（§16 会要求代码与文档逐键相等）');
+
+  console.log('行前清单闸门: ' + A29.length + ' 条代码锚点 + ckId 体断言（Date.now 期望 0 为本节灵魂）+ html↔SHELL 双向反向对账 + 勾选样式单点/页面不摸 LS 两组期望 0（各配正向对照）');
+  fail += bad29;
+}
+
+/* ============ §30 「我的票」票据卡闸门（批次 17-C） ============
+   三条边界（docs/功能完善实施方案-2026-10-05.md §5.3）里，只有 ②③ 是能被源码锚住的：
+   ② 附件只进 IndexedDB ⇒ 永远不进 backup.js KEYS。这是**能力边界**，用户换机时附件不会跟过去，
+      UI 必须把这句话说出来（锚在 checklist.html 文案上），而闸门要锚的是「它确实进不了备份」：
+      backup.js 里 'trace-attachments' 期望 0，且票据侧三个文件里 localStorage.setItem 期望 0
+      ——只要数据不落 LS，§16 的白名单采集就物理性地碰不到它，比"记得别登记"可靠。
+   ③ 提醒只有页内横幅一条腿，禁止系统推送：new Notification / showNotification / requestPermission
+      在**全站产品代码**（注释已剥掉）期望 0。桌面小组件那条腿要改壳重打包，登记为「本批不做」。
+   另两组是收口本身的形状：
+   ④ 提醒位单点——UI.nudge 一个定义 + design.css 一份样式（.ui-nudge{ 全站 1 处、cssText 内联 0 处），
+      「距离触发的想去打卡条」和「时间触发的票据条」共用同一个组件，否则两条会叠在同一位置；
+   ⑤ 压缩档单点——800 / 0.72 只允许出现在 UI.compressImage 里（票据附件与随手记照片同一把尺子），
+      ticketbox.js 里两个数字各期望 0。
+   口径同 §28/§29：四元组守卫、期望 0 配正向对照、锚点串不落块注释、.html 只归一空白。
+   ============================================================ */
+{
+  let bad30 = 0;
+  const F30 = m => { bad30++; console.log('FAIL §30 票据卡闸门: ' + m); };
+  const ws30 = s => s.replace(/\s+/g, ' ').trim();
+  const flat30 = s => ws30(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt30 = (s, n) => s.split(n).length - 1;
+  const rd30 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view30 = f => /\.html$/.test(f) ? ws30(rd30(f)) : flat30(rd30(f));
+
+  const FILES30 = ['ticketbox.js', 'ui.js', 'wishlist.js', 'design.css', 'checklist.html', 'index.html',
+    'backup.js', 'sw.js', 'README.md', 'tools/gen-sw-shell.cjs', 'tools/smoke-ticketbox.js'];
+  const V30 = {};
+  FILES30.forEach(f => {
+    if (!fs.existsSync(f)) { F30('缺 ' + f); V30[f] = ''; return; }
+    V30[f] = view30(f);
+  });
+
+  const A30 = [
+    ['ticketbox.js', "var DB_NAME = 'trace-attachments', DB_VER = 1, STORE = 'attachments';", 1, '库名/版本/store 名单点（改名＝老票夹静默打不开，只有这一处能定名）'],
+    ['ticketbox.js', "d.createObjectStore(STORE, { keyPath: 'id' }).createIndex('byTrip', 'tripId');", 1, 'onupgradeneeded 里建 store + byTrip 索引：list(tripId) 靠索引取，缺索引会退化成全表扫'],
+    ['ticketbox.js', "var KINDS = ['机票', '车票', '酒店', '门票', '其他'];", 1, 'kind 白名单单点；put() 对表外的值兜底成「其他」，UI 的 chip 与数据层读同一个数组'],
+    ['ticketbox.js', 'var MAX_ATT = 12;', 1, '每行程附件张数上限（配额保护：一沓 800px 截图不能悄悄吃掉这台机）'],
+    ['ticketbox.js', 'var MAX_RAW = 8 * 1024 * 1024;', 1, 'PDF 不压缩所以要有单张天花板（拒收那条文案在 smoke-ticketbox 里有独立断言）'],
+    ['ticketbox.js', 'var SOON = 24 * 3600 * 1000;', 1, '「快要用了」窗口只有一个定义点'],
+    ['ticketbox.js', "t.oncomplete = function () { d.close(); res(out && 'result' in out ? out.result : undefined); };", 1, 'IDB 房规：每个事务完成即 close（不 close 会把后续 deleteDatabase/别的连接吊死，本批闸门就在这一点上挂过一次）'],
+    ['ticketbox.js', 'UI.compressImage(', 1, '压缩档必须复用 UI 那把尺子，本文件不许自己写 800/0.72（下面两条期望 0 钉的就是它）'],
+    ["ticketbox.js", "if (!r.title && !r.code && !r.blob) return Promise.resolve(null);", 1, '三样全空不产幽灵票'],
+    ['ticketbox.js', "location.href = 'checklist.html?trip=' + encodeURIComponent(hit.tripId);", 1, '横幅点下去回这趟行程的清单页，参数过编码'],
+    ['ui.js', 'function nudge(o)', 1, '页内横幅组件单点定义'],
+    ['ui.js', 'nudge: nudge', 1, '组件已导出（没导出＝各页又回去手写一条内联 cssText）'],
+    ['ui.js', 'function compressImage(dataUrl, cb)', 1, '压缩档单点定义'],
+    ['ui.js', 'var max = 800,', 1, '长边尺子只有一个定义点'],
+    ['ui.js', "cb(cv.toDataURL('image/jpeg', 0.72));", 1, 'jpeg 质量只有一个定义点'],
+    ['design.css', '.ui-nudge{', 1, '横幅样式定义点恰 1 处（下面 ④ 要求 cssText 全站 0 处）'],
+    ['design.css', '--z-nudge', 2, '提醒层令牌：定义 + 消费各 1 处，不许在样式里写裸 9500'],
+    ['checklist.html', '<script src="ticketbox.js"></script>', 1, '票卡所在页引到数据层'],
+    ['index.html', 'if(window.TicketBox && TicketBox.nudge) TicketBox.nudge();', 1, '首页挂了票据提醒腿（这行零调用者＝「24h 横幅」这条能力等于没接）'],
+    ['wishlist.js', 'UI.nudge', 1, '想去打卡条也走同一组件（两条提醒叠在同一位置就是这么长出来的）'],
+    ['sw.js', "'./ticketbox.js'", 1, '数据层在离线壳里'],
+    ['tools/smoke-ticketbox.js', 'try { new Notification(', 1, '浏览器腿自己带 Notification 正向对照探针（没有它，「计数为 0」永远为真）'],
+  ];
+  A30.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F30('A30 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V30)) { F30('A30 登记了 §30 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt30(V30[file], needle);
+    if (got !== want) F30(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A30.length < 22) F30('锚点表被削减：' + A30.length + ' 条（批次 17 落地时实测 22 条）');
+
+  /* ② 全站期望 0：系统推送一根线都不许碰（扫描范围＝根目录全部产品 js/html，注释已剥） */
+  const NOTIF = ['new Notification', 'showNotification', 'requestPermission'];
+  const productFiles = fs.readdirSync('.').filter(f => /\.js$|\.html$/.test(f));
+  let notifHits = 0;
+  productFiles.forEach(f => {
+    const s = view30(f);
+    NOTIF.forEach(n => {
+      const c = cnt30(s, n);
+      if (c) { notifHits += c; F30(f + ' 里出现「' + n + '」' + c + ' 次：提醒只有页内横幅一条腿，系统推送要先改壳重打包（§5.3 边界③）'); }
+    });
+  });
+  const CTRL30 = flat30('var a = new Notification("x"); var b = reg.showNotification("x"); Notification.requestPermission(function () {});');
+  NOTIF.forEach(n => {
+    if (cnt30(CTRL30, n) < 1) F30('「' + n + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 附件进不了备份：两个方向同时钉（不在 LS ⇒ §16 白名单物理性采不到；不进 KEYS ⇒ 登记面没被污染） */
+  if (cnt30(V30['backup.js'], 'trace-attachments') !== 0)
+    F30('backup.js 里出现了 trace-attachments：票据附件不能进云备份（它存的是别人的行程凭证，且 IDB 采集器根本不在备份路径里）');
+  if (cnt30(V30['backup.js'], "'attachments'") !== 0)
+    F30('backup.js 里出现了 attachments：同上');
+  const CTRL30B = flat30("{ k: 'trace-attachments', g: 'data', m: 'whole' },");
+  if (cnt30(CTRL30B, 'trace-attachments') < 1) F30('「trace-attachments」这条期望 0 的正向对照失效了');
+  ['ticketbox.js', 'checklist.html'].forEach(f => {
+    if (cnt30(V30[f], 'localStorage.setItem') !== 0)
+      F30(f + ' 里出现 localStorage.setItem：附件/票据一律走 IndexedDB，落 LS 就等于落进备份采集面');
+  });
+  if (cnt30(V30['ticketbox.js'], 'sessionStorage') !== 2)
+    F30('ticketbox.js 里 sessionStorage 命中 ' + cnt30(V30['ticketbox.js'], 'sessionStorage') + ' 次（要 2：读一次 + 写一次「本会话已提醒」，跨会话不轰炸但换会话会重提，这个口径要看得见）');
+
+  /* ④ 提醒位单点：样式只能有一份，内联 cssText 一律 0 */
+  if (cnt30(V30['ui.js'], 'cssText') !== 0) F30('ui.js 里出现 cssText：横幅样式必须在 design.css 单点定义，内联会让两条提醒各长一套皮肤');
+  ['wishlist.js', 'ticketbox.js', 'checklist.html'].forEach(f => {
+    if (cnt30(V30[f], 'cssText') !== 0) F30(f + ' 里出现 cssText：提醒样式必须在 design.css 单点收口');
+  });
+  fs.readdirSync('.').filter(f => /\.html$/.test(f)).forEach(f => {
+    if (cnt30(ws30(rd30(f)), '.ui-nudge{') !== 0) F30(f + ' 里自己声明了 .ui-nudge{：提醒样式必须在 design.css 单点收口');
+  });
+
+  /* ⑤ 压缩档魔法数不得二次出现（尺子单点在 ui.js，上面两条锚已钉死它的定义）。
+     范围只取票据侧两个文件：wishlist.js 里那个 800 是「附近想去」的米数半径，与照片档位无关，
+     把它拉进来就是拿一条同名数字冒充另一条的守卫。 */
+  ['ticketbox.js', 'checklist.html'].forEach(f => {
+    ['800', '0.72'].forEach(n => {
+      if (cnt30(V30[f], n) !== 0) F30(f + ' 里出现魔法数 ' + n + '：随手记照片与票据附件必须同一把尺子，两处各写一档迟早一升一降');
+    });
+  });
+
+  /* ⑥ 能力边界要说给用户听（附件不进云备份这句必须印在票卡上） */
+  if (cnt30(V30['checklist.html'], '不进云备份') !== 1)
+    F30('checklist.html 票卡没把「附件不进云备份」说出来（换机丢票据是用户必须提前知道的能力边界，不是实现细节）');
+
+  if (V30['README.md'].indexOf('§30') < 0) F30('README.md 的 verify 清单没提 §30（新闸门不写进 README 就等于没装）');
+
+  console.log('票据卡闸门: ' + A30.length + ' 条代码锚点 + 全站 Notification 三类名期望 0（扫 ' + productFiles.length + ' 个产品文件，累计命中 ' + notifHits + '）+ 附件进不了备份双锚 + 提醒位/压缩档两组单点 + 能力边界文案 1 条；每条期望 0 都配正向对照');
+  fail += bad30;
+}
+
+
+/* ============ §31 双栏桌面档与可用视口横向分支闸门（批次 18） ============
+   这一批是「桌面/平板腿」改动：用户只验手机 APK，手机上永远看不到双栏，所以源码侧必须自己
+   证明两件事，否则这类改动最容易悄悄把手机档一起改了：
+   ① 双栏 CSS 一条都不落在 900 媒体查询之外（block 包含检＝手机一根 CSS 没动的源码侧证明）；
+   ② 侧栏绝不进 USABLE_BANDS。侧栏已经从 Leaflet 容器宽度里被栅格扣掉了，再进名单就是第二次
+      内缩，症状是「地图内容整体偏右、fitBounds 留白过大」（§0 硬事实 0-2 的反面）。
+   另外三组是本批交付物本身的形状：
+   ③ 横向分支必须真的给 ins.left/ins.right 赋值（改前结构上恒 0，只钉初始化那行会一直绿）；
+   ④ 聚焦路径收进 flyToUsable 单点（批次 13 登记的「flyToSite 仍按元素中心」残留就此收口，
+      全站 map.flyTo( 只剩单点内部那 1 处）；
+   ⑤ 左列悬停高亮要有可观测出口（dayLineWeights），否则「悬停会高亮」这句话只能靠肉眼看像素。
+   口径同 §28/§29/§30：四元组守卫、期望 0 配正向对照、锚点串不落块注释、.html 只归一空白。
+   ============================================================ */
+{
+  let bad31 = 0;
+  const F31 = m => { bad31++; console.log('FAIL §31 双栏闸门: ' + m); };
+  const ws31 = s => s.replace(/\s+/g, ' ').trim();
+  const flat31 = s => ws31(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt31 = (s, n) => s.split(n).length - 1;
+  const rd31 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view31 = f => /\.html$/.test(f) ? ws31(rd31(f)) : flat31(rd31(f));
+
+  const FILES31 = ['topic-common.js', 'design.css', 'planner.js', 'topic.html', 'tools/smoke-usable.js',
+    'README.md', 'docs/功能完善实施方案-2026-10-05.md'];
+  const V31 = {};
+  FILES31.forEach(f => {
+    if (!fs.existsSync(f)) { F31('缺 ' + f); V31[f] = ''; return; }
+    V31[f] = view31(f);
+  });
+
+  const A31 = [
+    /* ③ 横向分支：真的产出 ins.left / ins.right */
+    ['topic-common.js', "var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];", 1, '带名单逐字钉死：只有这四类浮层参与内缩，侧栏不在其中（下面另有期望 0 那条）'],
+    ['topic-common.js', 'iy >= el.height * 0.6', 1, '侧带判据：纵向压满 60% 才算左右带（与 tools/smoke-usable.js 的 PROBE 逐条同形，±2px 对账靠的就是同形）'],
+    ['topic-common.js', 'ins.left = Math.max(ins.left, r.right - el.left);', 1, '硬事实 0-2 的反证：这一行存在，左内缩才第一次可能被算出来'],
+    ['topic-common.js', 'ins.right = Math.max(ins.right, el.right - r.left);', 1, '同上，右侧'],
+    ['topic-common.js', 'return { top: i.top + MARK_HALF, right: i.right + MARK_HALF, bottom: i.bottom + MARK_HALF, left: i.left + MARK_HALF };', 1, 'contentInsets 四边一起加半盒余量（漏左右＝focusUsable 的 padding 仍是 16）'],
+    ['topic-common.js', 'return { l: i.left, t: i.top, r: s.x - i.right, b: s.y - i.bottom };', 1, 'usableRectPx 消费左右 → clampCapsules 的内收边界跟着双栏走'],
+    ['topic-common.js', 'map.containerPointToLatLng(L.point(s.x - i.right, s.y - i.bottom))', 1, 'contentBounds 的右下角含 right（LOD 裁剪矩形不再把侧栏后的内容当可见）'],
+    ['topic-common.js', 'paddingTopLeft: [i.left, i.top]', 2, 'fitUsable 与 focusUsable 两处不对称内缩都带 left（Leaflet 真选项名，paddingTL 不认）'],
+    /* ④ 聚焦单点 */
+    ['topic-common.js', 'function flyToUsable(latlng, zoom, opts) {', 1, '聚焦偏移只有一个定义点'],
+    ['topic-common.js', 'flyToUsable(', 6, '定义 1 + 调用 5（聚合聚焦 / 站点 / 我的位置行 / 自动定位 / 定位按钮）：新增聚焦入口必须走这里'],
+    ['topic-common.js', '.subtract(contentCenterPx())', 1, '把「内容中心 − 元素中心」算进偏移（这就是批次 13 那条残留的正解）'],
+    ['topic-common.js', 'if (opts && opts.instant) { map.setView(at, zoom); return; }', 1, '瞬时腿也在单点内，不是各处自己裸 setView'],
+    ['topic-common.js', 'map.flyTo(at, zoom, { duration: (opts && opts.duration) || .5 });', 1, '单点内部那一条 flyTo（下面钉「全站只剩这一处」）'],
+    ['topic-common.js', 'map.flyTo(', 1, '聚焦路径零裸 flyTo：多一处＝又一处按元素中心聚焦'],
+    ['topic-common.js', 'setTimeout(function () { flyToUsable(pt(s), Math.max(map.getZoom(), 12), { duration: .6 }); }, 80);', 1, 'flyToSite 先切 tab 再聚焦：#map 不活动时容器 0×0，内容中心是垃圾偏移'],
+    ['topic-common.js', 'flyToUsable: flyToUsable,', 1, '单点已导出（闸门侧要复算偏移，不导出就只剩像素可读）'],
+    /* ⑤ 左列悬停高亮 */
+    ['topic-common.js', 'document.body.dataset.view = tab;', 1, '双栏左面板由 switchTab 标注（不用 :has()：旧内核整块失效会露出空左条）'],
+    ['topic-common.js', 'routeDayLines.push(line);', 1, '每日线按序留存，悬停才有「哪条是这天」的答案'],
+    ['topic-common.js', 'if (pts.length < 1) { routeDayLines.push(null); return; }', 1, '没画线的天占位：下标必须等于天序号，否则悬停 D3 亮的是 D2'],
+    ['topic-common.js', 'dayLineWeights: function () { return routeDayLines.map(function (l) { return l ? l.options.weight : 0; }); },', 1, '高亮的可观测出口（smoke 读线宽而不是像素）'],
+    ['topic-common.js', 'hlRouteDay(p[0], p[1])', 1, '左列日块 mouseenter 接线在'],
+    /* ① 双栏 CSS：阈值唯一、栅格与 sticky 的形状 */
+    ['design.css', '@media (min-width: 900px)', 1, '整串恰一处（降到 700 会把 768×1024 切成两栏：地图只剩 428px，比手机还挤）'],
+    ['design.css', '@media (min-width: 700px)', 0, 'design.css 里没有 700 档双栏（阈值被"顺手"下调即红；这条串在 map.css 的卡片多列里真实存在，见下面正向对照）'],
+    ['design.css', ':root{--dv-side:340px}', 1, '左栏宽单点'],
+    ['design.css', '--dv-side:380px', 1, '1440 档放宽只改这一个 token'],
+    ['design.css', 'body.topic-page main>.view{left:var(--dv-side)}', 1, '专题页地图从容器尺寸里就让出侧栏（不是靠内缩去补）'],
+    ['design.css', 'body.topic-page main>.view:not(#map){left:0;right:auto;width:var(--dv-side)}', 1, '当前 tab 的面板进左栏'],
+    ['design.css', 'body.topic-page #map{display:block!important}', 1, '面板切走时地图仍可见（双栏的"专业软件"手感）'],
+    ['design.css', 'body.topic-page[data-view="map"] #list{display:block}', 1, '打开地图时左栏用列表当面板，不留空条'],
+    ['design.css', 'body.topic-page #list .grid{grid-template-columns:1fr}', 1, '340px 窄栏里压回一栏（map.css 的 ≥700 两栏会把卡片挤破）'],
+    ['design.css', 'body.topic-page .tabbar{left:12px;transform:none;width:calc(var(--dv-side) - 24px)}', 1, '底部胶囊贴左栏：飘在右栏只占 .44 宽，既不成带（可用区算不出）又真遮标记'],
+    ['design.css', 'body.topic-page .region-stats{left:12px;transform:none;width:calc(var(--dv-side) - 24px);max-width:none}', 1, '同上，统计条'],
+    ['design.css', 'body.dv-result #stageResult{display:grid!important;grid-template-columns:var(--dv-side) minmax(0, 1fr);column-gap:18px;align-items:start}', 1, '规划结果页两列（showStage 用 inline display 管阶段，grid 必须 !important）'],
+    ['design.css', 'body.dv-result #stageResult>#mapBox{grid-column:2;grid-row:1/span 12;position:sticky;top:12px;height:calc(100dvh - 140px);min-height:420px}', 1, '地图跨满左栏所有行才粘得住；span 用不完的行高度为 0，不额外撑高'],
+    /* 规划页悬停高亮接线 */
+    ['planner.js', String.raw`document.body.classList.toggle('dv-result', name === 'stageResult');`, 1, '双栏作用域只开在结果阶段（别的阶段仍是单列窄卡）'],
+    ['planner.js', 'planDayGroups = trip.days.map(function () { return L.layerGroup().addTo(mapLayer); });', 1, '线段按天分组建，每轮 drawMap 重建'],
+    ['planner.js', 'var seg = L.layerGroup().addTo(planDayGroups[own[i]] || mapLayer);', 1, '段归当天；own 越界兜底回 mapLayer（不兜底＝坐标缺失的段整个消失）'],
+    ['planner.js', 'function planLine(group, latlngs, opts) {', 1, '建线单点：基准透明度/线宽在同一处记下'],
+    ['planner.js', 'ln._bop = opts.opacity; ln._bw = opts.weight;', 1, 'setStyle 就地改 options，不留底就不知道离开悬停后回到哪一档'],
+    ['planner.js', 'function hlPlanDay(di) {', 1, '悬停高亮单点'],
+    ['planner.js', 'window.plannerHlDay = hlPlanDay;', 1, '日卡内联事件用的就是它（没导出＝点了没反应的热区）'],
+    ['planner.js', String.raw`onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"`, 2, '两张日卡（正常/转场）都挂：只挂一张就漏掉赶路日'],
+    ['topic.html', '<body class="topic-page" data-view="map">', 1, '双栏作用域开在 body 上，data-view 初值＝默认 tab'],
+    /* 浏览器腿：七条新判据一条不许少 */
+    ['tools/smoke-usable.js', String.raw`b.setAttribute('style', 'display:block;position:fixed;top:0;height:100vh;width:120px;transform:none;opacity:1;' +`, 1, 'U14/U15 借道真带元素：usableInsets 只遍历 USABLE_BANDS 那四个选择器，新插一个无名 div 它根本看不见，那条绿光是假绿'],
+  ];
+  A31.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F31('A31 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V31)) { F31('A31 登记了 §31 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt31(V31[file], needle);
+    if (got !== want) F31(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A31.length < 44) F31('锚点表被削减：' + A31.length + ' 条（批次 18 落地时实测 44 条）');
+
+  /* ② 侧栏不进带名单（期望 0 + 正向对照） */
+  if (cnt31(V31['topic-common.js'], "'#list'") !== 0)
+    F31('USABLE_BANDS 里出现了侧栏选择器 #list：双份内缩回归（fitUsable 对已被栅格扣掉的宽度再扣一次，地图内容整体偏右、fitBounds 留白过大）。这条只有源码腿能守：双栏档下侧栏盒与地图盒相切不重叠（ix=0<12 先被排除），浏览器侧量不到它变红');
+  const CTRL31A = flat31("var USABLE_BANDS = ['#routeBanner', '#list', '.tabbar'];");
+  if (cnt31(CTRL31A, "'#list'") < 1) F31('「#list 不进名单」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+
+  /* ④ 改前形态零残留（各配合成正向对照） */
+  const OLD31 = [
+    ['topic-common.js', "map.flyTo(pt(s), Math.max(map.getZoom(), 12), { duration: .6 });", 'flyToSite 仍按元素中心裸 flyTo（批次 13 登记的残留）'],
+    ['planner.js', 'var seg = L.layerGroup().addTo(mapLayer);', '线段平铺进 mapLayer：没有按天分组，悬停高亮无从下手'],
+    ['topic.html', '<body>', '裸 body：双栏作用域没开'],
+  ];
+  OLD31.forEach(([f, needle, why]) => {
+    if (cnt31(V31[f], needle) !== 0) F31(f + ' 里还有改前形态「' + needle + '」：' + why);
+    if (cnt31(flat31(needle), needle) < 1) F31('「' + needle + '」这条期望 0 的正向对照失效了');
+  });
+
+  /* ① 双栏 CSS 一条都不许漏到 900 媒体查询之外（手机档一根 CSS 没动的源码侧证明）。
+     --dv-side 只在 1400 那条放宽里额外出现一次，所以它的额度是「总数 − 1」。 */
+  {
+    const D31 = V31['design.css'];
+    const I31 = D31.indexOf('@media (min-width: 900px){');
+    const J31 = D31.indexOf('@media (min-width: 1400px)');
+    if (I31 < 0 || J31 < 0 || J31 <= I31) F31('抠不出双栏段落（900 与 1400 两条查询至少改了一个，本节的范围检失效）');
+    else {
+      const BLK = D31.slice(I31, J31);
+      [['body.topic-page', 0], ['body.dv-result', 0], ['--dv-side', 1]].forEach(([n, allow]) => {
+        const all = cnt31(D31, n), inBlk = cnt31(BLK, n);
+        if (all - inBlk !== allow)
+          F31(n + ' 有 ' + (all - inBlk) + ' 处落在 900 媒体查询之外（允许 ' + allow + '）：双栏 CSS 漏进手机档＝本批红线');
+      });
+      if (BLK.indexOf('340px') < 0) F31('双栏段落里读不到 340 的左栏宽（上面那条 :root 锚没跑在这段里）');
+    }
+    /* 阈值降档的反证：700 这条串确实存在于仓库（map.css 的卡片多列），所以 design.css 里的 0 是真测出来的 */
+    if (cnt31(flat31(rd31('map.css')), '@media (min-width: 700px)') < 1)
+      F31('map.css 里找不到 @media (min-width: 700px)：design.css 那条期望 0 失去了正向对照');
+  }
+
+  /* 浏览器腿：U14–U20 一条不许少（横向内缩 2 + 1440 双栏 1 + 悬停 1 + 768 单栏 1 + 手机两档几何 2） */
+  const U31 = ['U14', 'U15', 'U16', 'U17', 'U18', 'U19', 'U20'];
+  /* U14x 这种「把判据改名」的退化必须也算红：id 后面紧跟空格才算这条腿还在 */
+  U31.forEach(u => {
+    if (V31['tools/smoke-usable.js'].indexOf("check('" + u + ' ') < 0)
+      F31('tools/smoke-usable.js 缺 ' + u + ' 这条判据（批次 18 的七条浏览器腿是一整组，少一条就是有个症状没人管）');
+  });
+
+  if (V31['README.md'].indexOf('§31') < 0) F31('README.md 的 verify 清单没提 §31（新闸门不写进 README 就等于没装）');
+  if (V31['docs/功能完善实施方案-2026-10-05.md'].indexOf('批次 18 已实施') < 0)
+    F31('方案文档没登记「批次 18 已实施」（这批在手机上看不见，收工状态只能靠文档留在案上）');
+
+  console.log('双栏闸门: ' + A31.length + ' 条代码锚点（横向分支四边各有消费点 + 聚焦单点 6 处 + 双栏 CSS 阈值唯一 + 悬停高亮接线）+ 侧栏不进 USABLE_BANDS 期望 0 + 三条改前形态零残留 + 双栏 CSS 段落范围检（漏进手机档即红）+ smoke U14–U20 七条齐备；每条期望 0 都配正向对照；变异自测两层在案（源码腿 tools/out/mut-verify31.js 38 条应红全红、浏览器腿 tools/out/mut-smoke31.js 4 条应红全红，其中「侧栏进带名单」实测只有源码腿能守）');
+  fail += bad31;
 }
 
 

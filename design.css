@@ -115,6 +115,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
   /* 层级体系（悬浮底栏 90px 占位，页面 sticky 条需避让至 --z-nav 之下） */
   --z-topbar:600; --z-nav:1050; --z-sheet:1100; --z-modal:9700; --z-toast:9800;
+  /* 页内提醒条（UI.nudge）：压在导航之上、确认卡之下，和它收口前那条内联 9500 同一档 */
+  --z-nudge:9500;
 
   /* 间距 8pt */
   --sp-1:0.25rem; --sp-2:0.5rem; --sp-3:0.75rem; --sp-4:1rem; --sp-6:1.5rem; --sp-8:2rem; --sp-12:3rem;
@@ -457,6 +459,10 @@ img{max-width:100%;display:block}
   box-shadow:0 2px 8px rgba(168,50,42,.2);
 }
 .chip:active{transform:scale(.95)}
+
+/* ---- 勾选框（候选景点 + 行前清单共用一款；勾标 .laymenu .ck 是另一族，别混用） ---- */
+.ckbox{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--color-line-strong);flex:0 0 auto;display:grid;place-items:center;cursor:pointer;color:#fff;font-size:var(--fs-4);background:var(--color-surface)}
+.ckbox.on{background:var(--grad-primary);border-color:transparent;box-shadow:0 2px 8px rgba(200,109,75,.3)}
 
 /* ============================================================
    SEARCH
@@ -1227,6 +1233,11 @@ html.font-lg{--fs-stage:1.0625}     /* 设置页大字档：17/16（原 17.5px�
 .ui-toast.act{display:flex;align-items:center;gap:12px;pointer-events:auto;white-space:normal;text-overflow:clip;max-width:calc(100vw - 32px)}
 .ui-toast-act{border:0;background:none;color:var(--color-gold-bright,#DCAE5E);font-weight:700;font-size:var(--fs-4);padding:2px 4px;cursor:pointer;font-family:var(--font-sans,sans-serif);white-space:nowrap}
 .theme-dark .ui-toast-act{color:var(--color-primary-dark,#A94C2D)}
+/* 页内一次性提示条：产品唯一的提醒位（不做系统推送，见「我的票」§5.3）。
+   数值逐条抄自 wishlist.js 原来那行内联 cssText，收口成组件时一个像素都不许动。 */
+.ui-nudge{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);z-index:var(--z-nudge,9500);background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:var(--fs-4);display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.ui-nudge .txt{flex:1;min-width:0}
+.ui-nudge button{flex:0 0 auto;border:0;border-radius:999px;background:var(--color-primary,#AE5738);color:var(--bg);padding:8px 16px;font-size:var(--fs-4);cursor:pointer;font-family:var(--font-sans,sans-serif)}
 .ui-modal-mask{position:fixed;inset:0;background:rgba(32,32,29,.42);display:flex;z-index:var(--z-modal,9700);opacity:0;transition:opacity var(--motion-mid) ease;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 0;box-sizing:border-box}
 .ui-modal-mask.show{opacity:1}
 .ui-modal{width:min(calc(100% - 48px),340px);margin:auto;background:var(--color-surface,#fffdf8);border:1px solid var(--color-line,#e3ded2);border-radius:20px;box-shadow:var(--shadow-float);padding:22px 20px 16px;transform:scale(.94);transition:transform var(--motion-mid) var(--ease-standard, ease)}
@@ -1646,3 +1657,36 @@ body .tn-quotes .web:active{background:var(--color-primary);color:var(--bg)}
   color:var(--color-muted);border-left:1px solid var(--color-line);padding-left:var(--sp-2)}
 .vlead{margin:0;font-family:var(--font-serif);font-size:var(--fs-sm);line-height:1.9;
   letter-spacing:.1em;color:var(--color-ink-soft)}
+
+/* ============================================================
+   批次 18 · 双栏桌面档（左面板 + 右地图）
+   阈值钉在 900，不许"顺手"降到 700：768×1024 横屏放两栏后地图只剩 768−340=428px，
+   比手机 452 档的整屏地图还挤，双栏反而更难用。320/390/452 三档进不了这条媒体查询，
+   手机侧一根 CSS 都没动（像素基线拿这三档逐条 0.00% 当「改动范围证明」）。
+   ============================================================ */
+@media (min-width: 900px){
+  :root{--dv-side:340px}
+
+  /* ---- 专题地图页：地图常驻右栏，当前 tab 的面板就是左栏 ---- */
+  /* 侧栏绝不进 USABLE_BANDS（关键判断）：它已经从 Leaflet 容器宽度里被栅格扣掉了，
+     再进名单＝fitUsable 对它做第二次内缩＝地图内容整体偏右、fitBounds 留白过大。 */
+  body.topic-page main>.view{left:var(--dv-side)}
+  body.topic-page main>.view:not(#map){left:0;right:auto;width:var(--dv-side)}
+  body.topic-page #map{display:block!important}   /* 切到列表/路线时，地图仍在右栏可见（专业软件那样） */
+  /* data-view 由 topic-common.js 的 switchTab 维护；地图 tab 时把列表借来当侧栏，
+     左栏就不会在默认打开地图时空着（不用 :has()：旧内核整块失效会露出空左条） */
+  body.topic-page[data-view="map"] #list{display:block}
+  body.topic-page #list .grid{grid-template-columns:1fr}   /* 340px 窄栏里 map.css 的 ≥700 两栏要压回一栏 */
+  /* 两条固定胶囊贴到左栏底下：飘在桌面上时它只占右栏宽 .44，既不成「带」（可用区算不出它）
+     又真的遮住标记——移出地图区域才是正解 */
+  body.topic-page .tabbar{left:12px;transform:none;width:calc(var(--dv-side) - 24px)}
+  body.topic-page .region-stats{left:12px;transform:none;width:calc(var(--dv-side) - 24px);max-width:none}
+
+  /* ---- 规划结果页：左栏日卡流，右栏地图跟随滚动 ---- */
+  body.dv-result .wrap{max-width:1240px}
+  body.dv-result #stageResult{display:grid!important;grid-template-columns:var(--dv-side) minmax(0, 1fr);column-gap:18px;align-items:start}   /* showStage 用 inline display 管阶段，grid 必须 !important */
+  body.dv-result #stageResult>.card{grid-column:1}
+  /* 地图要跨满左栏所有行才粘得住：span 用不完的行高度为 0，不额外撑高页面 */
+  body.dv-result #stageResult>#mapBox{grid-column:2;grid-row:1/span 12;position:sticky;top:12px;height:calc(100dvh - 140px);min-height:420px}
+}
+@media (min-width: 1400px){:root{--dv-side:380px}}   /* 1440 档左列放宽：列表卡两行信息不再挤 */

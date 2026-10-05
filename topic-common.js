@@ -12,6 +12,7 @@
   var map, markerLayer, useGCJ = true, lastMarkerList = null, lastRouteRi = null;
   var markers = new Map();
   var routeLayer = null, curSite = null, tripRouteLayer = null;
+  var routeDayLines = [];   /* 批次18：showRouteOnMap 按天建的线，左列悬停时按索引加粗 */
   var userLatLng = null, userMarker = null, watchId = null, pickMode = false;
   var trip = [], routeOrders = {};
   var nearLayer = null, nearP = null, nearBar = null;
@@ -299,9 +300,11 @@
      元素上面（452×995 实测底部死带 155px）。Leaflet 的视野裁剪、fitBounds、缩放锚点全部按
      元素矩形算，于是内容一格一格挪进那条死带——34 页 × 4 档实测 4134 枚标记里 20.2% 越界，
      放大三档后下溢中位 108px（正好是死带深度）。
-     只把「成带」的浮层算内缩（横向压满元素 60% 以上）：452 档实测 tabbar 占宽 .947、
-     region-stats .856~.92、routeBanner .326~.62（横幅文字短时确实不成带）。
-     .ctl / .laymenu 那种右上角小方块是「点」不是「带」，扣进去等于把整条右边判成死区。 */
+     只把「成带」的浮层算内缩：横向压满元素 60% 以上是上下带，纵向压满 60% 以上是左右带
+     （批次 18 补的横向分支——双栏桌面档要能算出 ins.left/ins.right，此前这两个值结构上恒 0）。
+     452 档实测 tabbar 占宽 .947、region-stats .856~.92、routeBanner .326~.62（横幅文字短时确实不成带）。
+     .ctl / .laymenu 那种右上角小方块是「点」不是「带」，两个方向都不成带，扣进去等于把整条右边判成死区。
+     成带判据与 tools/smoke-usable.js 的 PROBE 逐条同形（±2px 对账就靠这个同形）。 */
   var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];
   var MARK_HALF = 16;   /* 最高标记的半高：胶囊 31px / 节点 30px。内容区再让出这一条，半枚被切就不会发生 */
   var lastUsableKey = null;   /* 上一次渲染用的内缩快照，带出现/消失时据此判断要不要重算 LOD */
@@ -315,10 +318,17 @@
       var cs = getComputedStyle(n);
       if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
       var r = n.getBoundingClientRect();
-      var ix = Math.min(r.right, el.right) - Math.max(r.left, el.left);
-      if (r.height <= 0 || ix < el.width * 0.6) return;
-      if ((r.top + r.bottom) / 2 < el.top + el.height / 2) ins.top = Math.max(ins.top, r.bottom - el.top);
-      else ins.bottom = Math.max(ins.bottom, el.bottom - r.top);
+      var ix = Math.max(0, Math.min(r.right, el.right) - Math.max(r.left, el.left));
+      var iy = Math.max(0, Math.min(r.bottom, el.bottom) - Math.max(r.top, el.top));
+      if (ix < 12 || iy < 12) return;
+      if (ix >= el.width * 0.6) {
+        if ((r.top + r.bottom) / 2 < el.top + el.height / 2) ins.top = Math.max(ins.top, r.bottom - el.top);
+        else ins.bottom = Math.max(ins.bottom, el.bottom - r.top);
+      } else if (iy >= el.height * 0.6) {
+        /* 左右带：压在地图某一侧、纵向吃掉大半屏的固定浮层（贴哪一侧的内缩就归哪一侧） */
+        if ((r.left + r.right) / 2 > el.left + el.width / 2) ins.right = Math.max(ins.right, el.right - r.left);
+        else ins.left = Math.max(ins.left, r.right - el.left);
+      }
     });
     /* 任何一条带都不许把可用区吃到只剩 40px（横屏 / 极矮视口下的保险） */
     ins.top = Math.max(0, Math.min(ins.top, size.y - 40));
@@ -364,16 +374,21 @@
     var s = map.getSize(), i = contentInsets();
     return L.point((s.x + i.left - i.right) / 2, (s.y + i.top - i.bottom) / 2);
   }
+  /* 点聚焦的单点：把「那个点」落到内容中心，而不是元素中心。
+     批次 13 收口时登记过一条残留——flyToSite / 定位我的位置仍然直接 flyTo，元素比可用区低
+     53px，被聚焦的站点就停在可见区偏下那一截里；批次 18 双栏档把左右内缩也算进内容中心，
+     聚焦路径一律走这里，不再各处自己算偏移。 */
+  function flyToUsable(latlng, zoom, opts) {
+    var s = map.getSize();
+    var want = map.project(latlng, zoom).add(L.point(s.x / 2, s.y / 2).subtract(contentCenterPx()));
+    var at = map.unproject(want, zoom);
+    if (opts && opts.instant) { map.setView(at, zoom); return; }
+    map.flyTo(at, zoom, { duration: (opts && opts.duration) || .5 });
+  }
   /* 聚合胶囊聚焦：region 层给的是固定缩放，要让「那个中心」落到内容中心而不是元素中心 */
   function focusUsable(t) {
     var i = contentInsets();
-    if (t.center) {
-      var s = map.getSize();
-      var want = map.project(t.center, t.zoom)
-        .add(L.point(s.x / 2, s.y / 2).subtract(contentCenterPx()));
-      map.flyTo(map.unproject(want, t.zoom), t.zoom, { duration: .5 });
-      return;
-    }
+    if (t.center) { flyToUsable(t.center, t.zoom); return; }
     map.flyToBounds(t.bounds, { paddingTopLeft: [i.left, i.top], paddingBottomRight: [i.right, i.bottom], maxZoom: t.maxZoom, duration: .5 });
   }
   /* 边缘内收：实测胶囊最宽 203px（半宽 102），贴边放就把半枚推出屏幕。
@@ -741,7 +756,7 @@
       var s = tripSite(i); if (!s) return;
       var c = document.createElement('div'); c.className = 'chip';
       c.innerHTML = '<span class="no">' + (n + 1) + '</span><span class="nm" style="cursor:pointer">' + s.label + '</span><span class="mv" data-d="up">▲</span><span class="mv" data-d="dn">▼</span><span class="x">' + TI('close', 12) + '</span>';
-      c.querySelector('.nm').onclick = function () { if (i === -1) { map.flyTo(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12), { duration: .6 }); } else flyToSite(i); };
+      c.querySelector('.nm').onclick = function () { if (i === -1) { flyToUsable(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12), { duration: .6 }); } else flyToSite(i); };
       c.querySelector('[data-d="up"]').onclick = function (e) { e.stopPropagation(); if (n > 0) { trip.splice(n, 1); trip.splice(n - 1, 0, i); saveTrip(); renderTripBar(); } };
       c.querySelector('[data-d="dn"]').onclick = function (e) { e.stopPropagation(); if (n < trip.length - 1) { trip.splice(n, 1); trip.splice(n + 1, 0, i); saveTrip(); renderTripBar(); } };
       c.querySelector('.x').onclick = function (e) { e.stopPropagation(); toggleTrip(i); };
@@ -793,8 +808,11 @@
   function closeArrive() { $('arriveDlg').classList.remove('show'); }
   function flyToSite(i, fromSheet) {
     var s = SITES[i]; if (!s) return;
-    map.flyTo(pt(s), Math.max(map.getZoom(), 12), { duration: .6 });
+    /* 先切 tab 再聚焦：#map 不是当前视图时容器 display:none，getSize() 量到 0×0，
+       内容中心就成了垃圾偏移（改前 map.flyTo 不吃容器尺寸，所以这条从没暴露）。
+       80ms 是 switchTab 里那次 invalidateSize(60ms) 之后。 */
     switchTab('map');
+    setTimeout(function () { flyToUsable(pt(s), Math.max(map.getZoom(), 12), { duration: .6 }); }, 80);
     if (fromSheet) { $('locSheet').classList.remove('show'); document.querySelector('.tabbar').classList.remove('is-hidden'); curSite = i; setActiveNode(i); }
     else { openSheet(i); }
   }
@@ -961,11 +979,11 @@
         var names = dayNames(ri, di);
         var stopsHtml = names.map(function (nm) {
           var s = resolveStop(nm);
-          return s ? '<div class="stop"><div class="num" style="background:' + cb + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + [s.theme, s.region + (s.county || ''), s.elev ? ('海拔' + s.elev + 'm') : ''].filter(Boolean).join(' · ') + '</div></div></div>'
+          return s ? '<div class="stop" data-site="' + s.__i + '"><div class="num" style="background:' + cb + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + s.label + '</div><div class="sd">' + [s.theme, s.region + (s.county || ''), s.elev ? ('海拔' + s.elev + 'm') : ''].filter(Boolean).join(' · ') + '</div></div></div>'
             : '<div class="stop"><div class="num" style="background:' + cb + '">' + (names.indexOf(nm) + 1) + '</div><div class="si"><div class="sn">' + nm + '</div><div class="sd">（未收录）</div></div></div>';
         }).join('');
         var connHtml = dayConnectHtml(ri, di, c);
-        daysHtml += '<div class="day">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + cb + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">' + TI('info', 12) + ' ' + d.tip + '</div>' + stopsHtml +
+        daysHtml += '<div class="day" data-day="' + ri + ':' + di + '">' + connHtml + '<div class="dayh" style="border-left:5px solid ' + c + '"><span class="dnt" style="background:' + cb + '">D' + (di + 1) + '</span><b>' + d.title + '</b></div><div class="daytip">' + TI('info', 12) + ' ' + d.tip + '</div>' + stopsHtml +
           '<div class="dayacts"><button class="dbtn" data-sort="' + ri + ':' + di + '">↻ 按距离排序</button><button class="dbtn send" data-send="' + ri + ':' + di + '">'+ TI('car') + '发高德导航</button></div></div>';
       });
       el.innerHTML = '<div class="rh" style="border-left-color:' + rt.color + '"><span class="rh-dot" style="background:' + rt.color + '"></span><h3>' + rt.name + '</h3><p>⏱ ' + rt.days.length + ' 天 ｜ ' + total + ' 站 ｜ ' + rt.desc + '</p><div class="dkey"><span class="dkey-label">每日轨迹色</span>' + keyHtml + '</div></div><div class="stops">' + daysHtml + '</div>' +
@@ -976,6 +994,17 @@
     box.querySelectorAll('[data-route]').forEach(function (b) { b.onclick = function () { buildRouteList(+b.dataset.route); }; });
     box.querySelectorAll('[data-sort]').forEach(function (b) { b.onclick = function () { var p = b.dataset.sort.split(':').map(Number); sortRouteDay(p[0], p[1]); }; });
     box.querySelectorAll('[data-send]').forEach(function (b) { b.onclick = function () { var p = b.dataset.send.split(':').map(Number); sendRouteDayAmap(p[0], p[1]); }; });
+    /* 批次18 双栏：路线面板在桌面就是左栏，悬停某日让右栏只留那天的线；点站名走 flyToSite
+       （内部已是 flyToUsable，聚焦按内容中心而不是元素中心）。手机档没有悬停指针，不触发。 */
+    box.querySelectorAll('.day[data-day]').forEach(function (el) {
+      var p = el.dataset.day.split(':').map(Number);
+      el.addEventListener('mouseenter', function () { hlRouteDay(p[0], p[1]); });
+      el.addEventListener('mouseleave', function () { hlRouteDay(null); });
+    });
+    box.querySelectorAll('.stop[data-site]').forEach(function (el) {
+      el.style.cursor = 'pointer'; el.title = '在地图查看';
+      el.addEventListener('click', function () { flyToSite(+el.dataset.site); });
+    });
   }
   function sortRouteDay(ri, di) {
     var names = dayNames(ri, di);
@@ -1014,20 +1043,32 @@
     var t0 = Date.now(); window.location.href = deep;
     setTimeout(function () { if (Date.now() - t0 < 2200) window.location.href = web; }, 1900);
   }
+  /* 批次18 双栏：左列悬停某条路线的某一日 → 右栏把那天加粗、其余压淡。
+     手机档没有悬停指针，这段在手机上永远不触发，不改手机行为。 */
+  function hlRouteDay(ri, di) {
+    if (!routeDayLines.length) return;
+    routeDayLines.forEach(function (ln, k) {
+      if (!ln) return;
+      var off = ri !== null && !(lastRouteRi === ri && k === di);
+      ln.setStyle({ weight: ri === null ? 4 : (off ? 2.5 : 7), opacity: ri === null ? .9 : (off ? .22 : 1) });
+    });
+  }
   function showRouteOnMap(ri) {
     lastRouteRi = ri;
     var rt = M.routes[ri];
     if (routeLayer) map.removeLayer(routeLayer);
     routeLayer = L.layerGroup().addTo(map);
+    routeDayLines = [];
     var DAY_COLORS = M.dayColors;
     var all = [];
     rt.days.forEach(function (d, di) {
       var pts = d.stops.map(resolveStop).filter(Boolean).map(function (s) { return pt(s); });
-      if (pts.length < 1) return;
+      if (pts.length < 1) { routeDayLines.push(null); return; }   /* 占位：routeDayLines 的下标必须等于天序号 */
       all.push.apply(all, pts);
       var c = DAY_COLORS[di % DAY_COLORS.length];
       var line = L.polyline(pts, { color: c, weight: 4, opacity: .9, dashArray: "1,9", lineCap: "round" }).addTo(routeLayer);
       line.bindPopup('<b style="color:' + c + '">' + d.title + '</b>');
+      routeDayLines.push(line);
     });
     var banner = $('routeBanner');
     banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px">' + TI('close', 13) + '</span>';   /* 不再叠 opacity：12px + .75 透明在暗底上只剩 2.36:1 */
@@ -1055,6 +1096,7 @@
   function clearRoute() {
     lastRouteRi = null;
     if (routeLayer) map.removeLayer(routeLayer); routeLayer = null;
+    routeDayLines = [];
     $('routeBanner').style.display = 'none';
     $('dayLegend').style.display = 'none';
     $('dayLegendBtn').style.display = 'none';
@@ -1095,7 +1137,7 @@
     navigator.geolocation.getCurrentPosition(function (p) {
       locateSuccess(p);
       $('locBtn').className = 'fab ok'; setTimeout(function () { $('locBtn').className = 'fab'; }, 1500); $('locBtn').innerHTML = TI('locate', 18);
-      if (manual) { if ($('map').classList.contains('active')) map.setView(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 11)); else switchTab('map'); }
+      if (manual) { if ($('map').classList.contains('active')) flyToUsable(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 11), { instant: true }); else switchTab('map'); }
     }, function (e) {
       $('locBtn').innerHTML = TI('locate', 18);
       if (manual) enterPickMode();
@@ -1210,6 +1252,8 @@
     document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
     $(tab).classList.add('active');
     document.querySelectorAll('.tabbar button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+    /* 批次18 双栏：CSS 靠这个属性决定左栏放哪个面板（design.css 的 body.topic-page[data-view=...]） */
+    document.body.dataset.view = tab;
     /* 「当前区域」统计条仅地图 tab 显示（2026-08-15） */
     if (statEl) statEl.style.display = (tab === 'map') ? 'flex' : 'none';
     if (tab === 'map') { setTimeout(function () { map.invalidateSize(); }, 60); autoLocate(); scheduleRegionStats(); }
@@ -1440,7 +1484,7 @@
     initMap();
     // 交互绑定
     document.querySelectorAll('.tabbar button').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
-    $('locBtn').onclick = function () { if (userLatLng) { map.setView(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12)); if (userMarker) userMarker.openPopup(); } else locate(true); };
+    $('locBtn').onclick = function () { if (userLatLng) { flyToUsable(gxy(userLatLng[0], userLatLng[1]), Math.max(map.getZoom(), 12), { instant: true }); if (userMarker) userMarker.openPopup(); } else locate(true); };
     $('search').oninput = (function () { var t = null; return function (e) { var v = e.target.value; clearTimeout(t); t = setTimeout(function () { state.q = v; renderAll(); }, 250); }; })();
     (function () { var m = location.search.match(/[?&]q=([^&]+)/); if (m) { var q = decodeURIComponent(m[1]); var s = $('search'); if (s) { s.value = q; state.q = q; renderAll(); } } })();
     $('sortSel').onchange = function (e) { state.sort = e.target.value; renderAll(); };
@@ -1531,6 +1575,11 @@
     usableInsets: usableInsets,
     contentInsets: contentInsets,
     usableRectPx: usableRectPx,
+    /* 批次18 闸门侧要复算聚焦偏移（flyToUsable 是否真按内容中心而不是元素中心） */
+    contentCenterPx: contentCenterPx,
+    flyToUsable: flyToUsable,
+    /* 左列悬停高亮的可观测出口：返回每日线的当前线宽，null（那天没画线）给 0 */
+    dayLineWeights: function () { return routeDayLines.map(function (l) { return l ? l.options.weight : 0; }); },
     toggleTrip: toggleTrip,
     addTripPos: addTripPos,
     toggleMore: toggleMore,

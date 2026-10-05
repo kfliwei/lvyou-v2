@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>行前清单 · 行迹</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 120px}
+  .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;padding:18px;margin-bottom:14px}
+  .ph{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:0 0 12px}
+  .ph::before{content:"";width:14px;height:3px;border-radius:99px;flex:0 0 auto;background:var(--grad-gold)}
+  /* 进度：与结果页「出发前」卡同一把尺子 */
+  .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
+  .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  .note{font-size:var(--fs-2);color:var(--color-muted);line-height:1.7;margin:8px 0 14px}
+  .none-tip{font-size:var(--fs-3);color:var(--color-muted);line-height:1.8;padding:6px 2px 2px}
+  .ck-group{font-family:var(--font-serif);font-size:var(--fs-6);color:var(--color-ink);padding:14px 4px 4px;display:flex;align-items:center;gap:8px}
+  .ck-group span{font-family:var(--font-sans);font-size:var(--fs-2);color:var(--color-muted);background:var(--color-bg-soft);border-radius:999px;padding:2px 10px}
+  /* 勾选框复用 design.css 的共享组件 .ckbox（本页不再声明一次）。
+     行本身叫 .ck-row，不借用 planner.html 里的 .cand：那个类是规划页的私有了，
+     规则也不同（候选行单行省略号，清单行要让来源说明换行 + 勾完划掉）。同名两套规则，
+     早晚被「顺手改一处」串味，不如各起各的名。 */
+  .ck-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .ck-row:last-child{border-bottom:0}
+  .ck-row .main{flex:1;min-width:0}
+  .ck-row .main b{display:block;font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400;color:var(--color-ink);line-height:1.45}
+  .ck-row .main small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;line-height:1.6}
+  .ck-row.done .main b{color:var(--color-muted);text-decoration:line-through}
+  .ck-remove{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--color-muted);cursor:pointer;flex:0 0 auto;padding:0;display:grid;place-items:center}
+  .ck-remove:active{background:var(--color-bg-soft)}
+  .add-row{display:flex;gap:8px;align-items:center;margin-top:14px}
+  .add-row input{flex:1;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-color:var(--edge-hair-soft);border-radius:13px;background:var(--color-bg);color:var(--color-ink);padding:0 13px;font-size:var(--fs-7)}
+  .add-row input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  .cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop)}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
+  .btn.ghost{background:transparent}
+  .empty-line{text-align:center;padding:56px 20px;color:var(--color-muted)}
+  .empty-line .em{font-family:var(--font-serif);font-size:var(--fs-9);color:var(--color-ink-soft);line-height:1.8}
+  .empty-line p{font-size:var(--fs-4);margin-top:10px;line-height:1.8}
+  .empty-line a{color:var(--color-primary-dark);font-size:var(--fs-5);font-weight:600;text-decoration:none}
+  .trip-pick{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .trip-pick:last-child{border-bottom:0}
+  .trip-pick .main{flex:1;min-width:0}
+  .trip-pick .main b{display:block;font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400}
+  .trip-pick .main small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px}
+  .trip-pick .arr{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6)}
+  /* 我的票：行版式跟着上面的 .ck-row，附件是这页唯一多出来的一维 */
+  .tb-row{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--color-line)}
+  .tb-row:last-child{border-bottom:0}
+  .tb-kind{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-primary-dark);background:var(--color-bg-soft);border-radius:999px;padding:3px 10px}
+  .tb-row .main{flex:1;min-width:0}
+  .tb-row .main b{display:block;font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400;line-height:1.45}
+  .tb-row .main small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;line-height:1.6}
+  .tb-open{flex:0 0 auto;width:40px;height:40px;border-radius:10px;overflow:hidden;border:1px solid var(--color-line);background:var(--color-bg-soft);display:grid;place-items:center;cursor:pointer;padding:0;color:var(--color-muted);font-size:var(--fs-1);text-decoration:none}
+  .tb-open img{width:100%;height:100%;object-fit:cover;display:block}
+  .tb-form{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .tb-form input{flex:1 1 46%;min-width:0;height:44px;border:1px solid var(--color-line-strong);border-color:var(--edge-hair-soft);border-radius:13px;background:var(--color-bg);color:var(--color-ink);padding:0 13px;font-size:var(--fs-4)}
+  .tb-form input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  .tb-acts{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .tb-fname{flex:1;min-width:0;font-size:var(--fs-2);color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="history.length>1?history.back():location.href='planner.html'" aria-label="返回">←</button>
+    <div class="title">行前清单 <small id="tripLabel">还没选定行程</small></div>
+    <a href="planner.html" aria-label="行程规划" style="flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);text-decoration:none"><svg class="ti" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-route"/></svg></a>
+  </div>
+</header>
+<div class="wrap">
+
+  <div class="card" id="pickCard" style="display:none">
+    <div class="ph">哪一趟行程</div>
+    <div id="pickList"></div>
+  </div>
+
+  <div class="card" id="listCard" style="display:none">
+    <div class="ph">出发前</div>
+    <div class="phead"><span class="pbar"><i id="ckBar"></i></span><span class="pcount" id="ckCount"></span></div>
+    <div class="note">带来源后缀的条目是按内置的海拔与最佳季数据推出的<b>建议</b>，不是实时核验；药品、防晒这类涉及安全的项，出发前请再确认一次。</div>
+    <div id="ckBody"></div>
+    <div class="none-tip" id="ckNone" style="display:none">这趟还没有自动建议。建议是排期时在结果页按海拔与季节长出来的；这里可以先自己补几件，回去重排一次也会自动补齐。</div>
+    <div class="add-row">
+      <input id="ckInput" type="text" placeholder="再加一件要带的" enterkeyhint="done" autocomplete="off">
+      <button class="btn primary" id="ckAdd">添加</button>
+    </div>
+    <div class="cats" id="ckCats"></div>
+  </div>
+
+  <div class="card" id="tbCard" style="display:none">
+    <div class="ph">我的票</div>
+    <div class="note">票号、座位、入住时间手写在这里。<b>附件只存这台机，不进云备份</b>，换机要重新传一遍。这里不订票、也不认票面，就是一个不会丢的存放处。</div>
+    <div id="tbList"></div>
+    <div class="cats" id="tbKinds"></div>
+    <div class="tb-form">
+      <input id="tbTitle" type="text" placeholder="航班 / 车次 / 酒店名" autocomplete="off">
+      <input id="tbCode" type="text" placeholder="票号 / 座位 / 房号" autocomplete="off">
+      <input id="tbAt" type="datetime-local" aria-label="使用时间">
+      <input id="tbNote" type="text" placeholder="备注（可选）" autocomplete="off">
+    </div>
+    <div class="tb-acts">
+      <button class="btn" id="tbAtt">加附件</button>
+      <span class="tb-fname" id="tbAttName">没选附件</span>
+      <button class="btn primary" id="tbSave">存这张票</button>
+    </div>
+    <input id="tbFile" type="file" accept="image/*,application/pdf" style="display:none">
+  </div>
+
+  <div class="empty-line" id="ckEmpty" style="display:none">
+    <div class="em">出发前，<br>把包先理清。</div>
+    <p>清单在行程规划的结果页自动生成，<br>按这趟的海拔与季节补齐建议。</p>
+    <a href="planner.html">去规划一页 →</a>
+    <p id="ckSwitchWrap" style="display:none"><a id="ckSwitch" href="#">换一趟行程 →</a></p>
+  </div>
+
+</div>
+
+<script src="icons.js"></script>
+<script src="ui.js"></script>
+<script src="checklist.js"></script>
+<script src="ticketbox.js"></script>
+<script>
+(function () {
+  function esc(s) { return window.UI.esc(s); }
+  function $(i) { return document.getElementById(i); }
+  var tripId = '', tripName = '';
+
+  function readTrips() {
+    try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  }
+  function findTrip(id) {
+    var list = readTrips();
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
+    /* 还没保存的行程：结果页跳转前把快照同步写进了 sessionStorage，同一标签页里能接上 */
+    try {
+      var snap = JSON.parse(sessionStorage.getItem('tn_planner_state') || 'null');
+      if (snap && snap.trip && snap.trip.id === id) return snap.trip;
+    } catch (e) {}
+    return null;
+  }
+
+  function render() {
+    var st = Checklist.statsOf(tripId), items = Checklist.listOf(tripId);
+    $('ckBar').style.width = (st.total ? Math.round(st.done / st.total * 100) : 0) + '%';
+    $('ckCount').textContent = st.total ? ('已打包 ' + st.done + ' / ' + st.total) : '还没有条目';
+    var groups = {}, order = [];
+    items.forEach(function (x) { if (!groups[x.cat]) { groups[x.cat] = []; order.push(x.cat); } groups[x.cat].push(x); });
+    $('ckBody').innerHTML = order.map(function (cat) {
+      var g = groups[cat], doneN = g.filter(function (x) { return x.done; }).length;
+      return '<div class="ck-group">' + esc(cat) + '<span>' + doneN + ' / ' + g.length + '</span></div>' +
+        g.map(function (x) {
+          return '<div class="ck-row' + (x.done ? ' done' : '') + '" data-id="' + esc(x.id) + '">' +
+            '<span class="ckbox' + (x.done ? ' on' : '') + '" aria-hidden="true">' + (x.done ? TI('check', 11) : '') + '</span>' +
+            '<span class="main"><b>' + esc(x.text) + '</b>' + (x.src ? '<small>' + esc(x.src) + '</small>' : '') + '</span>' +
+            '<button class="ck-remove" aria-label="移除「' + esc(x.text) + '」">' + TI('close', 14) + '</button></div>';
+        }).join('');
+    }).join('');
+    var rows = $('ckBody').querySelectorAll('.ck-row');
+    for (var i = 0; i < rows.length; i++) {
+      (function (row) {
+        var id = row.getAttribute('data-id');
+        row.onclick = function (e) { if (e.target.closest('.ck-remove')) return; toggle(id); };
+        row.querySelector('.ck-remove').onclick = function (e) { e.stopPropagation(); remove(id); };
+      })(rows[i]);
+    }
+    $('ckBody').style.display = items.length ? 'block' : 'none';
+    $('ckNone').style.display = items.length ? 'none' : 'block';
+    /* 空桶 ≠ 没有清单页：只要行程认得出来，就得能在这里手动补件（add-row 常驻）。
+       整页空态只留给「URL 上的 trip 在这台机上找不到」那一种情况。 */
+    $('listCard').style.display = tripId ? 'block' : 'none';
+    $('tbCard').style.display = tripId ? 'block' : 'none';
+    if (tripId) renderTickets();
+    $('pickCard').style.display = tripId ? 'none' : 'block';
+    $('ckEmpty').style.display = 'none';
+  }
+  function toggle(id) {
+    Checklist.toggle(tripId, id);
+    render();
+  }
+  function remove(id) {
+    var it = Checklist.listOf(tripId).filter(function (x) { return x.id === id; })[0];
+    if (!it) return;
+    UI.confirm({ title: '从清单移除', text: '移除「' + it.text + '」？建议条目会在下次进结果页时重新长回来。', okText: '移除', danger: true }, function (ok) {
+      if (!ok) return;
+      Checklist.remove(tripId, id);
+      render();
+      UI.toast('已移除「' + it.text + '」', 5000, { text: '撤销', fn: function () {
+        if (it.by === 'user') Checklist.add(tripId, it.text, it.cat); else Checklist.restoreItem(it);
+        render();
+      } });
+    });
+  }
+
+  var pickCat = '其他';
+  function renderCats() {
+    $('ckCats').innerHTML = Checklist.CATS.map(function (c) {
+      return '<span class="chip' + (c === pickCat ? ' on' : '') + '" data-c="' + esc(c) + '">' + esc(c) + '</span>';
+    }).join('');
+    var cs = $('ckCats').querySelectorAll('.chip');
+    for (var i = 0; i < cs.length; i++) cs[i].onclick = function () { pickCat = this.getAttribute('data-c'); renderCats(); };
+  }
+  function addItem() {
+    var inp = $('ckInput'), t = inp.value.trim();
+    if (!t) { UI.toast('先写上要带什么'); return; }
+    /* 查重走 ckId：同一个说法在两台机上算出同一个 id，重复词必须当场说清，不能静默吞掉这次点击 */
+    var id = Checklist.ckId(tripId, t);
+    if (Checklist.listOf(tripId).some(function (x) { return x.id === id; })) { UI.toast('这条已经在清单里了'); return; }
+    if (!Checklist.add(tripId, t, pickCat)) { UI.toast('存不下了，本地空间可能已满'); return; }
+    inp.value = '';
+    render();
+  }
+  $('ckAdd').onclick = addItem;
+  $('ckSwitch').onclick = function (e) {
+    e.preventDefault();
+    tripId = ''; tripName = '';
+    $('tripLabel').textContent = '还没选定行程';
+    try { history.replaceState(null, '', 'checklist.html'); } catch (e2) {}
+    renderPick();
+  };
+  $('ckInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') addItem(); });
+
+  function renderPick() {
+    var list = readTrips();
+    $('pickList').innerHTML = list.map(function (t, i) {
+      var n = Checklist.statsOf(t.id || '~' + i);   /* 没 id 的旧行程：给个占位计数，别报 0 说是空的 */
+      return '<div class="trip-pick" data-i="' + i + '"><span class="main"><b>' + esc(t.name) + '</b><small>' +
+        (t.startDate ? '出发 ' + esc(t.startDate) + ' · ' : '') + (t.days || []).length + ' 天 · ' +
+        (t.id ? (n.total ? '清单 ' + n.total + ' 条' : '清单还没生成') : '重新打开规划页可补清单') +
+        '</small></span><span class="arr">›</span></div>';
+    }).join('') || '<div class="note" style="margin:0">还没有保存的行程。先在「行程规划」里排一趟并保存，回来这里有清单。</div>';
+    var rows = $('pickList').querySelectorAll('.trip-pick');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].onclick = function () { open(list[+this.getAttribute('data-i')]); };
+    }
+    tripId = '';
+    $('tripLabel').textContent = '还没选定行程';
+    $('pickCard').style.display = 'block';
+    $('listCard').style.display = 'none';
+    $('tbCard').style.display = 'none';
+    $('ckEmpty').style.display = 'none';
+  }
+  /* URL 上的 trip 在这台机认不出来（换机 / 行程已删）：绝不拿它建桶，否则孤儿桶会无界攒在 localStorage 里 */
+  function showUnknown() {
+    tripId = '';
+    $('tripLabel').textContent = '没找到这趟行程';
+    $('pickCard').style.display = 'none';
+    $('listCard').style.display = 'none';
+    $('tbCard').style.display = 'none';
+    $('ckEmpty').style.display = 'block';
+    $('ckSwitchWrap').style.display = readTrips().length ? 'block' : 'none';
+  }
+  function open(t) {
+    if (!t || !t.id) { UI.toast('这条行程还没有编号，先重新打开一次规划页'); return; }
+    tripId = t.id; tripName = t.name || '';
+    $('tripLabel').textContent = tripName || '这趟行程';
+    render();
+    try { history.replaceState(null, '', 'checklist.html?trip=' + encodeURIComponent(tripId)); } catch (e) {}
+  }
+
+  /* ---------- 我的票（附件在 IndexedDB，不进备份；提醒只有页内横幅这一条腿） ---------- */
+  var pickKind = '机票', pending = null;
+  function renderKinds() {
+    $('tbKinds').innerHTML = TicketBox.KINDS.map(function (k) {
+      return '<span class="chip' + (k === pickKind ? ' on' : '') + '" data-k="' + esc(k) + '">' + esc(k) + '</span>';
+    }).join('');
+    var ks = $('tbKinds').querySelectorAll('.chip');
+    for (var i = 0; i < ks.length; i++) ks[i].onclick = function () { pickKind = this.getAttribute('data-k'); renderKinds(); };
+  }
+  function renderTickets() {
+    if (!tripId) { $('tbList').innerHTML = ''; return; }
+    TicketBox.list(tripId).then(function (rows) {
+      $('tbList').innerHTML = rows.map(function (r) {
+        var meta = [r.code ? '票号 ' + r.code : '', r.at ? TicketBox.fmt(r.at) : '', r.note].filter(Boolean).join(' · ');
+        return '<div class="tb-row" data-id="' + esc(r.id) + '">' +
+          '<span class="tb-kind">' + esc(r.kind) + '</span>' +
+          '<span class="main"><b>' + esc(r.title || r.kind) + '</b>' + (meta ? '<small>' + esc(meta) + '</small>' : '') + '</span>' +
+          (r.blob ? '<button class="tb-open" aria-label="打开附件">' + (/pdf/.test(r.mime) ? 'PDF' : '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" alt="" src="' + esc(r.blob) + '">') + '</button>' : '') +
+          '<button class="ck-remove" aria-label="删除「' + esc(r.title || r.kind) + '」">' + TI('close', 14) + '</button></div>';
+      }).join('') || '<div class="none-tip">这趟还没有票。下面手写一张，或加个截图，出发前在这一页就能翻出来。</div>';
+      var rows2 = $('tbList').querySelectorAll('.tb-row');
+      for (var i = 0; i < rows2.length; i++) {
+        (function (row) {
+          var id = row.getAttribute('data-id'), op = row.querySelector('.tb-open');
+          if (op) op.onclick = function () { TicketBox.get(id).then(function (r) { TicketBox.openFile(r); }); };
+          row.querySelector('.ck-remove').onclick = function () {
+            TicketBox.get(id).then(function (r) {
+              if (!r) { renderTickets(); return; }
+              UI.confirm({ title: '删除这张票', text: '删除「' + (r.title || r.kind) + '」？附件一并删掉，删掉的票不会自己长回来。', okText: '删除', danger: true }, function (ok) {
+                if (!ok) return;
+                TicketBox.remove(id).then(renderTickets, function () { UI.toast('删除失败'); });
+              });
+            });
+          };
+        })(rows2[i]);
+      }
+    }, function () {
+      $('tbList').innerHTML = '<div class="none-tip">这台机打不开本地票夹（IndexedDB 不可用），清单照常能用。</div>';
+    });
+  }
+  function saveTicket() {
+    if (!tripId) { UI.toast('先选定行程'); return; }
+    var title = $('tbTitle').value.trim(), code = $('tbCode').value.trim(), at = $('tbAt').value, note = $('tbNote').value.trim();
+    if (!title && !code && !pending) { UI.toast('至少写个名字、票号，或加一张附件'); return; }
+    TicketBox.list(tripId).then(function (rows) {
+      if (pending && rows.filter(function (r) { return r.blob; }).length >= TicketBox.MAX_ATT) {
+        UI.toast('一趟最多存 ' + TicketBox.MAX_ATT + ' 个附件，先删掉不用的'); return;
+      }
+      return TicketBox.put({
+        tripId: tripId, kind: pickKind, title: title, code: code, at: at, note: note,
+        blob: pending ? pending.blob : '', mime: pending ? pending.mime : ''
+      }).then(function (rec) {
+        if (!rec) { UI.toast('这条太空，没存'); return; }
+        $('tbTitle').value = ''; $('tbCode').value = ''; $('tbAt').value = ''; $('tbNote').value = '';
+        pending = null; $('tbAttName').textContent = '没选附件';
+        UI.toast('已存进这趟的票夹');
+        renderTickets();
+      });
+    }, function () { UI.toast('打不开本地票夹，存不下'); });
+  }
+  $('tbAtt').onclick = function () { $('tbFile').click(); };
+  $('tbFile').onchange = function () {
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) return;
+    TicketBox.readFile(f, function (out, err) {
+      if (err) { UI.toast(err); return; }
+      pending = out;
+      $('tbAttName').textContent = f.name + ' · ' + Math.round(pending.blob.length * 0.75 / 1024) + 'KB';
+    });
+  };
+  $('tbSave').onclick = saveTicket;
+  renderKinds();
+
+  renderCats();
+  var q = new URLSearchParams(location.search).get('trip');
+  if (q) { var target = findTrip(q); if (target) open(target); else showUnknown(); }
+  else renderPick();
+})();
+</script>
+</body>
+</html>

@@ -65,8 +65,7 @@
   /* 候选卡片 */
   .cand{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--color-line)}
   .cand:last-child{border-bottom:0}
-  .cand .ck{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--color-line-strong);flex:0 0 auto;display:grid;place-items:center;cursor:pointer;color:#fff;font-size:var(--fs-4);background:var(--color-surface)}
-  .cand.on .ck{background:var(--grad-primary);border-color:transparent;box-shadow:0 2px 8px rgba(200,109,75,.3)}
+  /* 勾选框用 design.css 的共享组件（.ckbox）：行前清单页要用同一款，不再造第三套 */
   .cand .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
   .cand .main{flex:1;min-width:0}
   .cand .main b{font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -122,6 +121,11 @@
   .act-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
   .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:var(--fs-4);line-height:1.8}
+  /* 出发前卡：清单属于「行前」而不是「当天」，所以挂在结果页尾部、不进日卡流 */
+  .pretrip .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .pretrip .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .pretrip .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
+  .pretrip .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
   /* 深色适配 */
   .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
   .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
@@ -228,6 +232,12 @@
       <div class="narr" id="narrBox" style="display:none"></div>
       <div class="act-row" id="actRow"></div>
     </div>
+    <div class="card" id="pretripCard" style="display:none">
+      <div class="ph">出发前</div>
+      <div class="phead"><span class="pbar"><i id="ptBar"></i></span><span class="pcount" id="ptCount"></span></div>
+      <div id="ptList"></div>
+      <button class="btn" style="width:100%;margin-top:10px" onclick="window.plannerOpenChecklist()">打开行前清单</button>
+    </div>
     <div class="card" id="tripsCard" style="display:none">
       <div class="ph">已保存的行程</div>
       <div id="tripsList"></div>
@@ -247,6 +257,7 @@
 <script src="nation-index.js" defer></script>
   <script src="vendor/pako.min.js" defer></script>
   <script src="share.js" defer></script>
+  <script src="checklist.js" defer></script>
   <script src="planner.js" defer></script>
   <script>
     /* 起终点：存储到 window（planner.js 意图卡渲染时读取） */

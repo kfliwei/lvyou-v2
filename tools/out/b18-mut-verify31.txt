@@ -1,0 +1,41 @@
+红  M1 删掉 ins.left 的赋值行（左内缩退回结构性恒 0，双栏等于白做）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「ins.left = Math.max(ins.left, r.right - el.left);」命中 0 次（要 1）：硬事实 0-2 的反证：这一行存在，左内缩才第一次可能被算出来
+红  M2 删掉 ins.right 的赋值行（同上，右侧）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「ins.right = Math.max(ins.right, el.right - r.left);」命中 0 次（要 1）：同上，右侧
+红  M3 侧带判据从 0.6 抬到 9.9（分支还在但永不成立＝假在）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「iy >= el.height * 0.6」命中 0 次（要 1）：侧带判据：纵向压满 60% 才算左右带（与 tools/smoke-usable.js 的 PROBE 逐条同形，±2px 对账靠的就是同形）
+红  M4 横向分支改成和纵向同一条（复制粘贴式退化，左右带又算不出来）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「iy >= el.height * 0.6」命中 0 次（要 1）：侧带判据：纵向压满 60% 才算左右带（与 tools/smoke-usable.js 的 PROBE 逐条同形，±2px 对账靠的就是同形）
+红  M5 contentInsets 漏掉左右（focusUsable 的 padding 仍是 16）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「return { top: i.top + MARK_HALF, right: i.right + MARK_HALF, bottom: i.bottom + MARK_HALF, left: i.left + M
+红  M6 usableRectPx 的右边不吃 ins.right（clampCapsules 把侧栏后面当可见）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「return { l: i.left, t: i.top, r: s.x - i.right, b: s.y - i.bottom };」命中 0 次（要 1）：usableRectPx 消费左右 → clampC
+红  M7 contentBounds 右下角不吃 ins.right（LOD 裁剪矩形退回全屏）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「map.containerPointToLatLng(L.point(s.x - i.right, s.y - i.bottom))」命中 0 次（要 1）：contentBounds 的右下角含 right（LO
+红  M8 fitUsable 用回 Leaflet 不认的 paddingTL（写了静默失效）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「paddingTopLeft: [i.left, i.top]」命中 1 次（要 2）：fitUsable 与 focusUsable 两处不对称内缩都带 left（Leaflet 真选项名，paddingTL 不
+红  M9 把侧栏选择器塞进 USABLE_BANDS（双份内缩：内容整体偏右）  → 本轮红 2 条，指定那条：§31: USABLE_BANDS 里出现了侧栏选择器 #list：双份内缩回归（fitUsable 对已被栅格扣掉的宽度再扣一次，地图内容整体偏右、fitBounds 留白过大）
+红  M10 带名单被改但 #list 写成 list（期望 0 那条靠字面命中，改名等于绕过守卫）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];」命中 0 次（要 1）：带名单逐字钉死：只有这四类
+红  M11 flyToSite 改回批次 13 的裸 map.flyTo（元素中心聚焦）  → 本轮红 4 条，指定那条：§31: topic-common.js 里还有改前形态「map.flyTo(pt(s), Math.max(map.getZoom(), 12), { duration: .6 });」：flyToSite 仍按元素中心裸 flyTo（批次 13 登记的残留
+红  M12 偏移不再走内容中心（双栏档左右内缩白算）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「.subtract(contentCenterPx())」命中 0 次（要 1）：把「内容中心 − 元素中心」算进偏移（这就是批次 13 那条残留的正解）
+红  M13 把 flyToUsable 的瞬时腿删掉（各处又开始自己裸 setView）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「if (opts && opts.instant) { map.setView(at, zoom); return; }」命中 0 次（要 1）：瞬时腿也在单点内，不是各处自己裸 setView
+红  M14 阈值 900→700（768 横屏被切成两栏，地图只剩 428px）  → 本轮红 3 条，指定那条：§31: design.css 里「@media (min-width: 900px)」命中 0 次（要 1）：整串恰一处（降到 700 会把 768×1024 切成两栏：地图只剩 428px，比手机还挤）
+红  M15 把一条双栏规则复制进手机档（本批红线：手机一根 CSS 不许动）  → 本轮红 3 条，指定那条：§31: body.topic-page 有 1 处落在 900 媒体查询之外（允许 0）：双栏 CSS 漏进手机档＝本批红线
+红  M16 左栏宽 token 被换成硬编码 320（栅格宽度和闸门读数脱钩）  → 本轮红 2 条，指定那条：§31: design.css 里「:root{--dv-side:340px}」命中 0 次（要 1）：左栏宽单点
+红  M17 地图不再让出侧栏宽度（双栏变成覆盖：左栏压在地图上面）  → 本轮红 1 条，指定那条：§31: design.css 里「body.topic-page main>.view{left:var(--dv-side)}」命中 0 次（要 1）：专题页地图从容器尺寸里就让出侧栏（不是靠内缩去补）
+红  M18 面板定宽那条丢了（当前 tab 的面板铺满整个视口）  → 本轮红 1 条，指定那条：§31: design.css 里「body.topic-page main>.view:not(#map){left:0;right:auto;width:var(--dv-side)}」命中 0 次（要 1）：当前 tab 的面板进左栏
+红  M19 地图常驻可见被删（切到列表右半屏直接黑）  → 本轮红 1 条，指定那条：§31: design.css 里「body.topic-page #map{display:block!important}」命中 0 次（要 1）：面板切走时地图仍可见（双栏的"专业软件"手感）
+红  M20 结果页 grid 去掉 !important（showStage 的 inline display 会把它抢回 block）  → 本轮红 1 条，指定那条：§31: design.css 里「body.dv-result #stageResult{display:grid!important;grid-template-columns:var(--dv-side) minmax(0, 1fr);column-ga
+红  M21 sticky 的跨行改成 grid-row:auto（左栏一滚动地图就跟着走）  → 本轮红 1 条，指定那条：§31: design.css 里「body.dv-result #stageResult>#mapBox{grid-column:2;grid-row:1/span 12;position:sticky;top:12px;height:calc(100dvh
+红  M22 窄栏里的卡片没有压回一栏（340px 里排两列＝挤破）  → 本轮红 1 条，指定那条：§31: design.css 里「body.topic-page #list .grid{grid-template-columns:1fr}」命中 0 次（要 1）：340px 窄栏里压回一栏（map.css 的 ≥700 两栏会把卡片挤破）
+红  M23 不再给 body 打 view 标记（双栏左面板选不中）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「document.body.dataset.view = tab;」命中 0 次（要 1）：双栏左面板由 switchTab 标注（不用 :has()：旧内核整块失效会露出空左条）
+红  M24 日线不再按天留存（悬停无从下手）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「routeDayLines.push(line);」命中 0 次（要 1）：每日线按序留存，悬停才有「哪条是这天」的答案
+红  M25 空掉的天不再占位（下标错位：悬停 D3 亮的是 D2）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「if (pts.length < 1) { routeDayLines.push(null); return; }」命中 0 次（要 1）：没画线的天占位：下标必须等于天序号，否则悬停 D3 亮的是 D2
+红  M26 高亮的可观测出口被删（闸门只能读像素）  → 本轮红 1 条，指定那条：§31: topic-common.js 里「dayLineWeights: function () { return routeDayLines.map(function (l) { return l ? l.options.weight : 0; }); 
+红  M27 mouseenter 把 ri/di 传反  → 本轮红 1 条，指定那条：§31: topic-common.js 里「hlRouteDay(p[0], p[1])」命中 0 次（要 1）：左列日块 mouseenter 接线在
+红  M28 planner 线段退回平铺 mapLayer（没有「按天」这条维度）  → 本轮红 2 条，指定那条：§31: planner.js 里还有改前形态「var seg = L.layerGroup().addTo(mapLayer);」：线段平铺进 mapLayer：没有按天分组，悬停高亮无从下手
+红  M29 基准线宽/透明度没留底（离开悬停回不去）  → 本轮红 1 条，指定那条：§31: planner.js 里「ln._bop = opts.opacity; ln._bw = opts.weight;」命中 0 次（要 1）：setStyle 就地改 options，不留底就不知道离开悬停后回到哪一档
+红  M30 只给正常日卡挂悬停，赶路日漏掉  → 本轮红 1 条，指定那条：§31: planner.js 里「onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"」命中 1 次（要 2）：两张日卡（正常/转场）都挂：
+红  M31 dv-result 作用域没摘（别的阶段也被双栏）  → 本轮红 1 条，指定那条：§31: planner.js 里「document.body.classList.toggle('dv-result', name === 'stageResult');」命中 0 次（要 1）：双栏作用域只开在结果阶段（别的阶段仍是单列窄卡）
+红  M32 topic.html 的 body 回到裸标签（双栏作用域没开）  → 本轮红 2 条，指定那条：§31: topic.html 里还有改前形态「<body>」：裸 body：双栏作用域没开
+红  M33 U14/U15 不再借道真带元素（改插无名 div／删样式都会让这条串消失，而那条绿光是假绿）  → 本轮红 1 条，指定那条：§31: tools/smoke-usable.js 里「b.setAttribute('style', 'display:block;position:fixed;top:0;height:100vh;width:120px;transform:none;o
+红  M34 把 U16 改名成 U16x（判据还在但 id 漂移——齐备检必须认「id + 空格」而不只认前缀）  → 本轮红 1 条，指定那条：§31: tools/smoke-usable.js 缺 U16 这条判据（批次 18 的七条浏览器腿是一整组，少一条就是有个症状没人管）
+红  M35 README 去掉 §31 登记（新闸门不写进 README 就等于没装）  → 本轮红 1 条，指定那条：§31: README.md 的 verify 清单没提 §31（新闸门不写进 README 就等于没装）
+红  M36 方案文档去掉「批次 18 已实施」（这批在手机上看不见，只能靠文档留在案上）  → 本轮红 1 条，指定那条：§31: 方案文档没登记「批次 18 已实施」（这批在手机上看不见，收工状态只能靠文档留在案上）
+红  M37 锚点表被削减（守卫自己也要有线）  → 本轮红 1 条，指定那条：§31: 锚点表被削减：43 条（批次 18 落地时实测 44 条）
+红  M38 四元组形状被拆（少写一个字段，这条锚从此一次都没跑过）  → 本轮红 1 条，指定那条：§31: A31 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：["ins.left = Math.max(ins.left, r.right - el.left);",1,"少了文件字段"]
+
+=== mut-verify31（源码腿）: 38 条按预期红 / 0 条异常 / 共 38 条 ===
+异常＝0 才说明 §31 每条锚都有线；打不红的锚要先修锚再收工。

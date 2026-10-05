@@ -324,6 +324,7 @@
 <script src="results.js"></script>
 <script src="vault.js"></script>
 <script src="ui.js"></script>
+<script src="ticketbox.js"></script>
 <script src="wishlist.js"></script>
 <script>
   // ===== 保留原业务逻辑（P1 仅视觉重构） =====
@@ -504,6 +505,8 @@
   try{
     /* 附近想去打卡提示（共享实现见 wishlist.js Wish.nearbyNudge） */
     if(window.Wish && Wish.nearbyNudge && localStorage.getItem('tn_onboarded')==='1') Wish.nearbyNudge(3500);
+    /* 「我的票」24h 提醒：同一组件的另一条触发条件（时间是 near[0] 距离）——见 ticketbox.js */
+    if(window.TicketBox && TicketBox.nudge) TicketBox.nudge();
   }catch(e){}
 })();
 </script>

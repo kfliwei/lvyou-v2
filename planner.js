@@ -217,18 +217,21 @@
   /* 规划进度快照（sessionStorage）：WebView 返回/刷新后可恢复 */
   var SS_KEY = 'tn_planner_state';
   var ssTimer = null;
+  function writeSnap() {
+    try {
+      sessionStorage.setItem(SS_KEY, JSON.stringify({
+        stage: curStage, regions: state.regions, days: state.days, prefs: state.prefs, autoPrefs: state.autoPrefs,
+        start: state.start, end: state.end, startDate: state.startDate, isLoop: state.isLoop, wiz: state.wiz,
+        candidates: state.candidates, selected: state.selected, trip: state.trip,
+        fromWish: state.fromWish, amapSorted: state.amapSorted
+      }));
+    } catch (e) {}
+  }
   function persistState() {
+    /* 导航走之前必须同步落盘：跳到 checklist.html 会把这里的定时器全部带走，
+       只写「等 350ms」的那一版会让返回后的行程 id 与清单桶对不上。 */
     clearTimeout(ssTimer);
-    ssTimer = setTimeout(function () {
-      try {
-        sessionStorage.setItem(SS_KEY, JSON.stringify({
-          stage: curStage, regions: state.regions, days: state.days, prefs: state.prefs, autoPrefs: state.autoPrefs,
-          start: state.start, end: state.end, startDate: state.startDate, isLoop: state.isLoop, wiz: state.wiz,
-          candidates: state.candidates, selected: state.selected, trip: state.trip,
-          fromWish: state.fromWish, amapSorted: state.amapSorted
-        }));
-      } catch (e) {}
-    }, 350);
+    ssTimer = setTimeout(writeSnap, 350);
   }
   function isSelected(s) { var u = nodeUid(s); return state.selected.some(function (x) { return nodeUid(x) === u; }); }
 
@@ -643,7 +646,7 @@
          否则分组按 AI、日卡按直线，同一行程两本账。 */
       var tripName = (arData.dest || '') + ' · ' + r.name + ' ' + dayLists.length + ' 日' + arData.trans + '之旅';
       var commitAi = function (matrix) {
-        state.trip = { name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start, mkLeg(matrix)), dist: matrix || null, narrative: null };
+        state.trip = { id: 'p' + Date.now(), name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start, mkLeg(matrix)), dist: matrix || null, narrative: null };
         renderAiRoutes(); /* 返回输入页时备选卡仍在，可直接换一条 */
         showStage('stageResult'); renderResult();
         if (miss) toast('已跳过 ' + miss + ' 处无法定位的景点');
@@ -667,6 +670,8 @@
     /* P2-7 转场：阶段切换走 View Transition（老内核、减动效、file:// 下 UI.vt 直接执行，与改前同行为） */
     UI.vt(function () {
       ['stageInput', 'stagePick', 'stageResult'].forEach(function (n) { $id(n).style.display = n === name ? 'block' : 'none'; });
+      /* 批次18 双栏：只有结果页有左右两栏，body 类是 design.css 那条媒体查询里的作用域开关 */
+      document.body.classList.toggle('dv-result', name === 'stageResult');
       window.scrollTo(0, 0);
     });
     persistState();
@@ -866,8 +871,8 @@
     if (hint) { if (state.widenMsg) { hint.style.display = 'block'; hint.innerHTML = TI('info') + state.widenMsg; } else hint.style.display = 'none'; }
     $id('candList').innerHTML = list.map(function (s) {
       var on = isSelected(s);
-      return '<div class="cand' + (on ? ' on' : '') + '" onclick="window.plannerToggleCand(\'' + esc(nodeUid(s)) + '\')">' +
-        '<span class="ck">' + (on ? TI('check', 11) : '') + '</span>' +
+      return '<div class="cand" onclick="window.plannerToggleCand(\'' + esc(nodeUid(s)) + '\')">' +
+        '<span class="ckbox' + (on ? ' on' : '') + '">' + (on ? TI('check', 11) : '') + '</span>' +
         '<span class="dot" style="background:' + themeColor(s.theme) + '"></span>' +
         '<span class="main"><b>' + esc(s.name) + (s.flag && s.flag.indexOf('m') >= 0 ? '<span class="bdg bdg-m">必去</span>' : '') + (s.flag && s.flag.indexOf('h') >= 0 ? '<span class="bdg bdg-h">网红</span>' : '') + (s.__novelty ? '<span class="bdg bdg-n">' + TI('sparkles', 12) + '换个不一样的</span>' : '') + (s.__poi ? '<span class="bdg bdg-t">临时</span>' : '') + '</b>' +
         '<small>' + esc([s.region, s.city].filter(Boolean).join(' · ')) + (s.theme ? ' · ' + esc(s.theme) : '') + '</small></span></div>';
@@ -1021,14 +1026,14 @@
       var seal = 'day-seal ds-' + (di % 6 + 1);
       if (d.transit) {
         /* 转场日：只赶路、不塞景点，没有起讫站点可导航，所以不挂导航按钮 */
-        h += '<div class="day-card transit"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
+        h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
           '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
           '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div></div>';
         return;
       }
       var allDone = d.stops.length > 0 && d.stops.every(function (s) { return s.done; });
-      h += '<div class="day-card"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
+      h += '<div class="day-card" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
         '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' + wxSlot(trip, di) +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
       if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
@@ -1065,7 +1070,51 @@
     }
     $id('resultBody').innerHTML = h;
     wxHydrate(trip);   /* 缓存没命中的日子在这一步发请求；拿不到就永远不出现 .wx */
+    renderPretrip();
   }
+  /* ---------- 出发前卡（行前清单在结果页的入口） ----------
+     auto 条目要站点事实（elev/best）才推得出来，而分省详情是懒加载的：renderDaysBody 会在
+     每个省份到货后重跑一次，所以 syncAuto 挂在那条线上——首屏只有通识四件，到货后自己长全。
+     预览行不给 .ckbox 复选框（点了没反应的热区比没有更糟），要勾就进 checklist.html。 */
+  function pretripInput() {
+    var trip = state.trip; if (!trip) return null;
+    var details = {};
+    flatStops().forEach(function (s) { if (detailCache[s.name]) details[s.name] = detailCache[s.name]; });
+    return { stops: flatStops(), details: details, startDate: trip.startDate || '', days: trip.days.length };
+  }
+  /* 分省详情是否都到货了：到货前只许生长、不许剪枝（见 checklist.js syncAuto 的 prune）。
+     没有对应数据文件的地方（自建点、港澳台之外的别名）视作「本来就没事实」，不算未到货。 */
+  function factsSettled() {
+    var ok = true;
+    flatStops().forEach(function (s) {
+      var f = PROV_FILE[s.region];
+      if (f && provLoading[f] !== 2) ok = false;
+    });
+    return ok;
+  }
+  function renderPretrip() {
+    var box = $id('pretripCard');
+    var trip = state.trip;
+    if (!box || !trip || !window.Checklist) return;
+    var tid = ensureTripId(trip);
+    Checklist.syncAuto(tid, pretripInput(), factsSettled());
+    var st = Checklist.statsOf(tid), todo = Checklist.listOf(tid).filter(function (x) { return !x.done; });
+    $id('ptCount').textContent = st.total ? ('已打包 ' + st.done + ' / ' + st.total) : '还没生成';
+    $id('ptBar').style.width = (st.total ? Math.round(st.done / st.total * 100) : 0) + '%';
+    $id('ptList').innerHTML = todo.length
+      ? todo.slice(0, 4).map(function (x) {
+          return '<div class="cand"><span class="dot" style="background:var(--color-line-strong)"></span><span class="main"><b>' + esc(x.text) + '</b>' +
+            (x.src ? '<small>' + esc(x.src) + '</small>' : '') + '</span></div>';
+        }).join('')
+      : '<div style="font-size:var(--fs-3);color:var(--color-muted);padding:2px 0">' + (st.total ? TI('check') + ' 该打包的都打好了' : '填上出发日期或让分省数据到货，建议会自动补齐') + '</div>';
+    if (todo.length > 4) $id('ptList').innerHTML += '<div style="font-size:var(--fs-2);color:var(--color-muted);padding:2px 0">还有 ' + (todo.length - 4) + ' 条…</div>';
+    box.style.display = 'block';
+  }
+  window.plannerOpenChecklist = function () {
+    var trip = state.trip; if (!trip) return;
+    writeSnap();   /* 未保存的行程靠 sessionStorage 快照把 id 带过去，回来还能接上同一桶清单 */
+    location.href = 'checklist.html?trip=' + encodeURIComponent(ensureTripId(trip));
+  };
   function renderNarrative(n) {
     $id('narrBox').innerHTML = '<div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:6px">AI 行程故事</div>' +
       '<div class="story">' + esc(n.story) + '</div>' +
@@ -1114,6 +1163,7 @@
 
   /* 地图 */
   var map = null, mapLayer = null, mapGen = 0;
+  var planDayGroups = [];   /* 批次18 双栏：按天分组的线段，左栏悬停某日只留那天的线（drawMap 每轮重建） */
   /* ---------- 浏览已选弹层 ---------- */
   window.plannerCloseBrowse = function () { var mk = $id('browseMask'); if (mk) mk.remove(); };
   window.plannerOpenBrowse = function () {
@@ -1405,20 +1455,29 @@
     if (trip.end && trip.end.lat != null) seq.push(trip.end);   /* 终到地：末站 → 终点（有坐标时） */
     var routeReal = 0;
     var LINE = cssColor('--route-color', '#AE5738'), CASE = cssColor('--color-gold', '#8F5D0E');
+    /* 批次18 双栏：线段按天分组存着，左栏悬停某日才只留那天的线。pts 本来就是按天摊平的，
+       所以 dayOf 的下标与它一一对应；起点并进 D1、终点并进最后一天，转场日没有站点自然没有线。 */
+    var dayOf = [];
+    trip.days.forEach(function (d, k) { d.stops.forEach(function () { dayOf.push(k); }); });
+    var own = [];
+    if (trip.start && trip.start.lat != null) own.push(0);
+    own = own.concat(dayOf);
+    if (trip.end && trip.end.lat != null) own.push(trip.days.length - 1);
+    planDayGroups = trip.days.map(function () { return L.layerGroup().addTo(mapLayer); });
     for (var i = 1; i < seq.length; i++) {
       var a = [seq[i - 1].lat, seq[i - 1].lng], b = [seq[i].lat, seq[i].lng];
       if (a[0] == null || b[0] == null) continue;
       bnd.push(a, b);
-      var seg = L.layerGroup().addTo(mapLayer);
+      var seg = L.layerGroup().addTo(planDayGroups[own[i]] || mapLayer);
       /* 双色：鎏金底衬 + 主色线身（离线直线示意） */
-      L.polyline([a, b], { color: CASE, weight: 6, opacity: .4, lineCap: 'round' }).addTo(seg);
-      L.polyline([a, b], { color: LINE, weight: 3, opacity: .85, dashArray: '7 7' }).addTo(seg);
+      planLine(seg, [a, b], { color: CASE, weight: 6, opacity: .4, lineCap: 'round' });
+      planLine(seg, [a, b], { color: LINE, weight: 3, opacity: .85, dashArray: '7 7' });
       (function (aa, bb, sg) {
         amapRoutePolyline({ lat: aa[0], lng: aa[1] }, { lat: bb[0], lng: bb[1] }, function (pts) {
           if (pts && pts.length > 1) {
             sg.clearLayers();
-            L.polyline(pts, { color: CASE, weight: 7, opacity: .45, lineCap: 'round' }).addTo(sg);
-            L.polyline(pts, { color: LINE, weight: 4, opacity: .95 }).addTo(sg);
+            planLine(sg, pts, { color: CASE, weight: 7, opacity: .45, lineCap: 'round' });
+            planLine(sg, pts, { color: LINE, weight: 4, opacity: .95 });
             routeReal++;
           } else if (!getAmapKey() && !routeHintShown) {
             routeHintShown = true;
@@ -1436,6 +1495,27 @@
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);
   }
+  /* 批次18：建线时把基准透明度/线宽记在实例上——setStyle 就地改 options，
+     不留底就没有「离开悬停后回到哪一档」的答案。 */
+  function planLine(group, latlngs, opts) {
+    var ln = L.polyline(latlngs, opts);
+    ln._bop = opts.opacity; ln._bw = opts.weight;
+    ln.addTo(group);
+    return ln;
+  }
+  /* 左栏悬停某日 → 那天的线加粗提亮，其余压到三成。手机档没有悬停指针，这条只在桌面/平板生效。 */
+  function hlPlanDay(di) {
+    planDayGroups.forEach(function (g, k) {
+      var on = di < 0 || k === di;
+      g.eachLayer(function (sg) {
+        sg.eachLayer(function (ln) {
+          if (ln._bop == null) return;
+          ln.setStyle({ opacity: on ? ln._bop : Math.round(ln._bop * 30) / 100, weight: on ? ln._bw : Math.max(2, ln._bw - 1) });
+        });
+      });
+    });
+  }
+  window.plannerHlDay = hlPlanDay;
 
   /* ---------- 落地动作 ---------- */
   function flatStops() { var r = []; (state.trip && state.trip.days || []).forEach(function (d) { d.stops.forEach(function (s) { r.push(s); }); }); return r; }
@@ -1830,6 +1910,23 @@
 
   /* ---------- 已保存行程 ---------- */
   function loadTrips() { try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; } }
+  /* 行前清单按 tripId 分桶，而批次 17 之前生成的行程没有 id（只在保存那一刻才补）。
+     旧行程首次被打时补一个并写回 tn_trips，否则每次打开都换一个新 id、清单永远接不上。 */
+  function ensureTripId(t) {
+    if (!t) return '';
+    if (t.id) return t.id;
+    t.id = 'p' + Date.now();
+    /* 补完号就立刻落一次快照：清单桶是按这个 id 建的，快照里却没有它的话，
+       刷新/返回后 planner 会再补一个新号，前一趟的勾选就找不回来了。 */
+    persistState();
+    var list = loadTrips();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].name === t.name && list[i].createdAt === t.createdAt && !list[i].id) {
+        list[i].id = t.id; lsSet('tn_trips', JSON.stringify(list)); break;
+      }
+    }
+    return t.id;
+  }
   function renderTrips() {
     var list = loadTrips();
     var html = list.map(function (t, i) {
@@ -1849,14 +1946,18 @@
     state.trip = list[i]; showStage('stageResult'); renderResult();
   };
   window.plannerDelTrip = function (i) {
-    UI.confirm({ title: '删除行程', text: '删除后可在 5 秒内撤销，之后不可恢复。', okText: '删除', danger: true }, function (ok) {
+    UI.confirm({ title: '删除行程', text: '删除后可在 5 秒内撤销，之后不可恢复。行前清单的勾选也会一并删除。', okText: '删除', danger: true }, function (ok) {
       if (!ok) return;
       var list = loadTrips();
       var removed = list[i];
+      var ckRaw = null;
+      try { ckRaw = localStorage.getItem('tn_checklist'); } catch (e) {}
+      /* 清单桶跟着行程走：只删行程不删条目，孤儿桶会无界攒在 localStorage 里 */
+      if (removed && removed.id && window.Checklist) Checklist.clearTrip(removed.id);
       list.splice(i, 1);
       if (!lsSet('tn_trips', JSON.stringify(list))) return;
       renderTrips();
-      if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); renderTrips(); } });
+      if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); if (ckRaw != null) lsSet('tn_checklist', ckRaw); renderTrips(); } });
     });
   };
 
@@ -2021,7 +2122,7 @@
     if (w.sortOrder === 'desc') ordered = ordered.slice().reverse();
     var days = splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix));
     var name = (state.regions.join('/') || '旅行') + ' ' + days.length + ' 日' + (state.prefs.length ? state.prefs.join('·') : '') + '之旅';
-    state.trip = { name: name, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: days, dist: matrix || null, narrative: null };
+    state.trip = { id: 'p' + Date.now(), name: name, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: days, dist: matrix || null, narrative: null };
     showStage('stageResult'); renderResult();
   }
   window.plannerSchedule = doSchedule;

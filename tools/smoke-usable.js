@@ -241,6 +241,104 @@ const brief = a => a.out.length ? a.out.slice(0, 3).map(o => o.t + ' 越' + o.ov
   check('U11 390 档：产品内缩＝闸门内缩', !!s390.prod && s390.prod.every((v, i) => Math.abs(v - s390.gate[i]) <= 2), '产品=' + (s390.prod || []).join(',') + ' 闸门=' + s390.gate.join(','));
   check('U12 390 档：首屏 ' + s390.marks.length + ' 枚标记全在可用区内且胶囊居中', st390.stable && a390.out.length === 0 && a390.offCenter.length === 0, '稳定' + st390.stable + ' 越界 ' + a390.out.length + '：' + brief(a390) + ' 偏移 ' + a390.offCenter.slice(0, 2).join(' '));
 
+  /* ---------- 批次 18 · 横向内缩 + 双栏桌面档 ----------
+     U14/U15 不动布局：把带名单里真有的 #routeBanner 临时摆成一条「左右带」，就能测出横向分支
+     真的产出 ins.left/right（改前这两个值结构上恒 0，页面左边压着多宽的浮层都一样）。
+     必须借道真带元素：usableInsets 只遍历 USABLE_BANDS 那四个选择器，新插一个无名 div 它看不见，
+     那条绿光是假绿。条宽 120、纵向压满整屏 ⇒ 过 `iy ≥ 0.6·h` 而不过 `ix ≥ 0.6·w`，只能走侧带分支。 */
+  await page.setViewport({ width: 452, height: 995, deviceScaleFactor: 2 });
+  await page.goto(BASE + '/topic.html?p=sx', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3000);
+  const bandProbe = side => page.evaluate(`(() => {
+    const mr = document.getElementById('mapEl').getBoundingClientRect();
+    const b = document.getElementById('routeBanner');
+    const old = b.getAttribute('style') || '';
+    b.setAttribute('style', 'display:block;position:fixed;top:0;height:100vh;width:120px;transform:none;opacity:1;' +
+      ('${side}' === 'left' ? 'left:' + Math.round(mr.left) + 'px' : 'left:' + Math.round(mr.right - 120) + 'px'));
+    const i = window.TopicEngine.usableInsets();
+    const g = [i.left, i.right];
+    if (old) b.setAttribute('style', old); else b.removeAttribute('style');
+    return g;
+  })()`);
+  const bl = await bandProbe('left'), br = await bandProbe('right');
+  check('U14 临时左带 120px → 产品算出 ins.left≈120 且没伪造右内缩（改前结构性恒 0）',
+    Math.abs(bl[0] - 120) <= 2 && bl[1] === 0, '左带时(左,右)=' + bl.join(','));
+  check('U15 临时右带 120px → 产品算出 ins.right≈120 且左右不串',
+    Math.abs(br[1] - 120) <= 2 && br[0] === 0, '右带时(左,右)=' + br.join(','));
+
+  /* U16/U17：1440×900 桌面档 */
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.goto(BASE + '/topic.html?p=sx', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3200);
+  const dv = await page.evaluate(`(() => {
+    const side = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dv-side')) || 0);
+    const mr = document.getElementById('mapEl').getBoundingClientRect();
+    const lr = document.getElementById('list').getBoundingClientRect();
+    const i = window.TopicEngine.usableInsets();
+    return { side: side, mleft: Math.round(mr.left), mwidth: Math.round(mr.width), vw: innerWidth,
+      lright: Math.round(lr.right), listShown: getComputedStyle(document.getElementById('list')).display !== 'none',
+      tab: document.body.dataset.view, insL: i.left, insR: i.right };
+  })()`);
+  check('U16 1440 双栏：地图可视盒从侧栏右缘起算（' + dv.mleft + 'px），且产品对侧栏零内缩（双份内缩＝症状「内容整体偏右」）',
+    dv.tab === 'map' && dv.listShown && Math.abs(dv.mleft - dv.side) <= 2 && Math.abs(dv.lright - dv.side) <= 2 && Math.abs(dv.mwidth - (dv.vw - dv.side)) <= 2 && dv.insL === 0 && dv.insR === 0,
+    '--dv-side=' + dv.side + ' 地图左=' + dv.mleft + ' 宽=' + dv.mwidth + '/视口 ' + dv.vw + ' 列表右=' + dv.lright + ' 内缩(左,右)=' + dv.insL + ',' + dv.insR);
+  const hv = await page.evaluate(`(() => {
+    document.querySelector('.tabbar button[data-tab="route"]').click();
+    const w0 = window.TopicEngine.dayLineWeights();
+    const di = w0.findIndex(w => w > 0);
+    if (di < 0) return null;
+    const el = document.querySelector('#routes .day[data-day="0:' + di + '"]');
+    if (!el) return null;
+    return { sel: '#routes .day[data-day="0:' + di + '"]', di: di, w0: w0, nOther: w0.filter((w, k) => k !== di && w > 0).length };
+  })()`);
+  await sleep(400);
+  let hw = null;
+  if (hv) {
+    await page.hover(hv.sel);
+    await sleep(260);
+    const w1 = await page.evaluate('window.TopicEngine.dayLineWeights()');
+    await page.mouse.move(1000, 420);   /* 移出左列触发 mouseleave */
+    await sleep(260);
+    hw = { w1: w1, w2: await page.evaluate('window.TopicEngine.dayLineWeights()') };
+  }
+  check('U17 1440 左列悬停 D' + (hv ? hv.di + 1 : '?') + '：该日线段加粗到 7、其余 ' + (hv ? hv.nOther : 0) + ' 条压到 2.5，离开后逐条回到基准',
+    !!hv && !!hw && hw.w1[hv.di] === 7 && (hv.nOther === 0 || hw.w1.filter((w, k) => k !== hv.di && w > 0).every(w => w === 2.5)) && hw.w2.join(',') === hv.w0.join(','),
+    hv ? '基准=' + hv.w0.join(',') + ' 悬停=' + (hw ? hw.w1.join(',') : '未读到') + ' 离开=' + (hw ? hw.w2.join(',') : '未读到') : '没找到可悬停的日块');
+
+  /* U18：768×1024 横屏保持单栏（阈值 900 的理由：两栏后地图只剩 428px，比手机还挤） */
+  await page.setViewport({ width: 768, height: 1024, deviceScaleFactor: 1 });
+  await page.goto(BASE + '/topic.html?p=sx', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3000);
+  const q768 = await page.evaluate(`(() => {
+    const mr = document.getElementById('mapEl').getBoundingClientRect();
+    return { mleft: Math.round(mr.left), mwidth: Math.round(mr.width), vw: innerWidth,
+      listShown: getComputedStyle(document.getElementById('list')).display !== 'none' };
+  })()`);
+  check('U18 768×1024 仍单栏：地图满宽且左列表没有偷偷变成侧栏',
+    q768.mleft <= 1 && Math.abs(q768.mwidth - q768.vw) <= 1 && !q768.listShown,
+    '地图左=' + q768.mleft + ' 宽=' + q768.mwidth + '/视口 ' + q768.vw + ' 列表显示=' + q768.listShown);
+
+  /* U19/U20：手机三档几何不变＝本批「不动手机档一根 CSS」的最有力反证 */
+  const mob = [];
+  for (const w of [320, 390, 452]) {
+    await page.setViewport({ width: w, height: w === 320 ? 640 : (w === 390 ? 844 : 995), deviceScaleFactor: 2 });
+    await page.goto(BASE + '/topic.html?p=sx', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(2800);
+    mob.push({ w: w, r: await page.evaluate(`(() => {
+      const mr = document.getElementById('mapEl').getBoundingClientRect();
+      const i = window.TopicEngine.usableInsets();
+      return { mleft: Math.round(mr.left), mwidth: Math.round(mr.width), vw: innerWidth,
+        l: i.left, rr: i.right, t: i.top, b: i.bottom,
+        listShown: getComputedStyle(document.getElementById('list')).display !== 'none' };
+    })()`) });
+  }
+  check('U19 手机三档：地图容器仍满宽贴着视口左边（双栏 CSS 一条都没漏进手机档）',
+    mob.every(m => m.r.mleft <= 1 && Math.abs(m.r.mwidth - m.r.vw) <= 1 && !m.r.listShown),
+    mob.map(m => m.w + '→左' + m.r.mleft + '/宽' + m.r.mwidth).join(' '));
+  check('U20 手机三档：横向内缩恒 0，纵向仍扣到底带（横向分支没把手机档算出新的死区）',
+    mob.every(m => m.r.l === 0 && m.r.rr === 0 && m.r.b >= 60),
+    mob.map(m => m.w + '→(左' + m.r.l + ',右' + m.r.rr + ',底' + m.r.b + ')').join(' '));
+
   check('U13 全程无页面未捕获异常', errs.length === 0, errs.slice(0, 3).join(' | '));
 
   await browser.close();
