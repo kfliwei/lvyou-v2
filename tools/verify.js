@@ -2410,6 +2410,141 @@ const EMOJI_MARK = 'emoji-ok:';
   fail += bad26;
 }
 
+/* ============ §27 门票与事实新鲜度闸门 ============
+   批次 15。这一节的由来是一次工具事故（0-1）：tools/gen-tickets.js 里写盘用的目标串
+   和 site-tickets.js:6 的实际声明行各自演化，区间替换把 SEED 写成了语法错误的文件。
+   更阴的是它的失败方向是反的——「有成果必失败、无成果必成功」：查到 0 条时合并结果空、
+   走 exit 0 不写盘（看着像成功），查到 N 条时才开始炸。
+   所以本节最有价值的不是第几条文案锚，而是下面这条**字面量对账**：把脚本里的 SEED_DECL
+   真值抽出来，直接拿去 site-tickets.js 里数命中数，!== 1 即红。装上它之后，
+   同一类漂移在任何一次 commit 里都会先红，不可能再靠人眼发现。
+   其余锚点各钉一条口径：票价只能人工进种子（脚本不许写 p）、无 Key 不许发请求、
+   同名异地 ±0.2° 两条比较、实时源要标出来源等级、tn_tk_ 永远不进备份。
+   两条实现坑沿用 §24：needle 里不许出现块注释（flat27 先剥注释，写了永远 0 命中），
+   所以「未收录就不显示价格行」这类文件头纪律走 RAW；期望 0 的锚点必须配正向对照。
+   ============================================================ */
+{
+  let bad27 = 0;
+  const F27 = m => { bad27++; console.log('FAIL §27 门票闸门: ' + m); };
+  const flat27 = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  const cnt27 = (src, needle) => src.split(needle).length - 1;
+  const rd27 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const FILES27 = ['site-tickets.js', 'topic-common.js', 'backup.js', 'tools/gen-tickets.js', 'tools/smoke-tickets.js'];
+  const SRC27 = {}, RAW27 = {};
+  FILES27.forEach(f => {
+    if (!fs.existsSync(f)) { F27('缺 ' + f); SRC27[f] = ''; RAW27[f] = ''; return; }
+    RAW27[f] = rd27(f);
+    SRC27[f] = flat27(RAW27[f]);
+  });
+
+  /* ① 文件头三条纪律（注释体，只能走 RAW） */
+  if (cnt27(RAW27['site-tickets.js'], '未收录就不显示价格行，绝不编造') !== 1)
+    F27('site-tickets.js 文件头没有「未收录就不显示价格行，绝不编造」这条纪律（票价是唯一不能自动生成的字段）');
+  if (cnt27(RAW27['tools/gen-tickets.js'], '合并纪律') !== 1)
+    F27('tools/gen-tickets.js 头没有「合并纪律」注释（h 只在新值非空时覆盖 / p 绝不写 / 新条目才落 u——这三条一旦没人写下来就会被顺手改掉）');
+
+  /* ② 字面量对账：脚本的写盘锚点必须能在真文件里命中且只命中一次 */
+  const declM = RAW27['tools/gen-tickets.js'].match(/const SEED_DECL = '([^']+)';/);
+  if (!declM) {
+    F27('tools/gen-tickets.js 里抽不出 SEED_DECL 字面量（它必须是这个单引号常量；换成模板串/内联字面量就等于把对账闸门关掉）');
+  } else {
+    const hit = cnt27(SRC27['site-tickets.js'], declM[1]);
+    if (hit !== 1)
+      F27('字面量对账红：脚本要替换的串「' + declM[1] + '」在 site-tickets.js 里命中 ' + hit + ' 次（要 1 次）。0 次=脚本会写坏文件，多次=替换区间不确定。');
+  }
+
+  /* ③ SEED 内容口径：沙箱加载后逐条查 */
+  let seed27 = null;
+  try {
+    const ctx27 = { window: {} };
+    vm.createContext(ctx27);
+    vm.runInContext(RAW27['site-tickets.js'], ctx27);
+    seed27 = ctx27.window.SITE_TICKETS_SEED || null;
+  } catch (e) { F27('site-tickets.js 在沙箱里加载失败：' + e.message + '（SEED 被写成语法错误就是这里先炸）'); }
+  if (seed27) {
+    const names27 = Object.keys(seed27);
+    /* 条数下限取当前实测 9 条：它挡得住「脚本把 SEED 回写成空/残缺」（0-1 的失效形态就是丢条目），
+       挡不住「比现在少几条」。15-B 跑完 h 档 381 条后要把它升到 ≥ 300，那时这条才完整。 */
+    const SEED_MIN27 = 9;
+    if (names27.length < SEED_MIN27)
+      F27('SEED 只剩 ' + names27.length + ' 条（下限 ' + SEED_MIN27 + '）：写盘路径把种子写丢了');
+    names27.forEach(k => {
+      const it = seed27[k];
+      if (!/^\d{4}-\d{2}$/.test(it.u || ''))
+        F27('SEED[' + k + '].u =「' + it.u + '」不是 YYYY-MM：每条事实必须带核验年月，否则「更新于」那行没有内容可印');
+      if (it.p && !/元|免费/.test(it.p))
+        F27('SEED[' + k + '].p =「' + it.p + '」是裸数字/无口径票价（必须含「元」或「免费」，票价要带旺季淡季或含不含观光车的口径）');
+    });
+  }
+
+  /* ④ 代码锚点（空白归一后整串计数） */
+  const A27 = [
+    ['site-tickets.js', 'var DAY = 30 * 24 * 3600 * 1000;', 1, '缓存 30 天：实时数据不许永久留在本机'],
+    ['site-tickets.js', "function lsKey(n) { return 'tn_tk_' + n; }", 1, '缓存键前缀只有一处定义（改前缀要同步 backup 禁入表）'],
+    ['site-tickets.js', 'if (!key) return cb(null);', 1, '无 Key 直接放弃，不发请求也不报错'],
+    ['site-tickets.js', "Math.abs(loc[0] - (+site.lng || 0)) < 0.2", 1, '同名异地保护·经度那一半（全国同名 POI 一大把，靠坐标挡）'],
+    ['site-tickets.js', "Math.abs(loc[1] - (+site.lat || 0)) < 0.2", 1, '同名异地保护·纬度那一半（两条各 1 处，缺一半就是没挡）'],
+    ["site-tickets.js", "w(t && t.h ? { h: t.h, p: '', u: now, src: 'amap' } : null)", 1, '实时腿只给营业时间、永远不给票价（高德无票价 API）'],
+    ['site-tickets.js', 'cb({ h: seed.h || \'\', p: seed.p || \'\', u: seed.u || \'\', src: \'seed\' })', 1, '种子优先级最高，且带 src 供 UI 标可信等级'],
+    ['topic-common.js', "if (!t || (!t.h && !t.p)) { el.style.display = 'none'; return; }", 1, '无数据整行隐藏：不许出现「未收录」占位天天在用户眼前刷负分'],
+    ['topic-common.js', 'if (_s0) loadTicket(_s0);', 1, '门票腿真挂在弹层渲染路径上（SiteTickets 只有这一个调用点，摘掉它种子再全也印不出来）'],
+    ['topic-common.js', "loadTicket(SITES[curSite]);", 1, '详情异步补齐后刷新面板仍要重走门票腿，否则懒加载页永远空着'],
+    ['topic-common.js', "'更新于 '", 1, 'u 的语义是「更新于」（旧文案「核对」读起来像让用户自己去核对）'],
+    ['topic-common.js', '人工收录，未标核验时间', 1, '种子缺 u 时的口径（不猜、不留空）'],
+    ['topic-common.js', '来自高德，未标核验时间', 1, '缓存/实时缺 u 时的口径（不猜、不留空）'],
+    ['topic-common.js', "t.src === 'amap' ? '（高德实时）'", 1, '实时抓来的营业时间要标来源等级，与人工种子分开'],
+    ['tools/gen-tickets.js', 'if (!h) return;', 1, '查不到的条目不建空壳、也不抹既有 h（EMPTY 直接跳过）'],
+    ['tools/gen-tickets.js', "merged[k] = { h: h, p: '', u: now };", 1, '只有新条目才落 p:\'\'：脚本从网络上拿不到票价，也不许把人工 p 覆盖掉'],
+    ['tools/gen-tickets.js', 'if (before.indexOf(SEED_DECL, start + 1) >= 0) die(', 1, '锚点多命中即拒绝写盘（宁可不写，不写坏）'],
+    ['tools/gen-tickets.js', "if (hasFlag('--selftest')) runSelftest();", 1, '离线自测常驻：改一次写盘路径就要能不打网络验证它'],
+    ['tools/gen-tickets.js', "if (hasFlag('--select')) {", 1, '--select 只报分母不烧配额：跑批量前先知道这批要发多少次请求'],
+    ['backup.js', "'tn_tk_',", 1, '门票缓存仍在禁入备份表里（它能重抓，进备份只会把同步体积撑大）'],
+    /* 浏览器腿：这一节要钉住 smoke 自己别退化成假闸 */
+    ['tools/smoke-tickets.js', "if (s.indexOf('restapi.amap.com') < 0) return real(u);", 1, 'fetch 桩只截高德那一条腿，其余请求照常放行（全截就等于在测桩）'],
+    ['tools/smoke-tickets.js', 'T5 无 Key 时零次高德请求', 1, '离线口径靠数调用次数证明，不是读代码'],
+    ['tools/smoke-tickets.js', 'T11 未收录景点整行隐藏且行内不出现「元」', 1, '防编造票价的浏览器侧那条'],
+    ['tools/smoke-tickets.js', 'T12 实时营业时间缀「（高德实时）」', 1, '来源等级必须真渲染出来'],
+    ['tools/smoke-tickets.js', 'el.style.display || getComputedStyle(el).display', 1, '未收录那行的终态要兜 computed：只读 style.display 会永远拿到空串（实测第三次红）'],
+    ['tools/smoke-tickets.js', 'window.SITES[+c.dataset.i]', 1, '样本从当页列表现挑：写死站名会挑到该页根本没有的景点（p=sx 里没有大雁塔）'],
+  ];
+  A27.forEach(a => {
+    const [file, needle, want, why] = a;
+    /* 静默 return 是这条闸门的假绿灯形状：少写一个文件字段，解构就整体错位，
+       锚点表照打条数、实际一条没跑（本批实测抓到「（高德实时）」那条就是这么哑的）。
+       哑掉必须出声。 */
+    if (a.length !== 4 || typeof needle !== 'string' || typeof want !== 'number') {
+      F27('A27 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没写）');
+      return;
+    }
+    if (!(file in SRC27)) { F27('A27 登记了 §27 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt27(SRC27[file], needle);
+    if (got !== want) F27(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+
+  /* ⑤ 加载顺序：筛选必须在加载 Key 之前（筛选写错不该先撞「本机没密钥」） */
+  const pickAt = RAW27['tools/gen-tickets.js'].indexOf('const sites = pick(loadSites());');
+  const keyAt = RAW27['tools/gen-tickets.js'].indexOf('const KEY = loadKey();');
+  if (pickAt < 0 || keyAt < 0) F27('gen-tickets.js 里找不到「先筛选后加载 Key」的两行（Key 的前置条件被改回主流程开头了？）');
+  else if (pickAt > keyAt) F27('gen-tickets.js 的 loadKey() 又跑在 pick() 前面了：无 Key 机器将连筛选分母都自证不了');
+
+  /* ⑥ 期望 0 的锚点配正向对照（旧文案「核对」） */
+  const oldNeedle = "'核对'";
+  if (cnt27(RAW27['topic-common.js'], '核对') !== 0)
+    F27('topic-common.js 里还有「核对」字样（旧文案必须零残留，两处并存等于口径没收口）');
+  const OLD27 = flat27("el.innerHTML = x + (t.u ? '<div>' + esc(t.u) + '核对</div>' : '');");
+  if (cnt27(OLD27, '核对') < 1) F27('「核对」这条计数器的正向对照失效了（改前形态数不出命中，说明上一行的 0 不是证据）');
+
+  const RD27 = rd27('README.md');
+  if (RD27.indexOf('§27') < 0) F27('README.md 的 verify 清单没提 §27（新闸门不写进 README 就等于没装）');
+  const DOC27 = rd27('改进实施方案与验收标准.md');
+  if (DOC27.indexOf('批次 15') < 0) F27('改进实施方案与验收标准.md 没有「批次 15」这一节（实测数字要落文档，不然下批又从头猜）');
+
+  console.log('门票闸门: ' + A27.length + ' 条代码锚点 + 1 条字面量对账（SEED_DECL ↔ site-tickets.js:6）+ SEED 逐条 u/p 口径（' +
+    (seed27 ? Object.keys(seed27).length : 0) + ' 条，下限 ' + 9 + '）+ 先筛选后加载 Key 的顺序 + 旧文案零残留（带正向对照）+ tn_tk_ 禁入仍在；' +
+    'README 与方案文档已登记');
+  fail += bad27;
+}
+
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

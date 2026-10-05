@@ -602,7 +602,9 @@
       if (t.h) parts.push(TI('clock', 13) + '<span>' + esc(t.h) + '</span>');
       if (t.p) parts.push(TI('ticket', 13) + '<span>' + esc(t.p) + '</span>');
       if (!parts.length) { el.style.display = 'none'; return; }
-      el.innerHTML = parts.map(function (x) { return '<div style="display:flex;align-items:flex-start;gap:6px">' + x + '</div>'; }).join('<span style="display:block;height:4px"></span>') + (t.u ? '<div style="opacity:.55;font-size:var(--fs-1);margin-top:3px">' + esc(t.u) + '核对</div>' : '');
+      var note = t.u ? '更新于 ' + esc(t.u) + (t.src === 'amap' ? '（高德实时）' : '')
+        : (t.src === 'seed' ? '人工收录，未标核验时间' : '来自高德，未标核验时间');
+      el.innerHTML = parts.map(function (x) { return '<div style="display:flex;align-items:flex-start;gap:6px">' + x + '</div>'; }).join('<span style="display:block;height:4px"></span>') + '<div style="opacity:.55;font-size:var(--fs-1);margin-top:3px">' + note + '</div>';
       el.style.display = 'block';
     });
   }
