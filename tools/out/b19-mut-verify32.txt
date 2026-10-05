@@ -1,0 +1,68 @@
+红  M1 把 add 的元→分换成裸浮点乘（0.1+0.2 类退化，三笔 33.33 复算差 1e-14）  → 本轮红 2 条，指定那条：§32 记账闸门: expense.js 里「var cents = Math.round(n * 100);」命中 0 次（要 1）：add 的元→分入口（账本唯一的浮点入口之一）
+红  M2 把 setBudget 的元→分换成裸浮点乘（同上，预算侧）  → 本轮红 2 条，指定那条：§32 记账闸门: expense.js 里「var cents = (!isFinite(n) || n <= 0) ? 0 : Math.round(n * 100);」命中 0 次（要 1）：setBudget 的元→分入口
+红  M3 偷偷多开第三道浮点入口（读侧从元开始算）  → 本轮红 2 条，指定那条：§32 记账闸门: expense.js 里「Math.round(n * 100)」命中 3 次（要 2）：全模块浮点→整数只有这两处；第三处＝某个求和偷偷从元开始算
+红  M4 另开一个 parseFloat 入口（Number() 单点被绕过）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里出现「parseFloat」：元→分只认 Number()+Math.round 那一处；parseFloat 冒出来＝另开一个浮点入口
+红  M5 fmtMoney 改用 toFixed（把误差藏进「看上去对」的读数，补零也不再是手写）  → 本轮红 2 条，指定那条：§32 记账闸门: expense.js 里出现「toFixed」：账本模块里不许出现 toFixed：它把 1e-14 的误差藏进「看上去对」的读数，而补零 fmtMoney 自己手写
+红  M6 天序号退回 0 起（那天永远不进任何日卡）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「var n = Math.round(Number(d)); return isFinite(n) && n >= 1 ? n : 1;」命中 0 次（要 1）：天序号 1 起（存 0 起那天永远不进任何日卡）
+红  M7 id 改成散列（同天同分类同金额的第二笔被并掉＝丢钱）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「function uniqId() { return 'e' + Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36); 
+红  M8 存储写满改静默成功（钱没记上但没人知道）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「catch (e) { if (window.UI && UI.toast) UI.toast('本地存储已满，这笔账本次没有记上'); return false; }」命中 0 次（要 1）：LS 写满要说真话并
+红  M9 超支算成差值（没超时外露「已超预算 -40.00 元」）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「return t > b ? t - b : 0;」命中 0 次（要 1）：没超支就是 0：负数超支不外露成「已超预算 -40.00 元」
+红  M10 清空预算留 0 分档（「已设预算」与除零同时发生）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「if (cents) d[tripId] = cents; else delete d[tripId];」命中 0 次（要 1）：清空预算＝删键，不留 0 分档（留 0 会让「已设预算」与除零同时发生）
+红  M11 删行程留下孤儿桶（filter 反向）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「keep = list.filter(function (x) { return x.tripId !== tripId; });」命中 0 次（要 1）：删行程时账目跟着走，不留孤儿桶
+红  M12 未知分类不再归「其他」（别台机并回来的脏值进不了汇总）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「var i = CATS.indexOf(c); return i >= 0 ? CATS[i]」命中 0 次（要 1）：未知分类归「其他」：从别台机并回来的脏值不许炸掉汇总
+红  M13 丢掉 BOM（无 BOM 的 UTF-8 中文账单在 Windows Excel 里开成一屏乱码）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「return '\ufeff' + L.join('\r\n') + '\r\n';」命中 0 次（要 1）：CSV 首字节 BOM + 行结束只 CRLF（Excel 按本地代码页猜编码，没 BOM 的中文 CS
+红  M14 行结束符改成 LF（Excel 旧版把整份文件当一行）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「return '\ufeff' + L.join('\r\n') + '\r\n';」命中 0 次（要 1）：CSV 首字节 BOM + 行结束只 CRLF（Excel 按本地代码页猜编码，没 BOM 的中文 CS
+红  M15 把中文逗号也当分隔符（每个「地铁，机场线」都被套上引号，列数没错、读感全乱）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;」命中 0 次（要 1）：RFC 4180 判定按这三个字符：中文逗号不需要引号，
+红  M16 引号不再加倍（表格软件把「说"好"的」读成残缺字段）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;」命中 0 次（要 1）：RFC 4180 判定按这三个字符：中文逗号不需要引号，
+红  M17 表头列名被改（旧账单从此对不上号）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「csvRow(['日期', '第几天', '分类', '金额(元)', '垫付人', '备注'])」命中 0 次（要 1）：表头整串固定（谁改列名谁负责通知所有旧账单）
+红  M18 没设预算写 0.00（0 元预算与没预算是两回事）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「L.push(csvRow(['预算', budget ? fmtMoney(budget) : '未设']));」命中 0 次（要 1）：没设预算写「未设」，不写 0.00（0 元预算与没预算是两回事）
+红  M19 删掉结余分支（没超支的账单看着像缺了一行）  → 本轮红 1 条，指定那条：§32 记账闸门: expense.js 里「if (budget) L.push(csvRow([over ? '超支' : '结余', fmtMoney(over ? over : budget - total)]));」命中 0 次（要 1）：两个分支都
+红  M20 planner 侧另立一套分类字面量（与 expense.js 那份从此会漂）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里出现「['交通'」：planner 侧不许有第二套分类字面量：与 expense.js 那份会漂，漂的第一天就是「UI 选六个、CSV 五行」
+红  M21 chip 改由 UI 自己列表（模块那份不再是唯一来源）  → 本轮红 2 条，指定那条：§32 记账闸门: planner.js 里「Expense.CATS.map(function (c, i) {」命中 0 次（要 1）：chip 由模块派生：UI 里不另立分类表
+红  M22 高亮侧绕开单点（本批真实事故的前半：显示的是餐饮）  → 本轮红 3 条，指定那条：§32 记账闸门: expEditor 体里直接读 state.expCat：高亮侧也绕过了单点
+红  M23 提交侧绕开单点（后半：存进去的是其他）  → 本轮红 4 条，指定那条：§32 记账闸门: plannerExpSave 体里直接读 state.expCat：绕过 expCatNow 单点＝「显示餐饮、存成其他」的坏法回来了
+红  M24 单点被改成常量（高亮与提交仍然「同源」，但都不再认用户选的档）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「function expCatNow() { return Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '餐饮'; }」命中 0 次（要 1）：
+红  M25 分类不再粘（连记三笔同类要每笔重点一次）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「state.expCat = c;」命中 0 次（要 1）：分类写入只有一个入口
+红  M26 提交旁路 Expense.add（写盘出口没了＝某个入口自己拼对象）  → 本轮红 1 条，指定那条：§32 记账闸门: plannerExpSave 体里 Expense.add( 不是恰 1 次：写盘出口旁路了
+红  M27 函数头签名被改（体断言抽不出＝守卫必须出声，不许静默跳过）  → 本轮红 1 条，指定那条：§32 记账闸门: 抽不出 window.plannerExpSave 函数体（上面那批「提交读 expCatNow」的锚全部失去依据）
+红  M28 记账入口改回「记一笔」，与同卡打卡按钮撞名（点错就把打卡记成钱）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「'<button class="btn mini" onclick="window.plannerExpEdit(' + di + ')">' + (open && !state.expLump ? '收起' : 
+红  M29 金额框退回裸 text（手机上要自己切数字键盘）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「'<input class="examt" id="exAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="' + (lu
+红  M30 0 元与垃圾输入不再拦（落一笔 0 分，明细里多个空行）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }」命中 0 次（要 1）：0 与垃圾输入被挡在
+红  M31 删除确认不点名是哪一笔（只写「确定删除吗」＝让人盲签）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「text: '删除「' + it.cat + ' ' + Expense.fmtMoney(it.cents) + ' 元」这条记录？删了就找不回来。'」命中 0 次（要 1）：破坏性确认点名是哪一笔（只写「确定删
+红  M32 破坏性操作走回原生 confirm（WebView 里不可样式化，也带不动那句话）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里出现「window.confirm(」：破坏性操作只走 UI.confirm：原生弹窗在 WebView 里不可样式化，且无法带「删了就找不回来」这句
+红  M33 系统推送回潮（红线：提醒只有页内横幅一条腿）  → 本轮红 2 条，指定那条：§30 票据卡闸门: planner.js 里出现「new Notification」1 次：提醒只有页内横幅一条腿，系统推送要先改壳重打包（§5.3 边界③）
+红  M34 条形把零钱分类也列出来（六行里四行是 0 的图等于没图）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「var cats = Expense.catTotals(tid).filter(function (c) { return c.cents > 0; });」命中 0 次（要 1）：条形只列有钱的分类：六行里四行
+红  M35 进度条不再夹在 100%（超支时冲出卡片）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「$id('expBar').style.width = (budget ? Math.min(100, Math.round(total / budget * 100)) : (list.length ? 100 
+红  M36 最小分类丢了 4% 下限（12.50 挤成 0 宽，看着像没记）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「Math.max(4, Math.round(c.cents / max * 100))」命中 0 次（要 1）：最小分类给 4% 下限：一笔 12.50 的交通在 839.50 旁边会渲染成 0 宽，看着像没记
+红  M37 超支只剩颜色（WCAG 1.4.1：色盲/小屏/黑白打印读不出来）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「$id('expOver').innerHTML = over ? '<div class="warnline">' + TI('warn') + '已超预算 ' + Expense.fmtMoney(over) 
+红  M38 正在输入的预算框被回写（用户刚敲的数字按分位重排）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「if (bud && document.activeElement !== bud) bud.value = budget ? Expense.fmtMoney(budget) : '';」命中 0 次（要 1）：
+红  M39 空账时导出键改 disabled（点不动＝没有那句教路的话）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「if (csvBtn) csvBtn.style.opacity = list.length ? '' : '.55';」命中 0 次（要 1）：空账时只降透明度不 disabled：点下去那句教路的话才是出口
+红  M40 空账也照样下载（用户以为账单坏了）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「if (!Expense.listOf(tid).length) { toast('这笔账还是空的：先在日卡底部记一笔开销，再来导出 CSV'); return; }」命中 0 次（要 1）：空账导出下载一个只有表
+红  M41 导出文件名不过 icsFileSafe（行程名带 / 就直接报错）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「saveTextDoc(icsFileSafe(t.name) + '-开销.csv', csv, 'text/csv;charset=utf-8', '用表格软件打开即可');」命中 0 次（要 1）：通道与日历
+红  M42 删行程后汇总卡不重绘（账清了，卡还挂着上一趟的「已超预算」）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「renderTrips(); renderExpense();」命中 1 次（要 2）：两处（删除后 + 撤销后）都要重绘汇总卡：只 renderTrips 这张卡还挂着上一趟的金额与进度条
+红  M43 撤销只还账不还预算（两桶不同源，预算悄悄丢了）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.js 里「if (exRaw != null) lsSet('tn_expense', exRaw); if (bdRaw != null) lsSet('tn_budget', bdRaw);」命中 0 次（要 1）：撤销
+红  M44 预算进了分享白名单（点开链接的人看见每趟花多少）  → 本轮红 2 条，指定那条：§32 记账闸门: share.js 里出现「budget」：钱不进分享载荷：白名单里出现 budget 就是把每趟花多少发给点开链接的人
+红  M45 账目并进 trip 对象（分享载荷的来源就是 trip，白名单成了唯一防线）  → 本轮红 2 条，指定那条：§32 记账闸门: share.js 里出现「expense」：同上
+红  M46 备份侧账目改成按内容去重（跨机并集把两笔真开销并成一笔）  → 本轮红 1 条，指定那条：§32 记账闸门: backup.js 里「{ k: 'tn_expense', g: 'data', m: 'id' },」命中 0 次（要 1）：账目走 id 并集：同天同额是两笔真开销，不能按内容散列去重
+红  M47 预算键的并集方式从 dict 改成 id（顶层属性是 tripId，按 id 并集会整桶丢）  → 本轮红 1 条，指定那条：§32 记账闸门: backup.js 里「{ k: 'tn_budget', g: 'data', m: 'dict' },」命中 0 次（要 1）：预算走 dict：顶层属性就是 tripId，各趟互不覆盖
+红  M48 记账模块没进离线壳名单（生成器的 filter 会静默抹掉，离线首屏一片白）  → 本轮红 1 条，指定那条：§32 记账闸门: tools/gen-sw-shell.cjs 里「'expense.js', 'share.js', 'checklist.js', 'ticketbox.js'」命中 0 次（要 1）：CORE_JS 名单含记账模块（生成器的 filte
+红  M49 页面不吃 expense.js（planner 里所有 Expense.* 全是 ReferenceError）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「<script src="expense.js" defer></script>」命中 0 次（要 1）：模块进页面（没这行 planner.js 里的 Expense.* 全是 ReferenceError）
+红  M50 汇总卡丢了 sumcard 作用域（批次 17 那条进度条样式不再命中，这张条隐形）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「<div class="card sumcard" id="expCard" style="display:none">」命中 0 次（要 1）：汇总卡挂 sumcard：批次 17 把进度条样式收进 .sum
+红  M51 预算框没有 label（读屏与「点文字聚焦」一起丢）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「<label for="exBudget">预算</label>」命中 0 次（要 1）：label 关联：点文字也能聚焦到输入框
+红  M52 分类 chip 退回 34px（它是判定，不是装饰标签）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「.exedit .excats .chip{min-height:44px}」命中 0 次（要 1）：分类 chip 44：它是这笔账归哪一类的判定，不是装饰标签
+红  M53 底脚入口没提档（空账时汇总卡指路指的就是这两颗）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「.day-card .exfoot .btn{min-height:44px}」命中 0 次（要 1）：底脚两个入口 44：空账时汇总卡的话就指着它们（「在日卡底部点『记开销』」）
+红  M54 明细删除方块退回 30px（销毁真实记录不是轻操作）  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「.exrows .ex .mv{width:44px;height:44px;flex:0 0 auto}」命中 0 次（要 1）：删除方块 44：销毁真实记录不是「上移下移」那种轻操作
+红  M55 「记上」/「收起」没提档  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「.exedit .exacts .btn{flex:1;min-height:44px;justify-content:center;display:flex;align-items:center}」命中 0 
+红  M56 导出键退回 .btn 基数 42  → 本轮红 1 条，指定那条：§32 记账闸门: planner.html 里「#expCsvBtn{min-height:44px}」命中 0 次（要 1）：导出键 44：这张卡唯一的主操作
+红  M57 冒烟夹具改成桌面宽（桌面量出来的触控与溢出一律不作数）  → 本轮红 1 条，指定那条：§32 记账闸门: tools/smoke-expense.js 里「await p.setViewport({ width: 452, height: 995, isMobile: true, hasTouch: true });」命中 0 次（要 1）：4
+红  M58 原生 confirm 计数器被摘（下面「零原生」那条没有它永远为真）  → 本轮红 1 条，指定那条：§32 记账闸门: tools/smoke-expense.js 里「window.confirm = function () { window.__native++; return true; };」命中 0 次（要 1）：原生 confirm 计数在（下面
+红  M59 把 A35 改名成 A35x（判据还在，但齐备检必须认「id + 空格」而不只认前缀）  → 本轮红 1 条，指定那条：§32 记账闸门: tools/smoke-expense.js 缺 A35 这条判据（批次 19 的 63 条编号判据是一整组，少一条就是有个症状没人管）
+红  M60 删掉 A16d 整条（「显示即存入」这条腿没了）  → 本轮红 1 条，指定那条：§32 记账闸门: tools/smoke-expense.js 缺 A16d：sticky 分类与新会话「显示即存入」是两条独立的腿，合并成一条就测不出分叉
+红  M61 README 去掉 §32 登记（新闸门不写进 README 就等于没装）  → 本轮红 1 条，指定那条：§32 记账闸门: README.md 的 verify 清单没提 §32（新闸门不写进 README 就等于没装）
+红  M62 方案文档去掉「批次 19 已实施」（收工状态只能靠文档留在案上）  → 本轮红 1 条，指定那条：§32 记账闸门: 方案文档没登记「批次 19 已实施」（收工状态只能靠文档留在案上）
+红  M63 锚点表被削减一条（守卫自己必须有线）  → 本轮红 1 条，指定那条：§32 记账闸门: 锚点表被削减：61 条（批次 19 落地时实测 62 条）
+红  M64 四元组少写文件字段（这条锚从此一次都没跑过，还不说话）  → 本轮红 1 条，指定那条：§32 记账闸门: A32 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：["a / 100",1,"少了文件字段"]
+红  M65 正向对照自己失效（把合成对照源改掉，期望 0 就成了自证）  → 本轮红 1 条，指定那条：§32 记账闸门: 「不许直接读 state.expCat」这两条期望 0 的正向对照失效了
+
+=== mut-verify32（源码腿）: 65 条按预期红 / 0 条异常 / 共 65 条 ===
+异常＝0 才说明 §32 每条锚都有线；打不红的锚要先修锚再收工。

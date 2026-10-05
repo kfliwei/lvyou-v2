@@ -3181,5 +3181,190 @@ const EMOJI_MARK = 'emoji-ok:';
 }
 
 
+/* ============ §32 开销记账闸门（批次 19） ============
+   这一批管的是钱。钱的错法只有一种要命：静默错到底——界面上永远看着对，症状要等到用户对账
+   那天才出现，而那天已经隔了一整趟旅行。所以源码侧钉的五族，一族对应一种静默坏法：
+   ① 浮点入口只有两处（add / setBudget 各一次 Math.round(元*100)）。多一处＝求和进了浮点域，
+      三笔 33.33 差 1e-14；而读侧 centsOf() 也在四舍五入，所以写侧退化在界面上什么都看不出来
+      （smoke 的 A17 因此直接断言 localStorage 落盘的整数，不看界面）。
+   ② 分→元显示只有一个出口 fmtMoney，且它自己不碰 toFixed（补零靠手写两位）。
+      各处自己除 100＝同一天在日卡 100.0、在汇总卡 100.00000000000001。
+   ③ 分类只有一份：expense.js 的 CATS。planner 侧再写一套字面量＝两边会漂，
+      漂的第一天就是「UI 让选六个、CSV 只有五行」。
+   ④ 「显示即存入」：编辑器高亮与提交必须读同一个 expCatNow()。这条是本批真实事故——
+      改前高亮兜「餐饮」、提交兜「其他」，新会话第一次记一笔就静默记错类，
+      且没有任何一处界面显示过这个错。除字符串锚外再各抽一次函数体做结构断言：
+      分叉的两半被拆进不同函数也要红。
+   ⑤ 钱是隐私：share.js 白名单里不许出现金额类字段（期望 0 配正向对照）；
+      备份侧两个键逐字登记（tn_expense 走 id 并集、tn_budget 走 dict，附件那类隐私另说）。
+   另两族是手机上看得见的：44px 触控（design.css 触控高标准「高频/破坏性 ≥44」，记账整条流程
+   都在这族里，含底脚入口与明细删除方块）、破坏性操作只走 UI.confirm
+   （window.confirm / Notification 在 planner.js 期望 0）。
+   口径同 §28/§31：四元组守卫、期望 0 一律配正向对照、锚点串不落块注释、.html 只归一空白不剥注释。
+   ============================================================ */
+{
+  let bad32 = 0;
+  const F32 = m => { bad32++; console.log('FAIL §32 记账闸门: ' + m); };
+  const ws32 = s => s.replace(/\s+/g, ' ').trim();
+  const flat32 = s => ws32(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt32 = (s, n) => s.split(n).length - 1;
+  const rd32 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view32 = f => /\.html$/.test(f) ? ws32(rd32(f)) : flat32(rd32(f));
+  const fnBody32 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+
+  const FILES32 = ['expense.js', 'planner.js', 'planner.html', 'share.js', 'backup.js',
+    'tools/gen-sw-shell.cjs', 'tools/smoke-expense.js', 'README.md', 'docs/功能完善实施方案-2026-10-05.md'];
+  const V32 = {};
+  FILES32.forEach(f => {
+    if (!fs.existsSync(f)) { F32('缺 ' + f); V32[f] = ''; return; }
+    V32[f] = view32(f);
+  });
+
+  const A32 = [
+    /* ① 浮点入口：全模块两处，一处不多 */
+    ['expense.js', "var KEY = 'tn_expense';", 1, '账本键单点（backup 侧、planner 撤销侧都按这个字符串对账）'],
+    ['expense.js', "var BKEY = 'tn_budget';", 1, '预算单独一键：不塞进 trip 对象（trip 是分享载荷的来源）'],
+    ['expense.js', "var CATS = ['交通', '住宿', '餐饮', '门票', '购物', '其他'];", 1, '六分类全站唯一来源'],
+    ['expense.js', 'var i = CATS.indexOf(c); return i >= 0 ? CATS[i]', 1, '未知分类归「其他」：从别台机并回来的脏值不许炸掉汇总'],
+    ['expense.js', 'var cents = Math.round(n * 100);', 1, 'add 的元→分入口（账本唯一的浮点入口之一）'],
+    ['expense.js', 'var cents = (!isFinite(n) || n <= 0) ? 0 : Math.round(n * 100);', 1, 'setBudget 的元→分入口'],
+    ['expense.js', 'Math.round(n * 100)', 2, '全模块浮点→整数只有这两处；第三处＝某个求和偷偷从元开始算'],
+    ['expense.js', 'a / 100', 1, '分→元只在 fmtMoney 显示时发生一次'],
+    ['expense.js', 'function fmtMoney(cents) {', 1, '金额显示单点'],
+    ['expense.js', "var sign = c < 0 ? '-' : '', a = Math.abs(c), y = Math.floor(a / 100), f = a % 100;", 1, '负数带负号、小数手写补零（对账要「0.50」不是「0.5」）'],
+    ['expense.js', "var n = Math.round(Number(d)); return isFinite(n) && n >= 1 ? n : 1;", 1, '天序号 1 起（存 0 起那天永远不进任何日卡）'],
+    ['expense.js', "function uniqId() { return 'e' + Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36); }", 1, 'id 是本机唯一号，不是 tripId+金额的散列：散列会把同天同额的第二笔并掉＝丢钱'],
+    ['expense.js', "catch (e) { if (window.UI && UI.toast) UI.toast('本地存储已满，这笔账本次没有记上'); return false; }", 1, 'LS 写满要说真话并让 add 返回 null（静默失败的钱最贵）'],
+    ['expense.js', 'return t > b ? t - b : 0;', 1, '没超支就是 0：负数超支不外露成「已超预算 -40.00 元」'],
+    ['expense.js', 'if (cents) d[tripId] = cents; else delete d[tripId];', 1, '清空预算＝删键，不留 0 分档（留 0 会让「已设预算」与除零同时发生）'],
+    ['expense.js', 'keep = list.filter(function (x) { return x.tripId !== tripId; });', 1, '删行程时账目跟着走，不留孤儿桶'],
+    ['expense.js', String.raw`return '\ufeff' + L.join('\r\n') + '\r\n';`, 1, 'CSV 首字节 BOM + 行结束只 CRLF（Excel 按本地代码页猜编码，没 BOM 的中文 CSV 开成一屏乱码）'],
+    ['expense.js', String.raw`return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;`, 1, 'RFC 4180 判定按这三个字符：中文逗号不需要引号，英文逗号/引号/换行需要'],
+    ['expense.js', "csvRow(['日期', '第几天', '分类', '金额(元)', '垫付人', '备注'])", 1, '表头整串固定（谁改列名谁负责通知所有旧账单）'],
+    ['expense.js', "L.push(csvRow(['预算', budget ? fmtMoney(budget) : '未设']));", 1, '没设预算写「未设」，不写 0.00（0 元预算与没预算是两回事）'],
+    ['expense.js', "if (budget) L.push(csvRow([over ? '超支' : '结余', fmtMoney(over ? over : budget - total)]));", 1, '两个分支都有字：只写超支会让没超支的账单看着像缺了一行'],
+    /* ③④ 单一分类来源 + 显示即存入 */
+    ['planner.js', "function expCatNow() { return Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '餐饮'; }", 1, '选中分类的单点出口'],
+    ['planner.js', 'expCatNow(', 3, '定义 1 + 调用 2（高亮与提交）：调用数掉到 1 就是分叉又回来了'],
+    ['planner.js', 'var sel = expCatNow();', 1, '编辑器高亮读它'],
+    ["planner.js", "lump ? '其他' : expCatNow(),", 1, '提交读它——与上一条必须同源（本批真实事故）'],
+    ['planner.js', 'state.expCat = c;', 1, '分类写入只有一个入口'],
+    ['planner.js', 'Expense.CATS.map(function (c, i) {', 1, 'chip 由模块派生：UI 里不另立分类表'],
+    /* 录入与界面 */
+    ['planner.js', String.raw`'<input class="examt" id="exAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="' + (lump ? '今天一共花了多少' : '金额') + '" aria-label="金额（元）">' +`, 1, 'number+decimal 手机才直接上数字键盘；aria 名在（读屏用户要知道这个框是什么）'],
+    ['planner.js', String.raw`'<button class="btn mini" onclick="window.plannerExpEdit(' + di + ')">' + (open && !state.expLump ? '收起' : TI('budget') + '记开销') + '</button>' +`, 1, '入口叫「记开销」：卡内那颗打卡按钮已经占了「记一笔」'],
+    ['planner.js', String.raw`'今日 <b>' + Expense.fmtMoney(total) + '</b> 元 · ' + e.list.length + ' 笔'`, 1, '日脚与汇总卡同一把尺子（都从 fmtMoney 出）'],
+    ['planner.js', String.raw`h += '<div class="exacts"><button class="btn primary" onclick="window.plannerExpSave(' + di + ',' + (lump ? 1 : 0) + ')">记上</button>' +`, 1, 'lump 标志随按钮走：一笔带过与拆项录入共用一个提交口'],
+    ['planner.js', String.raw`if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }`, 1, '0 与垃圾输入被挡在写盘前，且编辑器不关（关掉就把刚敲的备注一起吞了）'],
+    ['planner.js', String.raw`text: '删除「' + it.cat + ' ' + Expense.fmtMoney(it.cents) + ' 元」这条记录？删了就找不回来。'`, 1, '破坏性确认点名是哪一笔（只写「确定删除吗」等于让人盲签）'],
+    ['planner.js', 'var cats = Expense.catTotals(tid).filter(function (c) { return c.cents > 0; });', 1, '条形只列有钱的分类：六行里四行是 0 的图等于没图'],
+    ['planner.js', String.raw`$id('expBar').style.width = (budget ? Math.min(100, Math.round(total / budget * 100)) : (list.length ? 100 : 0)) + '%';`, 1, '条宽夹在 100（超支时不冲出卡片）'],
+    ['planner.js', String.raw`Math.max(4, Math.round(c.cents / max * 100))`, 1, '最小分类给 4% 下限：一笔 12.50 的交通在 839.50 旁边会渲染成 0 宽，看着像没记'],
+    ['planner.js', String.raw`$id('expOver').innerHTML = over ? '<div class="warnline">' + TI('warn') + '已超预算 ' + Expense.fmtMoney(over) + ' 元</div>' : '';`, 1, '超支必须有字（WCAG 1.4.1，与批次 5 同口径：色盲/小屏/黑白打印都要读得出来）'],
+    ['planner.js', 'if (bud && document.activeElement !== bud) bud.value = budget ? Expense.fmtMoney(budget) : \'\';', 1, '正在输入时不回写：回写会把用户刚敲的数字按分位重排'],
+    ['planner.js', "if (csvBtn) csvBtn.style.opacity = list.length ? '' : '.55';", 1, '空账时只降透明度不 disabled：点下去那句教路的话才是出口'],
+    ['planner.js', String.raw`if (!Expense.listOf(tid).length) { toast('这笔账还是空的：先在日卡底部记一笔开销，再来导出 CSV'); return; }`, 1, '空账导出下载一个只有表头的文件＝用户以为账单坏了'],
+    ['planner.js', String.raw`saveTextDoc(icsFileSafe(t.name) + '-开销.csv', csv, 'text/csv;charset=utf-8', '用表格软件打开即可');`, 1, '通道与日历同源（APK 下载目录／浏览器 Blob／copyText 三条腿）'],
+    ['planner.js', 'if (removed && removed.id && window.Expense) Expense.clearTrip(removed.id);', 1, '删行程带走账：与清单那条同一处理'],
+    ['planner.js', 'renderTrips(); renderExpense();', 2, '两处（删除后 + 撤销后）都要重绘汇总卡：只 renderTrips 这张卡还挂着上一趟的金额与进度条'],
+    ['planner.js', String.raw`if (exRaw != null) lsSet('tn_expense', exRaw); if (bdRaw != null) lsSet('tn_budget', bdRaw);`, 1, '撤销按原字节还原两桶（重算一遍会丢 ts 与插入序细节）'],
+    /* ⑤ 隐私：钱不进分享载荷；备份两键逐字登记 */
+    ['share.js', 'var ALLOWED = { v: 1, t: 1, sd: 1, from: 1, to: 1, loop: 1, r: 1, days: 1, km: 1, h: 1, stops: 1, tr: 1, f: 1, o: 1, n: 1, la: 1, lo: 1 };', 1, '白名单整串（下面三条期望 0 的对照物）'],
+    ['backup.js', "{ k: 'tn_expense', g: 'data', m: 'id' },", 1, '账目走 id 并集：同天同额是两笔真开销，不能按内容散列去重'],
+    ['backup.js', "{ k: 'tn_budget', g: 'data', m: 'dict' },", 1, '预算走 dict：顶层属性就是 tripId，各趟互不覆盖'],
+    ['tools/gen-sw-shell.cjs', "'expense.js', 'share.js', 'checklist.js', 'ticketbox.js'", 1, 'CORE_JS 名单含记账模块（生成器的 filter 会静默抹掉不在名单里的文件，离线首屏就是一片白）'],
+    /* 页面结构与触控族 */
+    ['planner.html', '<div class="card sumcard" id="expCard" style="display:none">', 1, '汇总卡挂 sumcard：批次 17 把进度条样式收进 .sumcard，漏了这个类这张条就是隐形的'],
+    ['planner.html', '<div class="phead"><span class="pbar" id="expBarWrap"><i id="expBar"></i></span><span class="pcount" id="expCount"></span></div>', 1, '进度条结构（i 在 pbar 里才有宽高）'],
+    ['planner.html', '<div class="exbars" id="expBars"></div>', 1, '条形容器在'],
+    ['planner.html', '<label for="exBudget">预算</label>', 1, 'label 关联：点文字也能聚焦到输入框'],
+    ['planner.html', '<input id="exBudget" type="number" inputmode="decimal" min="0" step="1" placeholder="未设" onchange="window.plannerExpBudget(this.value)">', 1, '预算框是数字键盘档，onchange 走单点'],
+    ['planner.html', '.day-card .exfoot .btn{min-height:44px}', 1, '底脚两个入口 44：空账时汇总卡的话就指着它们（「在日卡底部点『记开销』」）'],
+    ['planner.html', '.exedit .excats .chip{min-height:44px}', 1, '分类 chip 44：它是这笔账归哪一类的判定，不是装饰标签'],
+    ['planner.html', '.exedit .exacts .btn{flex:1;min-height:44px;justify-content:center;display:flex;align-items:center}', 1, '「记上」/「收起」44'],
+    ['planner.html', '.exedit .examt{flex:1;min-width:0;min-height:44px;', 1, '金额框 44'],
+    ['planner.html', '.exrows .ex .mv{width:44px;height:44px;flex:0 0 auto}', 1, '删除方块 44：销毁真实记录不是「上移下移」那种轻操作'],
+    ['planner.html', '#expCsvBtn{min-height:44px}', 1, '导出键 44：这张卡唯一的主操作'],
+    ['planner.html', '<script src="expense.js" defer></script>', 1, '模块进页面（没这行 planner.js 里的 Expense.* 全是 ReferenceError）'],
+    /* 浏览器腿的夹具：机型与计数器 */
+    ['tools/smoke-expense.js', 'await p.setViewport({ width: 452, height: 995, isMobile: true, hasTouch: true });', 1, '452×995 是一加 Ace 6T 真机档；桌面宽度量出来的触控与溢出一律不作数'],
+    ['tools/smoke-expense.js', 'window.confirm = function () { window.__native++; return true; };', 1, '原生 confirm 计数在（下面「零原生」那条没有它永远为真）'],
+  ];
+  A32.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F32('A32 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V32)) { F32('A32 登记了 §32 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt32(V32[file], needle);
+    if (got !== want) F32(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A32.length < 62) F32('锚点表被削减：' + A32.length + ' 条（批次 19 落地时实测 62 条）');
+
+  /* ④ 结构断言：高亮与存入分叉被拆进不同函数也要红（字符串锚只证明两处都调过） */
+  {
+    const SAVE = fnBody32(V32['planner.js'], 'window.plannerExpSave = function (di, lump) {');
+    if (!SAVE) F32('抽不出 window.plannerExpSave 函数体（上面那批「提交读 expCatNow」的锚全部失去依据）');
+    else {
+      if (cnt32(SAVE, 'expCatNow(') !== 1) F32('plannerExpSave 体里 expCatNow( 不是恰 1 次：提交侧的分类出口被换掉了');
+      if (cnt32(SAVE, 'Expense.add(') !== 1) F32('plannerExpSave 体里 Expense.add( 不是恰 1 次：写盘出口旁路了');
+      if (cnt32(SAVE, 'state.expCat') !== 0) F32('plannerExpSave 体里直接读 state.expCat：绕过 expCatNow 单点＝「显示餐饮、存成其他」的坏法回来了');
+    }
+    const ED = fnBody32(V32['planner.js'], 'function expEditor(di, e) {');
+    if (!ED) F32('抽不出 expEditor 函数体（高亮侧的结构断言没有依据）');
+    else if (cnt32(ED, 'state.expCat') !== 0) F32('expEditor 体里直接读 state.expCat：高亮侧也绕过了单点');
+    const CTRL32 = flat32("function expEditor(di) { var sel = state.expCat || '餐饮'; }");
+    if (cnt32(CTRL32, 'state.expCat') < 1) F32('「不许直接读 state.expCat」这两条期望 0 的正向对照失效了');
+  }
+
+  /* ①②③ 期望 0：浮点旁路、第二套分类、原生弹窗（各配正向对照） */
+  const ZERO32 = [
+    ['expense.js', 'toFixed', "var c = (n).toFixed(2);", '账本模块里不许出现 toFixed：它把 1e-14 的误差藏进「看上去对」的读数，而补零 fmtMoney 自己手写'],
+    ['expense.js', 'parseFloat', "var v = parseFloat(input.value);", '元→分只认 Number()+Math.round 那一处；parseFloat 冒出来＝另开一个浮点入口'],
+    ['planner.js', "['交通'", "var CATS = ['交通', '住宿'];", 'planner 侧不许有第二套分类字面量：与 expense.js 那份会漂，漂的第一天就是「UI 选六个、CSV 五行」'],
+    ['planner.js', 'window.confirm(', "if (window.confirm('删吗')) del();", '破坏性操作只走 UI.confirm：原生弹窗在 WebView 里不可样式化，且无法带「删了就找不回来」这句'],
+    ['planner.js', 'Notification', "new Notification('票要过期了');", '红线：提醒只有页内横幅一条腿（系统推送要先改壳重打包）'],
+    ['share.js', 'budget', 'ALLOWED = { budget: 1 };', '钱不进分享载荷：白名单里出现 budget 就是把每趟花多少发给点开链接的人'],
+    ['share.js', 'expense', 'ALLOWED = { expense: 1 };', '同上'],
+    ['share.js', 'cents', 'ALLOWED = { cents: 1 };', '同上，分位原值'],
+  ];
+  ZERO32.forEach(([f, needle, ctrl, why]) => {
+    if (cnt32(V32[f], needle) !== 0) F32(f + ' 里出现「' + needle + '」：' + why);
+    if (cnt32(flat32(ctrl), needle) < 1) F32('「' + needle + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* 浏览器腿：A01–A63 一条不许少，改名（A16→A16x）也要红 */
+  for (let i = 1; i <= 63; i++) {
+    const id = 'A' + (i < 10 ? '0' + i : i);
+    if (V32['tools/smoke-expense.js'].indexOf("ok('" + id + ' ') < 0)
+      F32('tools/smoke-expense.js 缺 ' + id + ' 这条判据（批次 19 的 63 条编号判据是一整组，少一条就是有个症状没人管）');
+  }
+  ['A16b', 'A16c', 'A16d'].forEach(id => {
+    if (V32['tools/smoke-expense.js'].indexOf("ok('" + id + ' ') < 0)
+      F32('tools/smoke-expense.js 缺 ' + id + '：sticky 分类与新会话「显示即存入」是两条独立的腿，合并成一条就测不出分叉');
+  });
+
+  if (V32['README.md'].indexOf('§32') < 0) F32('README.md 的 verify 清单没提 §32（新闸门不写进 README 就等于没装）');
+  if (V32['docs/功能完善实施方案-2026-10-05.md'].indexOf('批次 19 已实施') < 0)
+    F32('方案文档没登记「批次 19 已实施」（收工状态只能靠文档留在案上）');
+
+  console.log('记账闸门: ' + A32.length + ' 条代码锚点（浮点→分两处入口 + 显示单点不碰 toFixed + 分类唯一来源 + 「显示即存入」单点 + 隐私两键 + 44px 触控族 + CSV BOM/CRLF/RFC 判定）+ plannerExpSave/expEditor 两处函数体结构断言 + 八族期望 0（toFixed/parseFloat/第二套分类/window.confirm/Notification/share 三键）+ smoke A01–A63 与 A16b/c/d 齐备检；每条期望 0 都配正向对照；变异自测两层在案（源码腿 tools/out/mut-verify32.js 65 条应红全红、异常 0；浏览器腿由上面 A01–A63 齐备检与 smoke 自身承担）');
+  fail += bad32;
+}
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

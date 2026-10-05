@@ -1139,7 +1139,7 @@
   /* 两步成账：一个数字键盘 + 分类六选一，备注与垫付人都可留空 */
   function expEditor(di, e) {
     var lump = !!state.expLump;
-    var sel = Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '餐饮';
+    var sel = expCatNow();
     var h = '<div class="exedit"><div class="exrow">' +
       '<input class="examt" id="exAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="' + (lump ? '今天一共花了多少' : '金额') + '" aria-label="金额（元）">' +
       '<span class="exunit">元</span></div>';
@@ -1166,6 +1166,10 @@
     return h + '</div>';
   }
   function expRefresh() { renderDaysBody(); renderExpense(); }
+  /* 选中分类只有一个出口：编辑器高亮与提交必须读同一个值。
+     原先高亮兜到「餐饮」而提交兜到「其他」，新会话第一次记一笔就是「看着记的是餐饮、
+     存进去是其他」——账错了还没有任何一处显示过这个错。 */
+  function expCatNow() { return Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '餐饮'; }
   function toggleExpEditor(di, lump) {
     var want = lump ? 1 : 0;
     if (state.expEdit === di && state.expLump === want) { state.expEdit = -1; state.expLump = 0; }
@@ -1190,7 +1194,7 @@
     var n = Number(yuan);
     if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }
     var it = Expense.add(expTripId(), di + 1, yuan,
-      lump ? '其他' : (Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '其他'),
+      lump ? '其他' : expCatNow(),
       lump ? '' : ($id('exWho') || {}).value,
       lump ? '全天一笔带过' : (($id('exNote') || {}).value || ''));
     if (!it) return;   /* 写满时 Expense.save 已经如实报过一句，不再叠第二句 */
@@ -2107,6 +2111,8 @@
       list.splice(i, 1);
       if (!lsSet('tn_trips', JSON.stringify(list))) return;
       renderTrips();
+      /* 账已经跟着行程清了，汇总卡必须重绘：只 renderTrips 的话这张卡还挂着上一趟的金额与进度条 */
+      renderExpense();
       if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); if (ckRaw != null) lsSet('tn_checklist', ckRaw); if (exRaw != null) lsSet('tn_expense', exRaw); if (bdRaw != null) lsSet('tn_budget', bdRaw); renderTrips(); renderExpense(); } });
     });
   };
