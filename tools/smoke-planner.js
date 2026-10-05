@@ -38,6 +38,94 @@ async function wizardDone(p) {
   await sleep(1600);
 }
 
+/* ===== 批次 14：结果页地图（只在测试侧注入，生产零改动） =====
+   用户报的三条症状：① 地图显示不全 ② 只有节点没有路线 ③ 点节点不出信息。
+   根因一条：showStage 把 display 翻转放进 UI.vt 的回调里（View Transition 把 DOM 更新推到下一帧），
+   紧随其后的 renderMap 量到的是切换前的 display:none = 0×0。对着 0×0 建图，Leaflet 的瓦片视口
+   和 SVG 渲染器永久停在 0×0，fitBounds 同时退化成 maxZoom=18。事后 invalidateSize 只救得回尺寸
+   （瓦片 100%）救不回视图（path 仍 0×0）——所以判据必须钉在「建图那一刻容器有没有尺寸」上。
+   读数全部取自 DOM 几何与 Leaflet 实例，一个都不依赖瓦片下载成功：没网的机器也要判得出同一条退化。 */
+const MAP_HOOK = () => {
+  let real;
+  window.__mapLog = [];
+  try {
+    Object.defineProperty(window, 'L', {
+      configurable: true,
+      get() { return real; },
+      set(v) {
+        try {
+          const orig = v.map;
+          v.map = function (el, o) {
+            const c = typeof el === 'string' ? document.getElementById(el) : el;
+            const r = c ? c.getBoundingClientRect() : null;
+            const st = document.getElementById('stageResult');
+            window.__mapLog.push({
+              rect: r ? Math.round(r.width) + '×' + Math.round(r.height) : 'no-el',
+              boxDisp: c ? getComputedStyle(c).display : null,
+              stageDisp: st ? getComputedStyle(st).display : null
+            });
+            const m = orig.call(v, el, o);
+            window.__plannerMap = m;
+            return m;
+          };
+        } catch (e) {}
+        real = v;
+      }
+    });
+  } catch (e) {}
+};
+
+const MAP_GEOM = () => {
+  const box = document.getElementById('mapBox');
+  if (!box) return { missing: '没有 #mapBox' };
+  const br = box.getBoundingClientRect();
+  const overlaps = r => r.right > br.left + 1 && r.left < br.right - 1 && r.bottom > br.top + 1 && r.top < br.bottom - 1;
+  const rects = Array.from(box.querySelectorAll('.leaflet-overlay-pane path')).map(p => p.getBoundingClientRect());
+  const marks = Array.from(box.querySelectorAll('.leaflet-marker-icon .map-pin'));
+  const svg = box.querySelector('.leaflet-overlay-pane svg');
+  const m = window.__plannerMap;
+  const created = (window.__mapLog || [])[0] || null;
+  return {
+    createdWhen: created ? created.rect : null,
+    createdBoxDisp: created ? created.boxDisp : null,
+    createdStageDisp: created ? created.stageDisp : null,
+    mapSize: m ? Math.round(m.getSize().x) + '×' + Math.round(m.getSize().y) : null,
+    clientSize: box.clientWidth + '×' + box.clientHeight,
+    zoom: m ? m.getZoom() : null,
+    svgSize: svg ? svg.getAttribute('width') + 'x' + svg.getAttribute('height') : null,
+    paths: rects.length,
+    pathsZero: rects.filter(r => r.width < 1 || r.height < 1).length,
+    pathsInBox: rects.filter(r => r.width > 1 && r.height > 1 && overlaps(r)).length,
+    pins: marks.length,
+    pinsInBox: marks.filter(x => { const r = x.getBoundingClientRect(); return r.width > 1 && overlaps(r); }).length,
+    tiles: box.querySelectorAll('.leaflet-tile').length,
+    tileLoaded: box.querySelectorAll('.leaflet-tile-loaded').length
+  };
+};
+
+const MAP_TAP = () => {
+  const box = document.getElementById('mapBox').getBoundingClientRect();
+  const mk = document.querySelector('#mapBox .leaflet-marker-icon');
+  if (!mk) return { none: '没有针脚可点' };
+  const r = mk.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, label: (mk.textContent || '').trim() };
+};
+
+const MAP_POPUP = () => {
+  const box = document.getElementById('mapBox').getBoundingClientRect();
+  const p = document.querySelector('#mapBox .leaflet-popup');
+  if (!p) return { popup: false };
+  const r = p.getBoundingClientRect();
+  const c = getComputedStyle(p);
+  return {
+    popup: true,
+    text: (p.innerText || '').replace(/\s+/g, ' ').trim(),
+    size: Math.round(r.width) + '×' + Math.round(r.height),
+    style: 'op' + c.opacity + '/' + c.visibility + '/' + c.display,
+    clipped: (r.top < box.top - 1 || r.bottom > box.bottom + 1 || r.left < box.left - 1 || r.right > box.right + 1)
+  };
+};
+
 (async () => {
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu'] });
   const page = await browser.newPage();
@@ -45,6 +133,7 @@ async function wizardDone(p) {
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 200)); });
+  await page.evaluateOnNewDocument(MAP_HOOK);
   await page.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
   await sleep(3000);
 
@@ -91,6 +180,27 @@ async function wizardDone(p) {
   ok('每日安排生成', dayN >= 1, dayN + ' 天');
   ok('选点页预计天数=实际排期天数', estDays === dayN, '预计 ' + estDays + ' / 实际 ' + dayN);
   ok('落地动作条', !!(await page.$('#actRow .btn')));
+
+  /* --- G1–G11：地图三症状判据（见文件头 MAP_HOOK 那段） --- */
+  const g = await page.evaluate(MAP_GEOM);
+  ok('G1 建图时容器已有尺寸（不是 0×0）', !!g.createdWhen && /^0×|^no-el/.test(g.createdWhen) === false,
+    '建图时 ' + g.createdWhen + '，那一刻 #mapBox display=' + g.createdBoxDisp + ' / stageResult display=' + g.createdStageDisp);
+  ok('G2 Leaflet 内部尺寸＝容器尺寸', !!g.mapSize && g.mapSize === g.clientSize, 'map ' + g.mapSize + ' / 容器 ' + g.clientSize + '（瓦片 ' + g.tileLoaded + '/' + g.tiles + ' 块，只作参考不参与判定）');
+  ok('G3 折线渲染器画布不是 0×0', !!g.svgSize && g.svgSize !== '0x0', 'overlay svg ' + g.svgSize);
+  ok('G4 站站有线相连（path 条数 ≥ 2×(针脚数−1)）', g.pins >= 2 && g.paths >= 2 * (g.pins - 1), g.paths + ' 条 path / ' + g.pins + ' 枚针脚');
+  ok('G5 没有画成 0×0 的折线', g.paths > 0 && g.pathsZero === 0, g.pathsZero + ' 条零尺寸 / 共 ' + g.paths + ' 条');
+  ok('G6 折线全部落在地图框内', g.paths > 0 && g.pathsInBox === g.paths, g.pathsInBox + '/' + g.paths + ' 在框内');
+  ok('G7 针脚全部落在地图框内', g.pins > 0 && g.pinsInBox === g.pins, g.pinsInBox + '/' + g.pins + ' 在框内');
+  ok('G8 fitBounds 没退化成最大缩放（症状：底图只剩一块瓦片）', g.zoom !== null && g.zoom < 17, '缩放 ' + g.zoom);
+  await page.evaluate(() => { const b = document.getElementById('mapBox'); if (b.scrollIntoView) b.scrollIntoView({ block: 'center' }); });
+  await sleep(500);
+  const pin = await page.evaluate(MAP_TAP);
+  if (!pin.none) { await page.mouse.click(pin.x, pin.y); await sleep(900); }
+  const pop = pin.none ? { popup: false } : await page.evaluate(MAP_POPUP);
+  ok('G9 点针脚弹出该站信息（症状：点了没反应）', !!pop.popup && pop.text.length > 0,
+    pin.none || ('针脚「' + pin.label + '」→ ' + (pop.popup ? pop.text.slice(0, 40) + ' [' + pop.size + ' ' + pop.style + ']' : '没有弹窗')));
+  ok('G10 信息卡完整落在地图框内（症状：弹窗甩到框外被裁）', !!pop.popup && pop.clipped === false,
+    pop.popup ? ('clipped=' + pop.clipped + ' ' + pop.size) : '没有弹窗');
 
   /* ---- 批次 9：分享入口在真浏览器里点一遍（按钮 → 确认卡 → 无基址讲清 / 有基址出链接 → 复制到的确实是链接）
      §17 闸门的接线断言只证明代码在，跑不到"点下去真出东西"；载荷与渲染由 smoke-share 验，
@@ -167,6 +277,20 @@ async function wizardDone(p) {
   await page.evaluate(() => { window.plannerReschedule(); });
   await sleep(800);
   ok('重新排期无报错', await page.$$eval('#resultBody .day-card', els => els.length >= 1));
+
+  /* G11：重新排期是「回到选点页开向导」（plannerReschedule 里 showStage('stagePick')，并把选点页的
+     卡片整排藏掉，只留向导盒），结果页此刻本就 display:none——所以必须像用户那样把向导走完再量，
+     量到的才是重画后的图。不能走 wizardTo()：它第一下点 #scheduleBtn，而那个按钮这时已被藏起来
+     （实测报 "Node is either not clickable"）。这一条复测证明第二次进结果页（renderMap 的第二轮、
+     mapGen 已 +1）几何仍然健康，不是只有首屏那一次对。 */
+  await page.click('#wNext'); await sleep(400);
+  await page.click('#wNext'); await sleep(400);
+  await wizardDone(page);
+  const g2 = await page.evaluate(MAP_GEOM);
+  ok('G11 走完第二次排期后地图几何仍然健康',
+    !!g2.svgSize && g2.svgSize !== '0x0' && g2.paths > 0 && g2.pathsZero === 0 &&
+    g2.pathsInBox === g2.paths && g2.pins > 0 && g2.pinsInBox === g2.pins && !!g2.mapSize && g2.mapSize === g2.clientSize,
+    'svg ' + g2.svgSize + ' / path ' + g2.pathsInBox + '/' + g2.paths + '（零尺寸 ' + g2.pathsZero + '）/ 针脚 ' + g2.pinsInBox + '/' + g2.pins + ' / map ' + g2.mapSize + ' vs 容器 ' + g2.clientSize);
 
   // 季节校验懒加载（四川 → sc-data.js）不报错
   await sleep(2500);

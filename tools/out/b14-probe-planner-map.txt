@@ -1,0 +1,48 @@
+== 路径A · 排期直进结果页
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=18
+  瓦片 total=1 loaded类=1 已解码=1 | 视口采样瓦片覆盖率=0% (0/2346)
+  overlay svg={"attr":"0x0","painted":"0x0.0"} | path 总数=8 落在框内=0
+  path 明细=["rgb(143, 93, 14)/w6px/o1@17,78 0x0","rgb(174, 87, 56)/w3px/o1@17,78 0x0","rgb(143, 93, 14)/w6px/o1@17,78 0x0"]
+  针脚=5 落在框内=0 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"0×0","stageInlineWhenCreated":"none","stageComputedWhenCreated":"none","vtSeenWhenCreated":2,"mapSize":"0×0","containerNow":"420×458","sizeMatch":false,"zoom":18,"center":"31.4209,104.1850","bounds":"31.421,104.185,31.421,104.185","popupOpen":false,"layers":20}
+  点第一个针脚 → {"popup":false,"point":"-49383,-405742","frontAtPoint":null,"pin":"1"}
+  页面滚动 {"sy":0,"sh":2301}
+  建图时序日志 [{"ev":"vt-callback","stageDisp":"none","boxW":0},{"ev":"L.map","rect":"0×0","boxDisp":"block","stageInlineDisp":"none","stageComputedDisp":"none","vtSeen":2},{"ev":"vt-callback","stageDisp":"none","boxW":0}]
+  环境 {"vt":"function","reduced":false,"amapKey":false}
+  JS 报错: 无
+== 路径A2 · 事后 invalidateSize（不重画）
+== 路径A2
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(209px, 228px, 0px) | 瓦片 zoom=18
+  瓦片 total=9 loaded类=2 已解码=2 | 视口采样瓦片覆盖率=0% (0/2346)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=0
+  path 明细=["rgb(143, 93, 14)/w6px/o1@226,306 0x0","rgb(174, 87, 56)/w3px/o1@226,306 0x0","rgb(143, 93, 14)/w6px/o1@226,306 0x0"]
+  针脚=5 落在框内=0 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"0×0","stageInlineWhenCreated":"none","stageComputedWhenCreated":"none","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","sizeMatch":false,"zoom":18,"center":"31.4209,104.1850","bounds":"31.422,104.184,31.420,104.186","popupOpen":false,"layers":20}
+== 路径A3 · invalidateSize + 缩放一次
+== 路径A3
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(209px, 228px, 0px) | 瓦片 zoom=17
+  瓦片 total=9 loaded类=9 已解码=9 | 视口采样瓦片覆盖率=0% (0/2346)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=0
+  path 明细=["rgb(143, 93, 14)/w6px/o1@226,306 0x0","rgb(174, 87, 56)/w3px/o1@226,306 0x0","rgb(143, 93, 14)/w6px/o1@226,306 0x0"]
+  针脚=5 落在框内=0 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"0×0","stageInlineWhenCreated":"none","stageComputedWhenCreated":"none","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","sizeMatch":false,"zoom":17,"center":"31.4209,104.1850","bounds":"31.423,104.183,31.419,104.187","popupOpen":false,"layers":20}
+== 路径B · 刷新恢复  {"stage":"block","toast":"","days":5}
+== 路径B · 刷新恢复（planner.js:1963 renderResult 先于 showStage）
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=18
+  瓦片 total=1 loaded类=1 已解码=1 | 视口采样瓦片覆盖率=0% (0/2346)
+  overlay svg={"attr":"0x0","painted":"0x0.0"} | path 总数=8 落在框内=0
+  path 明细=["rgb(143, 93, 14)/w6px/o1@17,78 0x0","rgb(174, 87, 56)/w3px/o1@17,78 0x0","rgb(143, 93, 14)/w6px/o1@17,78 0x0"]
+  针脚=5 落在框内=0 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"0×0","stageInlineWhenCreated":"none","stageComputedWhenCreated":"none","vtSeenWhenCreated":0,"mapSize":"0×0","containerNow":"420×458","sizeMatch":false,"zoom":18,"center":"31.4209,104.1850","bounds":"31.421,104.185,31.421,104.185","popupOpen":false,"layers":20}
+  点第一个针脚 → {"popup":false,"point":"-49383,-405742","frontAtPoint":null,"pin":"1"}
+探针异常: Cannot read properties of undefined (reading 'toFixed')
+file:///F:/MyAi/trace/lvyou-v2/planner.js:1029:109
+TypeError: Cannot read properties of undefined (reading 'toFixed')
+file:///F:/MyAi/trace/lvyou-v2/planner.js:1029:109
+    at evaluate (evaluate at F:\MyAi\trace\lvyou-v2\tools\out\probe-planner-map.js:261:27, <anonymous>:0:65)
+    at #evaluate (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/cdp/ExecutionContext.js:402:19)
+    at async ExecutionContext.evaluate (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/cdp/ExecutionContext.js:2

@@ -1,0 +1,63 @@
+== 路径A · 排期直进结果页
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=6
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=99.8% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@214,207 72x60","rgb(174, 87, 56)/w3px/o1@214,207 72x60","rgb(143, 93, 14)/w6px/o1@226,267 60x62"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":6,"center":"31.4209,104.1850","bounds":"35.604,99.602,27.059,108.787","popupOpen":false,"layers":20}
+  点第一个针脚 → {"popup":true,"text":"九寨沟 四川 · 阿坝州 ×","rect":"147,128 133×66","style":"op1/visible/block","clipped":false,"hitIsPopup":true,"frontTag":"leaflet-popup-content","pin":"1"}
+  页面滚动 {"sy":0,"sh":2301}
+  建图时序日志 [{"ev":"vt-callback","stageDisp":"none","boxW":0},{"ev":"vt-callback","stageDisp":"none","boxW":0},{"ev":"L.map","rect":"420×458","boxDisp":"block","stageInlineDisp":"block","stageComputedDisp":"block","vtSeen":2}]
+  环境 {"vt":"function","reduced":false,"amapKey":false}
+  JS 报错: 无
+== 路径A2 · 事后 invalidateSize（不重画）
+== 路径A2
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=6
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=99.8% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@214,207 72x60","rgb(174, 87, 56)/w3px/o1@214,207 72x60","rgb(143, 93, 14)/w6px/o1@226,267 60x62"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":6,"center":"31.4287,104.1943","bounds":"35.604,99.602,27.059,108.787","popupOpen":true,"layers":21}
+== 路径A3 · invalidateSize + 缩放一次
+== 路径A3
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=5
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=100% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@220,257 36x30","rgb(174, 87, 56)/w3px/o1@220,257 36x30","rgb(143, 93, 14)/w6px/o1@226,287 30x31"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":5,"center":"31.4287,104.1943","bounds":"39.572,95.010,22.513,113.379","popupOpen":true,"layers":21}
+== 路径B · 刷新恢复  {"stage":"block","toast":"","days":5}
+== 路径B · 刷新恢复（planner.js:1963 renderResult 先于 showStage）
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=6
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=99.8% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@214,207 72x60","rgb(174, 87, 56)/w3px/o1@214,207 72x60","rgb(143, 93, 14)/w6px/o1@226,267 60x62"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":2,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":6,"center":"31.4209,104.1850","bounds":"35.604,99.602,27.059,108.787","popupOpen":false,"layers":20}
+  点第一个针脚 → {"popup":true,"text":"九寨沟 四川 · 阿坝州 ×","rect":"147,128 133×66","style":"op1/visible/block","clipped":false,"hitIsPopup":true,"frontTag":"leaflet-popup-content","pin":"1"}
+== 路径C · plannerOpenTrip(0) 打开已保存行程（入口命中=true，行程形状来自真实快照=true）
+== 路径C
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=6
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=99.8% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@214,207 72x60","rgb(174, 87, 56)/w3px/o1@214,207 72x60","rgb(143, 93, 14)/w6px/o1@226,267 60x62"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":1,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":6,"center":"31.4209,104.1850","bounds":"35.604,99.602,27.059,108.787","popupOpen":false,"layers":20}
+  点第一个针脚 → {"popup":true,"text":"九寨沟 四川 · 阿坝州 ×","rect":"147,128 133×66","style":"op1/visible/block","clipped":false,"hitIsPopup":true,"frontTag":"leaflet-popup-content","pin":"1"}
+== 路径D · 减动效档（UI.vt 同步执行）
+== 路径D
+  stageResult.display=block | #mapBox display=block rect y=77 420×457.7 | .leaflet-container=null
+  mapPane transform=translate3d(0px, 0px, 0px) | 瓦片 zoom=6
+  瓦片 total=6 loaded类=6 已解码=6 | 视口采样瓦片覆盖率=99.8% (0/6)
+  overlay svg={"attr":"502x547","painted":"502x547.0"} | path 总数=8 落在框内=8
+  path 明细=["rgb(143, 93, 14)/w6px/o1@214,207 72x60","rgb(174, 87, 56)/w3px/o1@214,207 72x60","rgb(143, 93, 14)/w6px/o1@226,267 60x62"]
+  针脚=5 落在框内=5 | tileWarn=false
+  内部 {"hooked":true,"createdWhen":"420×458","stageInlineWhenCreated":"block","stageComputedWhenCreated":"block","vtSeenWhenCreated":0,"mapSize":"418×456","containerNow":"420×458","clientNow":"418×456","sizeMatch":true,"zoom":6,"center":"31.4209,104.1850","bounds":"35.604,99.602,27.059,108.787","popupOpen":false,"layers":20}
+  建图时序 [{"ev":"L.map","rect":"420×458","boxDisp":"block","stageInlineDisp":"block","stageComputedDisp":"block","vtSeen":0}]
+  点第一个针脚 → {"popup":true,"text":"九寨沟 四川 · 阿坝州 ×","rect":"147,128 133×66","style":"op1/visible/block","clipped":false,"hitIsPopup":true,"frontTag":"leaflet-popup-content","pin":"1"}
+完成

@@ -1,0 +1,101 @@
+PASS index.320x640.png  diff 0.00%
+PASS index.390x844.png  diff 0.00%
+PASS index.452x995.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+NOTE topic.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.320x640.png  diff 0.00%
+NOTE topic.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.390x844.png  diff 0.00%
+NOTE topic.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.452x995.png  diff 0.00%
+NOTE topic.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.768x1024.png  diff 0.00%
+NOTE topic.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.1440x900.png  diff 0.00%
+PASS search.320x640.png  diff 0.00%
+PASS search.390x844.png  diff 0.00%
+PASS search.452x995.png  diff 0.00%
+PASS search.768x1024.png  diff 0.00%
+PASS search.1440x900.png  diff 0.00%
+PASS wishlist.320x640.png  diff 0.00%
+PASS wishlist.390x844.png  diff 0.00%
+PASS wishlist.452x995.png  diff 0.00%
+PASS wishlist.768x1024.png  diff 0.00%
+PASS wishlist.1440x900.png  diff 0.00%
+PASS review.320x640.png  diff 0.00%
+PASS review.390x844.png  diff 0.00%
+PASS review.452x995.png  diff 0.00%
+PASS review.768x1024.png  diff 0.00%
+PASS review.1440x900.png  diff 0.00%
+PASS settings.320x640.png  diff 0.00%
+PASS settings.390x844.png  diff 0.00%
+PASS settings.452x995.png  diff 0.00%
+PASS settings.768x1024.png  diff 0.00%
+PASS settings.1440x900.png  diff 0.00%
+PASS me.320x640.png  diff 0.00%
+PASS me.390x844.png  diff 0.00%
+PASS me.452x995.png  diff 0.00%
+PASS me.768x1024.png  diff 0.00%
+PASS me.1440x900.png  diff 0.00%
+NOTE node-manager.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.320x640.png  diff 0.00%
+NOTE node-manager.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.390x844.png  diff 0.00%
+NOTE node-manager.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.452x995.png  diff 0.00%
+NOTE node-manager.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.768x1024.png  diff 0.00%
+NOTE node-manager.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.1440x900.png  diff 0.00%
+PASS album.320x640.png  diff 0.00%
+PASS album.390x844.png  diff 0.00%
+PASS album.452x995.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS album-edit.320x640.png  diff 0.00%
+PASS album-edit.390x844.png  diff 0.00%
+PASS album-edit.452x995.png  diff 0.00%
+PASS album-edit.768x1024.png  diff 0.00%
+PASS album-edit.1440x900.png  diff 0.00%
+PASS story.320x640.png  diff 0.00%
+PASS story.390x844.png  diff 0.00%
+PASS story.452x995.png  diff 0.00%
+PASS story.768x1024.png  diff 0.00%
+PASS story.1440x900.png  diff 0.00%
+PASS planner.320x640.png  diff 0.00%
+PASS planner.390x844.png  diff 0.00%
+PASS planner.452x995.png  diff 0.00%
+PASS planner.768x1024.png  diff 0.00%
+PASS planner.1440x900.png  diff 0.00%
+PASS md-manager.320x640.png  diff 0.00%
+PASS md-manager.390x844.png  diff 0.00%
+PASS md-manager.452x995.png  diff 0.00%
+PASS md-manager.768x1024.png  diff 0.00%
+PASS md-manager.1440x900.png  diff 0.00%
+PASS explore-map.320x640.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.452x995.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+NOTE travel-map.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.320x640.png  diff 0.00%
+NOTE travel-map.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.390x844.png  diff 0.00%
+NOTE travel-map.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.452x995.png  diff 0.00%
+NOTE travel-map.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.768x1024.png  diff 0.00%
+NOTE travel-map.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.1440x900.png  diff 0.00%
+PASS review.seed.390x844.png  diff 0.00%
+NOTE album.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+NOTE travel-map.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1356ms(<2500) 元素=SPAN | CLS 0.0000(<0.05)
+PASS 性能预算 topic.html — LCP 1196ms(<2500) 元素=? | CLS 0.0009(<0.05)
+---
+耗时 425.8s（79 张，报告 tools/out/visual-report.json）
+比对 79 张: 79 PASS, 0 FAIL

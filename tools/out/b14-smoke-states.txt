@@ -1,0 +1,11 @@
+状态组件行为验证（smoke-states.js）
+  PASS index.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS search.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS topic.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS wishlist.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS travel-map.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS album.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS review.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html#ai :: {"errorBoxOnFail":true}
+smoke-states: 9 项，失败 0

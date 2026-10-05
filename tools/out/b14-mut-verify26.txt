@@ -1,0 +1,33 @@
+基线（未变异）: §26 红 0 条
+红  P1 调度层不做尺寸判定就直接画（回到 0×0 建图）  → §26 共红 1 条，指定那条：planner.js 锚点「if (box.clientWidth && box.clientHeight) { dra」实得 1，期望 2 —— 两条出口都在尺寸判定之后（同步一条 + rAF 一条）；少一条就是回
+红  P2 rAF 那条出口也不量尺寸（两条出口缩成一条）  → §26 共红 1 条，指定那条：planner.js 锚点「if (box.clientWidth && box.clientHeight) { dra」实得 1，期望 2 —— 两条出口都在尺寸判定之后（同步一条 + rAF 一条）；少一条就是回
+红  P3 过期轮次的作废检查被摘（两轮都画 → 叠图）  → §26 共红 1 条，指定那条：planner.js 锚点「if (gen !== mapGen) return;」实得 0，期望 1 —— 增删站点/重新排期会再 renderMap 一次，旧轮次必须作废
+红  P4 等尺寸没有上限（无限挂 rAF）  → §26 共红 1 条，指定那条：planner.js 锚点「if (++tries < 180) requestAnimationFrame(wait)」实得 0，期望 1 —— 等尺寸有上限（约 3s），不是无限挂 rAF
+红  P5 建图搬回调度层（改前形态：不管容器有没有尺寸）  → §26 共红 2 条，指定那条：renderMap 调度层里又出现 L.map( —— 回到「不管容器有没有尺寸就建图」的改前形态
+红  P6 单站也走 fitBounds（0 跨度顶到 maxZoom＝又一条显示不全）  → §26 共红 1 条，指定那条：planner.js 锚点「else if (bnd.length === 1) map.setView(bnd[0],」实得 0，期望 1 —— 单站不 fitBounds：0 跨度会顶到 maxZoom=18，等
+红  P7 fitBounds 的 padding 被顺手改掉（整串相等必须红）  → §26 共红 1 条，指定那条：planner.js 锚点「if (bnd.length > 1) map.fitBounds(bnd, { paddi」实得 0，期望 1 —— 多点才 fit（症状①的另一半）
+红  P8 点针脚没信息了（症状③的接线被摘）  → §26 共红 1 条，指定那条：planner.js 锚点「m.bindPopup('<b>' + esc(s.name)」实得 0，期望 1 —— 症状③「点节点不出信息」的接线还在
+红  P9 三个 renderMap() 出口少一个（增删站点后不再重画）  → §26 共红 1 条，指定那条：planner.js 锚点「renderMap();」实得 2，期望 3 —— 首屏渲染 / AI 换线 / 增删站点重排 三个出口都走调度层
+红  P10 恢复路径顺序改回反的（renderResult 先于 showStage）  → §26 共红 2 条，指定那条：planner.js 锚点「renderResult(); showStage('stageResult');」实得 1，期望 0 —— 改前的反顺序零残留
+红  P11 用「别转场了」绕开成因（UI.vt 接线被摘）  → §26 共红 1 条，指定那条：planner.js 锚点「UI.vt(function () {」实得 0，期望 1 —— showStage 仍走 View Transition——这条 bug 的成因不许用「别转场了」来绕开
+红  P12 缩放控件挪出 if (!map)（每轮渲染多挂一个）  → §26 共红 1 条，指定那条：planner.js 锚点「L.control.zoom({ position: 'bottomright' }).ad」实得 2，期望 1 —— 建图那次一次性挂缩放控件（挪进 clearLayers 循环会越叠越
+红  P13 事后 invalidateSize 被摘（转屏/改宽没人补尺寸）  → §26 共红 1 条，指定那条：planner.js 锚点「map.invalidateSize();」实得 0，期望 1 —— 有尺寸之后仍补一次（转屏/改宽）——它是补充，不是本节的修法
+红  P14 针脚图标改成 0 尺寸（G7 的盒内判定失真）  → §26 共红 1 条，指定那条：planner.js 锚点「iconSize: [26, 26], iconAnchor: [13, 24]」实得 0，期望 1 —— 针脚锚点（改回 0 尺寸图标，G7 的盒内判定就失真）
+红  U1 同步退化分支少条件（减动效口径被改）  → §26 共红 1 条，指定那条：ui.js 锚点「if (reducedMotion() || !document.startViewTran」实得 0，期望 1 —— 同步退化分支还在（G 段特意不走这一档）
+红  U2 异步分支被抹掉（G 段就该换档，不许继续绿）  → §26 共红 1 条，指定那条：ui.js 锚点「var t = document.startViewTransition(fn);」实得 0，期望 1 —— 异步分支还在＝成因没被抹掉，只是被产品侧挡住了；哪天 UI.vt 改名，G 段就该换档而
+红  H1 #mapBox 高度归零（sized 判定等的是永远 0 高的盒子）  → §26 共红 1 条，指定那条：planner.html 锚点「#mapBox{height:46vh;min-height:220px」实得 0，期望 1 —— 容器自己有高度——sized 判定等的不是一个永远 0 高的盒子
+红  S1 把 G 段改到强制减动效档（结构性看不见本 bug → 假闸）  → §26 共红 1 条，指定那条：tools/smoke-planner.js 锚点「emulateMediaFeatures」实得 1，期望 0 —— smoke-planner 不许强制减动效：那一档 UI.vt 同步执行，本 bug 结构性看不
+红  S2 删掉 G7 这条判据（针脚框内没人管了）  → §26 共红 1 条，指定那条：tools/smoke-planner.js 缺 G7 这条判据（G1–G11 是一整组：尺寸/画布/条数/零尺寸/框内/缩放/弹窗/不裁/重画复测，少一条就是有个症状没人管）
+红  S3 重画后不再复测（只剩首屏一次读数）  → §26 共红 1 条，指定那条：G 段只剩一次读数：改完站点/重新排期之后的复测（G11）不能省，重画是另一条出口
+红  S4 建图钩子不再交回实例（G2/G8 读的是别的对象）  → §26 共红 1 条，指定那条：tools/smoke-planner.js 锚点「window.__plannerMap = m;」实得 0，期望 1 —— 钩子把 Leaflet 实例交给闸门
+红  S5 几何读数函数改名（判据读的东西失联）  → §26 共红 1 条，指定那条：tools/smoke-planner.js 锚点「const MAP_GEOM = () => {」实得 0，期望 1 —— 几何读数函数在场（判据读 DOM，不读像素）
+红  V1 锚点里写块注释（flat26 先剥注释 → 永远 0 命中的假红灯）  → §26 共红 2 条，指定那条：锚点里不许出现块注释（flat26 先剥注释，这条永远 0 命中）：/* 注释 */ map.invalidateSize();
+红  V2 锚点表被悄悄削减 6 条（整组删掉等于这节没了）  → §26 共红 2 条，指定那条：锚点表被削减：19 条（批次 14 落地时实测 25 条，整组删掉等于这节没了）
+红  V3 合成"改前源"的正向对照失效（期望 0 的那条成了假绿灯）  → §26 共红 1 条，指定那条：正向对照失效：合成"改前源"里的反顺序没命中，那条期望 0 的锚是假绿灯
+红  V4 结构检的函数体切片改成整文件（renderMap 体内禁建图成了空话）  → §26 共红 1 条，指定那条：renderMap 调度层里又出现 L.map( —— 回到「不管容器有没有尺寸就建图」的改前形态
+红  D1 README 的 verify 清单不再提 §26  → §26 共红 1 条，指定那条：README.md 的 verify 清单没提 §26（新闸门不写进 README 就等于没装）
+红  D2 README 不再登记 G1–G11（两处全摘）  → §26 共红 1 条，指定那条：README.md 的 smoke-planner 那一行没登记 G1–G11 地图判据
+红  D3 方案文档不再有「批次 14」  → §26 共红 1 条，指定那条：改进实施方案与验收标准.md 没有「批次 14」这一节（实测数字要落文档，不然下批又从头猜）
+
+合计 29 条变异：打红 29 / 异常 0 / 全部文件逐字节还原（7 个）
+EXIT=0

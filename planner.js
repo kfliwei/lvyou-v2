@@ -1106,7 +1106,7 @@
   }
 
   /* 地图 */
-  var map = null, mapLayer = null;
+  var map = null, mapLayer = null, mapGen = 0;
   /* ---------- 浏览已选弹层 ---------- */
   window.plannerCloseBrowse = function () { var mk = $id('browseMask'); if (mk) mk.remove(); };
   window.plannerOpenBrowse = function () {
@@ -1367,11 +1367,28 @@
     try { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fb; } catch (e) { return fb; }
   }
 
+  /* 建图与画图分两层：画图只对「已经有尺寸的容器」做。
+     showStage 走 UI.vt（View Transition），DOM 更新被推到下一帧，所以 showStage() 之后立刻
+     量 #mapBox 量到的是切换前的 display:none = 0×0。对着 0×0 建图，Leaflet 的瓦片视口和
+     SVG 渲染器会永久停在 0×0，fitBounds 同时退化成 maxZoom —— 实测症状就是用户报的三条：
+     底图只出一块瓦片（铺满 10.1%）、折线全画不出（8 条 path 均 0×0）、针脚甩到 -49383px 外
+     连带弹窗定位到框外。事后补 invalidateSize 只救得回尺寸（瓦片 100%）救不回视图（path 仍
+     0×0），所以只能在有尺寸之后建图，不能指望事后补救。 */
   function renderMap() {
     var trip = state.trip; if (!trip) return;
     var pts = [];
     trip.days.forEach(function (d) { d.stops.forEach(function (s) { pts.push(s); }); });
     if (!pts.length) return;
+    var gen = ++mapGen, box = $id('mapBox'), tries = 0;
+    if (box.clientWidth && box.clientHeight) { drawMap(trip, pts); return; }
+    (function wait() {
+      if (gen !== mapGen) return;                                  /* 更新的渲染已接管，这次作废 */
+      if (box.clientWidth && box.clientHeight) { drawMap(trip, pts); return; }
+      if (++tries < 180) requestAnimationFrame(wait);              /* 约 3s 还没尺寸＝这一阶段真没显示 */
+    })();
+  }
+
+  function drawMap(trip, pts) {
     if (!map) { map = L.map('mapBox', { zoomControl: false }).setView([34.5, 105], 5); L.control.zoom({ position: 'bottomright' }).addTo(map); var tl = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}', { subdomains: '1234', maxZoom: 18, attribution: '© 高德' }).addTo(map); if (window.UI) UI.tileWarn(tl, '地图'); mapLayer = L.layerGroup().addTo(map); }
     map.invalidateSize();
     mapLayer.clearLayers();
@@ -1960,7 +1977,7 @@
       if (snap && snap.candidates && snap.candidates.length && (snap.stage === 'stagePick' || snap.stage === 'stageResult')) {
         Object.keys(snap).forEach(function (k) { if (k !== 'stage') state[k] = snap[k]; });
         renderIntent();
-        if (snap.stage === 'stageResult' && snap.trip) { renderResult(); showStage('stageResult'); }
+        if (snap.stage === 'stageResult' && snap.trip) { showStage('stageResult'); renderResult(); }
         else { renderCandidates(); showStage('stagePick'); }
         toast('已恢复上次规划进度');
       }

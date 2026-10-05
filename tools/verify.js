@@ -2283,5 +2283,133 @@ const EMOJI_MARK = 'emoji-ok:';
 }
 
 
+/* ============ §26 规划结果页地图闸门：不许再对着 0×0 容器建图 ============
+   批次 14。用户报三条症状：① 地图显示不全 ② 只有节点没有路线 ③ 点节点不出信息。
+   根因一条，且三条症状同源（showStage 走 UI.vt，View Transition 把 display 翻转推到下一帧，
+   紧随其后的 renderResult()→renderMap() 量到的是切换前的 display:none = 0×0）。
+   改前物证（tools/out/b14-probe-before.txt，452×995 = 一加 Ace 6T）：
+     建图时容器 0×0 → map.getSize() 永久 0×0、瓦片只有 1 块（视口铺满 10.1%）、
+     overlay svg 属性 0x0 → 8 条 path 全画成 0×0（所以「只显示节点不显示路线」）、
+     针脚被投到 -49383,-405742（所以「点不到节点」，弹窗也定位在框外被 overflow:hidden 裁掉）、
+     fitBounds 同时退化成 maxZoom=18。事后 invalidateSize 只救得回尺寸（瓦片 100%）
+     救不回视图（path 仍 0×0，见路径 A2/A3）——所以修法只能是「有尺寸之后才建图」，
+     这一节钉的就是那个分层的实现形状，不是某个像素结果。
+   为什么批次 3–13 的闸门全绿（这是本批最重要的一条口径教训）：
+     79 态像素基线与跑减动效档的 smoke 都强制 prefers-reduced-motion，UI.vt 在那一档走
+     **同步**退化分支，建图时容器已有尺寸——改后探针路径 D 实测 vtSeen=0 且几何健康。
+     也就是说这一整类「转场异步 ⇒ 紧接着量几何」的 bug，在减动效档结构性看不见。
+     所以补了 tools/smoke-planner.js 的 G1–G11（跑在默认档，不强制减动效），
+     并要求这一节自己钉住「smoke-planner 不许改成强制减动效」——否则 G 段会静默变成又一条假闸。
+   两条实现坑沿用 §24：needle 里不许出现块注释（flat26 先剥注释，写了永远 0 命中）；
+   期望 0 的锚点必须有正向对照（把改前形态喂进同一个计数器，必须命中 ≥1）。
+   ============================================================ */
+{
+  let bad26 = 0;
+  const F26 = m => { bad26++; console.log('FAIL §26 地图闸门: ' + m); };
+  const flat26 = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  const cnt26 = (src, needle) => src.split(needle).length - 1;
+  const rd26 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const FILES26 = ['planner.js', 'ui.js', 'planner.html', 'tools/smoke-planner.js'];
+  const SRC26 = {};
+  FILES26.forEach(f => {
+    if (!fs.existsSync(f)) { F26('缺 ' + f); SRC26[f] = ''; return; }
+    SRC26[f] = flat26(rd26(f));
+  });
+  /* [文件, 锚点（空白归一后的字面串）, 期望次数, 这条钉的是什么退化] */
+  const A26 = [
+    ['planner.js', 'var map = null, mapLayer = null, mapGen = 0;', 1, 'mapGen 是过期轮次的作废计数（少了它两轮渲染都会画）'],
+    ['planner.js', 'function renderMap() {', 1, '调度层：只决定什么时候画'],
+    ['planner.js', 'function drawMap(trip, pts) {', 1, '画图层：只对已经有尺寸的容器画'],
+    ['planner.js', "var gen = ++mapGen, box = $id('mapBox'), tries = 0;", 1, '每轮渲染先领代次号再量容器'],
+    ['planner.js', 'if (box.clientWidth && box.clientHeight) { drawMap(trip, pts); return; }', 2, '两条出口都在尺寸判定之后（同步一条 + rAF 一条）；少一条就是回到 0×0 建图'],
+    ['planner.js', 'if (gen !== mapGen) return;', 1, '增删站点/重新排期会再 renderMap 一次，旧轮次必须作废'],
+    ['planner.js', 'if (++tries < 180) requestAnimationFrame(wait);', 1, '等尺寸有上限（约 3s），不是无限挂 rAF'],
+    ["planner.js", "L.map('mapBox', { zoomControl: false })", 1, '全页只剩 drawMap 里那一处建图'],
+    ['planner.js', 'map.invalidateSize();', 1, '有尺寸之后仍补一次（转屏/改宽）——它是补充，不是本节的修法'],
+    ['planner.js', 'if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });', 1, '多点才 fit（症状①的另一半）'],
+    ['planner.js', 'else if (bnd.length === 1) map.setView(bnd[0], 9);', 1, '单站不 fitBounds：0 跨度会顶到 maxZoom=18，等于又一条「显示不全」'],
+    ['planner.js', 'renderMap();', 3, '首屏渲染 / AI 换线 / 增删站点重排 三个出口都走调度层'],
+    ['planner.js', 'UI.vt(function () {', 1, 'showStage 仍走 View Transition——这条 bug 的成因不许用「别转场了」来绕开'],
+    ['planner.js', "m.bindPopup('<b>' + esc(s.name)", 1, '症状③「点节点不出信息」的接线还在'],
+    ['planner.js', 'iconSize: [26, 26], iconAnchor: [13, 24]', 1, '针脚锚点（改回 0 尺寸图标，G7 的盒内判定就失真）'],
+    ['planner.js', "L.control.zoom({ position: 'bottomright' }).addTo(map);", 1, '建图那次一次性挂缩放控件（挪进 clearLayers 循环会越叠越多）'],
+    ['planner.js', "if (snap.stage === 'stageResult' && snap.trip) { showStage('stageResult'); renderResult(); }", 1, '刷新恢复：先切阶段再渲染（这是第二条独立缺陷，顺序和别的入口一致）'],
+    ['planner.js', "renderResult(); showStage('stageResult');", 0, '改前的反顺序零残留'],
+    ['ui.js', 'if (reducedMotion() || !document.startViewTransition) { fn(); return null; }', 1, '同步退化分支还在（G 段特意不走这一档）'],
+    ['ui.js', 'var t = document.startViewTransition(fn);', 1, '异步分支还在＝成因没被抹掉，只是被产品侧挡住了；哪天 UI.vt 改名，G 段就该换档而不是变绿'],
+    ['planner.html', '#mapBox{height:46vh;min-height:220px', 1, '容器自己有高度——sized 判定等的不是一个永远 0 高的盒子'],
+    ['tools/smoke-planner.js', 'const MAP_HOOK = () => {', 1, '测试侧建图钩子在场（G1/G2/G8 的读数来源）'],
+    ['tools/smoke-planner.js', 'const MAP_GEOM = () => {', 1, '几何读数函数在场（判据读 DOM，不读像素）'],
+    ['tools/smoke-planner.js', 'window.__plannerMap = m;', 1, '钩子把 Leaflet 实例交给闸门'],
+    ['tools/smoke-planner.js', 'emulateMediaFeatures', 0, 'smoke-planner 不许强制减动效：那一档 UI.vt 同步执行，本 bug 结构性看不见，G 段会静默变假闸'],
+  ];
+  const GROUPS = {};
+  A26.forEach(t => {
+    if (t[1].indexOf('/*') >= 0 || t[1].indexOf('*/') >= 0)
+      F26('锚点里不许出现块注释（flat26 先剥注释，这条永远 0 命中）：' + t[1].slice(0, 44));
+    if (!t[3]) F26('锚点缺说明（第 4 项是"这条钉的是哪个退化"）：' + t[1].slice(0, 40));
+    if (!(t[0] in SRC26)) { F26('锚点指向没登记的文件：' + t[0]); return; }
+    const n = cnt26(SRC26[t[0]], t[1]);
+    if (n !== t[2])
+      F26(t[0] + ' 锚点「' + t[1].slice(0, 46) + '」实得 ' + n + '，期望 ' + t[2] + ' —— ' + t[3]);
+    GROUPS[t[0]] = (GROUPS[t[0]] || 0) + 1;
+  });
+  if (A26.length < 25) F26('锚点表被削减：' + A26.length + ' 条（批次 14 落地时实测 25 条，整组删掉等于这节没了）');
+  const MIN26 = { 'planner.js': 17, 'ui.js': 2, 'planner.html': 1, 'tools/smoke-planner.js': 4 };
+  FILES26.forEach(f => { if ((GROUPS[f] || 0) < (MIN26[f] || 1)) F26('锚点覆盖不足：' + f + ' 只有 ' + (GROUPS[f] || 0) + ' 条，下限 ' + (MIN26[f] || 1)); });
+
+  /* ① 结构检：renderMap 调度层里不许出现建图，建图只能在 drawMap 里 */
+  const bodyOf = (src, a, b) => {
+    const i = src.indexOf(a); if (i < 0) return null;
+    const j = src.indexOf(b, i + a.length);
+    return src.slice(i, j < 0 ? src.length : j);
+  };
+  const RB = bodyOf(SRC26['planner.js'], 'function renderMap() {', 'function drawMap(trip, pts) {');
+  if (!RB) F26('抠不出 renderMap 函数体（renderMap / drawMap 两个名字至少改了一个，本节的结构检失效）');
+  else {
+    if (RB.indexOf('L.map(') >= 0) F26('renderMap 调度层里又出现 L.map( —— 回到「不管容器有没有尺寸就建图」的改前形态');
+    if (RB.indexOf('drawMap(') < 0) F26('renderMap 不再调 drawMap：sized 判定形同虚设，画图层没人叫');
+  }
+  const DB = bodyOf(SRC26['planner.js'], 'function drawMap(trip, pts) {', 'function flatStops() {');
+  if (!DB) F26('抠不出 drawMap 函数体（后面紧跟的是 flatStops，这两个名字漂了要同步改本节）');
+  else if (DB.indexOf('L.map(') < 0) F26('建图不在 drawMap 里（drawMap 段抠不到 L.map(），那 G1–G11 量的就不是这一处建图');
+
+  /* ② 期望 0 那条的正向对照：把改前形态喂进同一套计数与结构检，必须命中 */
+  {
+    const OLD26 = flat26([
+      "function renderMap() { var trip = state.trip; if (!trip) return; if (!map) { map = L.map('mapBox', { zoomControl: false }).setView([34.5, 105], 5); } }",
+      'function drawMapUnused() {}',
+      "if (snap.stage === 'stageResult' && snap.trip) { renderResult(); showStage('stageResult'); }"
+    ].join('\n'));
+    const OB = bodyOf(OLD26, 'function renderMap() {', 'function drawMapUnused() {');
+    if (!OB || OB.indexOf('L.map(') < 0) F26('正向对照失效：合成"改前源"的 renderMap 体里抠不到 L.map(，那条结构检是假绿灯');
+    if (cnt26(OLD26, "renderResult(); showStage('stageResult');") < 1) F26('正向对照失效：合成"改前源"里的反顺序没命中，那条期望 0 的锚是假绿灯');
+    const MM = rd26('tools/smoke-motion.js');
+    if (cnt26(flat26(MM), 'emulateMediaFeatures') < 1) F26('正向对照失效：仓库里连一条 emulateMediaFeatures 都找不到，那条期望 0 的锚只是 needle 写错了');
+  }
+
+  /* ③ 浏览器闸门 G1–G11 一条不许少（这一节的几何判据只活在 smoke-planner 的默认档里） */
+  for (let i = 1; i <= 11; i++)
+    if (SRC26['tools/smoke-planner.js'].indexOf("'G" + i + " ") < 0)
+      F26('tools/smoke-planner.js 缺 G' + i + ' 这条判据（G1–G11 是一整组：尺寸/画布/条数/零尺寸/框内/缩放/弹窗/不裁/重画复测，少一条就是有个症状没人管）');
+  if (cnt26(SRC26['tools/smoke-planner.js'], 'page.evaluate(MAP_GEOM)') < 2)
+    F26('G 段只剩一次读数：改完站点/重新排期之后的复测（G11）不能省，重画是另一条出口');
+
+  const RD26 = rd26('README.md');
+  if (RD26.indexOf('§26') < 0) F26('README.md 的 verify 清单没提 §26（新闸门不写进 README 就等于没装）');
+  if (RD26.indexOf('G1–G11') < 0) F26('README.md 的 smoke-planner 那一行没登记 G1–G11 地图判据');
+  const DOC26 = rd26('改进实施方案与验收标准.md');
+  if (DOC26.indexOf('批次 14') < 0) F26('改进实施方案与验收标准.md 没有「批次 14」这一节（实测数字要落文档，不然下批又从头猜）');
+
+  console.log('地图闸门: ' + A26.length + ' 条源码锚点逐条计数（空白归一后整串相等）——renderMap 调度层 / drawMap 画图层分层，' +
+    '两条 sized 出口各 1 处、mapGen 作废与 180 帧上限在、建图只剩 drawMap 一处、fitBounds 与单站 setView 分两条、' +
+    '三个 renderMap() 出口、bindPopup/针脚锚点/缩放控件各在其位；恢复路径顺序与别的入口一致（反顺序零残留）；' +
+    'UI.vt 同步与异步两条分支都在（成因没抹、由产品侧挡）；#mapBox 自带高度；' +
+    'smoke-planner 的 MAP_HOOK/MAP_GEOM/__plannerMap 在场且 G1–G11 齐备、仍不强制减动效、改图后有复测；' +
+    '期望 0 的三条各有合成改前源或真源正向对照；README 与方案文档已登记');
+  fail += bad26;
+}
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);
