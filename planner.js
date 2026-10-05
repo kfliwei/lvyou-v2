@@ -195,7 +195,7 @@
   }
 
   /* ---------- 状态 ---------- */
-  var state = { regions: [], days: 0, prefs: [], start: null, end: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null, matrix: null };
+  var state = { regions: [], days: 0, prefs: [], start: null, end: null, startDate: '', candidates: [], selected: [], trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null, matrix: null, expEdit: -1, expLump: 0, expCat: '' };
   function nodeUid(s) { return (window.Wish ? Wish.uid(s) : String((s.name || s.label || '') + '|' + s.lat + '|' + s.lng)); }
 
   /* localStorage 写入守卫：满额时如实提示，不再伪装成功 */
@@ -1029,7 +1029,8 @@
         h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
           '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
-          '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div></div>';
+          '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div>' +
+          expRow(di) + '</div>';
         return;
       }
       var allDone = d.stops.length > 0 && d.stops.every(function (s) { return s.done; });
@@ -1056,6 +1057,7 @@
           '<div class="stop-acts">' + acts + '</div>' +
           '</div>';
       });
+      h += expRow(di);
       h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
     /* 终到地行：有名称即显示（环线标注；里程与日卡同一把尺子，含真实矩阵） */
@@ -1115,6 +1117,144 @@
     writeSnap();   /* 未保存的行程靠 sessionStorage 快照把 id 带过去，回来还能接上同一桶清单 */
     location.href = 'checklist.html?trip=' + encodeURIComponent(ensureTripId(trip));
   };
+  /* ---------- 开销记账（第 5 项：做事后记账，不做行程前估算） ----------
+     金额一律整数分：Expense.add / setBudget 各有一处「元 → 分」，此后求和、比较、超预算
+     全在整数域；显示只走 Expense.fmtMoney，避免各处自己除 100 再拼小数位。
+     账目挂在日卡（「今天花了多少」是按天的事），汇总与预算在结果页尾部一张卡。
+     钱是隐私数据：不进分享载荷（share.js 的 ALLOWED 白名单没有 expense，§32 钉着）。 */
+  function expTripId() { var t = state.trip; return t ? ensureTripId(t) : ''; }
+  function expOf(di) {
+    var tid = expTripId(), day = di + 1;
+    return { tid: tid, day: day, list: Expense.listOf(tid).filter(function (x) { return x.day === day; }) };
+  }
+  function expRow(di) {
+    var e = expOf(di), open = state.expEdit === di;
+    var total = Expense.daySum(e.tid, e.day);
+    return '<div class="exfoot' + (e.list.length ? ' has' : '') + '">' +
+      '<span class="extot">' + (e.list.length ? '今日 <b>' + Expense.fmtMoney(total) + '</b> 元 · ' + e.list.length + ' 笔' : '今日未记账') + '</span>' +
+      '<button class="btn mini" onclick="window.plannerExpLump(' + di + ')">' + (open && state.expLump ? '收起' : '一笔带过') + '</button>' +
+      '<button class="btn mini" onclick="window.plannerExpEdit(' + di + ')">' + (open && !state.expLump ? '收起' : TI('budget') + '记开销') + '</button>' +
+      '</div>' + (open ? expEditor(di, e) : '');
+  }
+  /* 两步成账：一个数字键盘 + 分类六选一，备注与垫付人都可留空 */
+  function expEditor(di, e) {
+    var lump = !!state.expLump;
+    var sel = Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '餐饮';
+    var h = '<div class="exedit"><div class="exrow">' +
+      '<input class="examt" id="exAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="' + (lump ? '今天一共花了多少' : '金额') + '" aria-label="金额（元）">' +
+      '<span class="exunit">元</span></div>';
+    if (lump) {
+      h += '<div class="exhint">不分类，直接把今天总共花了多少记成一笔；要按站点拆开记就点「记开销」。</div>';
+    } else {
+      h += '<div class="excats" id="exCats">' + Expense.CATS.map(function (c, i) {
+        return '<span class="chip' + (c === sel ? ' on' : '') + '" data-cat="' + c + '" role="button" tabindex="0" onclick="window.plannerExpCat(' + i + ')">' + c + '</span>';
+      }).join('') + '</div>' +
+        '<div class="extexts"><input id="exWho" maxlength="20" placeholder="谁付的（可选）" aria-label="垫付人">' +
+        '<input id="exNote" maxlength="60" placeholder="备注（可选）" aria-label="备注"></div>';
+    }
+    h += '<div class="exacts"><button class="btn primary" onclick="window.plannerExpSave(' + di + ',' + (lump ? 1 : 0) + ')">记上</button>' +
+      '<button class="btn ghost" onclick="window.plannerExpEdit(' + di + ')">收起</button></div>';
+    if (e.list.length) {
+      /* 明细行按「天 + 时间」定序，所以删除用下标而不是把 id 拼进 onclick：
+         id 可能来自另一台机器（backup 并集），字符集不受本地生成器约束。 */
+      h += '<div class="exrows">' + e.list.map(function (x, k) {
+        return '<div class="ex"><span class="cat">' + esc(x.cat) + '</span><span class="money">' + Expense.fmtMoney(x.cents) + '</span>' +
+          '<span class="txt">' + esc([x.who, x.note].filter(Boolean).join(' · ')) + '</span>' +
+          '<button class="mv" aria-label="删除这笔" onclick="window.plannerExpDel(' + di + ',' + k + ')">' + TI('close', 14) + '</button></div>';
+      }).join('') + '</div>';
+    }
+    return h + '</div>';
+  }
+  function expRefresh() { renderDaysBody(); renderExpense(); }
+  function toggleExpEditor(di, lump) {
+    var want = lump ? 1 : 0;
+    if (state.expEdit === di && state.expLump === want) { state.expEdit = -1; state.expLump = 0; }
+    else { state.expEdit = di; state.expLump = want; }
+    renderDaysBody();
+  }
+  window.plannerExpEdit = function (di) { toggleExpEditor(di, 0); };
+  window.plannerExpLump = function (di) { toggleExpEditor(di, 1); };
+  /* 选分类只在原地改 .on：整段重渲染会把用户已经敲进去的金额一起抹掉 */
+  window.plannerExpCat = function (i) {
+    var c = Expense.CATS[i]; if (!c) return;
+    state.expCat = c;
+    var box = $id('exCats'); if (!box) return;
+    Array.prototype.forEach.call(box.children, function (el) {
+      el.classList.toggle('on', el.getAttribute('data-cat') === c);
+    });
+  };
+  window.plannerExpSave = function (di, lump) {
+    var trip = state.trip; if (!trip) return;
+    var amt = $id('exAmt');
+    var yuan = amt ? amt.value : '';
+    var n = Number(yuan);
+    if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }
+    var it = Expense.add(expTripId(), di + 1, yuan,
+      lump ? '其他' : (Expense.CATS.indexOf(state.expCat) >= 0 ? state.expCat : '其他'),
+      lump ? '' : ($id('exWho') || {}).value,
+      lump ? '全天一笔带过' : (($id('exNote') || {}).value || ''));
+    if (!it) return;   /* 写满时 Expense.save 已经如实报过一句，不再叠第二句 */
+    toast('已记 ' + Expense.fmtMoney(it.cents) + ' 元 · ' + it.cat);
+    state.expEdit = -1; state.expLump = 0;
+    expRefresh();
+  };
+  window.plannerExpDel = function (di, k) {
+    var tid = expTripId(), it = expOf(di).list[k];
+    if (!it) return;
+    UI.confirm({ title: '删除这笔', text: '删除「' + it.cat + ' ' + Expense.fmtMoney(it.cents) + ' 元」这条记录？删了就找不回来。', okText: '删除', danger: true }, function (ok) {
+      if (!ok) return;
+      if (!Expense.remove(tid, it.id)) return;
+      toast('已删除这笔账');
+      expRefresh();
+    });
+  };
+  window.plannerExpBudget = function (v) {
+    var tid = expTripId(); if (!tid) return;
+    var n = Number(v);
+    var cents = Expense.setBudget(tid, isFinite(n) && n > 0 ? n : 0);
+    toast(cents ? '预算设为 ' + Expense.fmtMoney(cents) + ' 元' : '预算已清除');
+    renderExpense();
+  };
+  function renderExpense() {
+    var box = $id('expCard'), trip = state.trip;
+    if (!box || !trip || !window.Expense) return;
+    var tid = expTripId();
+    var list = Expense.listOf(tid), total = Expense.totalCents(tid);
+    var budget = Expense.budgetOf(tid), over = Expense.overCents(tid);
+    $id('expCount').textContent = list.length
+      ? '共 ' + Expense.fmtMoney(total) + ' 元 · ' + list.length + ' 笔'
+      : (budget ? '已设预算，还没记账' : '还没记账');
+    $id('expBar').style.width = (budget ? Math.min(100, Math.round(total / budget * 100)) : (list.length ? 100 : 0)) + '%';
+    $id('expBarWrap').classList.toggle('over', over > 0);
+    /* 超预算：颜色之外必须同时有字（WCAG 1.4.1，与批次 5 同一口径——色盲/小屏/黑白打印都要读得出来） */
+    $id('expOver').innerHTML = over ? '<div class="warnline">' + TI('warn') + '已超预算 ' + Expense.fmtMoney(over) + ' 元</div>' : '';
+    var cats = Expense.catTotals(tid).filter(function (c) { return c.cents > 0; });
+    var max = cats.reduce(function (m, c) { return Math.max(m, c.cents); }, 0);
+    $id('expBars').innerHTML = cats.length
+      ? cats.sort(function (a, b) { return b.cents - a.cents; }).map(function (c) {
+          return '<div class="b"><span class="n">' + esc(c.cat) + '</span><span class="t"><i style="width:' + Math.max(4, Math.round(c.cents / max * 100)) + '%"></i></span><span class="v">' + Expense.fmtMoney(c.cents) + '</span></div>';
+        }).join('')
+      : '<div style="font-size:var(--fs-3);color:var(--color-muted);padding:2px 0">在日卡底部点「记开销」，各天的账汇总到这张卡</div>';
+    var bud = $id('exBudget');
+    /* 正在输入时不回写：onchange 到达时焦点还在这个框上，回写会把用户刚敲的数字按分位重排 */
+    if (bud && document.activeElement !== bud) bud.value = budget ? Expense.fmtMoney(budget) : '';
+    box.style.display = 'block';
+    /* 空账时按钮只降透明度、不 disabled：点下去那句提示才是教用户去哪补的路（同「导出日历」） */
+    var csvBtn = $id('expCsvBtn');
+    if (csvBtn) csvBtn.style.opacity = list.length ? '' : '.55';
+  }
+  window.plannerExportCsv = function () {
+    var t = state.trip;
+    if (!t) { toast('先排好行程再导出账单'); return; }
+    var tid = expTripId();
+    if (!Expense.listOf(tid).length) { toast('这笔账还是空的：先在日卡底部记一笔开销，再来导出 CSV'); return; }
+    var csv = Expense.buildCsv(tid, {
+      name: t.name || '行程',
+      dateOf: function (day) { return dayDate(t, day - 1) || ''; }
+    });
+    /* 通道与日历同源（APK 下载目录 / 浏览器 Blob / copyText 三条腿），文件名也过同一个 icsFileSafe */
+    saveTextDoc(icsFileSafe(t.name) + '-开销.csv', csv, 'text/csv;charset=utf-8', '用表格软件打开即可');
+  };
   function renderNarrative(n) {
     $id('narrBox').innerHTML = '<div style="font-size:var(--fs-2);color:var(--color-muted);margin-bottom:6px">AI 行程故事</div>' +
       '<div class="story">' + esc(n.story) + '</div>' +
@@ -1129,6 +1269,7 @@
     var totalKm = days.reduce(function (s, d) { return s + d.driveKm; }, 0);
     $id('resultTitle').textContent += ' · 约 ' + Math.round(totalKm) + ' km';
     renderDaysBody();
+    renderExpense();
     /* 「导出日历」在没日期时是灰的，但必须仍可点：点下去那句 toast 才是教用户去哪补日期的路。
        真 disabled 会让 pointer-events 吃掉点击，按钮灰着却不说话，等于把人堵死。 */
     var icsOn = !!buildTripIcs(trip);
@@ -1667,34 +1808,40 @@
     return L.join('\r\n') + '\r\n';
   }
 
-  window.plannerExportIcs = function () {
-    var t = state.trip;
-    if (!t) { toast('先排好行程再导出日历'); return; }
-    var ics = buildTripIcs(t);
-    if (!ics) { toast('要先在规划页选出发日期，日历事件才有日期'); return; }
-    var fname = icsFileSafe(t.name) + '.ics';
+  /* 文本导出通道（日历 / CSV 账单共用一条腿）：
+     APK 里 a[download] 是死路：壳工程没注册 DownloadListener（实测 MainActivity 全文无 setDownloadListener），
+     点下载不会有任何反应。下载目录这条腿是 APK 唯一的出口，__tnSaveDone 回吐真实结果，不假装成功。
+     两条导出各自只负责拼自己的正文与 MIME，通道里不留第二份三种真话的分支。 */
+  function saveTextDoc(fname, text, mime, okHint) {
     if (window.AndroidVoice && AndroidVoice.saveTextFile) {
-      /* APK 里 a[download] 是死路：壳工程没注册 DownloadListener（实测 MainActivity 全文无 setDownloadListener），
-         点下载不会有任何反应。下载目录这条腿是 APK 唯一的出口，__tnSaveDone 回吐真实结果，不假装成功。 */
       window.__tnSaveDone = function (r) {
-        if (r === 'err') toast('日历文件没能写进下载目录');
-        else if (r === 'need_perm') toast('要先允许存储权限，然后再点一次导出日历');
-        else toast('已存到下载目录：' + fname + '，用文件管理器点开即可导入日历');
+        if (r === 'err') toast('文件没能写进下载目录');
+        else if (r === 'need_perm') toast('要先允许存储权限，然后再点一次导出');
+        else toast('已存到下载目录：' + fname + '，' + okHint);
       };
-      try { AndroidVoice.saveTextFile(fname, ics); } catch (e) { toast('导出失败'); }
+      try { AndroidVoice.saveTextFile(fname, text); } catch (e) { toast('导出失败'); }
       return;
     }
     try {
-      var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      var blob = new Blob([text], { type: mime });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob); a.download = fname;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 400);
       toast('已导出 ' + fname);
     } catch (e) {
-      copyText(ics);
-      toast('浏览器拦住了下载，已复制日历内容：粘贴到备忘录存成 .ics 文件同样能导入');
+      copyText(text);
+      toast('浏览器拦住了下载，已复制内容：粘贴到备忘录存成同名文件同样能用');
     }
+  }
+
+  window.plannerExportIcs = function () {
+    var t = state.trip;
+    if (!t) { toast('先排好行程再导出日历'); return; }
+    var ics = buildTripIcs(t);
+    if (!ics) { toast('要先在规划页选出发日期，日历事件才有日期'); return; }
+    var fname = icsFileSafe(t.name) + '.ics';
+    saveTextDoc(fname, ics, 'text/calendar;charset=utf-8', '用文件管理器点开即可导入日历');
   };
   window.plannerSaveTrip = function () {
     var t = state.trip; if (!t) return;
@@ -1946,18 +2093,21 @@
     state.trip = list[i]; showStage('stageResult'); renderResult();
   };
   window.plannerDelTrip = function (i) {
-    UI.confirm({ title: '删除行程', text: '删除后可在 5 秒内撤销，之后不可恢复。行前清单的勾选也会一并删除。', okText: '删除', danger: true }, function (ok) {
+    UI.confirm({ title: '删除行程', text: '删除后可在 5 秒内撤销，之后不可恢复。行前清单的勾选与开销记账也会一并删除。', okText: '删除', danger: true }, function (ok) {
       if (!ok) return;
       var list = loadTrips();
       var removed = list[i];
-      var ckRaw = null;
+      var ckRaw = null, exRaw = null, bdRaw = null;
       try { ckRaw = localStorage.getItem('tn_checklist'); } catch (e) {}
+      try { exRaw = localStorage.getItem('tn_expense'); } catch (e) {}
+      try { bdRaw = localStorage.getItem('tn_budget'); } catch (e) {}
       /* 清单桶跟着行程走：只删行程不删条目，孤儿桶会无界攒在 localStorage 里 */
       if (removed && removed.id && window.Checklist) Checklist.clearTrip(removed.id);
+      if (removed && removed.id && window.Expense) Expense.clearTrip(removed.id);
       list.splice(i, 1);
       if (!lsSet('tn_trips', JSON.stringify(list))) return;
       renderTrips();
-      if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); if (ckRaw != null) lsSet('tn_checklist', ckRaw); renderTrips(); } });
+      if (removed) UI.toast('已删除「' + removed.name + '」', 5000, { text: '撤销', fn: function () { var l = loadTrips(); l.splice(Math.min(i, l.length), 0, removed); lsSet('tn_trips', JSON.stringify(l)); if (ckRaw != null) lsSet('tn_checklist', ckRaw); if (exRaw != null) lsSet('tn_expense', exRaw); if (bdRaw != null) lsSet('tn_budget', bdRaw); renderTrips(); renderExpense(); } });
     });
   };
 

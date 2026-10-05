@@ -29,6 +29,8 @@
     { k: 'tn_wishlist', g: 'data', m: 'id' },
     { k: 'tn_trips', g: 'data', m: 'id' },
     { k: 'tn_checklist', g: 'data', m: 'id' },  /* 行前清单：条目 id 由 tripId+text 散列，两台机各补几条能并起来 */
+    { k: 'tn_expense', g: 'data', m: 'id' },   /* 开销记账：id 是本机唯一号（同一天同金额是两笔真开销，绝不能像清单那样散列去重），并集只负责跨机不重复搬运 */
+    { k: 'tn_budget', g: 'data', m: 'dict' },  /* 行程预算：顶层属性就是 tripId，各趟互不覆盖；单独一键，钱不进 trip 对象 */
     { k: 'tn_userNodes', g: 'data', m: 'id' },
     { k: 'travelNotes', g: 'data', m: 'id' },      /* IDB 不可用时的游记回退，与 notes 同构 */
     { k: 'tn_dayMoods', g: 'data', m: 'dict' },

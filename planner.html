@@ -122,10 +122,46 @@
   .act-row .btn{flex:1;justify-content:center;min-width:96px;display:flex;align-items:center;justify-content:center}
   .empty-tip{text-align:center;padding:24px 10px;color:var(--color-muted);font-size:var(--fs-4);line-height:1.8}
   /* 出发前卡：清单属于「行前」而不是「当天」，所以挂在结果页尾部、不进日卡流 */
-  .pretrip .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .pretrip .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
-  .pretrip .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
-  .pretrip .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  /* 进度条一族（.phead/.pbar/.pcount）原先挂在 .pretrip 作用域下，而卡片上根本没有这个类：
+     批次 17 的结果页进度条一直是隐形的——JS 设了 width，盒子却没高度没底色。
+     改成 .sumcard 作用域，让「出发前」和「开销」两张汇总卡共用同一条尺子。 */
+  .sumcard .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .sumcard .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .sumcard .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
+  .sumcard .pbar.over i{background:var(--color-danger,#B34A3F)}
+  .sumcard .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  /* 日卡底部记账行 + 就地录入器：金额是「这一天花了多少」，所以挂在日卡里而不是单独一页 */
+  .day-card .exfoot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--color-line)}
+  .day-card .exfoot .extot{flex:1;min-width:0;font-size:var(--fs-3);color:var(--color-muted)}
+  .day-card .exfoot .extot b{font-weight:600;color:var(--color-ink-soft);font-variant-numeric:tabular-nums}
+  .exedit{margin-top:9px;padding:11px 12px;border-radius:12px;background:var(--color-bg-soft);border:1px solid var(--color-line)}
+  .exedit .exrow{display:flex;align-items:center;gap:8px}
+  .exedit .examt{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-5);font-variant-numeric:tabular-nums}
+  .exedit .exunit{flex:0 0 auto;font-size:var(--fs-4);color:var(--color-muted)}
+  .exedit .excats{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0}
+  .exedit .excats .chip{min-height:34px}
+  .exedit .extexts{display:flex;gap:8px;margin-top:9px}
+  .exedit .extexts input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--color-line);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4)}
+  .exedit .exacts{display:flex;gap:8px;margin-top:10px}
+  .exedit .exacts .btn{flex:1;justify-content:center;display:flex;align-items:center}
+  .exedit .exhint{font-size:var(--fs-2);color:var(--color-muted);margin-top:7px;line-height:1.6}
+  .exrows{margin-top:9px;border-top:1px solid var(--color-line)}
+  .exrows .ex{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--color-line);font-size:var(--fs-3)}
+  .exrows .ex:last-child{border-bottom:0}
+  .exrows .ex .cat{flex:0 0 auto;color:var(--color-primary-dark)}
+  .exrows .ex .money{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600}
+  .exrows .ex .txt{flex:1;min-width:0;color:var(--color-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 开销卡：分类条形（宽度取最大分类，零钱分类不占行） */
+  .exbars{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+  .exbars .b{display:flex;align-items:center;gap:9px;font-size:var(--fs-2)}
+  .exbars .b .n{flex:0 0 2.4em;color:var(--color-muted)}
+  .exbars .b .t{flex:1;height:8px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .exbars .b .t i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);transition:width var(--motion-mid) var(--ease-out)}
+  .exbars .b .v{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--color-ink-soft)}
+  .exbud{display:flex;align-items:center;gap:8px;margin-top:11px}
+  .exbud label{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted)}
+  .exbud input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4);font-variant-numeric:tabular-nums}
+  .exbud .exunit{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted)}
   /* 深色适配 */
   .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
   .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
@@ -232,11 +268,23 @@
       <div class="narr" id="narrBox" style="display:none"></div>
       <div class="act-row" id="actRow"></div>
     </div>
-    <div class="card" id="pretripCard" style="display:none">
+    <div class="card sumcard" id="pretripCard" style="display:none">
       <div class="ph">出发前</div>
       <div class="phead"><span class="pbar"><i id="ptBar"></i></span><span class="pcount" id="ptCount"></span></div>
       <div id="ptList"></div>
       <button class="btn" style="width:100%;margin-top:10px" onclick="window.plannerOpenChecklist()">打开行前清单</button>
+    </div>
+    <div class="card sumcard" id="expCard" style="display:none">
+      <div class="ph" id="expTitle">开销</div>
+      <div class="phead"><span class="pbar" id="expBarWrap"><i id="expBar"></i></span><span class="pcount" id="expCount"></span></div>
+      <div id="expOver"></div>
+      <div class="exbars" id="expBars"></div>
+      <div class="exbud">
+        <label for="exBudget">预算</label>
+        <input id="exBudget" type="number" inputmode="decimal" min="0" step="1" placeholder="未设" onchange="window.plannerExpBudget(this.value)">
+        <span class="exunit">元</span>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px" id="expCsvBtn" onclick="window.plannerExportCsv()">导出 CSV 账单</button>
     </div>
     <div class="card" id="tripsCard" style="display:none">
       <div class="ph">已保存的行程</div>
@@ -258,6 +306,7 @@
   <script src="vendor/pako.min.js" defer></script>
   <script src="share.js" defer></script>
   <script src="checklist.js" defer></script>
+  <script src="expense.js" defer></script>
   <script src="planner.js" defer></script>
   <script>
     /* 起终点：存储到 window（planner.js 意图卡渲染时读取） */

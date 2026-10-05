@@ -2639,7 +2639,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['planner.js', String.raw`return L.join('\r\n') + '\r\n';`, 1, '行结束符 CRLF + 末尾留一个（部分解析器靠它收最后一行）'],
     ['planner.js', 'toast(\'要先在规划页选出发日期，日历事件才有日期\');', 1, '空日期那条要给真话，不许静默按钮无反应'],
     ['planner.js', "var fname = icsFileSafe(t.name) + '.ics';", 1, '文件名过 icsFileSafe（行程名里的 / 会被当路径分隔符）'],
-    ['planner.js', String.raw`new Blob([ics], { type: 'text/calendar;charset=utf-8' })`, 1, '浏览器腿的 MIME 必须是 text/calendar（壳侧 text/html 那条另记阻塞）'],
+    ['planner.js', String.raw`saveTextDoc(fname, ics, 'text/calendar;charset=utf-8'`, 1, '浏览器腿的 MIME 必须是 text/calendar（壳侧 text/html 那条另记阻塞）；批次 19 把通道抽成 saveTextDoc 后，这条锚按调用形状重钉，MIME 仍逐字在位'],
     ['planner.js', 'window.__tnSaveDone = function (r) {', 1, 'APK 腿读真实回吐：err / need_perm / 成功三种真话，不假装成功'],
     ['planner.js', "' style=\"opacity:.55\"'", 1, '灰态用 opacity 不用 disabled（下面 design.css 那条锚就是原因）'],
     ['planner.js', 'var icsOn = !!buildTripIcs(trip);', 1, '按钮置灰判据与"能否真生成"同一个函数，不许两套口径'],
