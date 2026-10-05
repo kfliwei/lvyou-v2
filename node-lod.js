@@ -25,7 +25,11 @@
      countyOf: fn,        // (s) => 县级字段（默认 s.county）
      labelOf: fn,         // (s) => 详细层名称标签（默认 nameOf）
      detailZoom: 11,      // Zoom4 详细层：显示名称小标签的缩放阈值
-     pad: [40, 55]        // flyToBounds 边距
+     pad: [40, 55]        // flyToBounds 边距（未传 focus 时才用到）
+     vb: fn,              // () => L.LatLngBounds 可选：视野裁剪矩形，默认整个地图元素矩形；
+                          //   页面传「可用区」（扣掉压在地图上的成带浮层）可避免在死带里画胶囊
+     focus: fn,           // ({bounds}|{center,zoom}) => void 可选：点聚合胶囊的聚焦方式，
+                          //   默认 flyToBounds(padding=pad) / region 层 flyTo(中心,10)
    });
    事件由引擎自挂：map.on('moveend zoomend', 防抖渲染)
    外部可调用 NodeLOD.render() 强制刷新（筛选变化后）
@@ -40,6 +44,11 @@
   var C = null;             // 当前配置
   var levelCache = null;    // 缓存层级推导结果
   var renderTimer = null;
+
+  /* 视野裁剪用的 bounds：默认整个地图元素矩形。
+     页面可以传 vb() 换成「可用区」（元素扣掉压在上面的横幅/统计卡/tabbar），
+     否则被不透明浮层压住的那一条里照样会画胶囊，用户看到的就是「点跑到屏幕边缘外」。 */
+  function vb() { return C.vb ? C.vb() : C.map.getBounds(); }
 
   /* 行政区名称归一化：全称/简称混用合并为同一分组（如
      "黔东南苗族侗族自治州" ≡ "黔东南州"、"新疆维吾尔自治区" ≡ "新疆"） */
@@ -123,7 +132,7 @@
 
   /* ---------- 分组聚合（聚合层仅聚合视野内节点，避免超大数据集渲染上千胶囊） ---------- */
   function groupBy(list, key) {
-    var b = C.map.getBounds();
+    var b = vb();
     var g = {};
     var parent = {};   /* 每组所在父级集合（city/county 的父级是 region/province），用于聚焦判断 */
     list.forEach(function (s) {
@@ -172,7 +181,7 @@
     /* 节点层渲染（独立函数，供聚合过密回退兜底复用）：
        视野裁剪 + 中缩放重要优先（majorOf） */
     function renderNodes() {
-      var b = C.map.getBounds();
+      var b = vb();
       var showAll = z >= (C.detailZoom || 11);
       /* 视野内节点稀疏时不做"必去优先"过滤：避免放大后普通节点全部消失 */
       var sparse = false;
@@ -282,6 +291,7 @@
              因为省 bounds 宽高比在 16:9 屏上 fitBounds 受高度方向限制只能到 z~6，无法聚焦单省；
              city/county 用 flyToBounds 让市/县占满屏 */
           if (lv.key === 'region') {
+            if (C.focus) { C.focus({ center: bnd.getCenter(), zoom: 10 }); return; }
             C.map.flyTo(bnd.getCenter(), 10, { duration: .5 });
             return;
           }
@@ -292,6 +302,9 @@
           } else {
             mz = 11.5;
           }
+          /* focus 钩子：页面按「可用区」决定怎么摆（Leaflet 的 fit/fly 都按元素矩形算，
+             不扣内缩就会把聚焦出来的胶囊整排塞进底部统计卡与 tabbar 下面） */
+          if (C.focus) { C.focus({ bounds: bnd, maxZoom: mz }); return; }
           C.map.flyToBounds(bnd, { padding: C.pad || [24, 40], maxZoom: mz, duration: .5 });
         });
         layer.addLayer(m);

@@ -1,0 +1,15 @@
+NOTE node-manager.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+UPD 基线 node-manager.320x640.png
+NOTE node-manager.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+UPD 基线 node-manager.390x844.png
+NOTE node-manager.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+UPD 基线 node-manager.452x995.png
+NOTE node-manager.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+UPD 基线 node-manager.768x1024.png
+NOTE node-manager.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+UPD 基线 node-manager.1440x900.png
+PASS 性能预算 index.html — LCP 1524ms(<2500) 元素=SPAN | CLS 0.0000(<0.05)
+FAIL 性能预算 topic.html — LCP 2772ms(<2500) 元素=DIV | CLS 0.0009(<0.05)
+---
+耗时 32.9s（5 张，报告 tools/out/visual-report.json）
+单页更新：5 张基线已覆盖（清单未改写，跑全量 --update 才入库指纹）

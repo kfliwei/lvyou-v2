@@ -1066,13 +1066,26 @@ const EMOJI_MARK = 'emoji-ok:';
 
   /* --- ⑦ 冒烟里必须真测了天气，不是只有闸门在盯着源码 ---
      每条锚点都取「只出现一次的那一行」，这样它被改掉时闸门一定红；
-     宽锚点（如光一个 __wxCalls）删掉自增点也不会红，等于没闸。 */
+     宽锚点（如光一个 __wxCalls）删掉自增点也不会红，等于没闸。
+     后 6 条是批次 13-F 加的：dayN 这一枚计数是整段阈值（calls >= dayN、
+     cacheKeys.length === dayN、wxN === dayN）的分母，读到 0 就全体恒真。
+     实测同一份代码两次跑出 0 和 3（tools/out/b13-smoke-planner.txt vs -rerun.txt），
+     读到 0 那次「排好行程后按天发起天气请求」输出的是「请求 0 次 / 0 天」的**假绿**。
+     变异自测（tools/out/b13-planner-mut-v{1,2,2b}.txt）：摘掉 wizardDone 尾部 1600ms →
+     首读 0 但 poll 收回 3、84/84 仍绿（证明 poll 在干活）；再拆掉 poll 退回一次性读数 →
+     7 条红，补齐四条口径的下界后同一变异 14 条红，且每条 detail 自己说出「0 张日卡（首读 0）」。 */
   [["if \\(u\\.indexOf\\('api\\.open-meteo\\.com'\\) >= 0\\) \\{", 'mock 预报接口的拦截点'],
     ['window\\.__wxCalls\\+\\+', '数取数次数的计数器自增点'],
     ["\\$\\$eval\\('#resultBody \\.day-card \\.wx'", '日卡天气位计数'],
     ["localStorage\\.setItem\\('tn_planner_weather', '0'\\)", '关掉开关后的无天气态'],
     ['wxOpen\\(.ok., 40\\)', '超出预报期那一档'], ['__wxMode = .down.', '断网那一档'],
-    ['wxOpen\\(.rate., 2\\)', '被 429 限流那一档']]
+    ['wxOpen\\(.rate., 2\\)', '被 429 限流那一档'],
+    ['if \\(dayN > 0 && dayN === dayPrev\\) break;', 'dayN 取样 poll 到两轮相等（一次性读数读到 0 会让本口径所有 >= dayN 阈值恒真）'],
+    ['const dayFirst = await p\\.\\$\\$eval', '落定前首读留证（红了要能分清是采样早了还是产品真没渲染）'],
+    ['w1\\.dayN >= 1 &&', '口径①阈值分母带下界'],
+    ['w2\\.dayN >= 1 &&', '口径②（超预报期）阈值分母带下界——这条的期望值是 0 个请求，没下界就是空跑也算过'],
+    ['w3\\.dayN >= 1 &&', '口径③（坏包/断网）阈值分母带下界'],
+    ['w4\\.dayN >= 1 &&', '口径④（429 限流）阈值分母带下界']]
     .forEach(([re, what]) => { if (!new RegExp(re).test(SM18)) F18('smoke-planner.js 里缺' + what + '——闸门写了不等于测过'); });
 
   /* --- ⑧ 文档：键名更正在案，本节欠账清零 --- */
@@ -2053,6 +2066,220 @@ const EMOJI_MARK = 'emoji-ok:';
     '描边一族亮暗各 2 条逐值、border 暖墨字面量 0 处；' +
     '声明级括号平衡（三条真 bug 形态自证 + rotate/calc/env/嵌套 var 不误报）；「不糊却半透」底色 0 处');
   fail += bad;
+}
+
+/* ============================================================
+   24. 地图可用视口闸门（批次 13 · 2026-10-05）
+   用户报的：「34 个省的地图上经常出现几个节点和合集点，放大后这些点不在屏幕中，而是分散在屏幕外的地图边缘，用户要一个个的找」。
+   基线实测（tools/out/b13-edge-before-452.txt + b13-raw-before-452.jsonl，34 页 × 4 档）：
+     4134 枚标记里纯几何越界（并集）555 枚（13.4%）；再并上「被成带浮层盖住」558 枚（13.5%）。
+     普查脚本汇总行那 834（20.2%）是各类目**按档累加**、同一枚被切边又被浮层盖住会数两次，别拿它当并集用。
+     逐档恶化 5.0% → 11.2% → 11.3% → 27.8%，连按三次 + 之后「被底部面板盖住」单独冲到 17.5%（165/941），
+     下溢中位 108px（正好是那条死带的深度）。390 档同口径 3990 枚 / 几何并集 681（17.1%）／并浮层 689（17.3%）。
+   修复后同一批 JSONL 重算（b13-raw-after-*.jsonl + b13-attr.js）：452 档 3697 枚，纯几何越界 **0 枚**，
+     几何∪浮层并集 7 枚（全是「被成带浮层盖住」）；另有 29 枚盒缘贴屏幕边（<1px，按 attr 的容差不算越界，
+     但确实零呼吸——记在残余里）。390 档 3528 枚 / 几何并集 5（0.1%）／并浮层 13（0.4%），其中 init 那 5 枚
+     （4 枚右溢中位 4px 最大 10px、1 枚左溢 4px）经稳态复查
+     （tools/out/b13-tw.js 在 1500/3000/5000ms 三点重采样，22 枚胶囊 0 越界）判定为普查脚本在内收链
+     收敛前采到的中间帧——那个脚本用固定 setTimeout，正是批次 12 记过的教训，不改口径只登记。
+   根因三条，这一节就把这三条的实现形状钉住：
+     ① 合集胶囊不以地理锚点为中心（clusterIcon 用 iconSize/iconAnchor 全 0，149px 宽的胶囊从锚点
+        向右下悬出半枚，右缘能捅到 551px 而屏只有 452px）；
+     ② 渲染决策按 #mapEl 元素矩形算，而元素下面 155px 被统计卡 + tabbar 盖住（占元素高 18%），
+        fitBounds/裁剪/聚焦都按那个更大的矩形算，于是内容一格一格挪进死带；
+     ③ +/− 走 map.zoomIn()，锚在元素几何中心，比可用区中心低 53px，连按就把内容一路推进底部死带。
+   浏览器侧的几何由 tools/smoke-usable.js 的 U0–U13 钉（22 条判据）；这一节钉的是
+   **那套几何所依赖的实现形状不许悄悄改回去**——它是常驻提交闸门，跑在源码字符串上。
+   本批 E 段踩到的那条只有重复跑才现形的坑（锚点表里 clamp 那 6 条钉的是它的**读取来源**，不是它的结果）：
+     clampCapsules 原先读胶囊**自己的** getBoundingClientRect() 再减回上一轮的 --lod-dx，而
+     .lod-cl 带 transform:var(--motion-fast)（160ms）过渡——量到的永远是位移中间态。表现为
+     **同一个构建**连跑两次冒烟：第一次红 U5/U6，第二次红 U5/U12，偏移 1.9／2.7／4.7px（都是
+     越界 0 的「居中」项），第三次起才可能绿。改法是锚点取 0×0 容器中心、宽高取 offsetWidth/Height
+     （两者都不吃 transform），复跑三遍各 22/22 且 0 红（tools/out/b13-repeat-run{1,2,3}.txt）。
+     教训：**「时绿时红」不是测试噪声，是产品在读动画中间态**；判据只能由源码锚点负责，
+     因为固定定时器的探针根本复现不了竞态（本轮实测：定点探针量到最大偏移 0.1px）。
+   变异侧的两条归属账（tools/out/mut-usable.js，26 条 / 异常 0 / 逐字节还原）：
+     · M4「带名单去掉 .tabbar」浏览器侧 0 红——内缩取各带贡献的 max，452/390 两档都是
+       .region-stats 155px 压住 .tabbar 82px，删小的那条几何上是恒等操作（tools/out/b13-band-contrib.js）。
+       所以 M4 归属源码锚，另加 M4b（删最大的那条 → 155→82）把 U2 打红，这条对账才是活闸。
+     · B1「闸门的 BANDS 置空」→ verify.js 仍全绿、只有浏览器侧红：证明「闸门自己独立量一遍内缩」
+       这句话背后真有闸，而不是一句注释。
+   两条实现坑（都是本轮实测踩到的，别再走回头路）：
+     · 锚点计数跑在「剥掉块注释 + 空白归一」的源上，所以 needle 里一旦出现 /* 就永远 0 命中。
+        本轮真的写错过一条（'clampCapsules(); /* mini 化之后'），期望 1 恒得 0——那是假绿灯的反面
+        （假红灯），改回去就没人再信这条闸。所以第②组把「needle 含注释」直接判红。
+     · 期望 0 的锚点（改前形态）必须有正向对照才成立，否则「这条永远 0」和「这条真的没有」在
+        输出里长得一模一样。第①组把改前三条形态拼成一个合成源喂进同一个计数器，必须命中 ≥1。
+   57 条锚点全部先实测再写死（node tools/out/b13-anchors.js → 57/57；那张探针不再另抄一份表，
+   直接从本节抠 A24 求值——手抄两份账本这轮就漂过 2 条），差一个空格就是永久红灯。
+   ============================================================ */
+{
+  let bad = 0;
+  const F24 = m => { console.log('边缘点闸门 FAIL: ' + m); bad++; };
+  const flat24 = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  const cnt24 = (src, needle) => src.split(needle).length - 1;
+  const FILES24 = ['topic-common.js', 'node-lod.js', 'map.css'];
+  const SRC24 = {};
+  FILES24.forEach(f => {
+    if (!fs.existsSync(f)) { F24('缺 ' + f); SRC24[f] = ''; return; }
+    SRC24[f] = flat24(fs.readFileSync(f, 'utf8'));
+  });
+  /* [文件, 锚点（空白归一后的字面串）, 期望次数, 这条钉的是什么退化] */
+  const A24 = [
+    ['topic-common.js', "var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];", 1, '带名单整串相等（4 条；.ctl 不在里面——它是点状遮挡，扣进去等于把整条右边判死）'],
+    ['topic-common.js', "USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];", 1, '同上（去 var 的宽松式，防写法漂移）'],
+    ['topic-common.js', 'ix < el.width * 0.6', 1, '横向没压满 60% 就不算带（顶栏实测占宽 .326 时确实不该扣）'],
+    ['topic-common.js', 'Math.min(ins.top, size.y - 40)', 1, '带不许把可用区吃光（横屏/极矮视口保险）'],
+    ['topic-common.js', 'Math.min(ins.bottom, size.y - 40)', 1, '同上（底带）'],
+    ['topic-common.js', 'ins.left = Math.max(0, Math.min(ins.left, size.x - 40));', 1, '四条边都有保险，不只上下'],
+    ['topic-common.js', 'ins.right = Math.max(0, Math.min(ins.right, size.x - 40));', 1, '同上'],
+    ['topic-common.js', 'var MARK_HALF = 16;', 1, '内容区在可用区之外再让半枚标记（胶囊 31/节点 30 的半高）'],
+    ['topic-common.js', 'function usableInsets(', 1, '可用区内缩'],
+    ['topic-common.js', 'function contentInsets(', 1, '内容区内缩'],
+    ['topic-common.js', 'function contentBounds(', 1, '喂给 LOD 的裁剪矩形'],
+    ['topic-common.js', 'function fitUsable(', 1, '按可用区 fit'],
+    ['topic-common.js', 'function zoomUsable(', 1, '按可用区中心缩放'],
+    ['topic-common.js', 'function contentCenterPx(', 1, '内容中心（聚焦与缩放共用一个口径）'],
+    ['topic-common.js', 'function focusUsable(', 1, '按可用区聚焦'],
+    ['topic-common.js', 'function clampCapsules(', 1, '边缘内收'],
+    ['topic-common.js', 'paddingTopLeft: [i.left, i.top]', 2, 'Leaflet 真实选项名（fitUsable + focusUsable 各一处）'],
+    ['topic-common.js', 'paddingBottomRight: [i.right, i.bottom]', 2, '同上'],
+    ['topic-common.js', 'paddingTL', 0, '这版 Leaflet（1.1.1）没有 paddingTL，写了静默失效＝改前形态'],
+    ['topic-common.js', "$('zoomIn').onclick = function () { zoomUsable(1); };", 1, '+ 走可用区锚点'],
+    ['topic-common.js', "$('zoomOut').onclick = function () { zoomUsable(-1); };", 1, '− 同上'],
+    ['topic-common.js', 'map.zoomIn()', 1, '只许留在 zoomUsable 的 catch 兜底里那一处'],
+    ['topic-common.js', 'map.zoomOut()', 1, '同上'],
+    ['topic-common.js', 'map.setZoomAround(map.containerPointToLatLng(p), nz);', 1, '缩放绕「内容中心那个经纬度」，它缩放后屏幕位置不动'],
+    ['topic-common.js', 'else if (all.length) fitUsable(all);', 1, '路线首屏 fit 走可用区'],
+    ['topic-common.js', 'map.fitBounds(all', 0, '旧的写死 padding 路线 fit＝改前形态'],
+    ['topic-common.js', 'map.fitBounds(_b', 0, '旧的首屏 fit＝改前形态'],
+    ['topic-common.js', 'fitUsable(_b, { maxZoom: 7, animate: false });', 2, '首屏两遍 fit（统计卡 400ms 后才出现，第一遍必然按旧内缩算）'],
+    ['topic-common.js', 'updateRegionStats();', 1, '两遍之间把统计卡补出来'],
+    ['topic-common.js', "switchTab('map'); if (restorePos && restorePos.zoom)", 1, '路线：切 tab 紧接 fit，顺序不能反（region-stats 只在地图 tab 显示）'],
+    ['topic-common.js', 'vb: contentBounds,', 1, '把裁剪矩形注入 LOD'],
+    ['topic-common.js', 'focus: focusUsable,', 1, '把聚焦方式注入 LOD'],
+    ['topic-common.js', 'onRendered: function () { clampCapsules();', 1, '渲染完立刻内收（同一帧不变量）'],
+    ['topic-common.js', "labelAvoid('#mapEl'); clampCapsules();", 1, '避让把胶囊改窄/挪位后再按新宽度重算一次'],
+    ['topic-common.js', 'var ax = c.left + c.width / 2, ay = c.top + c.height / 2;', 1, '锚点取容器中心：胶囊自身 transform 带 160ms 过渡，量胶囊盒会读到位移中间态（U5/U12 时红时绿的根因）'],
+    ['topic-common.js', 'var w = n.offsetWidth, h = n.offsetHeight;', 1, '宽高走布局盒 offsetWidth/Height，不吃 transform'],
+    ['topic-common.js', 'if (w < lim.r - lim.l) dx = Math.min(Math.max(ax, lim.l + w / 2), lim.r - w / 2) - ax;', 1, '比可用区还宽就不挪 + 期望中心＝锚点夹进半盒（重复调用幂等，不读上次的 dx）'],
+    ['topic-common.js', 'if (h < lim.b - lim.t) dy = Math.min(Math.max(ay, lim.t + h / 2), lim.b - h / 2) - ay;', 1, '纵向同理——底带 155px 那半枚就是靠它'],
+    ['topic-common.js', "n.style.setProperty('--lod-dx', Math.round(dx) + 'px');", 1, '内收量落在 --lod-dx 上（CSS 侧 translate 变量，锚点不动）'],
+    ['topic-common.js', "n.style.setProperty('--lod-dy', Math.round(dy) + 'px');", 1, '同上（纵向）'],
+    ['topic-common.js', 'usableInsets: usableInsets,', 1, '导出给浏览器闸门独立复算'],
+    ['topic-common.js', 'contentInsets: contentInsets,', 1, '同上'],
+    ['topic-common.js', 'usableRectPx: usableRectPx,', 1, '同上（clampCapsules 的 lim 口径）'],
+    ['topic-common.js', 'function recheckInsets(', 1, '带变了就重跑 LOD'],
+    ['topic-common.js', 'recheckInsets();', 2, '统计卡出现/消失两个出口都要重算'],
+    ['node-lod.js', 'function vb() { return C.vb ? C.vb() : C.map.getBounds(); }', 1, '裁剪矩形可注入，不注入才回元素矩形'],
+    ['node-lod.js', 'var b = vb();', 2, 'groupBy + renderNodes 都走注入矩形'],
+    ['node-lod.js', 'C.map.getBounds()', 1, '全站只剩 vb() 兜底那一处'],
+    ['node-lod.js', 'if (C.focus)', 2, 'region 分支 + bounds 分支都让产品接管聚焦'],
+    ['node-lod.js', 'C.focus({ center: bnd.getCenter(), zoom: 10 });', 1, 'region 分支把「那个中心」交给产品（固定缩放，不给 bounds）'],
+    ['node-lod.js', 'C.focus({ bounds: bnd, maxZoom: mz });', 1, 'city/county 分支交边界 + maxZoom'],
+    ['node-lod.js', 'C.map.flyToBounds(bnd, { padding: C.pad || [24, 40], maxZoom: mz, duration: .5 });', 1, '未注入时的旧行为原样留着（默认路径不许被顺手改掉）'],
+    ['map.css', 'var(--lod-dx,0px)', 2, '基础规则 + :active 两处都得带居中'],
+    ['map.css', 'var(--lod-dy,0px)', 2, '纵向同理——只做横不做竖，底带里那半枚照样被切'],
+    ['map.css', 'transform:translate(calc(-50% + var(--lod-dx,0px)),calc(-50% + var(--lod-dy,0px)))', 2, '盒中心＝地理锚点（两条：基础与按下态）'],
+    ['map.css', '.lod-cl:active{transform:translate(calc(-50%', 1, ':active 必须重复同一条 translate'],
+    ['map.css', '.lod-cl:active{transform:scale(.94)}', 0, '裸 scale 会让按住那一刻整枚弹回锚点右下＝改前形态'],
+  ];
+  const GROUPS = {};
+  A24.forEach(t => {
+    if (t[1].indexOf('/*') >= 0 || t[1].indexOf('*/') >= 0)
+      F24('锚点里不许出现块注释（flat24 先剥注释，这条永远 0 命中；本轮真的写错过一条）：' + t[1].slice(0, 44));
+    if (!t[3]) F24('锚点缺说明（第 4 项是"这条钉的是哪个退化"，没有它半年后没人敢删）：' + t[1].slice(0, 40));
+    const n = cnt24(SRC24[t[0]], t[1]);
+    if (n !== t[2])
+      F24(t[0] + ' 锚点「' + t[1].slice(0, 46) + '」实得 ' + n + '，期望 ' + t[2] + ' —— ' + t[3]);
+    GROUPS[t[0]] = (GROUPS[t[0]] || 0) + 1;
+  });
+  if (A24.length < 57) F24('锚点表被削减：' + A24.length + ' 条（批次 13 落地时实测 57 条，整组删掉就等于这节没了）');
+  FILES24.forEach(f => { if ((GROUPS[f] || 0) < 5) F24('锚点覆盖不足：' + f + ' 只有 ' + (GROUPS[f] || 0) + ' 条，该文件的退化检不出来'); });
+
+  /* ① 期望 0 那几条的正向对照：把改前形态喂进同一个计数器，必须命中 ≥1，
+        否则「永远 0」到底是真没有还是 needle 自己写错了，输出上分不出来 */
+  {
+    const OLD = flat24([
+      '.lod-cl:active{transform:scale(.94)}',
+      'map.fitBounds(all, { padding: [24, 40] }); map.fitBounds(_b, { padding: 40 });',
+      'map.zoomIn(); L.divIcon({ paddingTL: [8, 8] });',
+    ].join('\n'));
+    [['.lod-cl:active{transform:scale(.94)}', '裸 scale 改前形态'],
+     ['map.fitBounds(all', '写死 padding 的路线 fit'],
+     ['map.fitBounds(_b', '写死 padding 的首屏 fit'],
+     ['paddingTL', '不存在的 Leaflet 选项名']].forEach(t => {
+      if (cnt24(OLD, t[0]) < 1) F24('正向对照失效：合成"改前源"里的「' + t[1] + '」没命中，那条期望 0 的锚是假绿灯');
+    });
+  }
+  /* ② 计数方法自身：needle 必须区分大小写与连字，且对真源非恒正 */
+  if (cnt24(SRC24['map.css'], 'TRANSFORM:TRANSLATE(CALC(-50%') < 0) F24('计数器自身失效（split 不可能给负数，这行只防实现被改坏）');
+  if (cnt24(SRC24['map.css'], 'transform:translate(calc(-50%') <= 0) F24('探针失效：真源里连基础居中规则都找不到，②③组全是空转');
+
+  /* ③ 浏览器闸门与文档不许缺席（这节钉实现形状，几何判据在 smoke-usable.js） */
+  const SM24 = 'tools/smoke-usable.js';
+  if (!fs.existsSync(SM24)) F24('缺 ' + SM24 + '：可用区几何没人量了');
+  else {
+    const sm = fs.readFileSync(SM24, 'utf8');
+    for (let i = 0; i <= 13; i++)
+      if (sm.indexOf("'U" + i) < 0 && sm.indexOf('U' + i + ' ') < 0) F24(SM24 + ' 缺 U' + i + ' 这条判据（U0–U13 是一整组，少一条就是有个退化没人管）');
+    if (sm.indexOf('BANDS = [') < 0) F24(SM24 + ' 不再自己量内缩了：闸门必须独立复算一遍再和产品对账，只读产品函数等于自我实现');
+  }
+  const RD = fs.existsSync('README.md') ? fs.readFileSync('README.md', 'utf8') : '';
+  if (RD.indexOf('smoke-usable.js') < 0) F24('README.md 没登记 smoke-usable.js（新闸门不写进 README 就等于没装）');
+  if (RD.indexOf('§24') < 0) F24('README.md 的 verify 清单没提 §24');
+  const DOC = fs.existsSync('改进实施方案与验收标准.md') ? fs.readFileSync('改进实施方案与验收标准.md', 'utf8') : '';
+  if (DOC.indexOf('批次 13') < 0) F24('改进实施方案与验收标准.md 没有「批次 13」这一节（实测数字要落文档，不然下批又从头猜）');
+
+  console.log('边缘点闸门: ' + A24.length + ' 条源码锚点逐条计数（空白归一后整串相等，含大小写与连字）——带名单四条逐值 + 60% 成带判据 + 四边 40px 保险 + ' +
+    'MARK_HALF 16；usableInsets/contentInsets/contentBounds/fitUsable/zoomUsable/contentCenterPx/focusUsable/clampCapsules 各恰 1 处；' +
+    'paddingTopLeft/paddingBottomRight 各 2 处且 paddingTL 零残留（这版 Leaflet 不认它，写了静默失效）；' +
+    '+/− 只许走 zoomUsable，map.zoomIn/Out 各只剩 catch 兜底 1 处；路线与首屏的旧 fitBounds 零残留、首屏两遍 fit + 中间补统计卡 + 切 tab 在 fit 之前；' +
+    'LOD 侧 vb/focus 注入到位且 C.map.getBounds() 只剩兜底 1 处、未注入的默认 flyToBounds 旧行为原样保留；' +
+    'map.css 居中 translate 基础与 :active 各 1 条（裸 scale 回潮即红）；clamp 的三条不变量在——锚点取容器中心、宽高取 offsetWidth/Height（都不吃胶囊自身 transform 的 160ms 过渡）、比可用区还宽就不挪；' +
+    'recheckInsets 两个出口在；期望 0 的四条改前形态有合成源正向对照；smoke-usable.js U0–U13 齐备且仍自己量一遍内缩；README 与方案文档已登记');
+  fail += bad;
+}
+
+/* ============ §25 像素基线闸门：短命提示的摘除名单 ============
+   批次 13-G 实测：重拍基线后连跑，node-manager 三档红 **1.72%／4.10%／6.03%**，红点全落在
+   「本地 7794 个地点已就绪 · 搜索添加新地点」那颗胶囊上。它是 node-manager.html 页内自造的
+   `#nmTip`（`loadIndex()` 回调里打一条，活 2600ms + 退场过渡），**不是 `.ui-toast`**，
+   所以 visual-check 的摘除名单漏了它 → 基线拍到「全显示」、复跑拍到「退场中间帧」，
+   同一份代码连跑结果不同。它与 `.ui-toast` 是同一条口径下的两个名字，所以这一节钉的是
+   「名单不许缩回只认 `.ui-toast`」，外加名单里每个名字都要有活着的挂载点（名字改了就红，
+   防"名单还在、指向已死"）。 */
+{
+  let bad25 = 0;
+  const F25 = m => { bad25++; console.log('FAIL §25 像素基线闸门: ' + m); };
+  const flat25 = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  const cnt25 = (src, needle) => src.split(needle).length - 1;
+  const rd25 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const VC = flat25(rd25('tools/visual-check.js'));
+  if (!VC) F25('读不到 tools/visual-check.js');
+  const SEL = cnt25(VC, `const TOAST_SEL = '.ui-toast, #nmTip, .toast, .ui-tilewarn';`);
+  if (SEL !== 1) F25('摘除名单字面整串不等（期望恰 1 处，实测 ' + SEL + '）——名单被改窄或被改名，短命提示就会重新进基线');
+  const USE = cnt25(VC, 'document.querySelectorAll(sel).forEach(e => e.remove());');
+  if (USE !== 1) F25('摘除动作没走 TOAST_SEL（期望恰 1 处，实测 ' + USE + '）——名单定义了却没被用，等于没摘');
+  /* 改前形态零残留：只认 `.ui-toast` 的那两行必须一处不剩 */
+  const OLD = cnt25(VC, `document.querySelectorAll('.ui-toast')`);
+  if (OLD !== 0) F25('还留着只认 .ui-toast 的旧写法 ' + OLD + ' 处（缩回名单=像素闸门重新掷硬币）');
+  /* 名单里每个名字都要有活挂载点，否则"名单齐了但指向已死"是静默失效 */
+  const NM = rd25('node-manager.html');
+  if (cnt25(flat25(NM), `id="nmTip"`) !== 1) F25('node-manager.html 的 #nmTip 挂载点不是恰 1 处（实测 ' + cnt25(flat25(NM), `id="nmTip"`) + '）——产品改了名字，名单要跟着改，别把这条删掉了事');
+  if (NM.indexOf("tip('本地 '") < 0) F25('node-manager.html 里那条 loadIndex 回调的开场提示不见了（它要是改成不自动弹，本节的 #nmTip 才可以从名单里摘掉）');
+  const UJS = flat25(rd25('ui.js'));
+  if (cnt25(UJS, `tileWarnEl.className = 'ui-tilewarn';`) !== 1) F25('ui.js 的 .ui-tilewarn 挂载点不是恰 1 处（实测 ' + cnt25(UJS, `tileWarnEl.className = 'ui-tilewarn';`) + '）——那颗「瓦片加载失败」还在不在名单都得先说清');
+  if (cnt25(UJS, `}, 4000);`) < 1) F25('ui.js 里 tileWarn 的 4000ms 自消失定时器不见了（它要是不再自己消失，就不该继续待在摘除名单里）');
+  const TC = flat25(rd25('topic-common.js'));
+  if (cnt25(TC, `t.className = 'toast'`) !== 1) F25('topic-common.js 的 #tripToast 兜底类名 `.toast` 挂载点不是恰 1 处（实测 ' + cnt25(TC, `t.className = 'toast'`) + '）');
+  const n25 = (VC.match(/const TOAST_SEL = '([^']*)'/) || [, ''])[1].split(',').length;
+  if (n25 < 4) F25('摘除名单只剩 ' + n25 + ' 个选择器（下限 4：.ui-toast / #nmTip / .toast / .ui-tilewarn——一类一类往上添过，删任何一类都要先证明它不再自动消失）');
+  if (rd25('README.md').indexOf('#nmTip') < 0) F25('README.md 的视觉闸门口径没登记 #nmTip 这一类（新名单不写进 README 就等于没装）');
+  if (rd25('README.md').indexOf('.ui-tilewarn') < 0) F25('README.md 的视觉闸门口径没登记 .ui-tilewarn 这一类');
+  console.log('像素基线闸门: 摘除名单整串相等（' + n25 + ' 个选择器）且摘除动作真走它；只认 .ui-toast 的旧写法零残留；' +
+    '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；README 已登记');
+  fail += bad25;
 }
 
 

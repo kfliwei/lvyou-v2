@@ -31,6 +31,15 @@ const BASE = path.join(ROOT, 'tools', 'out', 'visual-baseline');
 const DIFF = path.join(ROOT, 'tools', 'out', 'visual-diff');
 const MANIFEST = path.join(ROOT, 'tools', 'out', 'visual-baseline.json');
 const REPORT = path.join(ROOT, 'tools', 'out', 'visual-report.json');
+/* 截图前一律摘除的「会自己消失的提示」名单。必须覆盖到每一类，不能只认 `.ui-toast`：
+   - node-manager 的 `#nmTip` 在 `loadIndex()` 回调里自动打一条（活 2600ms + 退场过渡），基线拍到
+     「全显示」、复跑拍到「退场中间帧」，node-manager 三档 1.72%／4.10%／6.03% 全红（批次 13-G 实测）。
+   - `.ui-tilewarn` 是 `ui.js:showTileWarn()` 那颗「地图瓦片加载失败，请检查网络」（活 4000ms）。
+     本闸门**拦掉所有 http(s) 请求**，所以地图页的瓦片必然报错、它必然冒出来——冒在哪一格取决于
+     报错回调落在 SETTLE 前还是后（批次 13-H 实测：`topic.1440` 0.00%↔0.57% 乱跳）。
+   - `.toast` 是 topic-common 里 `#tripToast` 那条兜底路径的类名（有 `UI.toast` 时不走它，但基线不许赌哪条分支）。
+   判据不是"这几张图好不好看"，是**同一份代码连跑必须逐字节相同**；常驻侧由 `verify.js §25` 钉名单整串。 */
+const TOAST_SEL = '.ui-toast, #nmTip, .toast, .ui-tilewarn';
 fs.mkdirSync(BASE, { recursive: true });
 fs.mkdirSync(DIFF, { recursive: true });
 
@@ -248,11 +257,11 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
        读包围盒定位），基线里有、当前跑没有，看着像改版其实是不确定性。
        摘掉而不是拉长等待：拉长只是把硬币换成正面更多的硬币，且 79 态各多等 3s。
        摘除条数打进日志与报告——这条路径必须可见，否则哪天 toast 选择器改了就成了静默失效。 */
-    const toasts = await pg.evaluate(() => {
-      const n = document.querySelectorAll('.ui-toast').length;
-      document.querySelectorAll('.ui-toast').forEach(e => e.remove());
+    const toasts = await pg.evaluate(sel => {
+      const n = document.querySelectorAll(sel).length;
+      document.querySelectorAll(sel).forEach(e => e.remove());
       return n;
-    });
+    }, TOAST_SEL);
     const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
     if (KEEP) fs.writeFileSync(path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png'), buf);
     testN++;

@@ -1,0 +1,21 @@
+PASS  index: 首启引导显示
+PASS  index: 引导完成后消失
+PASS  index: tn_onboarded 已标记
+PASS  index: 二次访问不再显示引导
+PASS  index: 无脚本错误
+PASS  search: 索引加载 7782+ 条  [n=7794]
+PASS  search: 关键词"拉萨"有结果  [景点 / items=20]
+PASS  search: 加载更多生效  [20 -> 40]
+PASS  search: 无脚本错误
+PASS  wishlist: UI 组件存在
+PASS  wishlist: 主操作「规划行程」直链 planner 并带 from=wish 交接  [planner.html?from=wish]
+PASS  wishlist: 无脚本错误
+PASS  travel-map: Leaflet 地图初始化
+PASS  travel-map: 无脚本错误
+PASS  settings: UI 组件存在
+PASS  settings: 确认对话框可弹出
+PASS  settings: 无脚本错误
+PASS  md-manager: UI 组件存在
+PASS  md-manager: 无脚本错误
+=== SMOKE ALL PASSED ===
+EXIT=0

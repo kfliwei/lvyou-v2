@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-05T01:44:56.807Z",
+  "generatedAt": "2026-10-05T07:08:54.013Z",
   "viewports": [
     "320x640",
     "390x844",
@@ -31,20 +31,20 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "4270044a9c9782ad",
-      "bytes": 179266
+      "sha": "3eaff63ef4ae5ac5",
+      "bytes": 226057
     },
     "topic.390x844.png": {
-      "sha": "87acaede2db97518",
-      "bytes": 223285
+      "sha": "a4ab8e26c8320f70",
+      "bytes": 268292
     },
     "topic.452x995.png": {
-      "sha": "be7d683bfc8c1b49",
-      "bytes": 248662
+      "sha": "6e5eedd81a5d4a97",
+      "bytes": 307104
     },
     "topic.768x1024.png": {
-      "sha": "7f5e4adead210c3a",
-      "bytes": 329485
+      "sha": "49018da1eb1051fe",
+      "bytes": 331053
     },
     "topic.1440x900.png": {
       "sha": "6c87333229fb778a",
@@ -151,24 +151,24 @@
       "bytes": 1152337
     },
     "node-manager.320x640.png": {
-      "sha": "c05e5d6cbb00837c",
-      "bytes": 81038
+      "sha": "552f52dabfd67244",
+      "bytes": 67107
     },
     "node-manager.390x844.png": {
-      "sha": "1a79d1b5a3de9da7",
-      "bytes": 88411
+      "sha": "960678cd682b911a",
+      "bytes": 73125
     },
     "node-manager.452x995.png": {
-      "sha": "27011a3ae96d448f",
-      "bytes": 95981
+      "sha": "028244098d1f4c87",
+      "bytes": 78310
     },
     "node-manager.768x1024.png": {
-      "sha": "995b63d06d0c80c3",
-      "bytes": 100735
+      "sha": "ae600e940c057d67",
+      "bytes": 83278
     },
     "node-manager.1440x900.png": {
-      "sha": "f1fd03df41226e2b",
-      "bytes": 111625
+      "sha": "ff2bd52aaf347de7",
+      "bytes": 92840
     },
     "album.320x640.png": {
       "sha": "025ad2c4ec6bdd8a",

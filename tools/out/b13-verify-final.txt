@@ -1,0 +1,84 @@
+nation-index sites: 7794 | source sites: 6923 | malformed rows: 0 | cover miss: 0
+emoji 登记: 共 48 处，已登记 48 处，未登记 0，失效豁免 0
+站点数文案: 与 nation-index(7794) 一致
+图标依赖: icons.js 就位且先于 nav.js
+离线壳: SHELL 147 项，无空位/重复/悬空
+图片闸门: <img 输出点 42，lazy 42，兜底 42，登记豁免 0
+对比度审计（WCAG AA：正文 4.5 · 图形 3 · 装饰须登记豁免）
+  正文 L --color-ink           /--color-bg     14.98:1  标题/正文
+  正文 L --color-ink-soft      /--color-bg      8.12:1  次级正文
+  正文 L --color-ink-soft      /--color-bg-deep  6.79:1  深底分区上的正文
+  正文 L --color-muted         /--color-bg      5.19:1  说明文字
+  正文 L --color-muted         /--color-surface  5.65:1  卡片说明文字
+  正文 L --color-muted         /--color-bg-soft  4.83:1  软底 chip 文字
+  豁免 L --color-faint         /--color-bg      2.25:1  placeholder/箭头/空态大字符/图片占位框——placeholder 语义豁免
+  豁免 L --color-faint         /--color-surface  2.45:1  同上（白底卡内装饰箭头）
+  豁免 L --color-faint         /--color-bg-soft  2.10:1  nmPhotoBox 空图占位提示（disabled 容器）
+  正文 L --color-primary       /--color-bg      4.56:1  主色文字/链接
+  正文 L --color-primary-dark  /--color-bg      5.95:1  soft 底 pill 文字（行内色）
+  正文 L --color-primary-dark  /rgba(174,87,56,.10) on --color-bg  5.23:1  primary-soft 复合底上的 pill 文字
+  正文 L --bg                  /--color-primary  4.56:1  主按钮标签（var(--bg) 统一口径，暗色自动翻深）
+  正文 L #ffffff               /#B25A3A         4.75:1  grad-primary 最亮档上的白标签（火纹按钮/激活 tab）
+  正文 L --ink-900             /--gold-500      6.30:1  .btn-accent 标签（金底墨字）
+  正文 L --color-green         /#ECEFEA         5.10:1  wishlist 已完成标签
+  正文 L --teal-600            /--color-bg      4.89:1  时间轴节点标题
+  正文 L --color-gold          /--color-surface  5.61:1  序号/徽标金字（压深后）
+  正文 L --color-danger        /--color-surface  5.29:1  破坏性操作文字
+  正文 D --color-ink           /--color-bg     14.09:1  暗色正文
+  正文 D --color-ink-soft      /--color-bg      6.58:1  暗色次级
+  正文 D --color-muted         /--color-surface  4.93:1  暗色卡片说明文字
+  正文 D --color-primary       /--color-bg      5.59:1  暗色主色文字+深标签按钮（同一配对）
+  正文 D --color-primary-dark  /--color-bg      6.48:1  暗色强调文字
+  正文 D --color-primary-dark  /rgba(216,123,86,.14) on --color-surface  4.80:1  暗色 soft 底 pill 文字
+  正文 D --color-gold          /--color-surface  6.39:1  暗色金字
+  正文 D --color-danger        /--color-surface  4.71:1  暗色危险文字
+  豁免 D --color-faint         /--color-bg      3.15:1  暗色 placeholder/空态大字符——placeholder 语义豁免
+  图形 L --route-color         /--map-bg        3.95:1  地图路线色（图形档 3:1）
+  图形 L --color-blue          /--color-surface  5.34:1  蓝灰图标（图形档）
+  正文 L #ffffff               /--color-blue    5.34:1  .bdg-h 网红徽章白字（压深后 5.34）
+  正文 D #ffffff               /--color-blue    5.34:1  暗色同上（blue 令牌两主题共用）
+  正文 D --bg                  /#E08A64         6.48:1  底部导航 FAB 渐变最亮端深标签（var(--bg) 翻转）
+  图形 D #ffffff               /--color-primary  3.05:1  boot 印章 40px 大字按大字/图形档 3:1 判（3.05）
+  正文 L --color-primary       /--bg            4.56:1  .tn-style .rec 反色小徽标（米底上主色字）
+  正文 D --color-primary       /--bg            5.59:1  暗色同上（#D87B56 on #1D1C19）
+  正文 L --bg                  /--color-danger  4.85:1  UI.offlineBar 离线条文字（批次6·实底 danger+var(--bg)）
+  正文 D --bg                  /--color-danger  5.18:1  暗色离线条（#1D1C19 on #DA6E62）
+  正文 L --color-ink           /--color-surface 16.33:1  UI.errorBox 标题（批次6·卡片底）
+  正文 D --color-ink           /--color-surface 12.81:1  暗色错误卡标题
+  正文 L --color-ink-soft      /--color-surface  8.85:1  UI.errorBox 描述
+  正文 D --color-ink-soft      /--color-surface  5.99:1  暗色错误卡描述
+  图形 L --color-danger        /rgba(179,74,63,.12) on --color-surface  4.47:1  UI.errorBox 图标（danger 压浅 tint，图形档 3:1）
+  图形 D --color-danger        /rgba(179,74,63,.12) on --color-surface  4.24:1  暗色错误卡图标
+  正文 L --day-c1              /--color-surface  5.86:1  .day-seal.ds-1 日卡章数字
+  正文 L --day-c2              /--color-surface  6.22:1  .day-seal.ds-2 日卡章数字
+  正文 L --day-c3              /--color-surface  6.29:1  .day-seal.ds-3 日卡章数字
+  正文 L --day-c4              /--color-surface  7.17:1  .day-seal.ds-4 日卡章数字
+  正文 L --day-c5              /--color-surface  7.25:1  .day-seal.ds-5 日卡章数字
+  正文 L --day-c6              /--color-surface  7.54:1  .day-seal.ds-6 日卡章数字
+  正文 D --day-c1              /--color-surface  6.92:1  暗色日卡章数字 1
+  正文 D --day-c2              /--color-surface  8.09:1  暗色日卡章数字 2
+  正文 D --day-c3              /--color-surface  7.90:1  暗色日卡章数字 3
+  正文 D --day-c4              /--color-surface  7.84:1  暗色日卡章数字 4
+  正文 D --day-c5              /--color-surface  8.50:1  暗色日卡章数字 5
+  正文 D --day-c6              /--color-surface  8.64:1  暗色日卡章数字 6
+  正文 L --bg                  /--color-primary-dark  5.95:1  .map-pin 立针序号 / .day-seal.done「游」印（深陶土实底）
+  正文 D --bg                  /--color-primary-dark  6.48:1  暗色同上（primary-dark 翻亮，纸色字自动翻深）
+  正文 L --bg                  /--color-muted   5.19:1  .bdg-t 临时节点徽标（批次7 由内联 #fff 收进 token）
+  正文 D --bg                  /--color-muted   5.42:1  暗色同上（旧 #fff on #969184 只有 2.1:1，实为暗色 bug）
+  正文 L --color-muted         /--color-bg      5.19:1  .vtitle 竖排题签（批次7-C）
+  正文 D --color-muted         /--color-bg      5.42:1  暗色竖排题签
+对比度审计: 62 组配对，4 组装饰豁免，不达标 0
+状态矩阵闸门（P1-8）
+状态矩阵闸门: 核心页 8，errorBox 页 4，矩阵行 8
+品牌签名闸门: 组件类 3，空态内联挂载 7 处，画稿对账 6/6，竖排挂载 3 处，token 档 12
+启动屏闸门: 外部壳 F:/MyAi/trace/lvyou-v2-android/app/src/main/res 对账，线稿色 #8F5D0E，几何 4/4 吻合，v31 首帧双 logo 抑制 OK
+备份闸门: 存储键字面量 46 个（采集 26 / 禁入 20 / 未登记 0），策略表 25 条与文档字段表 25 行逐键相等
+分享闸门: 行为断言（脏行程出包 OK），版式对账 18/18，降级两态（无基址 / 超长）已验
+天气闸门: 码表 24 码与游记逐码对账、字形全在 TI_NAMES；缓存 6h 与窗口 T+15 逐值核定；静默降级（模块内零 toast/零错误卡/零 console）；键两清（开关 prefs ↔ 缓存 never）；分享页零天气请求
+时序转场闸门: 阶梯 18 档逐值核定且无撞档；第一方 css/html 声明内裸时序 0 处（探针带正反向自证）；减动效 duration+delay+循环+滚动+转场伪元素全覆盖；跨文档开通且 root 时长走 token；三处 UI.vt 接线 + 共享元素名同页唯一；UI.vt 三 promise 全 catch；避让只在动画结束后量几何（两拍 rAF + 两条渲染回调 + moveend/zoomend + animationend 收尾各钉一处）；smoke-motion 断言在案
+画像闸门: 聚合口径（省市/主题/标签）逐条钉死、160 字上限、零正文；注入点唯一（定义+调用各 1）且带目的地护栏；开关 tn_plan_pref=prefs/默认开；设置页可见开关落键；冒烟四档在案
+字号阶梯闸门: 阶梯 10 档逐值核定且全 rem；旧名 5 个纯别名；根字号禁 px（探针带正反向自证）；机型/用户档 8 串在案且根字号全库单一声明（424/452dp 真机 × 大小字两个乘数 + 320dp 收紧）；阶梯外 ≤20px 字面量 0 处、≥21px 尾巴 59/59、clamp 例外 9/9、走阶梯 923 处；字体两档字节+sha256 与清单逐条相等且在 sw 预缓存、缺字 94 三数自洽、sync-assets 白名单含 fonts；.card 单定义吃 --edge-hair
+实景图闸门: --photo-veil/.10 --photo-look/saturate(.94) --photo-edge/.20 逐值核定且字面量全站双写 0 处；表面清单 10+6+6+4+3+3 条逐条挂载、滤镜单一挂载点；按实际挂载算出的三条不变式成立（inset⊆veil、外圈⊆滤镜、清单零漂多）；封面 .ls-img 两条声明都含 inset 环且 ::after 恰 1 条（自带影与 veil 合并）；照片表面零字面量滤镜、暗色零 --photo-* 重定义；.card .media 零复活；smoke-photo.js 与 README 在案
+质感闸门: 投影四档+pop 逐值核定（rise 必须是 medium 的 y 反向镜像，接触影 ≤6px/弥散 ≥12px 是含义不是手感）；冷灰族与 --sh-* 零残留，暖墨外影除品牌实物 2 条逐值豁免外归零（探针带正反向自证）；blur 只有 bar/sheet 两档且字面 blur( 全站 2 处，18 个挂点逐条同体配对 -webkit-、逐条与同档透底配对（map.css|.location-sheet 按同族已挂过豁免并要求挂点仍在）；引用 var(--glass-*) 的块不分「有没有 backdrop-filter」一律同体要求对应 blur（G4 那类「把 blur 整条删掉」的退化在 hooks 里看不见）；α/底色亮暗各 1 处零双写，.theme-dark 只翻玻璃·纸·描边且零质感 token 重定义；grain 引用 2 处（body + .cine-grain）且带 background-size，去色只在 page 档；遮罩三档逐值 + 三档都有调用者；描边一族亮暗各 2 条逐值、border 暖墨字面量 0 处；声明级括号平衡（三条真 bug 形态自证 + rotate/calc/env/嵌套 var 不误报）；「不糊却半透」底色 0 处
+边缘点闸门: 57 条源码锚点逐条计数（空白归一后整串相等，含大小写与连字）——带名单四条逐值 + 60% 成带判据 + 四边 40px 保险 + MARK_HALF 16；usableInsets/contentInsets/contentBounds/fitUsable/zoomUsable/contentCenterPx/focusUsable/clampCapsules 各恰 1 处；paddingTopLeft/paddingBottomRight 各 2 处且 paddingTL 零残留（这版 Leaflet 不认它，写了静默失效）；+/− 只许走 zoomUsable，map.zoomIn/Out 各只剩 catch 兜底 1 处；路线与首屏的旧 fitBounds 零残留、首屏两遍 fit + 中间补统计卡 + 切 tab 在 fit 之前；LOD 侧 vb/focus 注入到位且 C.map.getBounds() 只剩兜底 1 处、未注入的默认 flyToBounds 旧行为原样保留；map.css 居中 translate 基础与 :active 各 1 条（裸 scale 回潮即红）；clamp 的三条不变量在——锚点取容器中心、宽高取 offsetWidth/Height（都不吃胶囊自身 transform 的 160ms 过渡）、比可用区还宽就不挪；recheckInsets 两个出口在；期望 0 的四条改前形态有合成源正向对照；smoke-usable.js U0–U13 齐备且仍自己量一遍内缩；README 与方案文档已登记
+=== ALL CHECKS PASSED ===

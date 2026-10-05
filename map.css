@@ -944,9 +944,14 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:var(--fs-3);font-f
    米白 rgba(247,245,239,.88) + 1px rgba(32,32,29,.14) 细边框 + 轻阴影
    非大彩色圆球；数字 + 行政名；深色模式适配
    ============================================================ */
-/* TRACE v2 统一：数字与行政名同一行同色，去掉"墨色椭圆+白字"徽标，避免与米白胶囊拼接割裂 */
+/* TRACE v2 统一：数字与行政名同一行同色，去掉"墨色椭圆+白字"徽标，避免与米白胶囊拼接割裂
+   居中：clusterIcon 用 iconSize:[0,0]+iconAnchor:[0,0]，容器是 0×0，
+   不写 translate 胶囊就从锚点向右下悬出（452 档实测 158px 宽的胶囊悬到屏外 104px）。
+   --lod-dx/--lod-dy 是边缘内收量（topic-common.clampCapsules 逐枚写），默认 0。
+   :active 必须重复同一条 translate，否则按下瞬间胶囊会跳回锚点右下。 */
 .lod-cl{
   display:inline-flex;align-items:baseline;gap:8px;
+  transform:translate(calc(-50% + var(--lod-dx,0px)),calc(-50% + var(--lod-dy,0px)));
   height:32px;padding:0 14px;border-radius:999px;
   background:var(--paper-bar);
   border:1px solid var(--edge-hair);
@@ -955,7 +960,7 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:var(--fs-3);font-f
   cursor:pointer;white-space:nowrap;
   transition:transform var(--motion-fast) var(--ease-standard),box-shadow var(--motion-fast) var(--ease-standard);
 }
-.lod-cl:active{transform:scale(.94)}
+.lod-cl:active{transform:translate(calc(-50% + var(--lod-dx,0px)),calc(-50% + var(--lod-dy,0px))) scale(.94)}
 .lod-cl__n{font-size:var(--fs-5);font-weight:700;color:var(--color-ink);letter-spacing:.01em;font-feature-settings:"tnum"}
 .lod-cl__t{font-size:var(--fs-4);font-weight:500;color:var(--color-ink-soft);letter-spacing:.04em}
 @media (hover:hover){.lod-cl:hover{box-shadow:var(--shadow-float)}}

@@ -113,8 +113,8 @@
       useGCJ = (initialLayer.id === 'amapStreet' || initialLayer.id === 'amapSat' || initialLayer.id === 'amapSatL');
     }
     $('layBtn').onclick = function (e) { e.stopPropagation(); layMenu.classList.toggle('show'); };
-    $('zoomIn').onclick = function () { map.zoomIn(); };
-    $('zoomOut').onclick = function () { map.zoomOut(); };
+    $('zoomIn').onclick = function () { zoomUsable(1); };
+    $('zoomOut').onclick = function () { zoomUsable(-1); };
     map.on('click', function () { layMenu.classList.remove('show'); });
     map.on('movestart', function () { layMenu.classList.remove('show'); });
     map.on('click', function (e) {
@@ -294,10 +294,117 @@
      （design.css:940，from 是 scale(.6)），节点创建的同一帧里 getBoundingClientRect
      量到的是动画首帧的盒子（实测标签宽 67px，稳定后 112px），labelAvoid 据此判重叠就漏隐藏。
      两拍之后动画至少推进过一帧；正常档（非减动效）动画更长，由 initMap 里的 animationend 再补一次。 */
+  /* ---------- 可用视口（批次13：节点与合集胶囊跑到屏幕外的根因收口） ----------
+     #mapEl 的矩形 ≠ 用户看得见的地图：顶部路线横幅、底部「当前区域」统计卡 + tabbar 都盖在
+     元素上面（452×995 实测底部死带 155px）。Leaflet 的视野裁剪、fitBounds、缩放锚点全部按
+     元素矩形算，于是内容一格一格挪进那条死带——34 页 × 4 档实测 4134 枚标记里 20.2% 越界，
+     放大三档后下溢中位 108px（正好是死带深度）。
+     只把「成带」的浮层算内缩（横向压满元素 60% 以上）：452 档实测 tabbar 占宽 .947、
+     region-stats .856~.92、routeBanner .326~.62（横幅文字短时确实不成带）。
+     .ctl / .laymenu 那种右上角小方块是「点」不是「带」，扣进去等于把整条右边判成死区。 */
+  var USABLE_BANDS = ['#routeBanner', '.region-stats', '.tabbar', '.tripbar.open'];
+  var MARK_HALF = 16;   /* 最高标记的半高：胶囊 31px / 节点 30px。内容区再让出这一条，半枚被切就不会发生 */
+  var lastUsableKey = null;   /* 上一次渲染用的内缩快照，带出现/消失时据此判断要不要重算 LOD */
+  function usableInsets() {
+    var el = map.getContainer().getBoundingClientRect();
+    var size = map.getSize();
+    var ins = { top: 0, right: 0, bottom: 0, left: 0 };
+    USABLE_BANDS.forEach(function (sel) {
+      var n = document.querySelector(sel);
+      if (!n) return;
+      var cs = getComputedStyle(n);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
+      var r = n.getBoundingClientRect();
+      var ix = Math.min(r.right, el.right) - Math.max(r.left, el.left);
+      if (r.height <= 0 || ix < el.width * 0.6) return;
+      if ((r.top + r.bottom) / 2 < el.top + el.height / 2) ins.top = Math.max(ins.top, r.bottom - el.top);
+      else ins.bottom = Math.max(ins.bottom, el.bottom - r.top);
+    });
+    /* 任何一条带都不许把可用区吃到只剩 40px（横屏 / 极矮视口下的保险） */
+    ins.top = Math.max(0, Math.min(ins.top, size.y - 40));
+    ins.bottom = Math.max(0, Math.min(ins.bottom, size.y - 40));
+    ins.left = Math.max(0, Math.min(ins.left, size.x - 40));
+    ins.right = Math.max(0, Math.min(ins.right, size.x - 40));
+    return ins;
+  }
+  function contentInsets() {
+    var i = usableInsets();
+    return { top: i.top + MARK_HALF, right: i.right + MARK_HALF, bottom: i.bottom + MARK_HALF, left: i.left + MARK_HALF };
+  }
+  function usableRectPx() {
+    var s = map.getSize(), i = usableInsets();
+    return { l: i.left, t: i.top, r: s.x - i.right, b: s.y - i.bottom };
+  }
+  /* LOD 的裁剪矩形：被不透明浮层压住的那一条里不该再画胶囊 */
+  function contentBounds() {
+    var s = map.getSize(), i = contentInsets();
+    return L.latLngBounds(
+      map.containerPointToLatLng(L.point(i.left, i.top)),
+      map.containerPointToLatLng(L.point(s.x - i.right, s.y - i.bottom)));
+  }
+  /* Leaflet 的真实选项是 paddingTopLeft / paddingBottomRight（没有 paddingTL），
+     fitBounds 与 flyToBounds 都经 _getBoundsCenterZoom 按 (BR−TL)/2 重定心，所以不对称内缩两处同样有效 */
+  function fitUsable(bounds, opts) {
+    var i = contentInsets();
+    var o = { paddingTopLeft: [i.left, i.top], paddingBottomRight: [i.right, i.bottom] };
+    Object.keys(opts || {}).forEach(function (k) { o[k] = opts[k]; });
+    map.fitBounds(bounds, o);
+  }
+  /* 缩放锚点：zoomIn/zoomOut 绕元素中心缩放，而元素中心比可用区中心低 53px，
+     每按一次 + 就把整幅地图往底部死带里推进 53px。改成绕内容区中心（setZoomAround 保持该点的屏幕位置不动） */
+  function zoomUsable(delta) {
+    var z = map.getZoom();
+    var nz = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z + delta));
+    var s = map.getSize(), i = contentInsets();
+    var p = L.point((s.x + i.left - i.right) / 2, (s.y + i.top - i.bottom) / 2);
+    try { map.setZoomAround(map.containerPointToLatLng(p), nz); }
+    catch (e) { if (delta > 0) map.zoomIn(); else map.zoomOut(); }
+  }
+  function contentCenterPx() {
+    var s = map.getSize(), i = contentInsets();
+    return L.point((s.x + i.left - i.right) / 2, (s.y + i.top - i.bottom) / 2);
+  }
+  /* 聚合胶囊聚焦：region 层给的是固定缩放，要让「那个中心」落到内容中心而不是元素中心 */
+  function focusUsable(t) {
+    var i = contentInsets();
+    if (t.center) {
+      var s = map.getSize();
+      var want = map.project(t.center, t.zoom)
+        .add(L.point(s.x / 2, s.y / 2).subtract(contentCenterPx()));
+      map.flyTo(map.unproject(want, t.zoom), t.zoom, { duration: .5 });
+      return;
+    }
+    map.flyToBounds(t.bounds, { paddingTopLeft: [i.left, i.top], paddingBottomRight: [i.right, i.bottom], maxZoom: t.maxZoom, duration: .5 });
+  }
+  /* 边缘内收：实测胶囊最宽 203px（半宽 102），贴边放就把半枚推出屏幕。
+     溢出多少收多少（≤半盒），只挪视觉盒，地理锚点不动；比"藏掉边缘内容"便宜 */
+  function clampCapsules() {
+    var el = map.getContainer().getBoundingClientRect();
+    var u = usableRectPx();
+    var lim = { l: el.left + u.l, t: el.top + u.t, r: el.left + u.r, b: el.top + u.b };
+    lastUsableKey = JSON.stringify(usableInsets());
+    [].forEach.call(document.querySelectorAll('#mapEl .lod-cl'), function (n) {
+      /* 锚点取容器（divIcon 是 0×0，其左上就是投影点）：胶囊自己的 transform 带 160ms 过渡，
+         量胶囊盒会读到位移中间态，多轮内收后残留 1.9~4.7px 偏移（smoke-usable 的 U5/U12 因此时红时绿）。
+         宽高用 offsetWidth/Height——布局盒，不吃 transform。 */
+      var cont = n.parentNode;
+      if (!cont || !cont.getBoundingClientRect) return;
+      var c = cont.getBoundingClientRect();
+      var ax = c.left + c.width / 2, ay = c.top + c.height / 2;
+      var w = n.offsetWidth, h = n.offsetHeight;
+      var dx = 0, dy = 0;
+      if (w < lim.r - lim.l) dx = Math.min(Math.max(ax, lim.l + w / 2), lim.r - w / 2) - ax;
+      if (h < lim.b - lim.t) dy = Math.min(Math.max(ay, lim.t + h / 2), lim.b - h / 2) - ay;
+      n.style.setProperty('--lod-dx', Math.round(dx) + 'px');
+      n.style.setProperty('--lod-dy', Math.round(dy) + 'px');
+    });
+  }
+
   function refitAvoid() {
     requestAnimationFrame(function () { requestAnimationFrame(function () {
       if (window.capsuleAvoid) capsuleAvoid('#mapEl');
       if (window.labelAvoid) labelAvoid('#mapEl');
+      clampCapsules();   /* mini 化之后盒子变窄，内收量要按新宽度重算一次 */
     }); });
   }
   function renderMarkers(list) {
@@ -321,7 +428,9 @@
       colorOf: colorOf,
       onNode: function (s) { openSheet(s.__i); },
       majorOf: isMajorSite,
-      onRendered: function () { clearTimeout(window.__cavT); window.__cavT = setTimeout(refitAvoid, 80); },
+      onRendered: function () { clampCapsules(); clearTimeout(window.__cavT); window.__cavT = setTimeout(refitAvoid, 80); },
+      vb: contentBounds,
+      focus: focusUsable,
       regionOf: function (s) { return s.region; },
       cityOf: function (s) { return s.city; },
       countyOf: function (s) { return s.county; },
@@ -918,13 +1027,16 @@
       var line = L.polyline(pts, { color: c, weight: 4, opacity: .9, dashArray: "1,9", lineCap: "round" }).addTo(routeLayer);
       line.bindPopup('<b style="color:' + c + '">' + d.title + '</b>');
     });
-    if (restorePos && restorePos.zoom) { map.setView([restorePos.lat, restorePos.lng], restorePos.zoom); }
-  else if (all.length) map.fitBounds(all, { padding: [40, 40] });
-    switchTab('map');
     var banner = $('routeBanner');
     banner.style.display = 'block'; banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>' + esc(rt.name) + '<span style="margin-left:9px">' + TI('close', 13) + '</span>';   /* 不再叠 opacity：12px + .75 透明在暗底上只剩 2.36:1 */
     banner.title = '点击清除路线';
     banner.onclick = clearRoute;
+    /* 顺序：横幅先挂上（它是可用区顶带的来源之一，452 档实测占宽 .326~.62），
+       再切地图 tab（「当前区域」统计条只在地图 tab 显示），最后才按可用区 fit——
+       反过来的话这两条带永远拿不到位置，路线首屏就会把终点胶囊塞进底部死带 */
+    switchTab('map');
+    if (restorePos && restorePos.zoom) { map.setView([restorePos.lat, restorePos.lng], restorePos.zoom); }
+    else if (all.length) fitUsable(all);
     var dl = $('dayLegend');
     dl.innerHTML = '<b>每日轨迹色</b><br>' + rt.days.map(function (d, di) { return '<span class="dl"><span class="dd" style="background:' + DAY_COLORS[di % DAY_COLORS.length] + '"></span>D' + (di + 1) + ' ' + (d.title.split(' · ')[1] || d.title) + '</span>'; }).join('');
     dl.style.display = 'none';
@@ -1053,7 +1165,7 @@
       statEl.className = 'region-stats';
       document.body.appendChild(statEl);
     }
-    if (!inView.length) { statEl.style.display = 'none'; return; }
+    if (!inView.length) { statEl.style.display = 'none'; recheckInsets(); return; }
     var cnt = {};
     inView.forEach(function (s) { var t = tk(s) || '其他'; cnt[t] = (cnt[t] || 0) + 1; });
     var top = Object.keys(cnt).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 4);
@@ -1070,6 +1182,14 @@
         syncChips(); renderAll();
       };
     });
+    recheckInsets();
+  }
+  /* 这张卡自己就是底带的来源：它挂上/收起等于可用区变了。刚 fit 好的内容如果在 400ms
+     后被它盖掉一排胶囊，就是用户看到的「点跑到边缘」，所以内缩一变就把 LOD 重算一遍
+     （重算会按新的内容区重新裁剪，并重新做边缘内收）。 */
+  function recheckInsets() {
+    var k = JSON.stringify(usableInsets());
+    if (lastUsableKey && lastUsableKey !== k && window.NodeLOD) NodeLOD.refresh();
   }
 
   /* ---------- 渲染调度 ---------- */
@@ -1342,7 +1462,14 @@
       var _b = L.latLngBounds([]);
       SITES.forEach(function (s) { if (s.lat != null && s.lng != null && !isNaN(+s.lat) && !isNaN(+s.lng)) { var _p = pt(s); _b.extend(_p); } });
       if (restorePos && restorePos.zoom) map.setView([restorePos.lat, restorePos.lng], restorePos.zoom);
-    else if (_b.isValid()) map.fitBounds(_b, { padding: [46, 70], maxZoom: 7 });
+    else if (_b.isValid()) {
+      /* 两遍 fit：「当前区域」统计条原本要等 400ms 计时器才挂上，只 fit 一次等于底部永远
+         少让 73px，首屏最下一排胶囊正好压在它下面。先按「没有它」落视野（同一任务内不会
+         绘制），立刻把卡补出来，再按真实可用区 fit 第二次——用户只看到最终那一帧。 */
+      fitUsable(_b, { maxZoom: 7, animate: false });
+      updateRegionStats();
+      fitUsable(_b, { maxZoom: 7, animate: false });
+    }
     } catch (e) {}
     window.TravelNotes.init({ map: map, getSite: function (i) { return SITES[i]; } });
     // chips / 图例
@@ -1398,6 +1525,10 @@
   }
   window.TopicEngine = { get _map() { return map; },
     init: init,
+    /* 闸门侧独立复算可用区要用（tools/smoke-usable.js U2：产品看到内缩 == 页面上真有的带） */
+    usableInsets: usableInsets,
+    contentInsets: contentInsets,
+    usableRectPx: usableRectPx,
     toggleTrip: toggleTrip,
     addTripPos: addTripPos,
     toggleMore: toggleMore,

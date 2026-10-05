@@ -1,0 +1,167 @@
+PASS  页面加载
+PASS  AI 开关渲染
+PASS  目的地 chips 渲染
+PASS  进入选点阶段
+PASS  候选列表非空  [候选 42 处]
+PASS  意图卡显示目的地
+PASS  候选筛选生效  [筛选后 0 / 42]
+PASS  汇总条出现
+PASS  无 Key 时向导默认地理最近邻
+PASS  进入结果阶段
+PASS  每日安排生成  [5 天]
+PASS  选点页预计天数=实际排期天数  [预计 5 / 实际 5]
+PASS  落地动作条
+PASS  结果区挂了「分享行程」按钮
+PASS  按钮文案「分享行程」且带图标  ["分享行程"]
+PASS  无基址时确认卡讲明没有可点开的网址  [/ 地址对方打不开）。想发链接请到 设置 → 分享网址 填一个已部署的地址；现在先发文字版。]
+PASS  确认卡的天数/站数与屏上行程一致  [5 天 / 5 站]
+PASS  确认卡写明不会分享什么
+PASS  取消后卡关掉且没复制任何东西
+PASS  填基址后确认卡给出 share.html 落点  [ple.org/trace/share.html（内容写在网址里，对方点开即见，不用装应用）]
+PASS  确定键文案随分支变（生成链接）  [生成链接]
+PASS  真复制出一条 share.html#v1 链接  [http://example.org/trace/share.html#v1.eJxt0M9Kw0A]
+PASS  链接长度在聊天软件上限内  [398 字符]
+PASS  复制后 toast 说清去哪粘贴  [链接已复制，去聊天软件里粘贴]
+PASS  链接解回来不含游记/照片/密钥字段  [{"v":1,"t":"四川 5 日之旅","sd":"","from":"","to":"","loop":f]
+PASS  分享全程没改坏行程也没报错
+PASS  移除站点生效  [5 -> 4]
+PASS  重新排期无报错
+PASS  季节字段回填
+PASS  无 JS 报错
+PASS  真实里程矩阵按站数取足段数  [取数 3 次（3 站应 3 段）]
+PASS  有 Key 时向导默认按高德路线
+PASS  进入结果阶段（矩阵档）
+PASS  排期复用已取矩阵，不重复取数  [取数 3 → 3]
+PASS  行程带真实里程矩阵  [3 段]
+PASS  矩阵里程来自高德（桩值 700km）
+PASS  预计天数=真实里程排期天数  [预计 5 / 实际 5]
+PASS  没有任何一天超过 14 小时  [最长 11.3h]
+PASS  长途段独立成转场日  [2 个转场日]
+PASS  日卡里程与排线同一把尺子  [0/350/350/350/350 km]
+PASS  转场日渲染为赶路日且不给导航按钮
+PASS  矩阵档无 JS 报错
+PASS  单站日不出现起终点同点  [slat=null dlat=33.25794607896515]
+PASS  造出多站日（最多 3 站 / 共 3 天可导航）
+PASS  每日深链的四参数数量一致且名称对应  [3 天，异常 0 天 [vian=]]
+PASS  网页兜底用文档参数 via，不用 waypoints  [0 天异常]
+PASS  链接不含未编码空格或裸中文
+PASS  不存在起终点同点的一天  [0 天]
+PASS  导航档无 JS 报错
+TIMELINE ok +0ms 3 lat=2287 muts=2
+TIMELINE ok +200ms 3 lat=2287 muts=2
+TIMELINE ok +400ms 3 lat=2287 muts=2
+TIMELINE ok +600ms 3 lat=2287 muts=2
+TIMELINE ok +800ms 3 lat=2287 muts=2
+TIMELINE ok +1000ms 3 lat=2287 muts=2
+TIMELINE ok +1200ms 3 lat=2287 muts=2
+TIMELINE ok +1400ms 3 lat=2287 muts=2
+TIMELINE ok +1600ms 3 lat=2287 muts=2
+TIMELINE ok +1800ms 3 lat=2287 muts=2
+TIMELINE ok +2000ms 3 lat=2287 muts=2
+TIMELINE ok +2200ms 3 lat=2287 muts=2
+TIMELINE ok +2400ms 3 lat=2287 muts=2
+TIMELINE ok +2600ms 3 lat=2287 muts=2
+TIMELINE ok +2800ms 3 lat=2287 muts=2
+TIMELINE ok +3000ms 3 lat=2287 muts=2
+TIMELINE ok +3200ms 3 lat=2287 muts=2
+TIMELINE ok +3400ms 3 lat=2287 muts=2
+TIMELINE ok +3600ms 3 lat=2287 muts=2
+TIMELINE ok +3800ms 3 lat=2287 muts=2
+PASS  排好行程后按天发起天气请求  [请求 3 次 / 3 天（落定前首读 0，首张日卡在末步点击后 2287ms 进 DOM）]
+PASS  每个日卡都有天气位  [3 个 .wx / 3 张日卡]
+PASS  天气位取数完不留空槽  [残留 .wxh 0 个]
+PASS  温度文案为「最低~最高°」（19.4/8.2 取整）  ["8~19°"]
+PASS  title 带 WMO 61 的中文口径  [小雨 8~19°]
+PASS  字形走 SVG 图标，不是 emoji
+PASS  请求参数是三字段 + 同一天首尾 + 免 Key  [https://api.open-meteo.com/v1/forecast?latitude=32.1500&longitude=105.5200&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&start]
+PASS  逐日按出发日期往后推，不是每天都问同一天  [2026-10-05,2026-10-06,2026-10-07]
+PASS  缓存键含坐标与日期（跨日不会复用昨天的数）  [tn_weather_d_31.05_102.85_2026-10-07]
+PASS  重渲染命中缓存，不再打网络  [请求 3 → 3]
+PASS  320px 窄屏：日卡不横向溢出且天气位不挤出屏幕  [溢出 0px，天气位 3/3 在屏内]
+PASS  关掉开关后无天气位也无请求  [.wx 0 / .wxh 0 / 请求 3 → 3]
+PASS  天气正常态无 JS 报错
+TIMELINE ok +0ms 3 lat=2337 muts=2
+TIMELINE ok +200ms 3 lat=2337 muts=2
+TIMELINE ok +400ms 3 lat=2337 muts=2
+TIMELINE ok +600ms 3 lat=2337 muts=2
+TIMELINE ok +800ms 3 lat=2337 muts=2
+TIMELINE ok +1000ms 3 lat=2337 muts=2
+TIMELINE ok +1200ms 3 lat=2337 muts=2
+TIMELINE ok +1400ms 3 lat=2337 muts=2
+TIMELINE ok +1600ms 3 lat=2337 muts=2
+TIMELINE ok +1800ms 3 lat=2337 muts=2
+TIMELINE ok +2000ms 3 lat=2337 muts=2
+TIMELINE ok +2200ms 3 lat=2337 muts=2
+TIMELINE ok +2400ms 3 lat=2337 muts=2
+TIMELINE ok +2600ms 3 lat=2337 muts=2
+TIMELINE ok +2800ms 3 lat=2337 muts=2
+TIMELINE ok +3000ms 3 lat=2337 muts=2
+TIMELINE ok +3200ms 3 lat=2337 muts=2
+TIMELINE ok +3400ms 3 lat=2337 muts=2
+TIMELINE ok +3600ms 3 lat=2337 muts=2
+TIMELINE ok +3800ms 3 lat=2337 muts=2
+PASS  超出预报期：一个天气请求都不发  [发了 0 次 / 3 张日卡（首读 0）]
+PASS  超出预报期：日卡既不显示也不留空位  [.wx 0 / .wxh 0]
+PASS  没到窗口内的日子不出现「天气」话术
+PASS  超预报期档无 JS 报错
+TIMELINE junk +0ms 3 lat=1521 muts=2
+TIMELINE junk +200ms 3 lat=1521 muts=2
+TIMELINE junk +400ms 3 lat=1521 muts=2
+TIMELINE junk +600ms 3 lat=1521 muts=2
+TIMELINE junk +800ms 3 lat=1521 muts=2
+TIMELINE junk +1000ms 3 lat=1521 muts=2
+TIMELINE junk +1200ms 3 lat=1521 muts=2
+TIMELINE junk +1400ms 3 lat=1521 muts=2
+TIMELINE junk +1600ms 3 lat=1521 muts=2
+TIMELINE junk +1800ms 3 lat=1521 muts=2
+TIMELINE junk +2000ms 3 lat=1521 muts=2
+TIMELINE junk +2200ms 3 lat=1521 muts=2
+TIMELINE junk +2400ms 3 lat=1521 muts=2
+TIMELINE junk +2600ms 3 lat=1521 muts=2
+TIMELINE junk +2800ms 3 lat=1521 muts=2
+TIMELINE junk +3000ms 3 lat=1521 muts=2
+TIMELINE junk +3200ms 3 lat=1521 muts=2
+TIMELINE junk +3400ms 3 lat=1521 muts=2
+TIMELINE junk +3600ms 3 lat=1521 muts=2
+TIMELINE junk +3800ms 3 lat=1521 muts=2
+PASS  接口回坏包时会铺槽而不是硬留空  [.wxh 3 / .wx 0 / 3 张日卡（首读 3）]
+PASS  未取到的槽不占位（display:none / 宽 0）  [none:0 | none:0]
+PASS  断网时按天各试一次（说明确实在取，不是压根没接线）  [请求 6 → 9 / 3 天]
+PASS  断网后日卡不出温度、不出「重试/加载失败」话术  [零话术]
+PASS  坏包/断网档无 JS 报错
+TIMELINE rate +0ms 3 lat=2744 muts=2
+TIMELINE rate +200ms 3 lat=2744 muts=2
+TIMELINE rate +400ms 3 lat=2744 muts=2
+TIMELINE rate +600ms 3 lat=2744 muts=2
+TIMELINE rate +800ms 3 lat=2744 muts=2
+TIMELINE rate +1000ms 3 lat=2744 muts=2
+TIMELINE rate +1200ms 3 lat=2744 muts=2
+TIMELINE rate +1400ms 3 lat=2744 muts=2
+TIMELINE rate +1600ms 3 lat=2744 muts=2
+TIMELINE rate +1800ms 3 lat=2744 muts=2
+TIMELINE rate +2000ms 3 lat=2744 muts=2
+TIMELINE rate +2200ms 3 lat=2744 muts=2
+TIMELINE rate +2400ms 3 lat=2744 muts=2
+TIMELINE rate +2600ms 3 lat=2744 muts=2
+TIMELINE rate +2800ms 3 lat=2744 muts=2
+TIMELINE rate +3000ms 3 lat=2744 muts=2
+TIMELINE rate +3200ms 3 lat=2744 muts=2
+TIMELINE rate +3400ms 3 lat=2744 muts=2
+TIMELINE rate +3600ms 3 lat=2744 muts=2
+TIMELINE rate +3800ms 3 lat=2744 muts=2
+PASS  429 退避后天气仍然补上了  [.wx 3 / 3 张日卡（首读 0）]
+PASS  限流是真重试（每天至少再试一次），不是只发一次就放弃  [请求 9 次 / 3 天]
+PASS  限流档不留残槽  [.wxh 0]
+PASS  限流档无 JS 报错
+PASS  有历史数据时 AI 请求体带上「用户画像」段  [请求体 1138 字]
+PASS  画像是聚合出来的：省 / 市 / 心愿单主题 / 近期关键词逐个在体里  [命中 山西、运城市、名山大川、日落]
+PASS  画像只出门送关键词，游记正文一个字都不发
+PASS  画像进了 prompt，5 条备选照样出得来  [.aroute 5 张]
+PASS  关掉开关：请求体里一个画像字都没有  [请求体 1041 字]
+PASS  关开关只砍画像，目的地/天数/偏好照旧在
+PASS  开关档无 JS 报错
+PASS  新用户零历史：画像段整段省略（不写「去过 无」这种废话）  [{"model":"deepseek-v4-flash","messages":]
+PASS  新用户零历史：生成不报错且出满 5 条  [.aroute 5 张 / 报错 0 条]
+
+全部通过
+EXIT=0

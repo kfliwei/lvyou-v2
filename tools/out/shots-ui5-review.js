@@ -44,6 +44,11 @@ const vcSrc = fs.readFileSync(path.join(ROOT, 'tools', 'visual-check.js'), 'utf8
 const m = /const CLOCK = `([\s\S]*?)`;/.exec(vcSrc);
 if (!m) { console.error('抽不到 visual-check.js 的 CLOCK 桩：钉帧口径已换，先改这里再拍图'); process.exit(2); }
 const CLOCK = m[1];
+/* toast 摘除名单同样不重抄：与 CLOCK 一个道理，闸门那边换了名单而这里还认 `.ui-toast`，
+   拍出来的对比图就会带上 node-manager `#nmTip` 那一类退场中间帧（批次 13-G 实测）。 */
+const mSel = /const TOAST_SEL = '([^']*)';/.exec(vcSrc);
+if (!mSel) { console.error('抽不到 visual-check.js 的 TOAST_SEL 名单：摘除口径已换，先改这里再拍图'); process.exit(2); }
+const TOAST_SEL = mSel[1];
 
 async function shoot(root, tag) {
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu', '--force-device-scale-factor=2'] });
@@ -82,11 +87,11 @@ async function shoot(root, tag) {
       await new Promise(r => setTimeout(r, SETTLE));
       /* 与 visual-check 同一口径摘掉短命 toast：本轮就是靠包围盒发现 album 的 4.8% 差全在
          「已从 8 篇游记生成图册」那条 toast 带上（活 2.9s vs SETTLE 1.4s = 掷硬币），不摘就没法判断 UI-5 到底改了多少像素。 */
-      const toasts = await pg.evaluate(() => {
-        const n = document.querySelectorAll('.ui-toast').length;
-        document.querySelectorAll('.ui-toast').forEach(e => e.remove());
+      const toasts = await pg.evaluate(s => {
+        const n = document.querySelectorAll(s).length;
+        document.querySelectorAll(s).forEach(e => e.remove());
         return n;
-      });
+      }, TOAST_SEL);
       if (toasts) console.log('  摘除 toast ' + toasts + ' 条 @ ' + p + ' ' + W + 'x' + H);
       const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
       const tag2 = p.replace('.html', '') + (SEED.includes(p) ? '.seed' : '') + '.' + W + 'x' + H + '.png';
@@ -99,7 +104,7 @@ async function shoot(root, tag) {
 }
 
 (async () => {
-  console.log('钉帧口径来源 CLOCK 长度 ' + CLOCK.length + '（取自 tools/visual-check.js）');
+  console.log('钉帧口径来源 CLOCK 长度 ' + CLOCK.length + '（取自 tools/visual-check.js）；toast 摘除名单 ' + TOAST_SEL);
   const after = await shoot(ROOT, 'after');
   const before = await shoot(BEFORE, 'before');
   const ddir = path.join(OUT, 'diff');

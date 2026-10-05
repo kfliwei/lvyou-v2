@@ -1,0 +1,8 @@
+### 452×995  元素=0/135/452/860  产品内缩(上右下左)={"top":0,"right":0,"bottom":155,"left":0}
+  .routeBanner    display=block  op=1 顶/底=147/185 高=38 占宽=0.326（不成带） 单独贡献底内缩=848px
+  .region-stats   display=flex   op=1 顶/底=840/893 高=53 占宽=0.856（成带） 单独贡献底内缩=155px
+  .tabbar         display=flex   op=1 顶/底=913/983 高=70 占宽=0.947（成带） 单独贡献底内缩=82px
+### 390×844  元素=0/135/390/709  产品内缩(上右下左)={"top":0,"right":0,"bottom":155,"left":0}
+  .routeBanner    display=block  op=1 顶/底=147/182 高=35 占宽=0.358（不成带） 单独贡献底内缩=697px
+  .region-stats   display=flex   op=1 顶/底=689/742 高=53 占宽=0.92（成带） 单独贡献底内缩=155px
+  .tabbar         display=flex   op=1 顶/底=762/832 高=70 占宽=0.938（成带） 单独贡献底内缩=82px

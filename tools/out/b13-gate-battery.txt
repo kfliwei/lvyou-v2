@@ -1,0 +1,20 @@
+##### smoke-motion
+EXIT=2
+0
+    at main (F:\MyAi\trace\lvyou-v2\tools\smoke-motion.js:311:12)
+EXIT=2
+##### smoke-texture
+EXIT=0
+0
+=== smoke-texture: 48 项通过 / 0 项失败 ===
+EXIT=0
+##### smoke-photo
+EXIT=0
+0
+=== smoke-photo: 16/16 通过 ===
+EXIT=0
+##### smoke
+EXIT=0
+0
+=== SMOKE ALL PASSED ===
+EXIT=0

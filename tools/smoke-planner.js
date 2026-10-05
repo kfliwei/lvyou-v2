@@ -22,6 +22,18 @@ async function wizardTo(p, step) {
 async function wizardDone(p) {
   await p.click('#wNext');
   await sleep(300);
+  /* 记下「末步点击 → 第一张 .day-card 进 DOM」的真实耗时（自断开，零成本）。
+     没有这个数，dayN 读到 0 时无法区分"取样早了"和"产品真没渲染出来"。 */
+  await p.evaluate(() => {
+    window.__dcLat = document.querySelector('#resultBody .day-card') ? 0 : null;
+    const t0 = Date.now();
+    const ob = new MutationObserver(() => {
+      if (window.__dcLat === null && document.querySelector('#resultBody .day-card')) {
+        window.__dcLat = Date.now() - t0; ob.disconnect();
+      }
+    });
+    if (window.__dcLat === null) ob.observe(document.body, { subtree: true, childList: true });
+  });
   await p.click('#wDone');
   await sleep(1600);
 }
@@ -401,22 +413,36 @@ async function wizardDone(p) {
     await sleep(400);
     await p.evaluate(d => { const el = document.getElementById('intentDate'); el.value = d; }, wxDay(offset));
     await wizardTo(p, 3);
-    await wizardDone(p);
-    const dayN = await p.$$eval('#resultBody .day-card', els => els.length);
+    await wizardDone(p);   /* 它尾部那 1600ms 固定睡眠留着（历史行为），但取样正确性不再依赖它——见下面 dayN 的 poll */
+    /* dayN 是下面一串阈值的分母（calls >= dayN、cacheKeys.length === dayN、wxN === dayN），
+       所以它必须是「渲染落定之后」的计数，不能是 wizardDone 那个固定 1600ms 之后的一次性读数。
+       实测（tools/out/b13-smoke-planner.txt）同一份代码两次跑出 0 和 3：读到 0 那次
+       「排好行程后按天发起天气请求」变成「请求 0 次 / 0 天」的**假绿**，而 0>=0 恒真，
+       后面 4 条全红才被看见。与批次 12／13-E 同一条教训：取样 poll 到两轮相等，
+       并且阈值分母自己要带下界——「没东西可测」永远不许是绿。 */
+    const dayFirst = await p.$$eval('#resultBody .day-card', els => els.length);
+    let dayN = dayFirst, dayPrev = -1;
+    for (let t = 0; t < 50; t++) {
+      dayPrev = dayN;
+      dayN = await p.$$eval('#resultBody .day-card', els => els.length);
+      if (dayN > 0 && dayN === dayPrev) break;
+      await sleep(200);
+    }
     const calls = () => p.evaluate(() => window.__wxCalls);
     const wxN = () => p.$$eval('#resultBody .day-card .wx', els => els.length);
     const slotN = () => p.$$eval('#resultBody .day-card .wxh', els => els.length);
     const clean = () => errs.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch/.test(e));
-    return { p, errs, dayN, calls, wxN, slotN, clean };
+    const dcLat = await p.evaluate(() => window.__dcLat);
+    return { p, errs, dayN, dayFirst, dcLat, calls, wxN, slotN, clean };
   }
 
   /* --- 口径①：日期在预报窗口内，一天一个请求，取回来就落在当天日卡上 --- */
   const w1 = await wxOpen('ok', 0);
   const gotWx = await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 20000) { if (await w1.calls() >= w1.dayN) return true; await sleep(200); } return false; })();
-  ok('排好行程后按天发起天气请求', gotWx && (await w1.calls()) >= w1.dayN, '请求 ' + await w1.calls() + ' 次 / ' + w1.dayN + ' 天');
+  ok('排好行程后按天发起天气请求', w1.dayN >= 1 && gotWx && (await w1.calls()) >= w1.dayN, '请求 ' + await w1.calls() + ' 次 / ' + w1.dayN + ' 天（落定前首读 ' + w1.dayFirst + '，首张日卡在末步点击后 ' + w1.dcLat + 'ms 进 DOM）');
   await sleep(800);
   const wxCells = await w1.wxN();
-  ok('每个日卡都有天气位', wxCells === w1.dayN, wxCells + ' 个 .wx / ' + w1.dayN + ' 张日卡');
+  ok('每个日卡都有天气位', wxCells === w1.dayN && wxCells >= 1, wxCells + ' 个 .wx / ' + w1.dayN + ' 张日卡');
   ok('天气位取数完不留空槽', await w1.slotN() === 0, '残留 .wxh ' + await w1.slotN() + ' 个');
   const wxText = await w1.p.evaluate(() => {
     const e = document.querySelector('#resultBody .day-card .wx');
@@ -426,7 +452,7 @@ async function wizardDone(p) {
   ok('title 带 WMO 61 的中文口径', !!wxText && wxText.title === '小雨 8~19°', wxText ? wxText.title : '');
   ok('字形走 SVG 图标，不是 emoji', !!wxText && wxText.svg === true);
   const wxUrls = await w1.p.evaluate(() => window.__wxUrls);
-  ok('请求参数是三字段 + 同一天首尾 + 免 Key', wxUrls.every(u =>
+  ok('请求参数是三字段 + 同一天首尾 + 免 Key', wxUrls.length >= 1 && wxUrls.every(u =>
     u.indexOf('api.open-meteo.com') >= 0 &&
     u.indexOf('daily=weathercode,temperature_2m_max,temperature_2m_min') >= 0 &&
     u.indexOf('timezone=auto') >= 0 && /key=|appid=/i.test(u) === false &&
@@ -435,9 +461,9 @@ async function wizardDone(p) {
   ), wxUrls.length ? wxUrls[0].slice(0, 150) : '一个请求都没发');
   const daysSent = await w1.p.evaluate(() => window.__wxUrls.map(u => /start_date=([\d-]+)/.exec(u)[1]).sort());
   const daysWant = []; for (let i = 0; i < w1.dayN; i++) daysWant.push(wxDay(i));
-  ok('逐日按出发日期往后推，不是每天都问同一天', daysSent.join(',') === daysWant.sort().join(','), daysSent.join(','));
+  ok('逐日按出发日期往后推，不是每天都问同一天', daysSent.length >= 1 && daysSent.length === w1.dayN && daysSent.join(',') === daysWant.sort().join(','), daysSent.join(','));
   const cacheKeys = await w1.p.evaluate(() => Object.keys(localStorage).filter(k => /^tn_weather_d_/.test(k)));
-  ok('缓存键含坐标与日期（跨日不会复用昨天的数）', cacheKeys.length === w1.dayN && cacheKeys.every(k => /^tn_weather_d_-?\d+\.\d+_-?\d+\.\d+_\d{4}-\d{2}-\d{2}$/.test(k)), cacheKeys[0] || '无缓存键');
+  ok('缓存键含坐标与日期（跨日不会复用昨天的数）', cacheKeys.length >= 1 && cacheKeys.length === w1.dayN && cacheKeys.every(k => /^tn_weather_d_-?\d+\.\d+_-?\d+\.\d+_\d{4}-\d{2}-\d{2}$/.test(k)), cacheKeys[0] || '无缓存键');
   /* 重渲染走旅行模式开关：它只调 renderDaysBody，不像增删站点那样换掉首站坐标，
      换了坐标就等于换了缓存键，「命中缓存不再打网络」这条会被悄悄测歪 */
   const c1 = await w1.calls();
@@ -463,7 +489,7 @@ async function wizardDone(p) {
   /* --- 口径②：日期超出预报窗口，不猜、不问、不留位 --- */
   const w2 = await wxOpen('ok', 40);
   await sleep(1500);
-  ok('超出预报期：一个天气请求都不发', await w2.calls() === 0, '发了 ' + await w2.calls() + ' 次');
+  ok('超出预报期：一个天气请求都不发', w2.dayN >= 1 && await w2.calls() === 0, '发了 ' + await w2.calls() + ' 次 / ' + w2.dayN + ' 张日卡（首读 ' + w2.dayFirst + '）');
   ok('超出预报期：日卡既不显示也不留空位', await w2.wxN() === 0 && await w2.slotN() === 0, '.wx ' + await w2.wxN() + ' / .wxh ' + await w2.slotN());
   ok('没到窗口内的日子不出现「天气」话术', await w2.p.evaluate(() => (document.getElementById('resultBody').innerText || '').indexOf('天气') < 0));
   ok('超预报期档无 JS 报错', w2.clean().length === 0, w2.clean().slice(0, 2).join(' | '));
@@ -472,7 +498,7 @@ async function wizardDone(p) {
   const w3 = await wxOpen('junk', 1);
   await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 12000) { if (await w3.calls() >= w3.dayN) break; await sleep(200); } })();
   await sleep(800);
-  ok('接口回坏包时会铺槽而不是硬留空', await w3.slotN() === w3.dayN && await w3.wxN() === 0, '.wxh ' + await w3.slotN() + ' / .wx ' + await w3.wxN());
+  ok('接口回坏包时会铺槽而不是硬留空', w3.dayN >= 1 && await w3.slotN() === w3.dayN && await w3.wxN() === 0, '.wxh ' + await w3.slotN() + ' / .wx ' + await w3.wxN() + ' / ' + w3.dayN + ' 张日卡（首读 ' + w3.dayFirst + '）');
   const hidden = await w3.p.evaluate(() => [...document.querySelectorAll('#resultBody .day-card .wxh')]
     .map(e => getComputedStyle(e).display + ':' + e.offsetWidth));
   ok('未取到的槽不占位（display:none / 宽 0）', hidden.length > 0 && hidden.every(h => h === 'none:0'), hidden.slice(0, 2).join(' | '));
@@ -484,7 +510,7 @@ async function wizardDone(p) {
   });
   await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 12000) { if (await w3.calls() >= c3 + w3.dayN) break; await sleep(200); } })();
   await sleep(800);
-  ok('断网时按天各试一次（说明确实在取，不是压根没接线）', await w3.calls() >= c3 + w3.dayN, '请求 ' + c3 + ' → ' + await w3.calls());
+  ok('断网时按天各试一次（说明确实在取，不是压根没接线）', w3.dayN >= 1 && await w3.calls() >= c3 + w3.dayN, '请求 ' + c3 + ' → ' + await w3.calls() + ' / ' + w3.dayN + ' 天');
   const quietMsg = await w3.p.evaluate(() => (document.getElementById('resultBody').innerText || '').match(/天气|重试|失败|加载/g));
   ok('断网后日卡不出温度、不出「重试/加载失败」话术', await w3.wxN() === 0 && !quietMsg, quietMsg ? quietMsg.join(',') : '零话术');
   ok('坏包/断网档无 JS 报错', w3.clean().length === 0, w3.clean().slice(0, 2).join(' | '));
@@ -493,9 +519,9 @@ async function wizardDone(p) {
   const w4 = await wxOpen('rate', 2);
   await (async () => { const t0 = Date.now(); while (Date.now() - t0 < 25000) { if (await w4.wxN() >= w4.dayN) break; await sleep(300); } })();
   const w4n = await w4.wxN();
-  ok('429 退避后天气仍然补上了', w4n === w4.dayN, '.wx ' + w4n + ' / ' + w4.dayN + ' 张日卡');
+  ok('429 退避后天气仍然补上了', w4.dayN >= 1 && w4n === w4.dayN, '.wx ' + w4n + ' / ' + w4.dayN + ' 张日卡（首读 ' + w4.dayFirst + '）');
   const w4c = await w4.calls();
-  ok('限流是真重试（每天至少再试一次），不是只发一次就放弃', w4c >= w4.dayN * 2, '请求 ' + w4c + ' 次 / ' + w4.dayN + ' 天');
+  ok('限流是真重试（每天至少再试一次），不是只发一次就放弃', w4.dayN >= 1 && w4c >= w4.dayN * 2, '请求 ' + w4c + ' 次 / ' + w4.dayN + ' 天');
   ok('限流档不留残槽', await w4.slotN() === 0, '.wxh ' + await w4.slotN());
   ok('限流档无 JS 报错', w4.clean().length === 0, w4.clean().slice(0, 2).join(' | '));
 
