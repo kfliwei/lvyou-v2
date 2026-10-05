@@ -1453,10 +1453,19 @@ const EMOJI_MARK = 'emoji-ok:';
      `if (line.includes('clamp(')) continue;` 一次都没生效过——变异自测把它摘掉 verify 仍 exit=0。
      例外就得点名：clamp 处数逐值钉死，这行才是活的。 */
   const LIT = /font-size:\s*(\d+(?:\.\d+)?)(px|rem)/g;
-  let litBad = 0, tail = 0, used = 0, clampN = 0;
+  let litBad = 0, tail = 0, used = 0, clampN = 0, docPx = 0;
   const TAIL_MAX = 59;      /* 2026-10-04 收口时实测：≥21px 的展示级/海报数字，本轮有意不动，只许降不许升 */
   const LIT_MIN_USE = 600;  /* 走 token 的下限：收口后实测 929 处，掉下这条说明有人在批量退回字面量（下限留低是因为它还兼做「扫描面非空」的反向自证） */
   const CLAMP_MAX = 9;      /* 2026-10-04 实测：design.css 2 / album.html 2 / index.html 3 / album.js 2 */
+  /* 独立导出文档的字号例外（批次 16）：docShell() 造的那份 HTML 不带 theme.css，
+     var(--fs-*) 在里面**从来没解析成功过**（改前 h2 一直是 body 字号兜底），
+     所以屏幕态那两个字号只能写死。这不是退回字面量，是阶梯根本到不了的地方；
+     打印态那串是 pt（LIT 只匹配 px|rem，所以它天然不在计数里，不需要豁免）。
+     写法照 clamp 那条：例外必须点名，涨一处就要先说明为什么又多了一份独立文档。 */
+  const DOC_PX = [
+    'font-size:17px;border-left:3px solid #AE5738',
+    'color:#8C877D;font-size:13px}',
+  ];
   fs.readdirSync('.').filter(f => /\.(css|html|js)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js')
     .forEach(f => {
       const src = code21(f);
@@ -1466,6 +1475,7 @@ const EMOJI_MARK = 'emoji-ok:';
         while ((m = LIT.exec(line))) {
           const v = m[2] === 'px' ? parseFloat(m[1]) : parseFloat(m[1]) * 16;
           if (v > 20) { tail++; continue; }
+          if (DOC_PX.some(s => line.includes(s))) { docPx++; continue; }
           litBad++;
           if (litBad <= 6) F21('阶梯外字号字面量（' + f + '）：' + m[0].trim());
         }
@@ -1473,6 +1483,13 @@ const EMOJI_MARK = 'emoji-ok:';
       });
     });
   if (litBad) F21('还有 ' + litBad + ' 处 ≤20px 的字号没进阶梯（跑 tools/out/ladder-sweep.js --write）');
+  if (docPx !== DOC_PX.length) F21('独立导出文档的字号例外从点名的 ' + DOC_PX.length + ' 处变成 ' + docPx + ' 处：docShell 那份 HTML 没有 theme.css，var(--fs-*) 不解析，字号只能写死；要加第三条先说清是哪份独立文档');
+  DOC_PX.forEach(s => {
+    let n = 0;
+    fs.readdirSync('.').filter(f => /\.(css|html|js)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js')
+      .forEach(f => { n += code21(f).split(s).length - 1; });
+    if (n !== 1) F21('字号例外的点名串「' + s + '」全库命中 ' + n + ' 次（要 1）：串漂了豁免就是空转，那条字面量会同时从两个计数里消失');
+  });
   if (tail > TAIL_MAX) F21('≥21px 字号尾巴从 ' + TAIL_MAX + ' 涨到 ' + tail + ' 处：新写的展示级字号也要走阶梯');
   if (used < LIT_MIN_USE) F21('font-size 走阶梯的引用只剩 ' + used + ' 处（下限 ' + LIT_MIN_USE + '）：疑似批量退回字面量');
   if (clampN !== CLAMP_MAX) F21('font-size:clamp(...) 从登记的 ' + CLAMP_MAX + ' 处变成 ' + clampN + ' 处：clamp 是绕开阶梯和根字号的例外（vw 驱动，不随真机档上浮），每加一处都要先点名');
@@ -1495,6 +1512,13 @@ const EMOJI_MARK = 'emoji-ok:';
     if (COV.corpusCjkChars - COV.covered !== COV.missingCjk.length) F21('覆盖率三数不自洽：语料 ' + COV.corpusCjkChars + ' − 覆盖 ' + COV.covered + ' ≠ 缺字 ' + COV.missingCjk.length);
   }
   if (!/['"]fonts['"]/.test(SY)) F21('tools/sync-assets.js 的目录白名单里没有 fonts：APK assets 会漏字体');
+  /* 生成器也在这条线上：它原先没有字体段，跑一次就把两个 woff2 从 SHELL 里抹掉
+     （本轮实测撞见）。钉的是**调用形状**而不是文件名子串——注释里提一句 coverage.json
+     不算派生，探针先自证两头，否则这条线将来只剩一段注释还在"绿"。 */
+  const GENFONT = /readFileSync\(path\.join\(dir,\s*'fonts\/coverage\.json'\)/;
+  if (!GENFONT.test("JSON.parse(fs.readFileSync(path.join(dir, 'fonts/coverage.json'), 'utf8'))")) F21('生成器字体探针自身失效：已知正确写法没被抓到（这条锚是死的）');
+  if (GENFONT.test('/* 名字从 fonts/coverage.json 派生 */')) F21('生成器字体探针误报：注释里的提及被当成派生（删掉代码它也不会红）');
+  if (!GENFONT.test(read21('tools/gen-sw-shell.cjs'))) F21('tools/gen-sw-shell.cjs 不再从 fonts/coverage.json 派生品牌字预缓存：下次跑生成器就会把字体从 sw.js 的 SHELL 里抹掉（离线首屏没有品牌字）');
   if (!/--font-display:\s*'TRACE Serif'/.test(D)) F21('--font-display 队首不是 TRACE Serif：包内字库白装了');
 
   /* --- ⑦ 卡片边界单一来源：.card 只许定义一次，且必须吃 --edge-hair --- */
@@ -1508,7 +1532,7 @@ const EMOJI_MARK = 'emoji-ok:';
 
   console.log('字号阶梯闸门: 阶梯 ' + Object.keys(rung21).length + ' 档逐值核定且全 rem；旧名 5 个纯别名；根字号禁 px（探针带正反向自证）；' +
     '机型/用户档 8 串在案且根字号全库单一声明（424/452dp 真机 × 大小字两个乘数 + 320dp 收紧）；' +
-    '阶梯外 ≤20px 字面量 ' + litBad + ' 处、≥21px 尾巴 ' + tail + '/' + TAIL_MAX + '、clamp 例外 ' + clampN + '/' + CLAMP_MAX + '、走阶梯 ' + used + ' 处；' +
+    '阶梯外 ≤20px 字面量 ' + litBad + ' 处、≥21px 尾巴 ' + tail + '/' + TAIL_MAX + '、clamp 例外 ' + clampN + '/' + CLAMP_MAX + '、独立导出文档字号例外 ' + docPx + '/' + DOC_PX.length + '（点名串逐条对账命中数）、走阶梯 ' + used + ' 处；' +
     '字体两档字节+sha256 与清单逐条相等且在 sw 预缓存、缺字 94 三数自洽、sync-assets 白名单含 fonts；.card 单定义吃 --edge-hair');
   fail += bad;
 }
@@ -2543,6 +2567,185 @@ const EMOJI_MARK = 'emoji-ok:';
     (seed27 ? Object.keys(seed27).length : 0) + ' 条，下限 ' + 9 + '）+ 先筛选后加载 Key 的顺序 + 旧文案零残留（带正向对照）+ tn_tk_ 禁入仍在；' +
     'README 与方案文档已登记');
   fail += bad27;
+}
+
+
+/* ============ §28 导出日历与打印路书闸门 ============
+   批次 16。这一节盯的是两类「手机上只说打不开」的坏法：
+   ① ICS 的折行按字符切而不是按 UTF-8 字节切。中文 3 字节/字，`slice(0,75)` 会把一个汉字
+      劈成两个非法字节序列 —— 生成的文件在桌面上用编辑器看着一切正常，各家日历一律拒收，
+      用户在手机上只看得见「打不开」四个字。这是本批的灵魂条，所以它同时出现在
+      函数体抽取（期望 0）和变异自测（mut-verify28 第一条）里。
+   ② 打印样式漏在 @media print 外面，等于把手机屏幕上的米白纸底糊到 A4 上；
+      独立文档里 var(--fs-*) 从来不解析（theme.css 不在那份 HTML 里），
+      所以字号只能写死，屏幕态与打印态各一档。
+   方案 §4.4 原文要求「\r\n 与 TextEncoder 必须与 buildTripIcs 同函数体」。落地时折行拆进了
+   icsFold（buildTripIcs 只负责拼字段），所以这里改成**按函数各抽一段**做体断言：
+   "同函数体"在真实结构里的意思就是"这个函数自己按字节算预算"，抽取断言比原句更严。
+   三条坑沿用 §24/§27：needle 里不许出现块注释（flat28 先剥注释）；期望 0 一律配正向对照；
+   锚点表必须是四元组，字段少了要出声，不许静默 return。
+   含反斜杠的 needle 一律用 String.raw 写：§27 那种手写 `\\\\` 在本批这种密度下必错。
+   ============================================================ */
+{
+  let bad28 = 0;
+  const F28 = m => { bad28++; console.log('FAIL §28 导出闸门: ' + m); };
+  const flat28 = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+  const cnt28 = (src, needle) => src.split(needle).length - 1;
+  const rd28 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const FILES28 = ['planner.js', 'planner.html', 'site-tickets.js', 'design.css', 'tools/smoke-export.js'];
+  const SRC28 = {}, RAW28 = {};
+  FILES28.forEach(f => {
+    if (!fs.existsSync(f)) { F28('缺 ' + f); SRC28[f] = ''; RAW28[f] = ''; return; }
+    RAW28[f] = rd28(f);
+    SRC28[f] = flat28(RAW28[f]);
+  });
+
+  /* 函数体抽取：抽不出=红（不许静默跳过，§27 的哑火形状在这儿同样致命） */
+  const fnBody28 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+  const region28 = (src, from, to) => {
+    const a = src.indexOf(from), b = src.indexOf(to);
+    return (a >= 0 && b > a) ? src.slice(a, b) : null;
+  };
+
+  /* ① 代码锚点（空白归一后整串计数） */
+  const A28 = [
+    ['planner.js', 'var ICS_FOLD = 75;', 1, '折行预算只有一个定义点（RFC 5545 的 75 字节，改它只能改这一处）'],
+    ['planner.js', String.raw`return chunks.join('\r\n ');`, 1, '续行 = CRLF + 一个空格：unfolding 的判据，写成 \n 就是裸 LF'],
+    ['planner.js', 'var enc = new TextEncoder()', 1, '预算按 UTF-8 字节算的起点'],
+    ['planner.js', 'Array.from(line)', 1, '按码点迭代：😀（代理对）不许被劈开'],
+    ['planner.js', 'if (used + b > budget)', 1, '比较用字节数不用字符数（中文 3 字节/字，字符数切必超）'],
+    ['planner.js', 'budget = ICS_FOLD - 1', 1, '续行预算要扣掉开头那个空格，否则续行本身就是 76 字节'],
+    ['planner.js', 'function icsLine(name, val) { return icsFold(name + \':\' + icsEsc(val)); }', 1, '每条字段都同时过转义与折行（漏一条长 DESCRIPTION 就出界）'],
+    ['planner.js', String.raw`function icsStamp() { return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }`, 1, 'DTSTAMP：toISOString 自带 Z，再拼一个就是本批探针抓到的真 bug'],
+    ['planner.js', 'if (!window.SiteTickets) return null;', 1, '门票模块缺席时安静放弃，导出日历不许因此抛异常'],
+    ['planner.js', 'var got = null, returned = false;', 1, '只取同步命中的两行状态（异步高德腿不该被等）'],
+    ['planner.js', 'returned = true;', 1, '回调后置位＝异步迟到的那份数据丢弃，导出按钮不挂在网络上'],
+    ['planner.js', 'if (!d0 || !days.length) return null;', 1, '没有出发日期就没有事件：绝不落回 1970，也不拿 createdAt 顶替'],
+    ['planner.js', "var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//行迹 TRACE//行程规划//CN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];", 1, '日历级四个必需字段整串钉死（拆成四条锚会漏顺序）'],
+    ['planner.js', "'DTSTART;VALUE=DATE:' + icsDay(from)", 1, '全天事件起始：日期值形式，绕开 VTIMEZONE 整块复杂度'],
+    ['planner.js', "'DTEND;VALUE=DATE:' + icsDay(to)", 1, '全天事件结束（DTSTART 有而它没有＝各家日历对"含末"解释不一致）'],
+    ['planner.js', String.raw`return L.join('\r\n') + '\r\n';`, 1, '行结束符 CRLF + 末尾留一个（部分解析器靠它收最后一行）'],
+    ['planner.js', 'toast(\'要先在规划页选出发日期，日历事件才有日期\');', 1, '空日期那条要给真话，不许静默按钮无反应'],
+    ['planner.js', "var fname = icsFileSafe(t.name) + '.ics';", 1, '文件名过 icsFileSafe（行程名里的 / 会被当路径分隔符）'],
+    ['planner.js', String.raw`new Blob([ics], { type: 'text/calendar;charset=utf-8' })`, 1, '浏览器腿的 MIME 必须是 text/calendar（壳侧 text/html 那条另记阻塞）'],
+    ['planner.js', 'window.__tnSaveDone = function (r) {', 1, 'APK 腿读真实回吐：err / need_perm / 成功三种真话，不假装成功'],
+    ['planner.js', "' style=\"opacity:.55\"'", 1, '灰态用 opacity 不用 disabled（下面 design.css 那条锚就是原因）'],
+    ['planner.js', 'var icsOn = !!buildTripIcs(trip);', 1, '按钮置灰判据与"能否真生成"同一个函数，不许两套口径'],
+    ['planner.js', "startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(", 1, 'AI 路线那条行程要带上已选出发日期'],
+    ['planner.js', "state.startDate = '';", 1, '抹日期只许在重置路径这一处（AI 路径以前也抹，日卡天气/季节提醒/导出日历三样同时失效）'],
+    ['planner.js', "'@page{margin:14mm}'", 1, '分页边距只在分页介质下起作用，放顶层不动屏幕态'],
+    ['planner.js', "'@media print{'", 1, '打印样式必须圈在 media 查询里（漏出去＝手机屏幕上那层纸色底被改死）'],
+    ['planner.js', '.daycard{break-inside: avoid}', 1, '一天一包的分页锚点'],
+    ['planner.js', 'body{max-width:none;margin:0;padding:0;color:#000;background-color:#fff;font-size:10.5pt;line-height:1.6}', 1, '打印态正文字号必须是 pt：px 会吃手机「加大字号」把 A4 排版撑坏；background 必须用 -color 形式（§23 那条简写会复位 --grain-page）'],
+    ['planner.js', 'font-size:17px;border-left:3px solid #AE5738', 1, '屏幕态字号写死：独立文档里 var(--fs-*) 从来没解析成功过'],
+    ['planner.js', "h += '<div class=\"daycard\">';", 1, '路书真把每天包进 .daycard（没包上面那条 CSS 就是空转）'],
+    ['planner.html', '<script src="site-tickets.js"></script>', 1, '规划页要引进门票模块，否则 icsTicket 永远走缺席分支、日历里一行事实都没有'],
+    ['site-tickets.js', 'if (!key) return cb(null);', 1, '无 Key 必须**同步** cb(null)：planner 侧只等同步命中靠的就是这条'],
+    ['design.css', '.btn:disabled', 1, 'pointer-events:none 在这——导出日历灰态改用 opacity 的原因，改成 disabled 会把点击吃掉'],
+    ['tools/smoke-export.js', 'Buffer.byteLength(s, \'utf8\')', 1, '校验器的行长一律按字节：String.length 在这里一律不算数'],
+    ['tools/smoke-export.js', "emulateMediaType('print')", 1, 'puppeteer 25 的打印介质 API 名（写成 emulateMedia 会抛 not a function，异常把整段报告吃掉）'],
+    ['tools/smoke-export.js', "querySelectorAll('.ui-toast')", 1, 'toast 要聚合读：页面同时挂着 boot 那条，只读第一条量的是队列顺序'],
+    ['tools/smoke-export.js', 'restapi.amap.com', 1, 'E6 单独数高德腿（天气那条本来会去够 open-meteo，两件事不许混计数）'],
+    ['tools/smoke-export.js', "SiteTickets.get({ name: '晋祠'", 1, 'V8 的期望串向产品自己的门票模块现取再独立转义，不硬编码种子文案'],
+    ['tools/smoke-export.js', 'V11 折行真发生了，且 unfolding（去掉 CRLF+一个空格）能逐字节还原', 1, '折行必须同时验"发生了"和"能还原"，只验前者会把截断当折行放过去'],
+  ];
+  A28.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F28('A28 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没写）');
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in SRC28)) { F28('A28 登记了 §28 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt28(SRC28[file], needle);
+    if (got !== want) F28(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A28.length < 39) F28('锚点表被削减：' + A28.length + ' 条（批次 16 落地时实测 39 条，整组删掉就等于这节没了）');
+
+  /* ② 函数体断言：本批的灵魂在这里——「按字符切」是唯一会静默坏掉的写法 */
+  const foldBody = fnBody28(SRC28['planner.js'], 'function icsFold(line)');
+  if (!foldBody) F28('抽不出 icsFold 函数体（改名/内联进 buildTripIcs 都会让这一整套体断言哑掉）');
+  else {
+    [['new TextEncoder()', '折行必须自己按字节算预算'],
+     ['Array.from(', '必须按码点走，代理对不许劈开'],
+     [String.raw`'\r\n '`, '续行分隔符必须在折行函数里']].forEach(n => {
+      if (cnt28(foldBody, n[0]) < 1) F28('icsFold 体里找不到「' + n[0] + '」：' + n[1]);
+    });
+    /* 期望 0：字符切片。正向对照用改前形态（自己造，不吃真源） */
+    if (cnt28(foldBody, '.slice(') !== 0)
+      F28('icsFold 体里出现了 .slice( —— 按字符下标切就是本批要挡的那条：中文会被劈成非法字节序列，日历拒收而桌面看不出来');
+    const CTRL = flat28('function icsFold(line) { return line.slice(0, 75); }');
+    if (cnt28(CTRL, '.slice(') < 1) F28('「.slice(」这条期望 0 的正向对照失效了（造出来的改前形态都数不出命中，上面那个 0 不是证据）');
+  }
+
+  const icsBody = fnBody28(SRC28['planner.js'], 'function buildTripIcs(trip)');
+  if (!icsBody) F28('抽不出 buildTripIcs 函数体');
+  else {
+    if (cnt28(icsBody, String.raw`'\r\n'`) < 1) F28('buildTripIcs 体里没有 CRLF 字面量（行结束符不是它自己写的，就是漏到某个 join 上了）');
+    if (cnt28(icsBody, 'VALUE=DATE') !== 2) F28('buildTripIcs 体里 VALUE=DATE 命中 ' + cnt28(icsBody, 'VALUE=DATE') + ' 次（要 2：DTSTART 与 DTEND 各一处，缺一半就是没有结束日）');
+    if (cnt28(icsBody, 'VTIMEZONE') !== 0) F28('buildTripIcs 里出现了 VTIMEZONE：全天事件不需要时区块，带上它＝多一个各家日历解释不一致的面');
+    if (cnt28(icsBody, 'return null') !== 1) F28('buildTripIcs 的空事件出口不是 1 处（要么日期守卫被改软，要么多了一条静默返回）');
+    const CTRL2 = flat28('function buildTripIcs(t) { return null; }');
+    if (cnt28(CTRL2, 'return null') < 1) F28('「return null」计数失效：正向对照数不出命中');
+  }
+
+  const docRegion = region28(SRC28['planner.js'], 'function docShell(name, body)', 'function saveHtmlDoc(name, html)');
+  if (!docRegion) F28('抽不出 docShell 区段（改名或把样式搬出去都会让这一组断言哑掉）');
+  else {
+    if (cnt28(docRegion, '@media print') !== 1) F28('docShell 里 @media print 命中 ' + cnt28(docRegion, '@media print') + ' 次（要 1）');
+    if (cnt28(docRegion, 'var(--fs-') !== 0)
+      F28('docShell 里还在吃 var(--fs-*)：那份独立 HTML 不带 theme.css，这些变量从来没解析成功过（导出的路书字号一直是 body 字号兜底）');
+    const CTRL3 = flat28('h2{font-size:var(--fs-8)}');
+    if (cnt28(CTRL3, 'var(--fs-') < 1) F28('「var(--fs-」这条期望 0 的正向对照失效了');
+    if (cnt28(docRegion, 'background-color:#fff') !== 1) F28('docShell 打印态没把底色退回纯白（纸上不铺底色那条退了）；写成 background:#fff 也会被这里抓到——简写会复位 --grain-page，§23 有条同样的线');
+  }
+
+  /* ③ ICS 区段整体不许用跟随系统语言的日期格式 */
+  const icsRegion = region28(SRC28['planner.js'], 'var ICS_FOLD = 75;', 'function docShell(name, body)');
+  if (!icsRegion) F28('抽不出批次 16 的 ICS 区段（ICS_FOLD 或 docShell 的锚点串被改了）');
+  else {
+    if (cnt28(icsRegion, 'toLocaleDateString') !== 0 || cnt28(icsRegion, 'toLocaleString') !== 0)
+      F28('ICS 区段里出现了 toLocale* 日期格式：那跟着系统语言走，同一份行程在两台手机上会生成两个不同的文件（日期一律走 dayDate + icsDay）');
+    const CTRL4 = flat28("new Date(t.createdAt).toLocaleDateString()");
+    if (cnt28(CTRL4, 'toLocaleDateString') < 1) F28('「toLocaleDateString」这条期望 0 的正向对照失效了');
+    if (cnt28(icsRegion, 'dayDate(') < 4) F28('ICS 区段里 dayDate( 只有 ' + cnt28(icsRegion, 'dayDate(') + ' 次（逐日日期必须全部经它，它已经管好了 +di 与非法值）');
+  }
+
+  /* ④ 顺序：planner.html 里门票模块必须在 planner.js 之前到（icsTicket 判的是 window.SiteTickets 在不在） */
+  const H28 = RAW28['planner.html'];
+  const tkAt = H28.indexOf('site-tickets.js'), plAt = H28.indexOf('planner.js');
+  if (tkAt < 0 || plAt < 0) F28('planner.html 里找不到 site-tickets.js 或 planner.js 的 script 标签');
+  else if (tkAt > plAt) F28('planner.html 的 site-tickets.js 排到了 planner.js 后面：导出日历时会撞 !window.SiteTickets 那条缺席分支，日历里一行事实都不会有');
+
+  /* ⑤ 转义顺序：反斜杠必须第一个补，否则 \\, 会被后续步骤二次转义成 \\\\, */
+  const escBody = fnBody28(SRC28['planner.js'], 'function icsEsc(v)');
+  if (!escBody) F28('抽不出 icsEsc 函数体');
+  else {
+    const iB = escBody.indexOf(String.raw`.replace(/\\/g`), iS = escBody.indexOf('.replace(/;/g'), iC = escBody.indexOf('.replace(/,/g');
+    if (iB < 0 || iS < 0 || iC < 0) F28('icsEsc 里 \\ ; , 三个转义少了一个（命中位置：' + iB + '/' + iS + '/' + iC + '）');
+    else if (!(iB < iS && iS < iC)) F28('icsEsc 的转义顺序变了：反斜杠必须最先补，否则已转义的 \\, 会被再补一层');
+    if (cnt28(escBody, String.raw`'\\n'`) < 1) F28('icsEsc 没把换行折成 \\n（DESCRIPTION 里的多行靠它，直接留裸 LF 会提前结束这一行）');
+  }
+
+  const RD28 = rd28('README.md');
+  if (RD28.indexOf('§28') < 0) F28('README.md 的 verify 清单没提 §28（新闸门不写进 README 就等于没装）');
+  const DOC28 = rd28('改进实施方案与验收标准.md');
+  if (DOC28.indexOf('批次 16') < 0) F28('改进实施方案与验收标准.md 没有「批次 16」这一节（实测数字要落文档，不然下批又从头猜）');
+
+  console.log('导出闸门: ' + A28.length + ' 条代码锚点 + 4 组函数体/区段抽取（icsFold 字符切片期望 0 为本批灵魂）+ ICS 区段 toLocale* 零残留 + ' +
+    'html 加载顺序 + icsEsc 转义顺序；每条期望 0 都配了正向对照；README 与方案文档已登记');
+  fail += bad28;
 }
 
 

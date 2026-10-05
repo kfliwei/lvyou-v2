@@ -632,7 +632,10 @@
       }
       state.regions = arData.regions.slice();
       state.days = dayLists.length;
-      state.prefs = []; state.autoPrefs = []; state.fromWish = false; state.startDate = '';
+      state.prefs = []; state.autoPrefs = []; state.fromWish = false;
+      /* 出发日期不跟着一起清：它是「我哪天走」，与选哪条 AI 路线无关。
+         以前这里连 startDate 一起抹平，后果是 AI 路线出来的行程永远没有日期——
+         日卡天气、季节提醒、导出日历三样同时失效（批次 16 实测）。 */
       state.selected = flatAll.slice();
       state.amapSorted = true; /* 尊重 AI/后续手动顺序：重排期不再打乱 */
       state.candidates = flatAll.slice();
@@ -640,7 +643,7 @@
          否则分组按 AI、日卡按直线，同一行程两本账。 */
       var tripName = (arData.dest || '') + ' · ' + r.name + ' ' + dayLists.length + ' 日' + arData.trans + '之旅';
       var commitAi = function (matrix) {
-        state.trip = { name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: '', aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start, mkLeg(matrix)), dist: matrix || null, narrative: null };
+        state.trip = { name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start, mkLeg(matrix)), dist: matrix || null, narrative: null };
         renderAiRoutes(); /* 返回输入页时备选卡仍在，可直接换一条 */
         showStage('stageResult'); renderResult();
         if (miss) toast('已跳过 ' + miss + ' 处无法定位的景点');
@@ -1077,6 +1080,9 @@
     var totalKm = days.reduce(function (s, d) { return s + d.driveKm; }, 0);
     $id('resultTitle').textContent += ' · 约 ' + Math.round(totalKm) + ' km';
     renderDaysBody();
+    /* 「导出日历」在没日期时是灰的，但必须仍可点：点下去那句 toast 才是教用户去哪补日期的路。
+       真 disabled 会让 pointer-events 吃掉点击，按钮灰着却不说话，等于把人堵死。 */
+    var icsOn = !!buildTripIcs(trip);
     $id('actRow').innerHTML =
       '<button class="btn" onclick="window.plannerStartTrip()">▶ 开始旅行</button>' +
       '<button class="btn" onclick="window.plannerSaveTrip()">'+TI('save')+'保存行程</button>' +
@@ -1084,6 +1090,7 @@
       '<button class="btn" onclick="window.plannerCopyPlan()">'+TI('copy')+'复制计划</button>' +
       '<button class="btn" onclick="window.plannerShare()">'+TI('share')+'分享行程</button>' +
       '<button class="btn" onclick="window.plannerExportGPX()">导出 GPX</button>' +
+      '<button class="btn' + (icsOn ? '' : ' ghost') + '"' + (icsOn ? '' : ' style="opacity:.55"') + ' onclick="window.plannerExportIcs()">' + (icsOn ? '导出日历' : '导出日历（要先在上方选出发日期）') + '</button>' +
       '<button class="btn" onclick="window.plannerBuildBook()">'+TI('book')+'导出路书</button>' +
       '<button class="btn" onclick="window.plannerBuildAlbum()">'+TI('gallery')+'生成纪念册</button>' +
       '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button>' +
@@ -1489,6 +1496,126 @@
     if (window.AndroidVoice && AndroidVoice.saveTextFile) { try { AndroidVoice.saveTextFile(fname, gpx); toast('GPX 已保存到下载目录'); } catch (e) { toast('导出失败'); } return; }
     try { var blob = new Blob([gpx], { type: 'application/gpx+xml' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove(); toast('GPX 已导出'); } catch (e) { toast('导出失败'); }
   };
+
+  /* ---------- 导出日历（批次 16 · ICS 纯字符串，零依赖、不联网） ----------
+     行程结构里只有 startDate + days[]，没有逐日日期、也没有时刻。所以这里诚实做「全天事件」，
+     不假造几点开始几点结束。日期全部走 dayDate()（它已经管好了 +di 和非法值），
+     不用 toLocaleDateString/toLocaleString —— 那跟着系统语言走，同一份行程在两台手机上会生成两个不同的文件。
+     全天事件用 DTSTART;VALUE=DATE + DTEND=次日：既避开 VTIMEZONE 整块复杂度，又是各家日历都认的写法。 */
+  var ICS_FOLD = 75;
+  /* 门票/营业时间只取「同步命中」那一级：种子、本机 30 天缓存、或无 Key 时直接放弃。
+     高德那条腿是异步的——导出按钮不该为了补一行营业时间挂在一个网络上，更不该在没网的山上转圈。 */
+  function icsTicket(site) {
+    if (!window.SiteTickets) return null;
+    var got = null, returned = false;
+    try { SiteTickets.get(site, function (t) { if (!returned) got = t; }); } catch (e) {}
+    returned = true;
+    return got;
+  }
+  function icsEsc(v) {
+    return String(v == null ? '' : v)
+      .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')
+      .replace(/\r\n/g, '\\n').replace(/[\r\n]/g, '\\n');
+  }
+  /* 折行按 UTF-8 字节数走，不能 slice(0,75)：那按码点切，会把一个汉字劈成两个非法字节序列，
+     各家日历一律拒收，而用户在手机上只看得见「打不开」四个字。Array.from 顺带保证 emoji 不被劈开。 */
+  function icsFold(line) {
+    var enc = new TextEncoder(), cps = Array.from(line), chunks = [], buf = '', used = 0, budget = ICS_FOLD;
+    for (var i = 0; i < cps.length; i++) {
+      var b = enc.encode(cps[i]).length;
+      if (used + b > budget) { chunks.push(buf); buf = ''; used = 0; budget = ICS_FOLD - 1; }
+      buf += cps[i]; used += b;
+    }
+    chunks.push(buf);
+    return chunks.join('\r\n ');
+  }
+  function icsLine(name, val) { return icsFold(name + ':' + icsEsc(val)); }
+  function icsDay(s) { return s.replace(/-/g, ''); }
+  function icsStamp() { return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
+  function icsFileSafe(n) { return String(n || '行程').replace(/[\\/:*?"<>|]/g, '·').slice(0, 60) || '行程'; }
+
+  function buildTripIcs(trip) {
+    var days = (trip && trip.days) || [];
+    var d0 = dayDate(trip, 0);
+    /* 没有出发日期就没有事件：createdAt 是「生成日期」不是「出发日期」，绝不拿它顶替，也绝不落回 1970。 */
+    if (!d0 || !days.length) return null;
+    var id = String(trip.id || ('p' + (trip.createdAt || Date.now()))).replace(/[^A-Za-z0-9._-]/g, '-');
+    var stamp = icsStamp();
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//行迹 TRACE//行程规划//CN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    function event(uid, summary, desc, loc, from, to) {
+      L.push('BEGIN:VEVENT');
+      L.push(icsLine('UID', uid));
+      L.push(icsLine('DTSTAMP', stamp));
+      L.push('DTSTART;VALUE=DATE:' + icsDay(from));
+      L.push('DTEND;VALUE=DATE:' + icsDay(to));
+      L.push(icsLine('SUMMARY', summary));
+      L.push(icsLine('DESCRIPTION', desc));
+      if (loc) L.push(icsLine('LOCATION', loc));
+      L.push('END:VEVENT');
+    }
+    var route = [trip.start && trip.start.name, trip.end && trip.end.name].filter(Boolean).join(' → ');
+    event(id + '@lvyou-trace',
+      (trip.name || '行程') + '（共 ' + days.length + ' 天）',
+      days.map(function (d, di) { return '第' + (di + 1) + '天 ' + dayDate(trip, di) + '：' + dayText(d); }).join('\n') +
+        '\n' + rulerNote(trip) + (route ? '\n路线：' + route : ''),
+      route, d0, dayDate(trip, days.length));
+    days.forEach(function (d, di) {
+      var head = '第' + (di + 1) + '天 · ';
+      var lines = [], loc = '', date = dayDate(trip, di);
+      if (d.transit) {
+        head += (d.from || '出发地') + '→' + (d.to || '目的地');
+        lines.push('赶路日：' + (d.from || '出发地') + ' → ' + (d.to || '目的地') + '，约 ' + Math.round(d.driveKm) + ' km');
+      } else {
+        var city = (d.stops[0] && (d.stops[0].city || d.stops[0].region)) || '';
+        head += (city || '途经') + '漫游';
+        loc = (d.stops[0] && d.stops[0].name) || '';
+        d.stops.forEach(function (s, si) {
+          var tk = icsTicket(s), t = [];
+          t.push((si + 1) + '. ' + s.name);
+          if (tk && tk.h) t.push(tk.h);
+          if (tk && tk.p) t.push(tk.p);
+          if (tk && tk.u) t.push('更新于 ' + tk.u);
+          lines.push(t.join(' · '));
+        });
+        if (!d.stops.length) lines.push('这一天没有安排站点');
+        lines.push('当日约 ' + Math.round(d.driveKm) + ' km，含游玩约 ' + (d.totalH || 0).toFixed(1) + ' 小时');
+      }
+      event(id + '-d' + di + '@lvyou-trace', head, lines.join('\n'), loc, date, dayDate(trip, di + 1));
+    });
+    L.push('END:VCALENDAR');
+    /* 行结束符必须是 CRLF（RFC 5545 硬性要求）；末尾那一个 CRLF 也不能省，部分解析器靠它收最后一行。 */
+    return L.join('\r\n') + '\r\n';
+  }
+
+  window.plannerExportIcs = function () {
+    var t = state.trip;
+    if (!t) { toast('先排好行程再导出日历'); return; }
+    var ics = buildTripIcs(t);
+    if (!ics) { toast('要先在规划页选出发日期，日历事件才有日期'); return; }
+    var fname = icsFileSafe(t.name) + '.ics';
+    if (window.AndroidVoice && AndroidVoice.saveTextFile) {
+      /* APK 里 a[download] 是死路：壳工程没注册 DownloadListener（实测 MainActivity 全文无 setDownloadListener），
+         点下载不会有任何反应。下载目录这条腿是 APK 唯一的出口，__tnSaveDone 回吐真实结果，不假装成功。 */
+      window.__tnSaveDone = function (r) {
+        if (r === 'err') toast('日历文件没能写进下载目录');
+        else if (r === 'need_perm') toast('要先允许存储权限，然后再点一次导出日历');
+        else toast('已存到下载目录：' + fname + '，用文件管理器点开即可导入日历');
+      };
+      try { AndroidVoice.saveTextFile(fname, ics); } catch (e) { toast('导出失败'); }
+      return;
+    }
+    try {
+      var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 400);
+      toast('已导出 ' + fname);
+    } catch (e) {
+      copyText(ics);
+      toast('浏览器拦住了下载，已复制日历内容：粘贴到备忘录存成 .ics 文件同样能导入');
+    }
+  };
   window.plannerSaveTrip = function () {
     var t = state.trip; if (!t) return;
     t.id = t.id || ('p' + Date.now());
@@ -1508,12 +1635,25 @@
     toast('已加入想去清单 ' + added + ' 处');
   };
   /* ---------- 一键成册（路书 + 纪念册，行程维度，就地生成） ---------- */
+  /* 这是一份自带 <style> 的独立文档：theme.css 不在里面，所以 var(--fs-*) 从来没解析成功过
+     （导出的路书里 h2 一直是 body 字号）。字号一律写死，屏幕态和打印态都是。
+     打印态尤其不能跟着阶梯走——手机「加大字号」把根字号顶到 112%，A4 排版会被撑坏。
+     @page 只作用于分页介质，放顶层不影响屏幕态。 */
   function docShell(name, body) {
     return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(name) + '</title><style>' +
       'body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-width:640px;margin:0 auto;padding:24px 20px;color:#26241F;line-height:1.85;background:#F6F3EC}' +
-      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:var(--fs-8);border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +
-      '.muted{color:#8C877D;font-size:var(--fs-3)}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:"Songti SC",serif;margin:12px 0}' +
+      'h1{font-family:"Songti SC",serif;font-weight:400;font-size:26px}h2{font-family:"Songti SC",serif;font-weight:400;font-size:17px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +
+      '.muted{color:#8C877D;font-size:13px}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:"Songti SC",serif;margin:12px 0}' +
       '.note{border-bottom:1px solid #E3DED2;padding:12px 0}.note:last-child{border-bottom:0}' +
+      '@page{margin:14mm}' +
+      '@media print{' +
+      'body{max-width:none;margin:0;padding:0;color:#000;background-color:#fff;font-size:10.5pt;line-height:1.6}' +
+      'h1{font-size:20pt}h2{font-size:13pt;border-left-color:#000;padding-left:6pt;margin:14pt 0 4pt}' +
+      '.muted{color:#333;font-size:9pt}' +
+      '.story{background:none;border:1px solid #666;border-radius:0;padding:8pt}' +
+      '.daycard{break-inside: avoid}' +
+      'img{max-width:100%;print-color-adjust: exact;-webkit-print-color-adjust:exact}' +
+      '}' +
       '</style></head><body><div class="wrap">' + body + '</div></body></html>';
   }
   function saveHtmlDoc(name, html) {
@@ -1524,8 +1664,11 @@
     var h = '<h1>' + esc(trip.name) + '</h1><div class="muted">' + trip.days.length + ' 天 · ' + trip.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站' + (trip.startDate ? ' · 出发 ' + esc(trip.startDate) : '') + '</div>';
     if (trip.narrative && trip.narrative.story) h += '<div class="story">' + esc(trip.narrative.story) + '</div>';
     trip.days.forEach(function (d, di) {
+      /* 一天一包：打印分页的锚点就是这个盒子（赶路日也想单独成段，但允许被拆开——见 docShell 打印态） */
+      h += '<div class="daycard">';
       h += '<h2>Day ' + (di + 1) + (d.transit ? ' · 赶路日' : '') + (trip.narrative && trip.narrative.dayThemes && trip.narrative.dayThemes[di] ? ' · ' + esc(trip.narrative.dayThemes[di]) : '') + '</h2><div class="muted">' + (d.transit ? esc((d.from || '出发地') + ' → ' + (d.to || '目的地') + ' · ') : '') + '约 ' + Math.round(d.driveKm) + ' km · 全程约 ' + d.totalH.toFixed(1) + 'h</div>';
       d.stops.forEach(function (s, si) { h += '<div>' + (si + 1) + '. ' + esc(s.name) + (s.city ? ' <span class="muted">' + esc(s.city) + '</span>' : '') + (s.done ? ' ✓' : '') + '</div>'; });   /* emoji-ok: 导出路书 HTML 文档里的纯文本勾号，文档不携带 sprite */
+      h += '</div>';
     });
     return docShell(trip.name + ' · 路书', h);
   }

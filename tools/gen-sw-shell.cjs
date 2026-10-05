@@ -18,6 +18,10 @@ const DATA_JS = fs.readdirSync(dir).filter(f => /\.js$/.test(f) && (
 )).sort();
 /* art 封面 */
 const art = fs.readdirSync(path.join(dir, 'art')).filter(f => /\.svg$/.test(f)).sort().map(f => "'./art/" + f + "'");
+/* 包内品牌字：名字从 fonts/coverage.json 派生，不在这行手抄。
+ * 生成器原先没有这一段，跑一次就把两个 woff2 从预缓存里抹掉（§21 判红，标题退回整机字体）。 */
+const fonts = Object.keys(JSON.parse(fs.readFileSync(path.join(dir, 'fonts/coverage.json'), 'utf8')).files)
+  .sort().map(f => "'./fonts/" + f + "'");
 /* 分组拼串：注释必须独占一行且不带逗号。把注释当数组元素拼进去，两个逗号之间就是
  * 空位（hole），cache.addAll 会拿到 undefined 直接炸——所以这里逐行拼、注释不接逗号。 */
 const groups = [
@@ -26,7 +30,9 @@ const groups = [
     items: DATA_JS.map(f => "'./" + f + "'") },
   { items: ["'./design.css'", "'./map.css'",
     "'./vendor/leaflet/leaflet.css'", "'./vendor/leaflet/leaflet.js'", "'./vendor/pako.min.js'",
-    "'./images/icon.svg'", "'./manifest.webmanifest'"] },
+    "'./images/icon.svg'"] },
+  { note: '/* ---- 包内品牌衬线（V1）：缺了这两个，标题在手机上就退回整机字体，宋体调性全丢 ---- */', items: fonts },
+  { items: ["'./manifest.webmanifest'"] },
   { note: '/* ---- 主题插图 ---- */', items: art }
 ];
 let body = '';
