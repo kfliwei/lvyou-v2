@@ -1,0 +1,50 @@
+PASS  N01 断网生效（navigator.onLine===false）
+PASS  N02 数据层常量逐值（BUILTIN_ENOUGH=4 / 超时 8000 / LIVE_NOTE 整串）
+PASS  N03 找到可点的地图位置（该处内置命中 ≥6 且无标记拦截）  [313,580]
+PASS  N04 全国页点图即出半径条（#nearBar 可见）
+PASS  N05 半径档逐值 10/30/50/100km
+PASS  N06 30km 档出结果面板（.open）
+PASS  N07 面板头写「这一带 30km」  [这一带 30km]
+PASS  N08 断网结果全来自包内（行 >0 且零 .osm 行）  [9 行/osm 0]
+PASS  N09 断网期间 Overpass 请求数 0
+PASS  N10 断网时 queryNearby 只调一次（没网也绝不二次补位）
+PASS  N11 来源口径＝内置行（脚注与 nsrc 都不许含糊）  [内置库 · 9 处 | 来源：包内景点库，离线可用]
+PASS  N12 每行距离 ≤ 半径  [r=30]
+PASS  N13 排序＝必去/网红权重优先，同权重内距离升序
+PASS  N14 行高全部 ≥44px（触控目标，按布局像素 offsetHeight）  [offsetHeight min=44 / rect min=44 / html zoom=1]
+PASS  N15 面板完整落在 452×995 视口内  [{"l":12,"t":591,"rr":440,"b":911}]
+PASS  N16 面板不压住刚点下的圆心
+PASS  N17 role=dialog + aria-label「这一带还有什么」
+PASS  N17c 点在下半屏时圆心被抬到面板上沿之上（不被结果面板盖住）  [94 行 / 面板上沿 y=591]
+PASS  N18 点内置行 → 景点卡打开
+PASS  N19 点内置行 → 这一带面板与半径条都收起（层级会浮在景点卡上）
+PASS  N20 锚点排除：点在哪处景点就不重复列它
+PASS  N21 主题过滤 cats 只放行该主题
+PASS  N22 非法入参出空数组（不炸）
+PASS  N23 省页也有「这一带」chip（紧跟必去/网红）
+PASS  N24 未武装时点图仍是随手记（默认点击语义没被改）
+PASS  N25 未武装时 queryNearby 零调用
+PASS  N26 点 chip → 取点提示 toast + chip 亮起
+PASS  N27 再点 chip → 取消（toast + 亮态灭）
+PASS  N28a 省页有可取样点与可用半径档  [km=30]
+PASS  N28 武装后点图出半径条，chip 自动复位（一次性取点）
+PASS  N29 省页断网生效
+PASS  N30 省页断网出结果且零联网  [48 行 / 30km]
+PASS  N31 省页来源口径＝内置行
+PASS  N32 东京一带内置命中 0（补位该出场的条件）  [{"lat":35.68,"lng":139.75}]
+PASS  N33 内置 <4 且有网 → 恰好一次 Overpass 请求
+PASS  N34 请求体是 data= 表单且 around 半径按 km 换算成米
+PASS  N35 实时行带 .osm 类（与内置行视觉区分）  [3 行/osm 3]
+PASS  N36 实时来源口径＝LIVE_NOTE + 「内置 0 · 实时 3」  [内置 0 · 实时 3 | 以下为实时查询（OSM），离线不可用]
+PASS  N37 实时行距离按 haversine 算出且 ≤ 半径  [2.8,4.4,5.8]
+PASS  N38 点实时行 → 地图弹层带 LIVE_NOTE 且不进景点卡
+PASS  N39 实时腿全程零第二次联网
+PASS  N40 有网但内置 ≥4 → 联网次数 0
+PASS  N41 关闭钮收起面板（不留在屏上）
+PASS  N42 查询失败(500) → 空态说清「实时查询这次也没返回」且不出 LIVE_NOTE  [这一带内置库里没有记录，实时查询这次也没返回 | 来源：包内景点库，离线可用]
+PASS  N43 失败静默：只发一次、零重试、无错误卡
+PASS  N44 挂起 3s 时面板仍未出（超时没提前）
+PASS  N45 超时后静默降级（出内置空态，不吊死、不出 LIVE_NOTE）  [这一带内置库里没有记录，实时查询这次也没返回 | 来源：包内景点库，离线可用]
+PASS  N46 降级耗时落在常量 8000ms 附近（实测 8557ms）  [8557ms]
+PASS  N47 全程零未捕获异常 / 零 console.error（0 条，另有 65 条 net::ERR_* 资源噪声按环境计）
+smoke-nearby: 49/49 通过

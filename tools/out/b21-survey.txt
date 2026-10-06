@@ -1,0 +1,55 @@
+【nation-index】行数=7794 列数分布={"10":7794}
+【nation-index】可坐标过滤=7794 flag取值={"(空)":6131,"h":387,"m":1276}
+【nation-index】flag非空=1663 其中带坐标=1663
+【nation-index】重复name=92
+
+【*-data.js】文件=36 总条数=7498 去重name=7215
+【*-data.js】wiki=6658 img=2120 其中http=0 本地/相对=2120 elev=7009
+  · ah-data.js 条数=187 wiki=187 img=0(http 0/本地 0) elev=187
+  · bj-data.js 条数=208 wiki=208 img=0(http 0/本地 0) elev=208
+  · changzheng-data.js 条数=175 wiki=143 img=175(http 0/本地 175) elev=51
+  · cq-data.js 条数=140 wiki=140 img=0(http 0/本地 0) elev=140
+  · fj-data.js 条数=184 wiki=184 img=0(http 0/本地 0) elev=184
+  · gd-data.js 条数=267 wiki=267 img=0(http 0/本地 0) elev=267
+  · gs-data.js 条数=331 wiki=268 img=303(http 0/本地 303) elev=331
+  · gxyn-data.js 条数=680 wiki=225 img=505(http 0/本地 505) elev=315
+  · gz-data.js 条数=356 wiki=222 img=319(http 0/本地 319) elev=356
+  · ha-data.js 条数=162 wiki=162 img=0(http 0/本地 0) elev=162
+  · hb-data.js 条数=138 wiki=138 img=0(http 0/本地 0) elev=138
+  · he-data.js 条数=188 wiki=188 img=0(http 0/本地 0) elev=188
+  · hi-data.js 条数=220 wiki=220 img=0(http 0/本地 0) elev=220
+  · hk-data.js 条数=219 wiki=219 img=0(http 0/本地 0) elev=219
+  · hlj-data.js 条数=162 wiki=162 img=0(http 0/本地 0) elev=162
+  · hn-data.js 条数=128 wiki=128 img=0(http 0/本地 0) elev=128
+  · jl-data.js 条数=169 wiki=169 img=0(http 0/本地 0) elev=169
+  · js-data.js 条数=202 wiki=202 img=0(http 0/本地 0) elev=202
+  · jx-data.js 条数=176 wiki=176 img=0(http 0/本地 0) elev=176
+  · ln-data.js 条数=162 wiki=162 img=0(http 0/本地 0) elev=162
+  · mo-data.js 条数=108 wiki=108 img=0(http 0/本地 0) elev=108
+  · nmg-data.js 条数=156 wiki=156 img=0(http 0/本地 0) elev=156
+  · nx-data.js 条数=111 wiki=111 img=0(http 0/本地 0) elev=111
+  · qh-data.js 条数=147 wiki=147 img=0(http 0/本地 0) elev=147
+  · qingzang-data.js 条数=400 wiki=369 img=145(http 0/本地 145) elev=400
+  · routes-data.js 条数=0 wiki=0 img=0(http 0/本地 0) elev=0
+  · sc-data.js 条数=486 wiki=446 img=386(http 0/本地 386) elev=486
+  · sd-data.js 条数=172 wiki=172 img=0(http 0/本地 0) elev=172
+  · sh-data.js 条数=184 wiki=184 img=0(http 0/本地 0) elev=184
+  · sx-data.js 条数=132 wiki=132 img=0(http 0/本地 0) elev=132
+  · test-data.js 条数=0 wiki=0 img=0(http 0/本地 0) elev=0
+  · tj-data.js 条数=159 wiki=159 img=0(http 0/本地 0) elev=159
+  · tw-data.js 条数=322 wiki=322 img=0(http 0/本地 0) elev=322
+  · xj-data.js 条数=329 wiki=244 img=287(http 0/本地 287) elev=329
+  · xz-data.js 条数=130 wiki=130 img=0(http 0/本地 0) elev=130
+  · zj-data.js 条数=208 wiki=208 img=0(http 0/本地 0) elev=208
+
+【site-images.js】条目=75 http=75
+[ 'site-images-local.js】条目=75 __missing=0' ]
+【site-images-local.js】镜像表内含http=0
+【site-images-local.js】指向的文件真实缺失=0
+
+【补图候选】flag非空去重name=1658 已有镜像=66 缺镜像=1592
+【补图候选】缺镜像且有wiki柄=1474 例：1933老场坊→1933老场坊 / 40冰川→40冰川 / 798艺术区→798艺术区 / K11 MUSEA→K11 MUSEA / M+博物馆→M+博物馆 / M50创意园→M50创意园 / PMQ元创方→PMQ元创方 / 一百零八塔→一百零八塔
+【补图候选】缺镜像且无wiki柄=118
+【wiki样例】["黄山=>wiki:黄山","迎客松=>wiki:迎客松","光明顶=>wiki:光明顶","西海大峡谷=>wiki:西海大峡谷","宏村=>wiki:宏村"]
+
+【geo.js】hav 定义=true 行数=47

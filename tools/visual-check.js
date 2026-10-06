@@ -323,13 +323,25 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     const cdp = await pp.target().createCDPSession();
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await pp.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+    /* 单次采样在这台机器上是掷硬币（批次 21 实测，tools/out/b21-perf-ab.txt）：同一份代码连测 6 轮，
+       批次 20 末的 HEAD 树 LCP 落在 888／2652ms（中位 1508，max 已经越过 2500 那条线），
+       批次 21 之后的工作树落在 1016／1348ms（中位 1252）。也就是说 3252ms 那次红跟本批改动无关，
+       是「软件渲染 + 4x 节流 + 冷首屏」的长尾。取 3 次中位数，把闸门从尾部噪声上挪回真实回归。 */
+    const PERF_SAMPLES = 3;
     for (const pn of ['index.html', 'topic.html']) {
-      await pp.goto(pathToFileURL(path.join(ROOT, pn)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
-      await new Promise(r => setTimeout(r, 3000));
-      const perf = await pp.evaluate(() => window.__perf);
-      const ok = perf.lcp > 0 && perf.lcp < 2500 && perf.cls < 0.05;
-      report.push({ state: 'perf.' + pn, status: ok ? 'PASS' : 'FAIL', lcpMs: Math.round(perf.lcp), lcpEl: perf.lcpEl, cls: +perf.cls.toFixed(4) });
-      console.log((ok ? 'PASS' : 'FAIL') + ' 性能预算 ' + pn + ' — LCP ' + Math.round(perf.lcp) + 'ms(<2500) 元素=' + perf.lcpEl + ' | CLS ' + perf.cls.toFixed(4) + '(<0.05)');
+      const ls = [], cs = [];
+      let el = '';
+      for (let k = 0; k < PERF_SAMPLES; k++) {
+        await pp.goto(pathToFileURL(path.join(ROOT, pn)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+        await new Promise(r => setTimeout(r, 3000));
+        const perf = await pp.evaluate(() => window.__perf);
+        ls.push(Math.round(perf.lcp)); cs.push(perf.cls); el = perf.lcpEl;
+      }
+      const lcp = ls.slice().sort((a, b) => a - b)[1];
+      const cls = Math.max.apply(null, cs);
+      const ok = lcp > 0 && lcp < 2500 && cls < 0.05;
+      report.push({ state: 'perf.' + pn, status: ok ? 'PASS' : 'FAIL', lcpMs: lcp, lcpSamples: ls, lcpEl: el, cls: +cls.toFixed(4) });
+      console.log((ok ? 'PASS' : 'FAIL') + ' 性能预算 ' + pn + ' — LCP ' + lcp + 'ms(<2500，' + PERF_SAMPLES + ' 次中位；样本 ' + ls.join('/') + ') 元素=' + el + ' | CLS ' + cls.toFixed(4) + '(<0.05，取最大)');
       if (!ok) failN++;
     }
     await cdp.detach().catch(() => {});

@@ -1,0 +1,67 @@
+导出键 = nearbySites,overpassNearby,overpassQuery,queryNearby,OVERPASS_URL,OVERPASS_TIMEOUT_MS,BUILTIN_ENOUGH,LIVE_NOTE
+内置索引可坐标定位条数 = 7702 （nation-index 7794 行去重后）
+
+黄山脚下 30km：18 条 | 全部在半径内=true | 排序单调=true
+   迎客松 [m] 名山大川 0.96km 黄山市 源=内置
+   黄山 [m] 名山大川 0.96km 黄山市 源=内置
+   光明顶 [m] 名山大川 1.11km 黄山市 源=内置
+   西海大峡谷 [m] 峡谷天堑 3.85km 黄山市 源=内置
+   太平湖 [m] 江河湖泊 22.14km 黄山市 源=内置
+
+成都市中心 10km：29 条 | 全部在半径内=true | 排序单调=true
+   宽窄巷子 [m] 古城古镇 1.07km 成都市 源=内置
+   成都宽窄巷子 [m] 古城古镇 1.11km 成都市 源=内置
+   武侯祠 [m] 古建寺院 1.93km 成都市 源=内置
+   锦里古街 [m] 古城古镇 1.99km 成都市 源=内置
+   成都武侯祠 [m] 古建寺院 2.42km 成都市 源=内置
+
+青藏高原无人区 50km：0 条 | 全部在半径内=true | 排序单调=true
+
+西沙群岛海域 30km（内置应为空）：0 条 | 全部在半径内=true | 排序单调=true
+
+成都 10km 主题=名山大川（应为 0）：0 条 | 全部在半径内=true | 排序单调=true
+
+成都 10km + 主题=古城古镇：4 条 | 全部在半径内=true | 排序单调=true
+   宽窄巷子 [m] 古城古镇 1.07km 成都市 源=内置
+   成都宽窄巷子 [m] 古城古镇 1.11km 成都市 源=内置
+   锦里古街 [m] 古城古镇 1.99km 成都市 源=内置
+   成都锦里 [m] 古城古镇 2.42km 成都市 源=内置
+
+成都 10km 排除「武侯祠」：28 条 | 全部在半径内=true | 排序单调=true
+   宽窄巷子 [m] 古城古镇 1.07km 成都市 源=内置
+   成都宽窄巷子 [m] 古城古镇 1.11km 成都市 源=内置
+   锦里古街 [m] 古城古镇 1.99km 成都市 源=内置
+   成都武侯祠 [m] 古建寺院 2.42km 成都市 源=内置
+   成都锦里 [m] 古城古镇 2.42km 成都市 源=内置
+
+半径给 0（走默认 30km）：48 条 | 全部在半径内=true | 排序单调=true
+   宽窄巷子 [m] 古城古镇 1.07km 成都市 源=内置
+   成都宽窄巷子 [m] 古城古镇 1.11km 成都市 源=内置
+   武侯祠 [m] 古建寺院 1.93km 成都市 源=内置
+   锦里古街 [m] 古城古镇 1.99km 成都市 源=内置
+   成都武侯祠 [m] 古建寺院 2.42km 成都市 源=内置
+
+非法入参：nearbySites(NaN,...)=[]  nearbySites(空索引键)=0
+
+【断网 + 内置 0 条 → 绝不联网】内置 0 / 实时 0 / live=false / 桩 fetch 次数=0（判定当场=断网）
+【断网 + 内置 0 条 → 绝不联网】同步断言：断网分支里 fetch 次数=0
+
+【有网 + 内置 29 条（≥4）→ 也不联网】内置 29 / 实时 0 / live=false / 桩 fetch 次数=0（判定当场=有网）
+
+【overpassQuery 形状】
+  [out:json][timeout:8];(node["tourism"~"^(attraction|museum|viewpoint|gallery|artwork|zoo)$"](around:10000,30.66000,104.06000);way["tourism"~"^(attraction|museum|viewpoint|gallery|artwork|zoo)$"](around:10000,30.66000,104.06000););out center 24;
+常量：BUILTIN_ENOUGH=4 TIMEOUT=8000 URL=https://overpass-api.de/api/interpreter
+补位标注文案：以下为实时查询（OSM），离线不可用
+
+【有网 + 内置 0 条 → 发一次补位】内置 0 / 实时 0 / live=false / 桩 fetch 次数=1（判定当场=有网）
+
+【真网络补位腿·东京 10km】内置 0 / 实时 12 / live=true / 用时 4.5s
+   観世能楽堂 attraction 2.02km 源=实时查询
+   忠犬ハチ公像 artwork 2.52km 源=实时查询
+   平和の女神像 artwork 3.93km 源=实时查询
+   東京シティビュー viewpoint 4.15km 源=实时查询
+   東京都写真美術館 museum 4.77km 源=实时查询
+   昭和館 museum 5.75km 源=实时查询
+  （cb 只回调一次=yes）
+
+（真请求窗口结束）

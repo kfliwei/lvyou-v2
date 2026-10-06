@@ -1681,6 +1681,8 @@ body .tn-quotes .web:active{background:var(--color-primary);color:var(--bg)}
      又真的遮住标记——移出地图区域才是正解 */
   body.topic-page .tabbar{left:12px;transform:none;width:calc(var(--dv-side) - 24px)}
   body.topic-page .region-stats{left:12px;transform:none;width:calc(var(--dv-side) - 24px);max-width:none}
+  /* 「这一带」面板在右栏地图内，桌面上 tabbar 已移去左栏，84px 让位就没必要了（批次 21） */
+  body.topic-page .near-sheet{bottom:12px;left:auto;right:12px;width:340px}
 
   /* ---- 规划结果页：左栏日卡流，右栏地图跟随滚动 ---- */
   body.dv-result .wrap{max-width:1240px}

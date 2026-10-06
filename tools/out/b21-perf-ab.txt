@@ -1,0 +1,15 @@
+R1 head topic.html — LCP 2652ms 元素=DIV CLS 0.0009 load 3036 长任务前5=[502,214,143,141,108]
+R1 work topic.html — LCP 1168ms 元素=? CLS 0.0009 load 2541 长任务前5=[433,147,126,80,68]
+R2 work topic.html — LCP 1344ms 元素=? CLS 0.0009 load 2765 长任务前5=[432,172,165,163,133]
+R2 head topic.html — LCP 888ms 元素=? CLS 0.0009 load 2311 长任务前5=[467,168,131,116,105]
+R3 head topic.html — LCP 1268ms 元素=? CLS 0.0009 load 3021 长任务前5=[434,279,265,165,157]
+R3 work topic.html — LCP 1252ms 元素=? CLS 0.0009 load 2807 长任务前5=[489,137,133,129,89]
+R4 work topic.html — LCP 1016ms 元素=? CLS 0.0009 load 3485 长任务前5=[450,450,411,289,150]
+R4 head topic.html — LCP 1508ms 元素=? CLS 0.0009 load 3029 长任务前5=[503,157,148,112,87]
+R5 head topic.html — LCP 2268ms 元素=? CLS 0.0001 load 2676 长任务前5=[448,176,141,125,88]
+R5 work topic.html — LCP 1348ms 元素=? CLS 0.0009 load 3316 长任务前5=[505,198,158,150,141]
+R6 work topic.html — LCP 1060ms 元素=? CLS 0.0009 load 2638 长任务前5=[497,146,144,140,85]
+R6 head topic.html — LCP 1124ms 元素=? CLS 0.0009 load 2492 长任务前5=[450,147,144,131,114]
+---
+head topic LCP: [2652,888,1268,1508,2268,1124] → min 888 中位 1508 max 2652
+work topic LCP: [1168,1344,1252,1016,1348,1060] → min 1016 中位 1252 max 1348

@@ -122,7 +122,9 @@
       var _t = e.originalEvent && e.originalEvent.target;
       if (_t && _t.closest && _t.closest('.leaflet-marker-icon')) return;
       if (pickMode) { pickMode = false; hidePickHint(); locateSuccess({ coords: { latitude: e.latlng.lat, longitude: e.latlng.lng } }); return; }
-      if (M.nearEnabled) { nearPick(e.latlng); return; }
+      /* 批次 21：全国页维持「点图即查附近」；其它专题页改由「这一带」chip 触发（nearMode 一次性），
+         没 armed 时行为与改前完全一致（落到 spotRec），免得省页误点就弹半径条 */
+      if (nearMode || M.nearEnabled) { nearMode = false; syncChips(); nearPick(e.latlng); return; }
       spotRec(e.latlng.lat, e.latlng.lng);
     });
     /* LOD 分级：平移 / 缩放时按当前视野与级别重渲染（仅全国页） */
@@ -158,11 +160,14 @@
     map.on('zoomend', scheduleEmptyHint);
   }
 
-  /* ---------- 全国页：点击查附近（M.nearEnabled） ---------- */
+  /* ---------- 查附近：全国页点图（M.nearEnabled）+ 各页「这一带」chip（批次 21） ---------- */
   var nearHits = [];
+  var nearMode = false;      /* chip 武装后的一次性取点标记 */
+  var nearSheet = null;      /* 结果面板（内置优先，实时查询另标来源） */
   var nearNodeLayer = null;   /* 圈内未渲染节点的补画层（LOD 重渲染时清理，避免残留拦截点击） */
   function clearNearLayer() { if (nearLayer) { map.removeLayer(nearLayer); nearLayer = null; } if (nearNodeLayer) { map.removeLayer(nearNodeLayer); nearNodeLayer = null; } }
   function hideNearBar() { if (nearBar) nearBar.style.display = 'none'; }
+  function hideNearSheet() { if (nearSheet) nearSheet.classList.remove('open'); }
   function restoreMarkers() {
     /* 恢复被「查附近」高亮的节点为普通图标 */
     if (nearHits.length && lastMarkerList) renderMarkers(lastMarkerList);
@@ -177,6 +182,7 @@
   function nearPick(latlng) {
     restoreMarkers();
     clearNearLayer();
+    hideNearSheet();
     nearLayer = L.layerGroup().addTo(map);
     L.circleMarker([latlng.lat, latlng.lng], { radius: 7, color: '#fff', weight: 2, fillColor: '#AE5738', fillOpacity: 1 }).addTo(nearLayer);
     nearP = [latlng.lat, latlng.lng];
@@ -192,7 +198,7 @@
       nearBar.querySelectorAll('.nk').forEach(function (c) {
         c.onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); nearQuery(nearP[0], nearP[1], +c.dataset.k); };
       });
-      nearBar.querySelector('#nearX').onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); clearNearLayer(); restoreMarkers(); };
+      nearBar.querySelector('#nearX').onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearBar(); hideNearSheet(); clearNearLayer(); restoreMarkers(); };
     }
     nearBar.style.display = 'flex';
   }
@@ -200,24 +206,108 @@
     clearNearLayer();
     nearLayer = L.layerGroup().addTo(map);
     L.circle([lat, lng], { radius: km * 1000, color: '#AE5738', weight: 1.5, dashArray: '4 6', fillColor: '#AE5738', fillOpacity: .06, interactive: false, bubblingMouseEvents: false }).addTo(nearLayer);
-    var hits = SITES.map(function (s) { return { s: s, d: haversine([lat, lng], [s.lat, s.lng]) }; })
-      .filter(function (h) { return h.d <= km; })
-      .sort(function (a, b) { return a.d - b.d; });
+    /* §34 的灵魂顺序：内置腿（Nearby.nearbySites，纯本地秒回）先跑；凑不满 BUILTIN_ENOUGH 条
+       且 navigator.onLine 不为 false 时，才发一次 Overpass 补位（8s 超时，失败静默）。
+       点到的位置若正压在某个景点上，把它当锚点排除——「这一带还有什么」不该把用户已经站着的那处再列一遍。 */
+    Nearby.queryNearby(lat, lng, km, null, function (res) {
+      highlightNearHits(res.items);
+      renderNearSheet(res, km);
+    }, anchorNameAt(lat, lng));
+  }
+  /* 取点 200m 内的第一个内置条目＝锚点本身 */
+  function anchorNameAt(lat, lng) {
+    var a = Nearby.nearbySites(lat, lng, 0.2);
+    return a.length ? a[0].name : null;
+  }
+  function siteIndexOf(name) {
+    for (var i = 0; i < SITES.length; i++) if (SITES[i].name === name) return i;
+    return -1;
+  }
+  function highlightNearHits(items) {
     /* 圈内节点高亮：nearIcon（主题色圆点+光环+放大），
        LOD 聚合下未单独渲染的补画高亮图标（绑定点击，LOD 重渲染时清理） —— 不切列表视图 */
     restoreMarkers();
-    nearHits = hits.map(function (h) { return h.s.__i; });
     if (!nearNodeLayer) nearNodeLayer = L.layerGroup().addTo(map);
-    hits.forEach(function (h) {
-      var m = markers.get(h.s.__i);
-      if (m) m.setIcon(nearIcon(h.s));
+    items.forEach(function (h) {
+      var i = siteIndexOf(h.name);
+      if (i < 0) return;   /* 实时查询补来的 OSM 点不在包内索引里，只进列表，不画高亮 */
+      var s = SITES[i];
+      nearHits.push(i);
+      var m = markers.get(i);
+      if (m) m.setIcon(nearIcon(s));
       else {
-        var nm = L.marker(pt(h.s), { icon: nearIcon(h.s), zIndexOffset: 800 });
-        nm.on('click', function () { openSheet(h.s.__i); });
+        var nm = L.marker(pt(s), { icon: nearIcon(s), zIndexOffset: 800 });
+        nm.on('click', function () { openSheet(i); });
         nm.addTo(nearNodeLayer);
       }
     });
-    showTripToast('附近 ' + km + 'km · ' + hits.length + ' 处（高亮显示，点击地图其他位置恢复）');
+  }
+  function nearDistText(d) { return d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(1) + ' km'; }
+  function ensureNearSheet() {
+    if (nearSheet) return nearSheet;
+    nearSheet = document.createElement('div');
+    nearSheet.id = 'nearSheet';
+    nearSheet.className = 'near-sheet';
+    nearSheet.setAttribute('role', 'dialog');
+    nearSheet.setAttribute('aria-label', '这一带还有什么');
+    $('mapEl').appendChild(nearSheet);
+    /* 同 nearBar：点击不许冒泡到地图，否则点列表项会重新弹回半径条 */
+    if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearSheet);
+    return nearSheet;
+  }
+  function renderNearSheet(res, km) {
+    var sh = ensureNearSheet();
+    var items = res.items || [];
+    var src = res.live ? ('内置 ' + res.builtin + ' · 实时 ' + res.osm) : ('内置库 · ' + res.builtin + ' 处');
+    var head = '<div class="nh"><b>这一带 ' + km + 'km</b><span class="nsrc">' + esc(src) + '</span>' +
+      '<button type="button" class="nx" id="nearSheetX" aria-label="关闭这一带结果">' + TI('close', 12) + '</button></div>';
+    var body = items.length
+      ? '<div class="nl">' + items.map(function (h, i) {
+        return '<button type="button" class="ni' + (h.src === '实时查询' ? ' osm' : '') + '" data-n="' + i + '">' +
+          '<span class="nn">' + esc(h.label || h.name) +
+          (h.flag && h.flag.indexOf('m') >= 0 ? '<i class="nb">必去</i>' : '') + '</span>' +
+          '<span class="nsub">' + esc([h.city, h.theme].filter(Boolean).join(' · ')) + '</span>' +
+          '<span class="nd">' + esc(nearDistText(h.d)) + '</span></button>';
+      }).join('') + '</div>'
+      : '<div class="nl"><div class="nz">这一带内置库里没有记录' + (res.offline ? '，离线也补不了实时查询' : '，实时查询这次也没返回') + '</div></div>';
+    /* 来源口径必须写进 DOM（§34 文案锚 + smoke N 族都读它） */
+    var foot = '<div class="nf">' + (res.live ? esc(Nearby.LIVE_NOTE) : '来源：包内景点库，离线可用') + '</div>';
+    sh.innerHTML = head + body + foot;
+    sh.classList.add('open');
+    raiseCenterClear(sh);
+    $('nearSheetX').onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearSheet(); };
+    sh.querySelectorAll('.ni').forEach(function (b) {
+      b.onclick = function (ev) { if (ev) ev.stopPropagation(); nearPickItem(items[+b.getAttribute('data-n')]); };
+    });
+  }
+  /* 面板开在地图下半部：用户点在屏幕下 1/3 时，圆心与刚画的圈会被整块盖住（商用软件不会这样）。
+     只做纵向平移把取点抬到面板上沿之上，不新增聚焦入口（§31 的 flyToUsable 计数因此不变），
+     也不改 USABLE_BANDS（面板是结果列表不是常驻浮层，进带名单会让 fitBounds 留白二次内缩）。 */
+  function raiseCenterClear(sh) {
+    if (!nearP || !sh.getBoundingClientRect) return;
+    var p = map.latLngToContainerPoint(L.latLng(nearP[0], nearP[1]));
+    var cr = sh.getBoundingClientRect(), mr = map.getContainer().getBoundingClientRect();
+    var want = (cr.top - mr.top) - 40;   /* 40 = 进场动画 translateY 的余量 + 一点呼吸 */
+    /* panBy 的符号是「视口往哪走」，不是「内容往哪走」：实测 panBy([0,-120]) 会让同一个点的
+       容器 y 从 430 变 550（点被推下去）。要把点抬上来，位移取 p.y - want（正数）。 */
+    if (p.y > want) map.panBy([0, p.y - want], { animate: false });
+  }
+  function nearPickItem(h) {
+    if (!h) return;
+    var i = siteIndexOf(h.name);
+    if (i >= 0) {
+      /* 半径条与这一带面板的层级都在 #locSheet(50) 之上（1200/1210），不收起就会浮在景点卡上 */
+      hideNearBar(); hideNearSheet();
+      flyToSite(i); openSheet(i); return;
+    }
+    /* 实时查询的点：落一个临时标记 + 弹层，别让它点了没反应 */
+    if (!nearLayer) nearLayer = L.layerGroup().addTo(map);
+    var mk = L.circleMarker(gxy(h.lat, h.lng), { radius: 7, color: '#AE5738', weight: 2, fillColor: '#fff', fillOpacity: 1 }).addTo(nearLayer);
+    mk.bindPopup('<b style="font-size:var(--fs-5)">' + esc(h.label) + '</b>' +
+      '<div class="pm">' + esc(h.theme) + ' · ' + esc(nearDistText(h.d)) + '</div>' +
+      '<div class="pm pa">' + esc(Nearby.LIVE_NOTE) + '</div>', { maxWidth: 240, className: 'trippop', autoPan: true });
+    flyToUsable(gxy(h.lat, h.lng), Math.max(map.getZoom(), 14));
+    mk.openPopup();
   }
 
   /* ---------- 随手记 ---------- */
@@ -1273,6 +1363,7 @@
       if (f === '全部') { c.classList.toggle('on', !state.theme && !state.region && !state.city && !state.elev && !state.flag); return; }
       if (f === '必去') { c.classList.toggle('on', state.flag === 'm'); return; }
       if (f === '网红') { c.classList.toggle('on', state.flag === 'h'); return; }
+      if (f === '这一带') { c.classList.toggle('on', !!nearMode); return; }
       if ((state.theme && (f === state.theme || f.indexOf(state.theme) >= 0)) || f === state.region || f === state.city) c.classList.add('on');
       else if (f === '低海拔 <3000m' && state.elev === 'low') c.classList.add('on');
       else if (f === '中海拔 3000-4000m' && state.elev === 'mid') c.classList.add('on');
@@ -1297,6 +1388,20 @@
     };
     mkFlag('m', '必去', '#C9A227');
     mkFlag('h', '网红', '#FF7A50');
+    /* 批次 21：查附近原先只有全国页能进（点图即弹半径条，topic 专题页一律「记一笔」）。
+       这颗 chip 把同一套能力带进所有专题页，放在必去/网红之后＝与既有筛选同框；
+       它是「武装一次取点」而不是常驻开关，所以取点完就自动复位，不改变地图的默认点击语义。 */
+    if (window.Nearby) {
+      var nc = mkChip('这一带', false, '#AE5738');
+      nc.id = 'nearChip';
+      nc.title = '点地图任选一点，看这一带还有什么（内置库优先，离线可用）';
+      nc.onclick = function () {
+        if (nearMode) { nearMode = false; syncChips(); showTripToast('已取消「这一带」取点'); return; }
+        nearMode = true; syncChips();
+        showTripToast('点击地图任意位置作为圆心');
+      };
+      dynChips.appendChild(nc);
+    }
     if (M.themeChips !== false) {
       (M.themeOrder || []).forEach(function (th) {
         var cc = mkChip(th, false, M.themes[th]);

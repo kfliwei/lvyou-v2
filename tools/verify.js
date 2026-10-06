@@ -2299,10 +2299,18 @@ const EMOJI_MARK = 'emoji-ok:';
   if (cnt25(TC, `t.className = 'toast'`) !== 1) F25('topic-common.js 的 #tripToast 兜底类名 `.toast` 挂载点不是恰 1 处（实测 ' + cnt25(TC, `t.className = 'toast'`) + '）');
   const n25 = (VC.match(/const TOAST_SEL = '([^']*)'/) || [, ''])[1].split(',').length;
   if (n25 < 4) F25('摘除名单只剩 ' + n25 + ' 个选择器（下限 4：.ui-toast / #nmTip / .toast / .ui-tilewarn——一类一类往上添过，删任何一类都要先证明它不再自动消失）');
+  /* 性能预算的采样次数（批次 21 顺带修的一条假闸）：单次采样在冷首屏上是掷硬币，
+     A/B 实测见 tools/out/b21-perf-ab.txt——HEAD 树 6 轮 888~2652ms（max 已越 2500 线），
+     工作树 1016~1348ms。所以这里钉「取 3 次中位」这个形状，而不是钉某一次的读数。 */
+  if (cnt25(VC, 'const PERF_SAMPLES = 3;') !== 1) F25('性能预算回到单次采样（PERF_SAMPLES 不是恰 1 处 = 3）——冷尾长尾会让这条闸门随机红，先读 tools/out/b21-perf-ab.txt 再改');
+  if (cnt25(VC, 'const lcp = ls.slice().sort((a, b) => a - b)[1];') !== 1) F25('LCP 没取样本中位数——时间类指标取中位，单次读数不作数');
+  if (cnt25(VC, 'const cls = Math.max.apply(null, cs);') !== 1) F25('CLS 没取三次里的最大值——位移越线一次就算越线，这里不该用中位');
+  if (rd25('README.md').indexOf('LCP 中位') < 0) F25('README.md 没登记性能预算的采样口径（改口径不写进 README 就等于没改，下一个人还会拿单次读数当真相）');
   if (rd25('README.md').indexOf('#nmTip') < 0) F25('README.md 的视觉闸门口径没登记 #nmTip 这一类（新名单不写进 README 就等于没装）');
   if (rd25('README.md').indexOf('.ui-tilewarn') < 0) F25('README.md 的视觉闸门口径没登记 .ui-tilewarn 这一类');
   console.log('像素基线闸门: 摘除名单整串相等（' + n25 + ' 个选择器）且摘除动作真走它；只认 .ui-toast 的旧写法零残留；' +
-    '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；README 已登记');
+    '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；' +
+    '性能预算取 3 次采样的 LCP 中位 + CLS 最大（单次采样是掷硬币）；README 已登记');
   fail += bad25;
 }
 
@@ -3074,7 +3082,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['topic-common.js', 'paddingTopLeft: [i.left, i.top]', 2, 'fitUsable 与 focusUsable 两处不对称内缩都带 left（Leaflet 真选项名，paddingTL 不认）'],
     /* ④ 聚焦单点 */
     ['topic-common.js', 'function flyToUsable(latlng, zoom, opts) {', 1, '聚焦偏移只有一个定义点'],
-    ['topic-common.js', 'flyToUsable(', 6, '定义 1 + 调用 5（聚合聚焦 / 站点 / 我的位置行 / 自动定位 / 定位按钮）：新增聚焦入口必须走这里'],
+    ['topic-common.js', 'flyToUsable(', 7, '定义 1 + 调用 6（聚合聚焦 / 站点 / 我的位置行 / 自动定位 / 定位按钮 / 这一带实时点）：新增聚焦入口必须走这里（批次 21 由 6→7，逐处点名而非改数凑绿）'],
     ['topic-common.js', '.subtract(contentCenterPx())', 1, '把「内容中心 − 元素中心」算进偏移（这就是批次 13 那条残留的正解）'],
     ['topic-common.js', 'if (opts && opts.instant) { map.setView(at, zoom); return; }', 1, '瞬时腿也在单点内，不是各处自己裸 setView'],
     ['topic-common.js', 'map.flyTo(at, zoom, { duration: (opts && opts.duration) || .5 });', 1, '单点内部那一条 flyTo（下面钉「全站只剩这一处」）'],
@@ -3176,7 +3184,7 @@ const EMOJI_MARK = 'emoji-ok:';
   if (V31['docs/功能完善实施方案-2026-10-05.md'].indexOf('批次 18 已实施') < 0)
     F31('方案文档没登记「批次 18 已实施」（这批在手机上看不见，收工状态只能靠文档留在案上）');
 
-  console.log('双栏闸门: ' + A31.length + ' 条代码锚点（横向分支四边各有消费点 + 聚焦单点 6 处 + 双栏 CSS 阈值唯一 + 悬停高亮接线）+ 侧栏不进 USABLE_BANDS 期望 0 + 三条改前形态零残留 + 双栏 CSS 段落范围检（漏进手机档即红）+ smoke U14–U20 七条齐备；每条期望 0 都配正向对照；变异自测两层在案（源码腿 tools/out/mut-verify31.js 38 条应红全红、浏览器腿 tools/out/mut-smoke31.js 4 条应红全红，其中「侧栏进带名单」实测只有源码腿能守）');
+  console.log('双栏闸门: ' + A31.length + ' 条代码锚点（横向分支四边各有消费点 + 聚焦单点 7 处（含批次 21「这一带」实时点） + 双栏 CSS 阈值唯一 + 悬停高亮接线）+ 侧栏不进 USABLE_BANDS 期望 0 + 三条改前形态零残留 + 双栏 CSS 段落范围检（漏进手机档即红）+ smoke U14–U20 七条齐备；每条期望 0 都配正向对照；变异自测两层在案（源码腿 tools/out/mut-verify31.js 38 条应红全红、浏览器腿 tools/out/mut-smoke31.js 4 条应红全红，其中「侧栏进带名单」实测只有源码腿能守）');
   fail += bad31;
 }
 
@@ -3592,6 +3600,196 @@ const EMOJI_MARK = 'emoji-ok:';
 
   console.log('路线档位闸门: ' + A33.length + ' 条代码锚点（MODE 四档六数逐值 + 自动档两阈值 + mkLeg 形参带档 + 矩阵只喂自驾 + 动词/文案从表派生 + withLocked 单点与两条重排路径 + 移动即钉 + 档位单点 + 分享 b/k 与 TB_LAB 导出）+ 九处函数体结构断言（orderStops/orderByMatrix 各恰一次 withLocked、orderFree* 两处零 locked、plannerMoveStop 恰一次 locked=1、resplitTrip 恰一次 persistTrip、renderDaysBody 里标题赋值与 lockedHint 各恰一次、renderResult 里 resultTitle 恰零次）+ 十五族期望 0（旧单值常量/硬编码 ×1.35/写死「驾驶」/裸 mkLeg/sortMode 挤档/OSRM/share 重抄系数/长键 locked/旧标题 totalKm）+ osrm 全站 ' + osrmScope33 + ' 个根 JS 扫 + smoke T0／T0b／T1–T12 齐备检（T0b 是探针自校准：读到的 trip 必须与屏上同序）；每条期望 0 都配正向对照；变异自测见 tools/out/mut-verify33.js');
   fail += bad33;
+}
+
+/* ============ §34 「这一带还有什么」闸门（批次 21） ============
+   这一批的立论只有一句话：离线也能回答「这一带还有什么」，联网只是补位。
+   它的坏法同样全是静默的——把两条腿的顺序换一下，界面上一个字都不变，但每一张
+   没有缓存的手机上这个功能从「秒回」变成「转圈八秒然后什么都没有」；把 8s 超时摘掉，
+   限流时面板永远不出；把来源口径写混，用户分不清「这一带真的没有」还是「没网没查」。
+   所以源码侧钉四族：
+   ① 合流函数体内的**顺序**（nearbySites 的命中位置必须早于 overpassNearby，且各恰一次）——
+      这是本节的灵魂，用位置比而不是用「存在性」存在性检查；
+   ② 三个数字（BUILTIN_ENOUGH=4 / OVERPASS_TIMEOUT_MS=8000 / MAX_OSM=12）与 LIVE_NOTE 整串逐值钉，
+      超时/中断/回调只落一次三条各钉一处（限流是常态，重试与二次回调只会把对面拖得更死）；
+   ③ 来源口径必须写进 DOM：内置「内置库 · N 处」＋脚注「来源：包内景点库，离线可用」、
+      实时「内置 x · 实时 y」＋脚注逐字等于 LIVE_NOTE、空态按 res.offline 分叉成两句话
+      （离线与「查了没返回」是两件不同的事，混写成一句就是让用户去查自己的网）；
+   ④ UI 侧只有 queryNearby 一个入口（overpassNearby 在 topic-common.js 期望 0——绕过合流口
+      就是绕过顺序），chip 是「武装一次取点」而不是常驻开关（默认点击语义不许变），
+      面板开在下半屏时 raiseCenterClear 必须把圆心抬到面板上沿之上（新加的这条自己也要有锚）。
+   口径同 §28/§31/§32/§33：四元组守卫、期望 0 一律配正向对照、锚点串不落块注释、.html 只归一空白不剥注释。
+   ============================================================ */
+{
+  let bad34 = 0;
+  const F34 = m => { bad34++; console.log('FAIL §34 附近查询闸门: ' + m); };
+  const ws34 = s => s.replace(/\s+/g, ' ').trim();
+  const flat34 = s => ws34(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt34 = (s, n) => s.split(n).length - 1;
+  const rd34 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view34 = f => /\.html$/.test(f) ? ws34(rd34(f)) : flat34(rd34(f));
+  const fnBody34 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+
+  const FILES34 = ['nearby.js', 'topic-common.js', 'topic.html', 'sw.js',
+    'tools/smoke-nearby.js', 'README.md'];
+  const V34 = {};
+  FILES34.forEach(f => {
+    if (!fs.existsSync(f)) { F34('缺 ' + f); V34[f] = ''; return; }
+    V34[f] = view34(f);
+  });
+
+  const A34 = [
+    /* ① 数据层：常量逐值 + 两条腿 + 合流（顺序另走位置比，见结构断言） */
+    ['nearby.js', "var OVERPASS_URL = 'https://overpass-api.de/api/interpreter';", 1, '补位源单点：换镜像要在这里换，不许在调用点各写一个域名'],
+    ['nearby.js', 'var OVERPASS_TIMEOUT_MS = 8000;', 1, '超时读产品常量，闸门与 smoke 都不写死秒数（smoke N46 就是从常量推窗口）'],
+    ['nearby.js', 'var BUILTIN_ENOUGH = 4;', 1, '内置凑满几条就不联网：这个数就是「第一答案是包内索引」的量化口径'],
+    ['nearby.js', 'var MAX_OSM = 12;', 1, '补位结果上限：不限条数会让实时那几十条淹掉内置答案'],
+    ['nearby.js', "var LIVE_NOTE = '以下为实时查询（OSM），离线不可用';", 1, '来源口径整串钉死（界面脚注、弹层、smoke 三处比的是同一个串）'],
+    ['nearby.js', 'function nearbySites(lat, lng, rKm, cats, exclude) {', 1, '内置腿入口'],
+    ['nearby.js', 'if (d <= r) out.push(', 1, '半径过滤单点（Geo.hav 纯本地，无任何网络）'],
+    ['nearby.js', 'out.sort(byFlagThenDist);', 1, '内置结果按「必去/网红优先、同权重距离升序」'],
+    ['nearby.js', 'var w = (FLAG_WEIGHT[b.flag] || 0) - (FLAG_WEIGHT[a.flag] || 0); return w !== 0 ? w : a.d - b.d;', 1, '权重表派生的比较函数单点（写死 flag 字符串就是第二套排序）'],
+    ['nearby.js', "src: '内置'", 1, '内置腿每条带来源标记'],
+    ['nearby.js', "src: '实时查询'", 1, '补位腿每条带来源标记（不标记就是两种答案混成一锅）'],
+    ['nearby.js', 'function overpassQuery(lat, lng, rKm) {', 1, '查询语句构造单点（smoke 断言的是这一条产出的串）'],
+    ['nearby.js', 'var radius = Math.round((+rKm > 0 ? +rKm : DEFAULT_RKM) * 1000);', 1, 'km→米换算单点：漏乘 1000 时 around 半径变成 30 米，界面照样显示「30km」'],
+    ['nearby.js', "'[out:json][timeout:8];('", 1, '响应格式与服务端超时（服务端 8s 与本地 8s 同口径，别让对面等更久）'],
+    ['nearby.js', 'node["tourism"~"^(attraction|museum|viewpoint|gallery|artwork|zoo)$"](', 1, '只对这几类兴趣点补位——node 腿（点要素）'],
+    ['nearby.js', 'way["tourism"~"^(attraction|museum|viewpoint|gallery|artwork|zoo)$"](', 1, 'way 腿（面要素）：只查 node 会漏掉整个景区多边形，这条与上一条必须同时在'],
+    ['nearby.js', "body: 'data=' + encodeURIComponent(overpassQuery(lat, lng, rKm)),", 1, 'Overpass 要的是 data= 表单，不是 JSON body：写错对面直接 400'],
+    ['nearby.js', 'signal: ctl ? ctl.signal : undefined', 1, '超时要真能把请求掐掉（只 clearTimeout 不 abort，请求还在对面跑着）'],
+    ['nearby.js', 'var timer = setTimeout(function () { if (ctl) { try { ctl.abort(); } catch (e) {} } done(null); }, OVERPASS_TIMEOUT_MS);', 1, '到点即弃、不排队重试'],
+    ['nearby.js', 'function done(list) { if (settled) return; settled = true; clearTimeout(timer); cb(list || null); }', 1, '回调只落一次（超时与响应竞速时二次 cb 会把面板渲染两遍、第二遍还是空态）'],
+    ['nearby.js', 'if (!r || !r.ok) { done(null); return null; }', 1, '429/504 一律当「这次问不到」：限流是常态，不弹错、不重试'],
+    ['nearby.js', '}).catch(function () { done(null); });', 1, '网络异常静默降级'],
+    ['nearby.js', "if (!hav || !isFinite(+lat) || !isFinite(+lng) || typeof global.fetch !== 'function') { cb(null); return; }", 1, '没有 fetch / 没有 Geo / 非法坐标都不发请求（老内核与坏入参走同一条静默路）'],
+    ['nearby.js', '.sort(function (a, b) { return a.d - b.d; }).slice(0, MAX_OSM);', 1, '补位结果按距离升序并截断'],
+    ['nearby.js', 'function queryNearby(lat, lng, rKm, cats, cb, exclude) {', 1, '合流口（UI 唯一入口）'],
+    ['nearby.js', 'var offline = !global.navigator || global.navigator.onLine === false;', 1, '有网判定单点（navigator 缺失按离线处理：宁可不问，也不在没网的机器上转八秒圈）'],
+    ['nearby.js', 'if (hits.length >= BUILTIN_ENOUGH || offline) {', 1, '够四条或没网 → 直接回内置，一次请求都不发'],
+    ['nearby.js', 'cb({ items: hits, builtin: hits.length, osm: 0, live: false, offline: offline });', 1, '内置分支把 offline 带出去（文案要分叉成「离线补不了」与「查了没返回」两句话）'],
+    ['nearby.js', 'cb({ items: hits.concat(extra), builtin: hits.length, osm: extra.length, live: extra.length > 0, offline: false });', 1, '内置在前、补位在后拼成一份列表（顺序与本节灵魂同向）'],
+    ['nearby.js', 'global.Nearby = {', 1, '模块导出单点'],
+    /* ② UI 入口：一次性武装 + 合流口 + 层级与让位 */
+    ['topic-common.js', 'if (nearMode || M.nearEnabled) { nearMode = false; syncChips(); nearPick(e.latlng); return; }', 1, '取点即复位（chip 亮着不复位＝用户以为还在取点模式，下一张卡就记错了地方）'],
+    ['topic-common.js', 'Nearby.queryNearby(lat, lng, km, null, function (res) {', 1, 'UI 走合流口这一条腿'],
+    ['topic-common.js', 'var a = Nearby.nearbySites(lat, lng, 0.2);', 1, '锚点排除：点在哪处景点就不该把用户已经站着的那处再列一遍'],
+    ['topic-common.js', 'nearP = [latlng.lat, latlng.lng];', 1, '圆心留痕（抬心与半径条都读它）'],
+    ['topic-common.js', "mkChip('这一带', false, '#AE5738')", 1, '与既有筛选同框（必去/网红之后）'],
+    ['topic-common.js', "if (nearMode) { nearMode = false; syncChips(); showTripToast('已取消「这一带」取点'); return; }", 1, '取消要有反馈：点亮与熄灭两种状态都得说一句'],
+    ['topic-common.js', 'raiseCenterClear(sh);', 1, '渲染完就检查圆心是否被面板盖住（调用点必须在 add("open") 之后，否则量到的是 display:none 的 0 高盒子）'],
+    ['topic-common.js', 'function raiseCenterClear(sh) {', 1, '抬心单点'],
+    ['topic-common.js', 'if (p.y > want) map.panBy([0, p.y - want], { animate: false });', 1, 'panBy 的符号是「视口往哪走」不是「内容往哪走」：实测 panBy([0,-120]) 会把同一个点从 y=430 推到 550（真机档 452×995 下半屏量出来的）'],
+    ['topic-common.js', 'hideNearBar(); hideNearSheet();', 2, '半径条与面板层级 1200/1210 都在景点卡（#locSheet z 50）之上：不收起就会浮在卡片上——批次 21 自查出来的真缺陷。两处各管一条关闭路径（#nearX 手动关 / 点内置项进卡）'],
+    /* ③ 来源口径写进 DOM */
+    ['topic-common.js', "'内置 ' + res.builtin + ' · 实时 ' + res.osm", 1, '混过补位就说清各几条（只印「12 处」会让人以为这 12 条都离线可用）'],
+    ['topic-common.js', "'内置库 · ' + res.builtin + ' 处'", 1, '纯内置时的口径'],
+    ['topic-common.js', '来源：包内景点库，离线可用', 1, '内置脚注整串'],
+    ['topic-common.js', "(res.offline ? '，离线也补不了实时查询' : '，实时查询这次也没返回')", 1, '空态两句话分叉：离线与「查了没返回」是两件事（写成一句会把没网的用户支去查路由器）'],
+    ['topic-common.js', "nearSheet.setAttribute('aria-label', '这一带还有什么');", 1, '面板有无障碍名（批次 22 的读法与这里同源）'],
+    /* ④ 壳与页面：文件在、进了预缓存 */
+    ['topic.html', '<script src="nearby.js"></script>', 1, '页面挂了模块（§29 的反向对账管「页面依赖没进 SHELL」，这条钉反方向：SHELL 有而页面没挂＝死文件）'],
+    ['sw.js', "'./nearby.js',", 1, '预缓存在案：这个功能的立论就是离线可用，不在壳里就是首屏即无'],
+    ['tools/smoke-nearby.js', 'setOfflineMode(true)', 1, '断网腿走 CDP 真断网（读 navigator.onLine 的桩自己也算被测对象）'],
+    ['tools/smoke-nearby.js', '= await toOffline(', 2, '全国页与省页各断一次网：两条入口都要在「物理没网」下出结果'],
+  ];
+  A34.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F34('A34 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V34)) { F34('A34 登记了 §34 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt34(V34[file], needle);
+    if (got !== want) F34(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A34.length < 42) F34('锚点表被削减：' + A34.length + ' 条（批次 21 落地时实测 49 条，阈值取 42——删到 41 条就红，整组删掉就等于这节没了）');
+
+  /* ① 灵魂：合流函数体内两条腿的先后（存在性检查守不住顺序，必须比位置） */
+  {
+    const QB = fnBody34(V34['nearby.js'], 'function queryNearby(lat, lng, rKm, cats, cb, exclude) {');
+    if (!QB) F34('抽不出 queryNearby 函数体（本节的灵魂断言失去依据）');
+    else {
+      const i1 = QB.indexOf('nearbySites('), i2 = QB.indexOf('overpassNearby(');
+      if (i1 < 0) F34('queryNearby 体里没有 nearbySites(：内置腿被摘掉，「离线也能回答这一带」当场失效');
+      if (i2 < 0) F34('queryNearby 体里没有 overpassNearby(：补位腿被摘掉，界面会长期只列内置那几条却仍写着「这一带还有什么」');
+      else if (i1 >= i2) F34('queryNearby 体里 overpassNearby( 排在 nearbySites( 之前：第一答案必须是包内索引（免 Key／离线／秒回），顺序一换，每张没缓存的手机都变成「转圈八秒然后什么都没有」');
+      if (cnt34(QB, 'nearbySites(') !== 1) F34('queryNearby 体里 nearbySites( 不是恰 1 次：合流口又分叉了');
+      if (cnt34(QB, 'overpassNearby(') !== 1) F34('queryNearby 体里 overpassNearby( 不是恰 1 次：点一次图发两回查询，限流的是对面');
+    }
+    /* 反向对照：网络在前的改前形态必须打红（否则上面那条位置比是恒真判据）；
+       正向对照：内置在前的合成源不许打红（否则它守的不是顺序而是某一种写法）。 */
+    const MUT = flat34('function queryNearby(lat, lng, rKm, cats, cb, exclude) { overpassNearby(lat, lng, rKm, function (osm) { cb({ items: osm || [] }); }); var hits = nearbySites(lat, lng, rKm, cats, exclude); }');
+    if (!(MUT.indexOf('overpassNearby(') < MUT.indexOf('nearbySites(')))
+      F34('顺序断言的反向对照失效：合成的「网络在前」源码都没触发它，那它对真源码的 PASS 就不是证据');
+    const GOOD = flat34('function queryNearby(lat, lng, rKm, cats, cb, exclude) { var hits = nearbySites(lat, lng, rKm, cats, exclude); overpassNearby(lat, lng, rKm, function () {}); cb(hits); }');
+    if (!(GOOD.indexOf('nearbySites(') < GOOD.indexOf('overpassNearby(')))
+      F34('顺序断言的正向对照失效：合成的「内置在前」源码也触发它，那这条锚会不分对错一直红');
+  }
+
+  /* 抬心函数的结构断言：它必须真的读面板盒子并只在压住时才挪（无条件 panBy 会让每次查询都跳一下视图） */
+  {
+    const RC = fnBody34(V34['topic-common.js'], 'function raiseCenterClear(sh) {');
+    if (!RC) F34('抽不出 raiseCenterClear 函数体（抬心这条断言失去依据）');
+    else {
+      if (cnt34(RC, 'getBoundingClientRect()') !== 2) F34('raiseCenterClear 体里 getBoundingClientRect() 不是恰 2 次（面板 + 地图容器各一次）：少一次就是拿屏幕坐标去比容器坐标');
+      if (cnt34(RC, 'map.panBy(') !== 1) F34('raiseCenterClear 体里 map.panBy( 不是恰 1 次：挪两处等于每次查询视图跳两下');
+      if (RC.indexOf('if (p.y > want)') < 0) F34('raiseCenterClear 里没有 p.y > want 守卫：没压住也要挪＝每查一次地图自己滑一下');
+    }
+    const CTRL34 = flat34('function raiseCenterClear(sh) { var p = m.latLngToContainerPoint(x); var cr = sh.getBoundingClientRect(), mr = map.getContainer().getBoundingClientRect(); var want = (cr.top - mr.top) - 40; if (p.y > want) map.panBy([0, p.y - want], { animate: false }); }');
+    if (cnt34(CTRL34, 'getBoundingClientRect()') !== 2 || cnt34(CTRL34, 'map.panBy(') !== 1 || CTRL34.indexOf('if (p.y > want)') < 0)
+      F34('上面三条抬心断言的正向对照失效了（那些 2/1 不是证据）');
+  }
+
+  /* 期望 0：数据层不越界、UI 不走旁路、补位结果不进事实表 */
+  const ZERO34 = [
+    ['nearby.js', 'SEED', "var SEED = { '西湖': { p: 1 } };", '实时查询的结果不许写进门票/事实 SEED：OSM 的 name 没有审核，混进去就是拿第三方数据冒充自己核过的事实'],
+    ['nearby.js', 'localStorage', "localStorage.setItem('tn_near_cache', s);", '数据层不落盘：缓存一份实时答案＝把「这一带有什么」变成「上周有什么」，而离线腿的可信度全靠它是现算的'],
+    ['nearby.js', 'sessionStorage', "sessionStorage.setItem('k', v);", '同上'],
+    ['nearby.js', 'toast', "UI.toast('查询失败，请检查网络');", '数据层零 UI：失败一律静默降级（弹错给离线用户看没有意义，文案归渲染层）'],
+    ['nearby.js', 'confirm', "window.confirm('重试？');", '同上，数据层不许弹确认框'],
+    ['nearby.js', 'setInterval', 'setInterval(function () { go(); }, 1000);', '不排队重试：限流是常态，重试只会把下一次也拖慢（§18 天气队列同款口径）'],
+    ['nearby.js', 'retryTimes', 'var retryTimes = 3;', '同上'],
+    ['nearby.js', 'amap', "fetch('https://restapi.amap.com/v3/place/around');", '补位只用 OSM 一条腿：高德周边搜要先配 Key，写进这里等于把离线承诺换成登录承诺'],
+    ['topic-common.js', 'overpassNearby(', 'overpassNearby(30, 120, 10, cb);', 'UI 只能走 queryNearby 这个合流口：直接调网络腿就是绕过「内置先跑」的顺序（本节的灵魂）'],
+    ['topic-common.js', 'Notification', "new Notification('这一带有 12 处');", '这一带的提醒只有页内一条腿（批次 17 的红线延续到批次 21）'],
+    ['topic-common.js', "fetch('https://overpass", "fetch('https://overpass-api.de/api/interpreter');", '页面侧不许自己拼 Overpass 请求：URL 与查询语句都在数据层，两处各写就是两份口径'],
+    ['sw.js', 'overpass-api.de', "var SHELL = ['./index.html', 'https://overpass-api.de/api/interpreter'];", '第三方接口不进预缓存壳（它不是本地文件，塞进去只会让装机首屏白等）'],
+  ];
+  ZERO34.forEach(([f, needle, ctrl, why]) => {
+    if (cnt34(V34[f], needle) !== 0) F34(f + ' 里出现「' + needle + '」：' + why);
+    if (cnt34(flat34(ctrl), needle) < 1) F34('「' + needle + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* 浏览器腿：N01–N47 一条不许少（§31 同一课：改名成 N16x 也要红，所以认「id + 空格」） */
+  const pad34 = i => 'N' + (i < 10 ? '0' + i : '' + i);
+  for (let i = 1; i <= 47; i++) {
+    if (V34['tools/smoke-nearby.js'].indexOf("ok('" + pad34(i) + ' ') < 0)
+      F34('tools/smoke-nearby.js 缺 ' + pad34(i) + ' 这条判据（批次 21 的离线/补位/来源/降级四组判据是一整组，少一条就是有个症状没人管）');
+  }
+  ["ok('N17c ", "ok('N28a "].forEach(n => {
+    if (V34['tools/smoke-nearby.js'].indexOf(n) < 0)
+      F34('tools/smoke-nearby.js 缺 ' + n.trim() + ' 这条（N17c 是下半屏抬心的实测腿，N28a 是省页「有可用取样点」的前置——缺它们那两个断言就是恒真）');
+  });
+  if (cnt34(V34['tools/smoke-nearby.js'], "ok('N") !== 49)
+    F34('tools/smoke-nearby.js 的判据条数不是 49：' + cnt34(V34['tools/smoke-nearby.js'], "ok('N") + ' 条（批次 21 落地时实测 49 条＝N01–N47 加 N17c／N28a 两条派生；整组削减等于把这节拆了）');
+
+  if (V34['README.md'].indexOf('§34') < 0) F34('README.md 的 verify 清单没提 §34（新闸门不写进 README 就等于没装）');
+
+  console.log('附近查询闸门: ' + A34.length + ' 条代码锚点（三个数字逐值 + 两条腿各钉入口 + 超时/中断/回调只落一次 + 来源口径四串整串钉进 DOM + 抬心与层级两处 + 壳与页面各一条）+ 灵魂顺序断言（queryNearby 体内 nearbySites 命中位置早于 overpassNearby 且各恰一次，反向合成的「网络在前」必红、正向合成的「内置在前」必不红）+ 抬心函数体三条（两次 getBoundingClientRect、一次 panBy、p.y > want 守卫）+ 十二族期望 0（SEED/localStorage/toast/confirm/setInterval/retry/高德周边/页面直调 overpassNearby/Notification/第三方进壳）；每条期望 0 都配正向对照；smoke N01–N47 齐备检 + 条数守卫（49）+ 断网两条腿在案');
+  fail += bad34;
 }
 
 

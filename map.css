@@ -315,6 +315,33 @@ main{flex:1 1 auto;position:relative;overflow:hidden}
   font-family:var(--font-display);letter-spacing:.08em;
 }
 
+/* ---- 批次 21 ·「这一带还有什么」结果面板 ---- */
+/* 底边避开 tabbar（84px 与 #nearBar 同源）；行 min-height 44px 走触控族；
+   滚动只发生在 .nl 内部，页面本体不滚（边缘点闸门与像素基线都按这个前提算）。 */
+.near-sheet{
+  position:absolute;left:12px;right:12px;z-index:1210;display:none;flex-direction:column;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 84px);
+  max-height:min(42dvh,320px);overflow:hidden;
+  background:var(--paper-bar);border:1px solid var(--edge-hair-soft);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow-medium);
+  animation:sheet-enter var(--motion-enter) var(--ease-standard);
+}
+.near-sheet.open{display:flex}
+.near-sheet .nh{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--edge-hair-soft);flex:0 0 auto}
+.near-sheet .nh b{font-family:var(--font-serif);font-size:var(--fs-5);color:var(--color-ink)}
+.near-sheet .nsrc{font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.04em;margin-left:auto}
+.near-sheet .nx{width:30px;height:30px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);cursor:pointer}
+.near-sheet .nl{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto}
+.near-sheet .ni{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;padding:8px 12px;border:0;border-bottom:1px solid var(--edge-hair-soft);background:none;text-align:left;cursor:pointer;color:var(--color-ink);font-family:var(--font-sans)}
+.near-sheet .ni:last-child{border-bottom:0}
+.near-sheet .nn{font-size:var(--fs-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52%}
+.near-sheet .nb{font-style:normal;margin-left:6px;padding:1px 5px;border-radius:var(--radius-pill);background:rgba(201,162,39,.16);color:var(--gold-700);font-size:var(--fs-1)}
+.near-sheet .nsub{font-size:var(--fs-2);color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0}
+.near-sheet .nd{margin-left:auto;font-size:var(--fs-2);color:var(--color-ink-soft);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.near-sheet .ni.osm .nd{color:var(--color-primary-dark)}
+.near-sheet .nz{padding:16px 12px;font-size:var(--fs-3);color:var(--color-muted)}
+.near-sheet .nf{padding:8px 12px;border-top:1px solid var(--edge-hair-soft);font-size:var(--fs-2);color:var(--color-muted);background:var(--color-bg-soft)}
+
 /* ---- 列表（紧凑行式） ---- */
 .cntbar{
   position:sticky;top:0;

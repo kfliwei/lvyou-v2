@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v72';
+var CACHE = 'trace-v74';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -33,6 +33,7 @@ var SHELL = [
   './topic-common.js',
   './wishlist.js',
   './geo.js',
+  './nearby.js',
   './poster.js',
   './topic-counts.js',
   './food.js',

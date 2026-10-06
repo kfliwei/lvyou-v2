@@ -1,0 +1,6 @@
+R1 index.html — LCP 1852ms 元素=A CLS 0.0000 DCL 1247 load 1329 长任务前5=[373,163,150,142,122]
+R1 topic.html — LCP 3248ms 元素=DIV CLS 0.0009 DCL 1265 load 3609 长任务前5=[345,273,155,148,144]
+R2 index.html — LCP 1272ms 元素=H1 CLS 0.0000 DCL 1522 load 1526 长任务前5=[178,163,144,133,114]
+R2 topic.html — LCP 2140ms 元素=? CLS 0.0009 DCL 1828 load 3759 长任务前5=[485,259,222,166,83]
+R3 index.html — LCP 1760ms 元素=H1 CLS 0.0000 DCL 1675 load 1680 长任务前5=[321,173,164,135,51]
+R3 topic.html — LCP 1332ms 元素=? CLS 0.0009 DCL 1150 load 2502 长任务前5=[382,194,162,122,115]

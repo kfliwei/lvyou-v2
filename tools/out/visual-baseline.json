@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-05T17:53:38.570Z",
+  "generatedAt": "2026-10-06T03:08:01.678Z",
   "viewports": [
     "320x640",
     "390x844",
@@ -31,24 +31,24 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "8fbd6ab674a92526",
-      "bytes": 226054
+      "sha": "49903da4b57f65f4",
+      "bytes": 226143
     },
     "topic.390x844.png": {
-      "sha": "db7fd3faec3c1889",
-      "bytes": 268391
+      "sha": "d57827abfad5622d",
+      "bytes": 268418
     },
     "topic.452x995.png": {
-      "sha": "6e5eedd81a5d4a97",
-      "bytes": 307104
+      "sha": "3fefb6982485c48f",
+      "bytes": 307272
     },
     "topic.768x1024.png": {
-      "sha": "f6f0e0233949186e",
-      "bytes": 331052
+      "sha": "80a823ecd9b2f043",
+      "bytes": 330164
     },
     "topic.1440x900.png": {
-      "sha": "dd4a462a575377bd",
-      "bytes": 722707
+      "sha": "b69388d705249dc7",
+      "bytes": 722110
     },
     "search.320x640.png": {
       "sha": "7158f61a008c434f",

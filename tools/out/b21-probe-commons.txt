@@ -1,0 +1,12 @@
+黄山  ✓ file=File:Huangshan pic 4.jpg 4096x2396 mime=image/jpeg | lic="CC BY 2.0" | author="Chi King" | 白名单=N
+青城山  ✓ file=File:四川青城山 - panoramio.jpg 1072x712 mime=image/jpeg | lic="CC BY-SA 3.0" | author="中国郑开亮" | 白名单=N
+798艺术区  pageimages✗ NOTHUMB
+1933老场坊  ✓ file=File:1933·上海公共租界工部局宰牲场·上海虹口·（正面俯拍）.jpg 3874x2903 mime=image/jpeg | lic="CC BY-SA 4.0" | author="Legolas1024" | 白名单=Y
+40冰川  pageimages✗ MISSING
+一百零八塔  ✓ file=File:一百零八塔.jpg 936x1248 mime=image/jpeg | lic="CC BY-SA 3.0" | author="Smwy09" | 白名单=N
+K11 MUSEA  ✓ file=File:K11 MUSEA Opera Theatre 202008.jpg 1200x1600 mime=image/jpeg | lic="CC BY 4.0" | author="Wpcpey" | 白名单=Y
+PMQ元创方  pageimages✗ MISSING
+宏村  ✓ file=File:Yixian Hongcun 2016.09.09 18-17-55.jpg 5472x3648 mime=image/jpeg | lic="CC BY-SA 4.0" | author="Zhangzhugang" | 白名单=Y
+迎客松  ✓ file=File:Huangshan Yingkesong.jpg 605x900 mime=image/jpeg | lic="Public domain" | author="" | 白名单=Y
+
+漏斗：取样 10 → 有图且可查 7 → 许可在白名单内 4
