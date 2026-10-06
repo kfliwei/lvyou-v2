@@ -1,0 +1,62 @@
+# 批次 24-F 收口证据（2026-10-07）
+
+范围：§38 数据层闸门 + 三层变异网 + 像素基线重拍与范围证明 + 回归复跑。
+口径来源：`docs/记账与行程入口解耦方案-2026-10-06.md` §8 的 24-F 完成判据 = 「全节 ALL CHECKS PASSED；基线逐条 0.00% 或有归因」。
+
+## 一、闸门与变异网
+
+| 腿 | 结果 | 证据 |
+| --- | --- | --- |
+| `node tools/verify.js`（含 §38） | `=== ALL CHECKS PASSED ===`，exit 0 | `tools/out/b24f-verify.txt` |
+| `tools/mut-verify38.js` 源码腿 | 共 52 条 → 按预期红 51 · 设计内静默 1 · 异常 0 | `tools/out/b24f-mut-verify38.txt` |
+| 变异还原自检 | 13/13 文件逐字节等于基准（锁文件已释放；`me.html` 的 `min-height:44px` 实测恰 1 处） | 同上 |
+
+## 二、像素基线：92 态
+
+改动前 79 态（15 页 ×5 档 + 种子态）。本批补掉「有账态只有几何断言、没有像素腿」这一条在案缺口：
+
+1. `PAGES` 15 → **17**（新增 `trip.html`、`expense.html`，各 ×5 档 = 10 张）。
+2. 新增「有账态」一档：`LEDGER_PAGES = ['expense.html','trip.html','me.html']`，390×844，`trip`/`expense` 带 `?trip=vc-cx` 落**单趟视图**。
+3. 夹具 `tools/visual-ledger.js`（闸门专用，**不进离线壳**，不塞 `test-data.js`）：三趟行程（川西已走过／云南未出发／周末周边没填日期）+ 11 笔账（含计划外第 6 天、无 date 反推、free 桶、孤儿桶两笔——其中去年 999.99 那笔专门用来验它**不该**进今年）。
+4. 状态清单由 `allStates()` / `tagOf()` **单点派生**（原先 `orderFiles`／跑批／PRUNE 三处各拼一遍，追加一种数据态必漏）。
+5. 夹具注入失败或 trips 为空 → `process.exit(1)`：拍到空库当有账态是最坏的一种假绿。
+
+| 腿 | 结果 | 证据 |
+| --- | --- | --- |
+| 全量 `--update` | `基线已更新: 92 张，清单已写入`，exit 0，耗时 501.6s | `tools/out/b24f-vc-update-2.txt` |
+| 清单对账 | `visual-baseline.json` 的 `count` 字段 = 92，文件名集合与 `allStates()` 一致 | 同上 |
+| 只读复跑第 1 遍 | `比对 92 张: 92 PASS, 0 FAIL`，**逐条 `diff 0.00%`**，耗时 564.9s | `tools/out/b24f-vc-readonly-2.txt` |
+| 只读复跑第 2 遍 | `比对 92 张: 92 PASS, 0 FAIL`，**逐条 `diff 0.00%`**，耗时 515.4s | `tools/out/b24f-vc-readonly-3.txt` |
+
+两遍都是 0.00%（不是「低于阈值」）：CLOCK 桩把「今天」钉在 `2026-10-03T10:00+08:00`、拦掉所有 http(s)、`prefers-reduced-motion: reduce` 下拍，三者一起才逐字节可复现。变异网／像素基线／gradle 全程串行，未并行。
+
+## 三、范围证明（改前那一趟）
+
+24-E 落完后先跑只读，5 张红全部落在 `me.*` 上，其余 74 态逐格 0.00%；红是「我的行程」「今年已花」两张新卡把下方内容整体下移，不是改版面。差异高亮图与逐档人审口径归档在：
+
+- `tools/out/shots/2026-10-07-b24f-vc-diff/me.{320x640,390x844,452x995,768x1024,1440x900}.png`（14.03 / 26.48 / 27.15 / 22.66 / 11.13%）
+- 同目录 `人审清单.md`（含「在案缺口已关闭」补段与三张有账态截图读数）
+- 这些图不入库（`git check-ignore` 已确认），入库的是 `tools/out/visual-baseline.json` 与 `tools/out/visual-report.json`。
+
+## 四、回归复跑（串行，exit 全 0）
+
+| 套件 | 条数 |
+| --- | --- |
+| smoke-expense | 121，`SMOKE EXPENSE ALL PASS` |
+| smoke-trip | 54，`SMOKE TRIP ALL PASS` |
+| smoke-planner | 113 |
+| smoke-checklist | 85 |
+| smoke-ticketbox | 37 |
+| smoke-backup | 53 PASS / 0 FAIL |
+| smoke-aria | 45 项，失败 0 |
+| smoke-usable | 29/29 |
+| smoke-motion | 35 项，失败 0 |
+
+证据：`tools/out/b24f-smoke-<name>.txt`；motion 单独记两个 exit：
+
+- 连跑那一趟 `smoke-motion` 在 D3 之后 `TimeoutError: Navigation timeout of 30000 ms exceeded`，exit 2（`b24f-smoke-motion.txt`）。
+- 单跑复现：**35 项 0 失败，exit 0**（`b24f-smoke-motion-r2.txt`）。定性＝前面八套连跑把机器压满时 30s 导航预算不够，不是产品回归；这条与「`topic.390` 全量跑飘 3.57%、单页跑恒 0.00%」同源，属闸门自身的负载坑，记在此处以免下次误判。
+
+## 五、尚未做
+
+真机装机与 328×723 补拍不在本次授权内（本轮只给了「打包」，出包 51／2.26.12 已完成并验包）。补拍需另一次明示授权 + 人工解锁，与 #173 的 23-B／23-C 两屏同批。

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-06T06:46:03.449Z",
+  "ranAt": "2026-10-06T23:00:44.149Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -9,9 +9,9 @@
     "768x1024",
     "1440x900"
   ],
-  "states": 79,
+  "states": 92,
   "fail": 0,
-  "elapsedSec": 464.1,
+  "elapsedSec": 515.4,
   "results": [
     {
       "state": "index.320x640.png",
@@ -224,6 +224,66 @@
     },
     {
       "state": "me.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1
@@ -488,7 +548,8 @@
       "state": "album.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "toastsRemoved": 1
     },
     {
       "state": "story.seed.390x844.png",
@@ -504,25 +565,43 @@
       "toastsRemoved": 1
     },
     {
+      "state": "expense.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "trip.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "me.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 988,
+      "lcpMs": 1088,
       "lcpSamples": [
-        1644,
-        896,
-        988
+        1372,
+        1088,
+        1068
       ],
-      "lcpEl": "H1",
+      "lcpEl": "A",
       "cls": 0
     },
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 868,
+      "lcpMs": 1364,
       "lcpSamples": [
-        872,
-        868,
-        564
+        1364,
+        652,
+        1748
       ],
       "lcpEl": "?",
       "cls": 0.0009

@@ -4362,5 +4362,352 @@ const EMOJI_MARK = 'emoji-ok:';
 
 
 
+/* ============ §38 记账与行程入口解耦闸门（批次 24） ============
+   这一批的立论不是「加个功能」而是「功能有，入口太窄」：排期／打卡／开销／清单／票原先只活在
+   规划结果页尾部，不进规划页的人等于没有这五样。所以本节钉的是**入口拓扑与口径唯一性**：
+     ① 实际口径（logStart／realDays）的写入口只有 trip.html 那一个 patchTrip，其余文件只许读——
+        第二处写入口就是第二套「实际走了几天」，两边迟早不一致，而界面上零提示；
+     ② 入口只加不减：planner 结果页 12 颗按钮一颗不许少（白名单反查缺失＋数量对账），
+        本批加的只有 #tripHomeSlot 那一行；
+     ③ 表单单份：金额／分类／日期只有 expense-form.js 一份实现，三个宿主共用（漂的第一天就是
+        「页面上六个分类、面板里五个」）；分类名单只许出自 Expense.CATS；
+     ④ 四条分支各就各位：列表态／单趟态／认不出的 id／free 桶——且**绝不拿 URL 上的 id 建桶**；
+     ⑤ 常驻读数：me.html 两张卡是纯读数，合计走 yearCents（跨桶；反推不出日期的不进任何年份），
+        分类只能自己按 byDate 的分组筛年——catTotals 不分年，用了就是把往年的账算进今年；
+        桶列表要并上 Expense.tripIds()（行程删了，那批孤儿账合计还认、分类不能看不见它）；
+     ⑥ 一条已入库的真缺陷要钉住：--fs-11 全站未定义，CSS 变量解析失败后静默退化成继承的 16px，
+        而 44px 触控高度与横向溢出两类判据都量不到字号（浏览器侧由 smoke-trip T45／T52 断 ≥20px）。
+   口径同 §21/§31/§36/§37：四元组守卫、期望 0 一律配正向对照、.js/.css 视图剥块注释、
+   .html 视图只归一空白不剥注释（所以锚点串一律写成归一后的整串）。
+   ============================================================ */
+{
+  let bad38 = 0;
+  const F38 = m => { bad38++; console.log('FAIL §38 记账与行程入口解耦闸门: ' + m); };
+  const ws38 = s => s.replace(/\s+/g, ' ').trim();
+  const flat38 = s => ws38(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt38 = (s, n) => s.split(n).length - 1;
+  const rd38 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view38 = f => /\.html$/.test(f) ? ws38(rd38(f)) : flat38(rd38(f));
+  const fnBody38 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+  /* 归一后的 HTML 里，一枚元素的开标签＝从它的 id="…" 到下一个 '>' 为止 */
+  const tag38 = (src, idv) => {
+    const a = src.indexOf('id="' + idv + '"');
+    if (a < 0) return null;
+    const gt = src.indexOf('>', a);
+    return gt < 0 ? null : src.slice(a, gt);
+  };
+
+  const FILES38 = ['trip.html', 'me.html', 'expense.html', 'expense.js', 'expense-form.js',
+    'planner.js', 'planner.html', 'travel-notes.js', 'design.css',
+    'tools/smoke-trip.js', 'tools/smoke-expense.js', 'README.md'];
+  const V38 = {};
+  FILES38.forEach(f => {
+    if (!fs.existsSync(f)) { F38('缺 ' + f); V38[f] = ''; return; }
+    V38[f] = view38(f);
+  });
+  /* 产品文件（文档与判据不算进出处族计数：把说明文字算进去，下一句文档就顶红一条假警报） */
+  const CODE38 = FILES38.filter(f => f !== 'README.md' && f.indexOf('tools/') !== 0);
+
+  const A38 = [
+    /* ① 24-A 数据层：date 权威、free 桶、实际口径优先 */
+    ['expense.js', "var CATS = ['交通', '住宿', '餐饮', '门票', '购物', '其他'];", 1, '分类名单全站只此一份：第二份名单漂的第一天就是「页面上六个分类、面板里五个」'],
+    ['expense.js', "var FREE_ID = 'free';", 1, '「未编排行程」桶的 id 只在这一处定义，各处一律走 Expense.FREE_ID'],
+    ['expense.js', "var FREE_NAME = '未编排行程';", 1, '同上：桶名是给用户看的字，散写三处就会有三张不同措辞的空态'],
+    ['expense.js', 'if (!tripId) return null;', 1, '「没有 tripId 就不落账」这条不许被兜底改掉——free 桶的唯一豁免口是调用方显式传 FREE_ID，不是这里偷偷填一个'],
+    ['expense.js', 'function tripIds() {', 1, '账本里出现过的全部 tripId（含孤儿账）：跨桶视图按它建桶，行程一删，合计还认这笔钱、分类不能看不见它'],
+    ['expense.js', 'yearCents: yearCents, tripIds: tripIds,', 1, '两个跨桶读数都在导出串上：漏一个导出页面就调不到，只有运行时才红'],
+    ['expense.js', 'var d = effDate(x, t && (t.logStart || t.startDate));', 1, 'yearCents 按**实际口径**筛年：排期只是参考时，钱要跟着真实那一天走'],
+    ['expense.js', 'if (d.slice(0, 4) === y) { c += centsOf(x); n++; }', 1, '反推不出日期的条目不进任何年份——宁可少算（看得见），也别把去年的账算进今年（对账时才发现）'],
+    ['expense.js', 'var s = isoOf(tr.logStart) || isoOf(tr.startDate); if (!s) return;', 1, 'activeTripOf 同样是实际优先、判不出就不猜：猜错行程等于把钱记到另一趟头上'],
+    ['expense.js', 'var n = Math.max(Math.round(Number(tr.realDays)) || 0, (tr.days || []).length);', 1, '进行中窗口取实际与计划的较大者：多走的那几天仍在路上，不能因为超出计划就把这趟判成走完'],
+    ['expense.js', 'copy.date = d; out.push(copy); filled++;', 1, 'migrate 只改副本（纯内存、不落盘）：替用户写一个他没记过的日期进账本，是对账时最坏的一种'],
+    /* ② 24-C 表单单份实现 */
+    ['expense-form.js', 'function render(root, cfg) {', 1, '「记一笔」表单的唯一实现：金额／分类／日期各写一套就是两套口径'],
+    ['expense-form.js', 'Expense.CATS.map', 1, '分类只从 Expense.CATS 现取，表单里不许钉一份自己的'],
+    ['expense-form.js', 'if (info.id === Expense.FREE_ID) {', 1, 'free 桶那一档必须说真话（「没有行程也能记」），不能套用行程口径的提示'],
+    ['expense-form.js', '.x-form .chip{min-height:44px', 1, '分类是行中要点的东西：44px 是本项目的触控口径，不是设计偏好'],
+    ['expense-form.js', '.x-form .x-btn{min-height:44px', 1, '同上，取消／记上两枚'],
+    ['expense.html', "var form = ExpenseForm.render($('adForm'), {", 1, '宿主一：记账主页底部的「记一笔」弹层'],
+    ['trip.html', "var form = ExpenseForm.render($('adForm'), {", 1, '宿主二：行程主页的「记一笔」（行中入口，同一份表单）'],
+    ['travel-notes.js', "expForm = ExpenseForm.render($X(ui.panel, '#tnExpForm'), {", 1, '宿主三：随手记面板的「记开销」档——§36 明令本文件不许出现 UI.sheet(，所以这一档是内嵌表单而不是再叠一层弹层'],
+    ['travel-notes.js', 'function expOn() { return !!(window.Expense && window.ExpenseForm); }', 1, '门控：没载这两个模块的页面（旧壳／纯预览页／专题页）整条分段控件不出现，而不是点下去报错'],
+    ['travel-notes.js', 'start: Expense.isoOf(t.logStart) || Expense.isoOf(t.startDate),', 1, '面板侧选桶也走实际口径（读，不写）'],
+    /* ③ 24-D trip.html：实际口径的唯一写入口 */
+    ['trip.html', 'function patchTrip(fn) {', 1, 'logStart／realDays 的**唯一写入口**：按 id 找到那一条、只改那一个字段、整表回写'],
+    ['trip.html', 'for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === tripId) { hit = list[i]; break; }', 1, '整串：只认 id 相等的那一条，不认「第一条」也不认下标'],
+    ['trip.html', "if (!hit) { UI.toast('这趟行程在本机找不到，改动没存上'); return false; }", 1, '找不到就说一句真话并退回，绝不顺手建一个桶——孤儿桶会无界攒在 localStorage 里'],
+    ['trip.html', 'if (v) t.logStart = v; else delete t.logStart;', 1, '清空＝**删键**回到计划口径；留一个空串会让「实际出发日」在界面上变成一个说不清的状态'],
+    ['trip.html', 'if (v) t.realDays = v; else delete t.realDays;', 1, '同上；留一个 0 会让「实际 0 天」直接上屏'],
+    ['trip.html', "if (document.activeElement !== $('tRealStart')) $('tRealStart').value = rs || '';", 1, '输入框正在编辑时不回写：change 到达时焦点还在框上，回写会把用户刚敲的数按自己的口径重排'],
+    ['trip.html', "if (document.activeElement !== $('tRealDays')) $('tRealDays').value = trip.realDays || '';", 1, '同上，实际天数那一格'],
+    ['trip.html', 'function realStart(t) { return Expense.isoOf(t && t.logStart); }', 1, '计划与实际两个口径分开取，谁也不冒充谁：这一页全部读数都从这两个函数出发'],
+    ['trip.html', 'function startOf(t) { return realStart(t) || planStart(t); }', 1, '需要「一个出发日」的地方一律实际优先'],
+    ['trip.html', 'return isFinite(n) && n > 0 ? n : planDays(t);', 1, '实际天数留空就回落计划天数——留空是合法状态，不是 0'],
+    /* ④ 24-D trip.html：四条分支 */
+    ['trip.html', 'function render() { if (trip) renderTrip(); else renderPick(); }', 1, '两态枢纽只有一处分叉：多出第二条 render 路径就是两态各自漂'],
+    ['trip.html', "$('pickCard').style.display = list.length ? 'block' : 'none';", 1, '零行程时收起空选择器卡（本批自查抓到的真缺陷：空选择器与空态同时 block，页顶露出一张空卡）'],
+    ['trip.html', "$('tEmpty').style.display = list.length ? 'none' : 'block';", 1, '同一条判定的另一半：两个 display 必须共用 list.length，各写一个条件就会同时出现'],
+    ['trip.html', '不排期，直接记一笔 →', 1, '空态指路必须指着真能点到的地方（planner.html:147 那条老教训）'],
+    ['trip.html', '没排过期也能记账：', 1, '列表态的豁免口：不用排期功能的人也要有一条路进账本'],
+    ['trip.html', 'function showUnknown() {', 1, 'URL 上认不出的 id 有专门的收尾态，而不是静默停在列表态让人以为链接坏了'],
+    ['trip.html', 'if (!t) { showUnknown(); return; }', 1, 'open() 的第一道闸：认不出就退回，绝不往下走到「赋值 + 建桶」'],
+    ['trip.html', "if (q === Expense.FREE_ID) { location.replace('expense.html?trip=' + Expense.FREE_ID); }", 1, 'free 桶不是行程、没有主页可言：直接转送记账页，不在这里造一个空壳 trip 对象'],
+    /* ⑤ 24-D trip.html：票卡异步与红线 */
+    ['trip.html', 'var tid = tripId;', 1, '先捕获当时的 id：IndexedDB 回来时用户可能已经换了另一趟'],
+    ['trip.html', 'if (tripId !== tid) return;', 1, '守卫必须比这个快照，写成 if (tripId !== (trip && trip.id)) return; 是**恒等式**（守卫等于没有），而这类失效守卫在单机上永远看不出来'],
+    ['trip.html', "$('tTbN').textContent = '…'; $('tTbD').textContent = '';", 1, '先置空再异步填：上一趟的读数留在屏上，比短暂少一个数更容易骗人'],
+    ['trip.html', 'if (window.TicketBox && TicketBox.nudge) TicketBox.nudge(tripId);', 1, '提醒只走 24 小时页内横幅（批次 17 的红线：这一族一律不碰系统通知）'],
+    /* ⑥ 24-D trip.html：aria-live 的显式豁免（全站唯一一枚页面级活区） */
+    ['trip.html', '<div class="t-today" id="tToday" aria-live="polite"></div>', 1, '整串：豁免的前提是它守 §36 同一套时序——**空着进 DOM**、文案由 renderOverview 之后写；带字一次插入读屏就不播了'],
+    ['trip.html', 'aria-live', 1, '本页只此一枚活区；冒出第二枚就是要往 §36 的「全站唯一出处」族里再开一个口子'],
+    ['trip.html', "$('tToday').innerHTML = h;", 1, '写字只在这一处（先空后写的「后写」那一步）'],
+    /* ⑦ 24-D planner：只加不减 */
+    ['planner.html', '<div id="tripHomeSlot"></div>', 1, '结果页只多一个槽位，不在 HTML 里写死那一行（renderResult 才填）'],
+    ['planner.html', '<div class="act-row" id="actRow"></div>', 1, '12 颗按钮的宿主还在原地（下面白名单反查缺失）'],
+    ['planner.js', "var th = $id('tripHomeSlot');", 1, '入口行的填充点'],
+    ['planner.js', '这趟的主页：打卡 · 开销 · 出发前 · 我的票</a>', 1, '文案四项与 trip.html 那四张卡一一对应：少一项就是卡片改名了而入口还指着旧名字'],
+    ['planner.js', "var qTrip = new URLSearchParams(location.search).get('trip');", 1, '?trip=<id> 直达结果页：trip.html 顶栏那颗圆钮回来时要落回同一趟，否则用户看到的是空白规划态'],
+    ['planner.js', 'if (at >= 0) window.plannerOpenTrip(at);', 1, '直达走产品自己的入口（不是另写一套恢复逻辑）'],
+    ['planner.js', "else toast('本机没有这趟行程（可能已删除，或换了一台机）');", 1, '认不出只 toast 一句真话，同样绝不建桶'],
+    /* ⑧ 24-E me.html：两张常驻读数卡 */
+    ['me.html', '<div class="panel"><div class="ph">我的行程</div><div id="meTrips"></div></div>', 1, '整串：行程在「我的」这一层常驻（此前只活在规划结果页尾部，不进规划页的人等于没有这个功能）'],
+    ['me.html', '<div class="msum"><b id="meYearSum">0.00</b><i>元</i><span class="mcnt" id="meYearCnt"></span></div>', 1, '整串：今年合计是主角数字，笔数是它的注脚'],
+    ['me.html', '<a class="mbtn" href="expense.html">打开记账本</a>', 1, '卡片是纯读数，点击一律跳到**能改**的那一页'],
+    ['me.html', '<script src="expense.js"></script>', 1, '账本模块在位（少一个 script 这页只会印空读数，而且不报错）'],
+    ['me.html', '<script src="checklist.js"></script>', 1, '清单统计在位（行程行那格「清单 d/t」的读者）'],
+    ['me.html', '<script src="ticketbox.js"></script>', 1, '票据库在位（行程行那格「票 N 张」的读者）'],
+    ['me.html', 'Expense.yearCents(year, function(id){ return byId[id] || null; })', 1, '合计走 yearCents：跨桶、按实际口径筛年、反推不出日期的不进任何年份'],
+    ['me.html', 'Expense.tripIds()', 1, '桶列表要并上账本里出现过的 tripId，否则行程全删光后合计还在、分类一片空白（截图人审抓到的就是这个）'],
+    ['me.html', "if (!seen[Expense.FREE_ID]) buckets.push({ id: Expense.FREE_ID, start: '' });", 1, 'free 桶补位必须去重：tripIds() 已经含 free，再无条件 push 一次就是把「未编排行程」算两遍（第一版实测餐饮 133.33 而非 83.33）'],
+    ['me.html', "s.setAttribute('data-tk', String(tk.length));", 1, '异步补票数的幂等旗子：me.html 在 TravelNotes._onReady 后会整体重画，两次回调落同一新节点，没有旗子就印两遍「票 2 张 · 票 2 张」'],
+    ['me.html', '<a class="mbtn pri" href="planner.html">去排一趟行程</a>', 1, '零行程空态第一条路（这一页是「不用排期的人」唯一的落脚点，空态不许留白板）'],
+    ['me.html', '不排行程，直接记一笔</a>', 1, '零行程空态第二条路：不排期也能记账，两件事各走各的门'],
+    ['me.html', 'if (window.Expense) { renderTrips(); renderYear(); }', 1, '两张卡的渲染挂在同一个门控后（模块没载就整块不画，而不是画两张 0.00 的空卡）'],
+    ['me.html', '-webkit-line-clamp:2', 1, '行程行小字两行夹断：单行 ellipsis 会把「打卡 d/t · 清单 d/t · 票 N 张」整截吃掉（截图人审抓到的第二处）'],
+    ['me.html', '.msum b{font-family:var(--font-serif);font-size:var(--fs-10)', 1, '主角数字用已核定的顶档 --fs-10（1.5rem；≤360 那档降到 1.25rem＝20px，正是 T45／T52 断 ≥20px 的下界来源）'],
+    ['me.html', '.mbtn{display:flex', 1, '空态两枚按钮的 44px 触控口径挂在这一族上'],
+    /* ⑨ 24-B expense.html：按真实日期看账 */
+    ['expense.html', 'Expense.byDate(tripId, start)', 1, '账单主体按真实日期分组，与 trip.days 的长度无关（计划 3 天实际走 5 天，第 4、5 天照样成组）'],
+    ['expense.html', '<script src="expense-form.js"></script>', 1, '记账页载的是那一份表单实现'],
+    ['trip.html', '<script src="expense-form.js"></script>', 1, '行程页同样（两页各写一份表单＝两套分类名单的开始）'],
+    /* ⑩ 字号阶梯：顶档核定与真机档 */
+    ['design.css', '--fs-10:1.5rem', 1, '顶档定义在案：主角数字只能引这一档'],
+    ['design.css', ':root{--fs-8:1rem;--fs-9:1.125rem;--fs-10:1.25rem;', 1, '≤360 真机档把顶档降到 20px（328 落的就是这一档），所以浏览器侧的下界断言写 ≥20px 而不是 ≥24px'],
+    /* ⑪ 判据在场：字号这条腿只能从浏览器侧断 */
+    ['tools/smoke-trip.js', "ok('T45 ", 1, '「今年合计」的计算字号 ≥20px：源码扫描抓不到页内 <style> 里的 var(--*)（§21 的阶梯闸门只核 design.css 那一份定义集）'],
+    ['tools/smoke-trip.js', "ok('T52 ", 1, '三处主角数字（#tPlanN／.t-money b／.x-year b）的字号回归网：--fs-11 那次就是 38 条绿灯全过而数字实际不大'],
+    ['tools/smoke-trip.js', "{ width: 328, height: 723 }", 2, '真机主档取样两页（trip.html 与 me.html）：328×723 是一加 Ace 6T 实测 CSS 视口，不带它「真机档已验证」验的是一台不存在的手机'],
+  ];
+  A38.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F38('A38 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V38)) { F38('A38 登记了 §38 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt38(V38[file], needle);
+    if (got !== want) F38(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A38.length < 65) F38('锚点表被削减：' + A38.length + ' 条（批次 24 落地时实测 77 条，阈值取 65——整组删掉就等于这节没了）');
+
+  /* ⑫ 入口只加不减：12 颗按钮白名单**反查缺失** + 数量对账
+     只数数量抓不到「删一颗加一颗」，只查白名单抓不到「同一颗写两遍挤掉别的」，两条一起才算数。 */
+  const ACT38 = ['plannerStartTrip', 'plannerSaveTrip', 'plannerAddAllWish', 'plannerCopyPlan',
+    'plannerShare', 'plannerExportGPX', 'plannerExportIcs', 'plannerBuildBook',
+    'plannerBuildAlbum', 'plannerReschedule', 'plannerEditPick', 'plannerOpenFootprint'];
+  const RB38 = fnBody38(V38['planner.js'], 'function renderResult() {');
+  if (!RB38) F38('抽不出 planner.renderResult 函数体（12 颗按钮的白名单失去宿主，本节最重的一条断言没跑）');
+  else {
+    const miss38 = ACT38.filter(n => cnt38(RB38, 'window.' + n + '(') < 1);
+    if (miss38.length) F38('planner 结果页 #actRow 少了 ' + miss38.length + ' 颗按钮：' + miss38.join(' / ') + '（本批的立论是「入口只加不减」：加的是 #tripHomeSlot 那一行，删一颗老按钮就是拿新入口换旧入口，用户已经长在手上的肌肉记忆当场断掉）');
+    const n38 = cnt38(RB38, 'window.planner');
+    if (n38 !== 12) F38('renderResult 体内 window.planner* 调用不是 12 处而是 ' + n38 + '：白名单只反查缺失，数量变了（同一颗写两遍、或换了一颗名字）它抓不到');
+    if (cnt38(RB38, "$id('actRow').innerHTML =") !== 1) F38('renderResult 体内 #actRow 的赋值不是恰 1 处：按钮行分叉成两处填充，白名单只能看到其中一处');
+    if (cnt38(RB38, "trip.html?trip=") !== 1) F38('renderResult 体内 trip.html?trip= 不是恰 1 处：行程主页入口重复或缺失（这一行是本批唯一新增的入口）');
+  }
+
+  /* ⑬ 写入口唯一：logStart／realDays 只有 trip.html 那一个 patchTrip 会写，其余产品文件只许读 */
+  const WR38 = ['t.logStart = v', 't.realDays = v', 'delete t.logStart', 'delete t.realDays'];
+  WR38.forEach(n => { if (cnt38(V38['trip.html'], n) !== 1) F38('trip.html 里「' + n + '」不是恰 1 处：实际口径的写入口分叉了'); });
+  CODE38.forEach(f => {
+    if (f === 'trip.html') return;
+    ['logStart =', 'logStart=', 'realDays =', 'realDays='].forEach(n => {
+      if (cnt38(V38[f], n) !== 0) F38(f + ' 里出现「' + n + '」：logStart／realDays 的写入口只许 trip.html 那一个 patchTrip——第二处写入口就是第二套「实际出发日／实走天数」，两边迟早不一致，而界面上零提示（读法一律是 isoOf(t.logStart) 这种取值形，不带等号）');
+    });
+  });
+  if (cnt38(flat38('t.logStart = v;'), 'logStart =') < 1) F38('写入口唯一那条期望 0 的正向对照失效了（上面那些 0 不是证据）');
+  /* patchTrip 体内三步顺序：先判找不到 → 再改那一个字段 → 最后整表回写（顺序倒了就是「先写盘后发现没这条」） */
+  const PB38 = fnBody38(V38['trip.html'], 'function patchTrip(fn) {');
+  if (!PB38) F38('抽不出 trip.html 的 patchTrip 函数体');
+  else {
+    const i1 = PB38.indexOf("if (!hit) { UI.toast("), i2 = PB38.indexOf('fn(hit);'), i3 = PB38.indexOf('writeTrips(list)');
+    if (i1 < 0 || i2 < 0 || i3 < 0) F38('patchTrip 三步（找不到就退／改那一个字段／整表回写）有缺件，顺序断言已失去意义');
+    else if (!(i1 < i2 && i2 < i3)) F38('patchTrip 三步顺序不是「判定 → 改字段 → 回写」：先回写再判定就是把一条不存在的行程写进 tn_trips（孤儿桶的成因）');
+    const BADP = flat38('function patchTrip(fn) { var list = readTrips(), hit = null; fn(hit); writeTrips(list); if (!hit) { UI.toast("x"); return false; } }');
+    if (BADP.indexOf('fn(hit);') > BADP.indexOf("if (!hit) { UI.toast(")) F38('patchTrip 顺序断言的反向对照失效（合成的「先改再判」源码没被抓到）');
+    const GOODP = flat38('function patchTrip(fn) { if (!hit) { UI.toast("x"); return false; } fn(hit); if (!writeTrips(list)) return false; }');
+    if (!(GOODP.indexOf("if (!hit) { UI.toast(") < GOODP.indexOf('fn(hit);'))) F38('patchTrip 顺序断言的正向对照失效：合成正确源也被打红，这条锚会不分对错一直红');
+  }
+
+  /* ⑭ 灵魂：认不出的 id 绝不建桶——showUnknown 的判定必须早于「赋值 tripId／trip」 */
+  const OB38 = fnBody38(V38['trip.html'], 'function open(id) {');
+  if (!OB38) F38('抽不出 trip.html 的 open(id) 函数体');
+  else {
+    const ig = OB38.indexOf('if (!t) { showUnknown(); return; }'), ia = OB38.indexOf('tripId = t.id; trip = t;');
+    if (ig < 0) F38('open() 里没有「认不出就走 showUnknown」这道闸：URL 上随便一个 id 都能落到赋值那一步');
+    if (ia < 0) F38('open() 里没有 tripId／trip 的赋值（本节顺序断言失去依据，页面也根本进不了单趟态）');
+    else if (ig >= 0 && !(ig < ia)) F38('open() 的守卫没有排在赋值之前：认不出的 id 会先把 trip 置成 null 再走单趟态渲染，或者干脆拿 undefined 建桶——孤儿桶就是这么攒出来的');
+    const BADO = flat38('function open(id) { var t = findTrip(id); tripId = t.id; trip = t; if (!t) { showUnknown(); return; } render(); }');
+    if (BADO.indexOf('if (!t) { showUnknown(); return; }') < BADO.indexOf('tripId = t.id; trip = t;')) F38('open 顺序断言的反向对照失效（合成的「先赋值再判」源码居然满足主判据，这条锚分不出对错）');
+    const GOODO = flat38('function open(id) { var t = findTrip(id); if (!t) { showUnknown(); return; } tripId = t.id; trip = t; render(); }');
+    if (!(GOODO.indexOf('if (!t) { showUnknown(); return; }') < GOODO.indexOf('tripId = t.id; trip = t;'))) F38('open 顺序断言的正向对照失效：合成正确源也被打红');
+  }
+
+  /* ⑮ 灵魂：票卡的异步守卫要比**快照**，且快照要在发起之前捕获 */
+  const TB38 = fnBody38(V38['trip.html'], 'function renderTickets() {');
+  if (!TB38) F38('抽不出 trip.html 的 renderTickets 函数体');
+  else {
+    const ic = TB38.indexOf('var tid = tripId;'), il = TB38.indexOf('TicketBox.list(tid)'), ig = TB38.indexOf('if (tripId !== tid) return;');
+    if (ic < 0) F38('renderTickets 没有先捕获 id 快照：IndexedDB 是异步的，回来时用户可能已经换了另一趟');
+    if (il < 0) F38('renderTickets 没有按快照取票（发起时用的 id 与守卫比的 id 不是同一个，守卫就成了摆设）');
+    if (ig < 0) F38('renderTickets 没有换趟守卫：上一趟的票数会印在这一趟的卡上（单机上永远看不出来，因为不会有人在你测量时点另一趟）');
+    else if (ic >= 0 && !(ic < ig)) F38('守卫用的 tid 不是在发起之前捕获的：比的是同一时刻的两个副本，恒等式，等于没有守卫');
+    const BADT = flat38('function renderTickets() { TicketBox.list(tripId).then(function (rows) { if (tripId !== (trip && trip.id)) return; draw(rows); }); }');
+    if (BADT.indexOf('var tid = tripId;') >= 0 || BADT.indexOf('if (tripId !== tid) return;') >= 0) F38('票卡守卫的反向对照 1 失效：合成的恒等式守卫（比 trip.id）里居然含有正确写法的两件');
+    const BADT2 = flat38('function renderTickets() { TicketBox.list(tripId).then(function (rows) { if (tripId !== tid) return; var tid = tripId; draw(rows); }); }');
+    if (BADT2.indexOf('var tid = tripId;') < BADT2.indexOf('if (tripId !== tid) return;')) F38('票卡守卫的反向对照 2 失效：合成的「快照晚于守卫」源码居然满足主判据（那样比的就是同一时刻的两个副本＝恒等式）');
+    const GOODT = flat38('function renderTickets() { var tid = tripId; TicketBox.list(tid).then(function (rows) { if (tripId !== tid) return; draw(rows); }); }');
+    if (!(GOODT.indexOf('var tid = tripId;') < GOODT.indexOf('if (tripId !== tid) return;'))) F38('票卡守卫的正向对照失效：合成正确源也被打红');
+  }
+
+  /* ⑯ 灵魂：me.html 的分类桶要**先并集再筛年**（顺序倒了，孤儿账的合计与分类就各说一套） */
+  const RY38 = fnBody38(V38['me.html'], 'function renderYear(){');
+  if (!RY38) F38('抽不出 me.html 的 renderYear 函数体');
+  else {
+    const ih = RY38.indexOf('Expense.yearCents('), iu = RY38.indexOf('Expense.tripIds()'), ib = RY38.indexOf('Expense.byDate('), iy = RY38.indexOf("g.date.slice(0, 4) !== year");
+    if (ih < 0) F38('renderYear 不再调 yearCents：合计要么退回逐桶相加（漏掉孤儿账），要么退回 catTotals（不分年）');
+    if (iu < 0) F38('renderYear 不再调 tripIds()：桶列表只剩 tn_trips 里活着的那几趟，行程一删，合计还认这笔钱、分类却看不见它');
+    if (ib < 0) F38('renderYear 不再按 byDate 分组筛年：分类前二没有年份维度，往年的账会算进今年');
+    if (iy < 0) F38('renderYear 的分组没有按年过滤（byDate 是全量分组，不筛年就是把这趟历年所有账都算成今年）');
+    else if (iu >= 0 && ib >= 0 && !(iu < ib)) F38('renderYear 的桶并集没有排在 byDate 之前：先按活着的行程分组再补桶，孤儿账那一批已经漏掉了');
+    const BADY = flat38('function renderYear(){ Expense.byDate(a, b).forEach(f); Expense.tripIds().forEach(g); }');
+    if (BADY.indexOf('Expense.tripIds()') < BADY.indexOf('Expense.byDate(')) F38('renderYear 顺序断言的反向对照失效（合成的「先分组后并集」源码居然满足主判据，这条锚分不出对错）');
+    const GOODY = flat38('function renderYear(){ Expense.tripIds().forEach(function(id){ buckets.push(id); }); buckets.forEach(function(b){ Expense.byDate(b.id, b.start).forEach(f); }); }');
+    if (!(GOODY.indexOf('Expense.tripIds()') < GOODY.indexOf('Expense.byDate('))) F38('renderYear 顺序断言的正向对照失效：合成正确源也被打红');
+  }
+
+  /* ⑰ trip.html 的页面级 aria-live 是全站唯一豁免：豁免的凭据是「空着进 DOM」，两面都要对账 */
+  {
+    const emptyLive38 = s => /id="tToday" aria-live="polite"><\/div>/.test(s);
+    if (!emptyLive38(V38['trip.html'])) F38('#tToday 不是空着进 DOM 的：页面级活区唯一的豁免凭据就是它守 §36 那套「先空后写」时序，带字一次插入读屏根本不播');
+    if (emptyLive38(ws38('<div class="t-today" id="tToday" aria-live="polite">今天是第 1 天</div>')))
+      F38('aria-live 豁免判据的反向对照失效：合成的「带字一次插入」源码也被当成空着进 DOM');
+    if (!emptyLive38(ws38('<div class="t-today" id="tToday" aria-live="polite"></div>')))
+      F38('aria-live 豁免判据的正向对照失效：合成正确源也被打红');
+    const t38 = tag38(V38['trip.html'], 'tToday');
+    if (!t38) F38('trip.html 里找不到 id="tToday" 的开标签（分母失守：上面那条豁免登记可能只是元素被改名了）');
+    /* 与 §36 的「aria-live 全站唯一出处」族互斥对账：两节不许对同一枚活区各说一套 */
+    const SELF38 = flat38(rd38(__filename));
+    const m36 = SELF38.match(/const FILES36 = \[[^\]]*\]/);
+    if (!m36) F38('抽不出 §36 的 FILES36 名单：trip.html 那枚 aria-live 的豁免与 §36「全站唯一出处」族必须互斥，抽不出就没法对账（豁免会变成两节互相打红）');
+    else if (/'trip\.html'/.test(m36[0])) F38('§36 的 FILES36 里出现了 trip.html：那一枚页面级 aria-live 是登记在本节的豁免（空着进 DOM、文案后写），扫进 §36 的期望 0 族就是两节各说一套、彼此打红');
+  }
+
+  /* ⑱ 期望 0：改前形态与已推翻的写法不许回潮。
+     ctrl 一律写成**坏写法的那段源码形状**（不是把 needle 拼回一个串）——后者只证明 flat38 没把
+     字符串吃掉，是恒真判据；前者才证明「真有人写回旧写法，这条会说话」。口径同 §34/§36/§37。 */
+  const ZERO38 = [
+    ['me.html', 'Expense.catTotals(',
+      'var cats = Expense.catTotals(tripId);',
+      'catTotals **不分年**：直接拿它印「今年已花」的分类，往年的账会算进今年，而合计走 yearCents 是按年的——同一张卡上两个数就此对不上（分类只能自己按 byDate 的分组筛年）'],
+    ['trip.html', 'if (tripId !== (trip && trip.id)) return;',
+      'TicketBox.list(tripId).then(function (rows) { if (tripId !== (trip && trip.id)) return; });',
+      '恒等式守卫：trip 与 tripId 是同一份状态，这个比较永远为假，等于没有守卫——期间换了趟照样把上一趟的票数印上来'],
+    ['trip.html', 't.logStart = t.logStart || t.startDate',
+      'patchTrip(function (t) { t.logStart = t.logStart || t.startDate; });',
+      '把计划日期写进实际口径＝让「实际」永远等于「计划」，双读数就此失去意义（本批的立论恰恰是两者常常完全不同）'],
+    ['expense.js', 'localStorage.setItem(KEY, JSON.stringify(migrate(',
+      'function load() { var l = raw(); localStorage.setItem(KEY, JSON.stringify(migrate(l, start).list)); return l; }',
+      'migrate 只许在**读取时**反推、绝不落盘：替用户写一个他没记过的日期进账本，是对账时发现「这笔我什么时候花的」最坏的一种'],
+    ['expense.js', 'copy.date = isoOf(x.ts)',
+      'copy.date = isoOf(x.ts) || effDate(x, start);',
+      'ts 是**记账动作**的时刻，不是花钱那天：拿它冒充日期，路上补记的旧账会全堆在「今天」'],
+    ['me.html', "setItem('tn_trips'",
+      "localStorage.setItem('tn_trips', JSON.stringify(list));",
+      '「我的」这两张卡是纯读数：读卡片的地方能写行程库，就意味着一次重画可能顺手改掉用户的行程'],
+    ['me.html', 'writeTrips',
+      'function writeTrips(list) { localStorage.setItem("tn_trips", JSON.stringify(list)); }',
+      '同上：写入口只有 trip.html 那一个 patchTrip'],
+    ['trip.html', 'new Notification',
+      'new Notification("下一张票快到了");',
+      '批次 17 的红线：「我的票」相关一律不许碰系统通知，提醒只走 24 小时页内横幅'],
+    ['trip.html', 'showNotification',
+      'TicketBox.showNotification(tripId);',
+      '同上（换 API 名也要红）'],
+    ['me.html', 'new Notification',
+      'new Notification("今年已花超预算");',
+      '同上：读数卡不做系统通知'],
+    ['design.css', '--fs-11',
+      ':root{--fs-11:1.75rem}',
+      '这一档全站未定义：有人真加了它，§21「只许降不许升」的阶梯口径当场失控；没加而页面又引用，就是静默退化成继承的 16px（24-B／24-D 入库过这个真缺陷，主角数字实际不大而 38 条判据全绿）'],
+  ];
+  ZERO38.forEach(a => {
+    /* 口径同 A38：少写一个字段（尤其是那串正向对照）会让解构错位，那个 0 就不再是证据。
+       哑掉必须出声。 */
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string') {
+      F38('ZERO38 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (cnt38(V38[f], needle) !== 0) F38(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt38(flat38(ctrl), needle) < 1) F38('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+  /* 未定义令牌族：所有产品文件都不许引用 --fs-11（上面那条钉的是「不许新增这一档」，这条钉的是「不许引用它」） */
+  CODE38.forEach(f => {
+    if (cnt38(V38[f], 'var(--fs-11)') !== 0) F38(f + ' 里引用了 var(--fs-11)：全站没有这一档，CSS 变量解析失败后**静默**按继承值走（16px），页面上看是「数字不够大」而不是「坏了」，44px 触控高度与横向溢出两类判据都量不到它');
+  });
+  if (cnt38(flat38('b{font-size:var(--fs-11)}'), 'var(--fs-11)') < 1) F38('--fs-11 引用族那条期望 0 的正向对照失效了');
+  /* 分类名单唯一出处：只有 expense.js 许写死那六个名字 */
+  CODE38.forEach(f => {
+    if (f === 'expense.js') return;
+    if (cnt38(V38[f], "'交通', '住宿'") !== 0) F38(f + ' 里私写了一份分类名单：分类只许从 Expense.CATS 现取（表单、条形、CSV、桶都读同一份）');
+  });
+  if (cnt38(flat38("var C = ['交通', '住宿'];"), "'交通', '住宿'") < 1) F38('分类名单唯一出处那条期望 0 的正向对照失效了');
+
+  /* ⑲ 浏览器腿齐备检：T01–T54 一条不许少（编号连续，少一条就是有个症状没人管） */
+  {
+    const pad38 = i => 'T' + (i < 10 ? '0' + i : '' + i);
+    for (let i = 1; i <= 54; i++) {
+      if (V38['tools/smoke-trip.js'].indexOf("ok('" + pad38(i) + ' ') < 0)
+        F38('tools/smoke-trip.js 缺 ' + pad38(i) + ' 这条判据（行程主页两态／实际口径落盘／四分支「今天走了哪」／planner 12 颗按钮／me.html 两张卡是一整组）');
+    }
+    const nT38 = cnt38(V38['tools/smoke-trip.js'], "ok('T");
+    if (nT38 !== 54) F38('tools/smoke-trip.js 的判据条数不是 54：' + nT38 + ' 条（24-D 落地 38 条＋24-E 扩到 54 条＝T01–T54；整组削减等于把这节拆了，编号有空洞上面那条会先红）');
+    const nE38 = cnt38(V38['tools/smoke-expense.js'], "ok('");
+    if (nE38 < 121) F38('tools/smoke-expense.js 的判据条数掉到 ' + nE38 + '（24-B／24-C 落地时实测 121 条；只设下界不设等号：这一套还会继续长，但一条都不许悄悄消失）');
+    if (V38['tools/smoke-trip.js'].indexOf('indexedDB.deleteDatabase') < 0 && V38['tools/smoke-trip.js'].indexOf('freshPage') < 0)
+      F38('tools/smoke-trip.js 既没有 freshPage 也没有清库：票与账的夹具会跨轮残留，「读到才补票」那条判据就成了恒真');
+  }
+
+  if (V38['README.md'].indexOf('§38') < 0) F38('README.md 的 verify 清单没提 §38（新闸门不写进 README 就等于没装）');
+
+  console.log('记账与行程入口解耦闸门: ' + A38.length + ' 条代码锚点（按文件：expense.js 11 条数据层＝CATS／FREE_ID／FREE_NAME／「没有 tripId 就不落账」／tripIds 与导出／yearCents 的实际口径与筛年／activeTripOf 两条／migrate 只改副本；expense-form.js 5 条＝render 单点、分类只从 CATS 现取、free 那一档说真话、两枚 44px；三个宿主各恰 1（expense.html／trip.html／travel-notes.js）＋面板门控与选桶口径；trip.html 27 条＝实际口径写入口 10（patchTrip 单点、按 id 找那一条、找不到就说真话、清空＝删键两处、编辑中不回写两处、两个口径分开取、留空回落计划）＋四分支 8（两态枢纽、空选择器与空态共用 list.length 互斥、两条豁免口、showUnknown、open 的闸、free 桶转送）＋票卡与红线 4（id 快照、比快照的守卫、先置空再异步填、只走页内横幅）＋aria-live 豁免 3（整串空标签、恰一枚、写字一处）＋表单宿主与 script 2；planner.html 2＋planner.js 5＝入口只加不减；me.html 16 条两张常驻卡；design.css 2 条字号顶档与 ≤360 档；smoke-trip 3 条判据在场）+ 12 颗按钮白名单**反查缺失**与数量对账（renderResult 体内 window.planner* 恰 12、#actRow 赋值恰 1、trip.html?trip= 恰 1——只数数量抓不到「删一颗加一颗」，只查白名单抓不到「同一颗写两遍」）+ 写入口唯一（logStart／realDays 四个写形各恰 1，其余产品文件四种等号形一律 0，配正向对照）+ 五组灵魂顺序断言（patchTrip 判定→改字段→回写、open 的守卫早于赋值、票卡快照早于守卫、renderYear 的桶并集早于 byDate 且分组按年过滤、#tToday 空着进 DOM）各配反向与正向合成源 + §36 FILES36 名单互斥对账（trip.html 不许被扫进「aria-live 全站唯一出处」族，否则两节彼此打红）+ 十一族期望 0（catTotals 不分年／恒等式守卫／把计划日期写进实际口径／migrate 落盘／ts 冒充日期／读数卡写行程库两处／系统通知三处／design.css 新增 --fs-11）与两族唯一出处（var(--fs-11) 全站 0、分类名单只出 expense.js）；每条期望 0 都配正向对照；浏览器腿 T01–T54 齐备检 + 条数守卫（54；smoke-expense 只设下界 121）；变异自测见 tools/out/mut-verify38.js');
+  fail += bad38;
+}
+
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

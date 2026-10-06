@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-06T03:08:01.678Z",
+  "generatedAt": "2026-10-06T22:42:15.235Z",
   "viewports": [
     "320x640",
     "390x844",
@@ -8,7 +8,7 @@
     "768x1024",
     "1440x900"
   ],
-  "count": 79,
+  "count": 92,
   "files": {
     "index.320x640.png": {
       "sha": "3efd3f8356970c9e",
@@ -31,8 +31,8 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "49903da4b57f65f4",
-      "bytes": 226143
+      "sha": "c9e46ab9169629da",
+      "bytes": 226183
     },
     "topic.390x844.png": {
       "sha": "d57827abfad5622d",
@@ -47,8 +47,8 @@
       "bytes": 330164
     },
     "topic.1440x900.png": {
-      "sha": "b69388d705249dc7",
-      "bytes": 722110
+      "sha": "62ccf2c584b18d3a",
+      "bytes": 722109
     },
     "search.320x640.png": {
       "sha": "7158f61a008c434f",
@@ -131,24 +131,64 @@
       "bytes": 963284
     },
     "me.320x640.png": {
-      "sha": "a375ee699c9a74fd",
-      "bytes": 383234
+      "sha": "58cb7939c9e763ed",
+      "bytes": 384410
     },
     "me.390x844.png": {
-      "sha": "8658401a7e88a5e3",
-      "bytes": 545975
+      "sha": "de811f5d97656fe0",
+      "bytes": 504626
     },
     "me.452x995.png": {
-      "sha": "2404e026287f818c",
-      "bytes": 650298
+      "sha": "219e4e97dc09f602",
+      "bytes": 616465
     },
     "me.768x1024.png": {
-      "sha": "afcf2a17add7aa2b",
-      "bytes": 1200741
+      "sha": "4aab0bbab8c0d981",
+      "bytes": 1174822
     },
     "me.1440x900.png": {
-      "sha": "4f389e07b5ce6752",
-      "bytes": 1152337
+      "sha": "a3d6e9b0398bccd0",
+      "bytes": 1145687
+    },
+    "trip.320x640.png": {
+      "sha": "2c275a85d4e930da",
+      "bytes": 403034
+    },
+    "trip.390x844.png": {
+      "sha": "a0d490623ed68003",
+      "bytes": 530468
+    },
+    "trip.452x995.png": {
+      "sha": "da9aa4c40d34274f",
+      "bytes": 631321
+    },
+    "trip.768x1024.png": {
+      "sha": "bcd9a04d932254b0",
+      "bytes": 655889
+    },
+    "trip.1440x900.png": {
+      "sha": "2a1add92bcfb0d24",
+      "bytes": 626932
+    },
+    "expense.320x640.png": {
+      "sha": "a014529ef04737ec",
+      "bytes": 271000
+    },
+    "expense.390x844.png": {
+      "sha": "d78681ff8c5661f1",
+      "bytes": 404921
+    },
+    "expense.452x995.png": {
+      "sha": "bfc3d01128ecd172",
+      "bytes": 490837
+    },
+    "expense.768x1024.png": {
+      "sha": "a24776bb83e9cf9f",
+      "bytes": 639001
+    },
+    "expense.1440x900.png": {
+      "sha": "6b43a8fcd0c0c0eb",
+      "bytes": 608401
     },
     "node-manager.320x640.png": {
       "sha": "552f52dabfd67244",
@@ -259,7 +299,7 @@
       "bytes": 516288
     },
     "md-manager.452x995.png": {
-      "sha": "911f5a77f415ac64",
+      "sha": "211c9b9449afe4ca",
       "bytes": 636014
     },
     "md-manager.768x1024.png": {
@@ -325,6 +365,18 @@
     "travel-map.seed.390x844.png": {
       "sha": "98e7930b30d04389",
       "bytes": 143523
+    },
+    "expense.ledger.390x844.png": {
+      "sha": "477f226f23b11b7a",
+      "bytes": 302041
+    },
+    "trip.ledger.390x844.png": {
+      "sha": "dcd10675ce9e860e",
+      "bytes": 299362
+    },
+    "me.ledger.390x844.png": {
+      "sha": "f1cd77fe6fa40740",
+      "bytes": 502600
     }
   }
 }

@@ -1,0 +1,26 @@
+# 批次 24-G · 出包 51 / 2.26.12（本机 win-a）
+
+日期：2026-10-07　授权范围：**只「打包」**（装机未授权，推送未授权）
+
+## 流水线逐腿读数
+
+| 腿 | 命令 | 读数 |
+| --- | --- | --- |
+| 0 壳侧 res 预检 | `node tools/out/probe-shell-res.js` | `扫描 20 个 xml，违规 0 处` → **EXIT=0** |
+| 1 同步 assets | `node tools/sync-assets.js` | `sync 目标: F:\MyAi\trace\lvyou-v2-android\app\src\main\assets` / `synced files: 3052`，7 个关键文件逐条 `OK（与源一致）`，EXIT=0 |
+| 2 升版本 | grep 实读 `app/build.gradle` | 改前 `versionCode 50` / `versionName '2.26.11'` → 改后 **51 / '2.26.12'** |
+| 3 gradle | `JAVA_HOME=D:/jdk/jdk-17.0.14+7` + `gradle-8.14.3/bin/gradle.bat assembleDebug --console=plain` | `BUILD SUCCESSFUL in 1m 46s`，`35 actionable tasks: 9 executed, 26 up-to-date`，`GRADLE_EXIT=0`（完整日志 `tools/out/b24g-gradle-51.txt`） |
+| 4 命名拷贝 | → `APK/行迹TRACE_v2.26.12_debug_win-a.apk` | 22,565,503 bytes（模板 `行迹TRACE_v<versionName>_<variant>_<machine>.apk`，见 `docs/APK产物命名与构建口径-2026-10-06.md`） |
+
+## 验包（全部 `unzip -p` 解条后读，不对 APK 原始字节做 includes）
+
+- `aapt2 dump badging`：`package: name='com.gujian.guditu' versionCode='51' versionName='2.26.12'`，`minSdkVersion:'26'` `targetSdkVersion:'34'`，`provides-component:'app-widget'`（小组件仍注册）
+- 包内 `assets/sw.js`：`var CACHE = 'trace-v80'`（本批 bump：24-B/24-D 两个新页 + 24-E me.html 改版，不 bump 就是「装了看不到」）
+- 新页在包内：`assets/expense.html` 23,570B / `assets/trip.html` 26,548B / `assets/expense.js` 16,228B
+- **assets 逐名对账**：壳内 `find -type f` = **3060**，包内 `assets/` 条目 = **3053**，差额 **7** 个，`comm -23` 逐名列出恰为 `data/.cache/run-20260912/{budget,hotel,itinerary,risk,transport,trip,xhs_notes}.json` —— aapt 不收录以 `.` 开头的目录，与 2026-10-04 那次对账同一批文件，**不是丢档**
+- **死引用逐条对账**：抽 `trip.html` / `expense.html` / `me.html` / `index.html` 四条 `src|href` 本地引用，逐条查包内清单，唯一命中是 `index.html -> art/' + t.img + '.svg`（JS 模板串，正则假阳性），**真死引用 0**
+- 签名：`apksigner.bat verify --print-certs` → SHA-256 `b696e89a1d0a946584bde43e17a2ae1de378eb14…`，与本机 2.26.8／2.26.9／50 包同键 ⇒ **同机覆盖安装可保留 WebView 数据**；装机时仍只 `adb install -r`，**绝不先卸载**
+
+## 尚未做（不在本次授权内）
+
+- 真机装机与 328×723 补拍（FAB 记开销屏、`expense.html` 两态、`trip.html`、me.html 新卡），需另一次明示授权 + 人工解锁屏幕；与 #173 的 23-B／23-C 两屏同一批

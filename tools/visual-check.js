@@ -2,9 +2,11 @@
  * 用法:
  *   node tools/visual-check.js              # 全量状态 × 视口，与基线比对
  *   node tools/visual-check.js --update     # 有意改版时更新基线（diff 图保留供人审）
- *   node tools/visual-check.js --seed       # 只跑种子数据态（4 个内容页 × 390）
- * 注意: --seed 单独跑与全量跑的后半程**不是同一前置态**（全量跑先访问 45 个空库态，
- *   页面加载会写 localStorage），种子基线一律用全量 --update 拍，别用 --seed --update。
+ *   node tools/visual-check.js --seed       # 只跑数据态（游记种子 4 页 + 有账 3 页，都在 390 一档）
+ * 注意: --seed 单独跑与全量跑的后半程**不是同一前置态**（全量跑先访问 85 个空库态，
+ *   页面加载会写 localStorage），两种数据态基线一律用全量 --update 拍，别用 --seed --update。
+ *   有账态的数据来自 tools/visual-ledger.js（闸门专用夹具，不进离线壳），载入前会先
+ *   clearTestData + 清掉 travelNotes，所以它不依赖前面跑过什么。
  *   node tools/visual-check.js index.html   # 只跑指定页的空库态
  *   node tools/visual-check.js --reindex    # 把当前基线本体登记进指纹清单（不重新截图）
  * 原理: 固定视口 + 清空存储 + 冻结时钟 + 跳过首启引导蒙层 + 摘除短命 toast（`.ui-toast` 活 2.9s，与 SETTLE 抢时机）后截屏，与 tools/out/visual-baseline/ 基线做像素 diff。
@@ -60,7 +62,7 @@ const onlyPages = argv.filter(a => !a.startsWith('--'));
  *   种子态（--seed 或全量跑的后半程）——用项目自带的 test-data.js 灌 8 条示例游记，
  *   抓的是"有数据时"的列表/统计/地图。两态基线分文件命名（*.seed.WxH.png），互不覆盖。 */
 const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'review.html',
-  'settings.html', 'me.html', 'node-manager.html', 'album.html', 'album-edit.html',
+  'settings.html', 'me.html', 'trip.html', 'expense.html', 'node-manager.html', 'album.html', 'album-edit.html',
   'story.html', 'planner.html', 'md-manager.html', 'explore-map.html', 'travel-map.html'];
 /* 种子态只跑"内容随游记数据变化"的页。选页判据（实测，不是猜的）：与同页空库态做像素差，
  * 差异可见才算有覆盖增量；wishlist / node-manager 曾入列但差 0.00%（示例数据只写游记库），已剔除。
@@ -68,6 +70,16 @@ const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'revi
  * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 四视口覆盖）。 */
 const SEED_PAGES = ['review.html', 'album.html', 'story.html', 'travel-map.html'];
 /* 种子态页必须同时在 PAGES 里——否则它的种子基线没有同页空库基线可比，"这态有没有增量"就无从量。 */
+/* 「有账态」＝灌 tn_trips / tn_expense / tn_budget（夹具 tools/visual-ledger.js，只给闸门用）。
+   批次 24 的三页是**读数页**：空库里它们只剩空态文案，像素腿等于白拍——24-E 的人审要点
+   （两张卡的金额/笔数/打卡/清单、今年合计不含去年那笔）全在有数据时才画得出来。
+   和种子态同一口径：只在 390 一档拍，要的是"数据对不对"，布局由空库态 × 五视口覆盖。 */
+const LEDGER_PAGES = ['expense.html', 'trip.html', 'me.html'];
+/* 有账态各页带不带 query：不带 query 落的是「哪一趟」选择器，而 24-D/24-B 两页的主角是
+   **选定一趟之后**的读数（计划/实际两套口径、今天是第几天、按天分组的账单）。
+   选择器那面在 me.ledger 的行程卡列表里已经拍到了，所以这两页直接进单趟态。
+   id 取自 tools/visual-ledger.js，改夹具里的 id 必须同步改这里，否则 open() 走 showUnknown()。 */
+const LEDGER_Q = { 'trip.html': '?trip=vc-cx', 'expense.html': '?trip=vc-cx', 'me.html': '' };
 /* 320 档是批次 7-C 补的：竖排题签这类"一个字宽也要占位"的组件，判不破版的下限就是 320
    （最小在售安卓机 CSS 宽度）。加一档 = 多 15 个基线，重建要跑 --update。
  * 452×995 是 V3（2026-10-04）补的**用户真机档**：一加 Ace 6T 面板 2800×1272 / 450ppi，
@@ -90,14 +102,26 @@ const SEED_VIEWPORTS = [[390, 844]];
  * 对照：改阈值前是 0.5%/8%，那时把 --color-primary 整体改色（195 处引用）闸门 49 张全绿——
  * 阈值松到守不住品牌色，等于没有闸门。 */
 const THRESH = 0.001;
-/* 种子态用严阈值：它要守的是"数据有没有渲染出来"，而这类内容往往只占视口一小块
+/* 数据态（游记种子 / 有账）用严阈值：它要守的是"数据有没有渲染出来"，而这类内容往往只占视口一小块
  * （review 种子态与空库态差 0.16%，用 0.5% 阈值等于数据全丢也不会 FAIL）。 */
 const THRESH_SEED = 0.0005;
 
-/* 配置自检：种子态页若不在 PAGES 里，就没有同页空库基线可比，"增量"无法验证；
+/* 配置自检：种子态/有账态页若不在 PAGES 里，就没有同页空库基线可比，"增量"无法验证；
    视口/清单打错也是同类静默失效。宁可开跑前炸，不要拍出一堆没人能判读的图。 */
-for (const p of SEED_PAGES) {
-  if (!PAGES.includes(p)) { console.error('配置错误: ' + p + ' 在 SEED_PAGES 但不在 PAGES（种子态缺同页空库基线）'); process.exit(1); }
+for (const p of SEED_PAGES.concat(LEDGER_PAGES)) {
+  if (!PAGES.includes(p)) { console.error('配置错误: ' + p + ' 在种子/有账态名单里但不在 PAGES（缺同页空库基线）'); process.exit(1); }
+}
+/* 状态清单只写这一处。orderFiles / 跑批 / 幽灵条目清理三处各自拼一遍的话，
+   追加一种数据态就会漏一处——漏在清单上是指纹漂移，漏在跑批上就是那一态从此没人拍。 */
+function allStates() {
+  const s = [];
+  for (const p of PAGES) for (const [W, H] of VIEWPORTS) s.push({ p, W, H, kind: '' });
+  for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) s.push({ p, W, H, kind: 'seed' });
+  for (const p of LEDGER_PAGES) for (const [W, H] of SEED_VIEWPORTS) s.push({ p, W, H, kind: 'ledger', q: LEDGER_Q[p] || '' });
+  return s;
+}
+function tagOf(st) {
+  return st.p.replace('.html', '') + (st.kind ? '.' + st.kind : '') + '.' + st.W + 'x' + st.H + '.png';
 }
 
 function readManifest() {
@@ -115,9 +139,7 @@ function writeManifest(files) {
 /* 清单是入库文件，键序必须钉在状态清单上：--reindex 走 readdirSync（文件系统给的顺序），
    不排序的话一次重登记就造出 60 多行纯顺序噪声，人审 diff 时看不出到底哪张基线真变了。 */
 function orderFiles(files) {
-  const want = [];
-  for (const p of PAGES) for (const [W, H] of VIEWPORTS) want.push(p.replace('.html', '') + '.' + W + 'x' + H + '.png');
-  for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) want.push(p.replace('.html', '') + '.seed.' + W + 'x' + H + '.png');
+  const want = allStates().map(tagOf);
   const out = {};
   want.filter(k => files[k]).forEach(k => { out[k] = files[k]; });
   Object.keys(files).filter(k => !out[k]).sort().forEach(k => { out[k] = files[k]; });
@@ -184,25 +206,24 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
    * 代价：动效路径不进像素基线（它本质不可复现），由静帧墨量断言 + 真机/人审覆盖。 */
   await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
 
-  /* 状态矩阵：空库态全量 × 四视口，种子态只跑内容页 × 390；
-     带页名参数只跑该页空库态，--seed 只跑种子态（两者分开跑，--update 时清单是合并写入不会丢登记） */
+  /* 状态矩阵：空库态全量 × 五视口，两种数据态（游记种子 / 有账）只跑内容页 × 390；
+     带页名参数只跑该页空库态，--seed 只跑数据态（分开跑，--update 时清单是合并写入不会丢登记） */
   const states = [];
   if (onlyPages.length) {
     for (const p of pages) {
       if (!PAGES.includes(p)) { console.log('SKIP(不在状态清单): ' + p); continue; }
-      for (const [W, H] of VIEWPORTS) states.push({ p, W, H, seed: false });
+      for (const [W, H] of VIEWPORTS) states.push({ p, W, H, kind: '' });
     }
   } else {
-    if (!SEEDONLY) for (const p of PAGES) for (const [W, H] of VIEWPORTS) states.push({ p, W, H, seed: false });
-    for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) states.push({ p, W, H, seed: true });
+    if (!SEEDONLY) for (const st of allStates()) if (!st.kind) states.push(st);
+    for (const st of allStates()) if (st.kind === 'seed') states.push(st);
+    for (const st of allStates()) if (st.kind === 'ledger') states.push(st);
   }
 
-  /* 全量 --update 时清掉"配置里已经没有的状态"的登记，否则从 SEED_PAGES 摘掉的页会留下幽灵条目，
+  /* 全量 --update 时清掉"配置里已经没有的状态"的登记，否则从名单里摘掉的页会留下幽灵条目，
      清单条数与实际状态数从此对不上，也没人知道哪个是真。 */
   if (UPDATE && !onlyOne) {
-    const valid = new Set();
-    for (const p of PAGES) for (const [W, H] of VIEWPORTS) valid.add(p.replace('.html', '') + '.' + W + 'x' + H + '.png');
-    for (const p of SEED_PAGES) for (const [W, H] of SEED_VIEWPORTS) valid.add(p.replace('.html', '') + '.seed.' + W + 'x' + H + '.png');
+    const valid = new Set(allStates().map(tagOf));
     for (const k of Object.keys(manifest)) if (!valid.has(k)) { delete manifest[k]; console.log('PRUNE 清单已摘除的状态: ' + k); }
   }
 
@@ -218,17 +239,39 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     });
     seeded = true;
   };
+  let ledgered = false;
+  const ensureLedger = async () => {
+    if (ledgered) return;
+    /* 先走产品的 clearTestData：demo- 游记在 localStorage 和 IDB 两边都有，
+       只清 LS 的话 me.html 的足迹读数还留着种子态那批，"这一态有没有游记"就成了跑批顺序的函数。 */
+    await pg.goto(pathToFileURL(path.join(ROOT, 'index.html')).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+    await pg.addScriptTag({ path: path.join(ROOT, 'test-data.js') });
+    await pg.evaluate(async () => {
+      const r = window.clearTestData && window.clearTestData();
+      if (r && r.idb) { try { await r.idb; } catch (e) {} }
+    });
+    await pg.addScriptTag({ path: path.join(ROOT, 'tools', 'visual-ledger.js') });
+    const got = await pg.evaluate(() => (window.loadTestLedger ? window.loadTestLedger() : { err: '夹具没载进 loadTestLedger' }));
+    if (!got || got.err || !got.trips) {
+      console.error('配置错误: 有账态夹具载入失败（' + JSON.stringify(got) + '）——三页 ledger 态会拍到空库，等于白拍');
+      process.exit(1);
+    }
+    ledgered = true;
+  };
 
   for (const st of states) {
     const { p, W, H } = st;
-    const tag = p.replace('.html', '') + (st.seed ? '.seed' : '') + '.' + W + 'x' + H + '.png';
+    const tag = tagOf(st);
     const baseF = path.join(BASE, tag);
-    if (st.seed) await ensureSeed();
+    if (st.kind === 'seed') await ensureSeed();
+    if (st.kind === 'ledger') await ensureLedger();
     await pg.setViewport({ width: W, height: H, deviceScaleFactor: 2 });
-    await pg.goto(pathToFileURL(path.join(ROOT, p)).href, { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
+    await pg.goto(pathToFileURL(path.join(ROOT, p)).href + (st.q || ''), { waitUntil: 'networkidle2', timeout: 40000 }).catch(() => {});
     /* 与 audit-clicktest 同口径：topic/地图页数据链路长，固定 1400ms 在整趟连跑的负载下会抢时机
-       （实测 topic.390 全量跑飘 3.57%、单页跑恒 0.00%）——重页等足 5s，普通页 1.4s 不变。 */
-    const SETTLE = (p === 'topic.html' || p === 'explore-map.html' || p === 'travel-map.html') ? 5000 : 1400;
+       （实测 topic.390 全量跑飘 3.57%、单页跑恒 0.00%）——重页等足 5s，普通页 1.4s 不变。
+       有账态也走 5s：me.html 会在游记库（IndexedDB）ready 后整体重画一遍，trip/me 两页的票数
+       也是异步补字，1.4s 赌的是"库还没回来"，那截图拍到的就是重画前后两个版本之一。 */
+    const SETTLE = (p === 'topic.html' || p === 'explore-map.html' || p === 'travel-map.html' || st.kind === 'ledger') ? 5000 : 1400;
     await new Promise(r => setTimeout(r, SETTLE));
     /* 装饰层覆盖断言：钉 reduced-motion 换来的是静帧渲染路径，如果那条路径哪天失效
        （staticFrame 没调用、canvas 尺寸塌成 0），基线会安静地少一层像素、闸门照样绿。这里补一刀。 */
@@ -297,7 +340,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     const diffPng = new PNG({ width: a.width, height: a.height });
     const diffPx = match(a.data, b.data, diffPng.data, a.width, a.height, { threshold: 0.02 });
     const ratio = diffPx / (a.width * a.height);
-    const lim = st.seed ? THRESH_SEED : THRESH;
+    const lim = st.kind ? THRESH_SEED : THRESH;
     const ok = ratio <= lim;
     fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
     report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined });
