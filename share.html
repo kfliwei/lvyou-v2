@@ -42,6 +42,7 @@
   .stop .lbl{flex:1;min-width:0;word-break:break-all;line-height:1.4}
   .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
   .stop-name .lbl{flex:1;min-width:0;word-break:break-word;line-height:1.45}
+  .slk{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
   .stop-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-left:28px}
   /* 转场日（长途赶路）：虚线边 + 无景点行，与正常日游版式区分开 */
   .day-card.transit{background:var(--color-bg-soft);border-style:dashed}
@@ -107,7 +108,8 @@
     var n = (d.stops || []).length;
     var body = (d.stops || []).map(function (s, si) {
       return '<div class="stop"><div class="stop-name"><span class="n">' + (si + 1) + '</span>' +
-        '<span class="lbl">' + esc(s.n) + '</span></div></div>';
+        '<span class="lbl">' + esc(s.n) + '</span>' +
+        (s.k ? '<span class="slk" title="规划者钉住的一站，自动重排不参与它">' + TI('pinned', 12) + '钉住</span>' : '') + '</div></div>';
     }).join('');
     return '<div class="day-card">' + head +
       '<span class="dmeta">' + n + ' 站 · 约 ' + (d.km || 0) + ' km · 全程 ' + (d.h || 0) + 'h</span></div>' + body + '</div>';
@@ -122,7 +124,8 @@
       (p.sd ? '<div class="route">' + esc(p.sd) + ' 出发' + (route ? ' · ' + esc(route) : '') + '</div>' : (route ? '<div class="route">' + esc(route) + '</div>' : '')) +
       '<div class="chips"><span>共 ' + s.days + ' 天</span><span>' + s.stops + ' 站</span><span>约 ' + s.km + ' km</span>' +
       (s.h ? '<span>全程约 ' + s.h + ' h</span>' : '') + '</div></div></div></div>';
-    h += '<div class="ruler">' + (p.r ? '日卡里程为高德真实道路里程' : '日卡里程按直线 ×1.35 折算，是估算不是实测') + '</div>';
+    h += '<div class="ruler">' + (p.r ? '日卡里程为高德真实道路里程' : '日卡里程按直线折算，是估算不是实测') +
+      (p.b && Share.TB_LAB[p.b] ? ' · 出行方式：' + Share.TB_LAB[p.b] : '') + '</div>';
     h += '<div id="mapBox"></div>';
     h += '<div class="mapnote">地图是站点连线示意（真实道路轨迹只在规划者本机有高德 Key 时才画得出，不随链接走）。底图要联网，断网时下面的站点列表照样看得全。</div>';
     h += (p.days || []).map(dayCard).join('');

@@ -69,6 +69,8 @@
       loop: !!(trip && trip.end && trip.end.isLoop),
       /* 1=高德真实道路里程，0=直线折算。不说清就是拿估算值冒充实测值 */
       r: (trip && trip.dist && Object.keys(trip.dist).length) ? 1 : 0,
+      /* 出行方式档（auto|drive|bike|walk）：收件人要知道这时长是按什么算的 */
+      b: /^(auto|drive|bike|walk)$/.test(trip && trip.travelBy ? String(trip.travelBy) : '') ? String(trip.travelBy) : '',
       days: []
     };
     days.forEach(function (d) {
@@ -77,14 +79,21 @@
       (d.stops || []).forEach(function (s) {
         var st = { n: nameOf(s) };
         if (s && s.lat != null && s.lng != null) { st.la = num(s.lat, 4); st.lo = num(s.lng, 4); }
+        /* 只有钉过的才带：0/1 之外没有第三种话可说，也不含任何隐私 */
+        if (s && s.locked) st.k = 1;
         day.stops.push(st);
       });
       out.days.push(day);
     });
     return out;
   }
-  /* 白名单之外的键一律不许出现（闸门与冒烟都靠这句话） */
-  var ALLOWED = { v: 1, t: 1, sd: 1, from: 1, to: 1, loop: 1, r: 1, days: 1, km: 1, h: 1, stops: 1, tr: 1, f: 1, o: 1, n: 1, la: 1, lo: 1 };
+  /* 白名单之外的键一律不许出现（闸门与冒烟都靠这句话）。
+     b=出行方式档、k=该站被钉住（只有 1 才会出现）——8.2.6 要求登记的是 locked，
+     这里按本文件的短键命名法收成 k，偏离已在方案文档 8.6 登记。钱（expense）永远不进。 */
+  var ALLOWED = { v: 1, t: 1, sd: 1, from: 1, to: 1, loop: 1, r: 1, b: 1, days: 1, km: 1, h: 1, stops: 1, tr: 1, f: 1, o: 1, n: 1, la: 1, lo: 1, k: 1 };
+  /* 档位中文名在分享侧的唯一定义：收件人拿到的时长是按什么算的，必须一句话能说清。
+     数字（系数/速度）不抄这里——规划页从 MODE 派生，分享页只说口径。 */
+  var TB_LAB = { auto: '按站距自动选（步行/骑行/自驾）', drive: '自驾', bike: '骑行', walk: '步行' };
   function strayKeys(payload) {
     var bad = [];
     (function walk(o) {
@@ -128,7 +137,8 @@
       (d.stops || []).forEach(function (st, j) { L.push('  ' + (j + 1) + '. ' + st.n); });
     });
     L.push('');
-    L.push(p.r ? '里程为真实道路数据' : '里程按直线 ×1.35 折算（估算）');
+    L.push(p.r ? '里程为真实道路数据' : '里程按直线折算（估算）');
+    if (p.b && TB_LAB[p.b]) L.push('出行方式：' + TB_LAB[p.b]);
     L.push('—— 由 行迹 TRACE 生成');
     return L.join('\n');
   }
@@ -177,7 +187,7 @@
 
   window.Share = {
     VER: VER, FILE_NAME: FILE_NAME, BASE_KEY: BASE_KEY, URL_LIMIT: URL_LIMIT,
-    payloadOf: payloadOf, strayKeys: strayKeys, ALLOWED: ALLOWED,
+    payloadOf: payloadOf, strayKeys: strayKeys, ALLOWED: ALLOWED, TB_LAB: TB_LAB,
     encodePayload: encodePayload, decodePayload: decodePayload,
     summary: summary, textOf: textOf, build: build,
     normBase: normBase, savedBase: savedBase, setBase: setBase, selfBase: selfBase, linkBase: linkBase,

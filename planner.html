@@ -103,6 +103,10 @@
   .stop .warn-ic{color:var(--color-danger,#AE5738);flex:0 0 auto}
   .mv{width:30px;height:30px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-3);cursor:pointer;flex:0 0 auto;padding:0;line-height:1}
   .mv:active{transform:scale(.9)}
+  /* 钉住的站不参与自动重排：命中态必须看得出来，否则用户以为顺序还是算出来的 */
+  .mv.on{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg)}
+  .lk-hint{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-3);color:var(--color-muted);padding:0 2px}
+  #tbRow{margin:4px 0 10px}
   .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
   .stop-name .lbl{flex:1;min-width:0;word-break:break-word;line-height:1.45}
   .stop-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-left:28px}

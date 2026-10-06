@@ -380,9 +380,12 @@ const MAP_POPUP = () => {
     return r < 0.01 || 350 - r < 0.01;
   }));
   ok('日卡里程与排线同一把尺子', rulerOk, trip2 ? trip2.days.map(d => Math.round(d.driveKm)).join('/') + ' km' : '');
-  ok('转场日渲染为赶路日且不给导航按钮', await page2.evaluate(() => {
+  /* 批次 19 起转场日也挂了记账行（expRow 里有按钮），所以这里不能断「一个按钮都没有」：
+     这条判据的本意是「赶路日没有可导航的站点」，收窄到它真正说的那件事（批次 20 复跑时才看见它红）。 */
+  ok('转场日渲染为赶路日且不挂导航按钮', await page2.evaluate(() => {
     const t = document.querySelector('#resultBody .day-card.transit');
-    return !!t && /赶路日/.test(t.innerText) && !t.querySelector('button');
+    return !!t && /赶路日/.test(t.innerText) &&
+      !Array.from(t.querySelectorAll('button')).some(b => /导航/.test((b.textContent || '')));
   }));
 
   const real2 = errors2.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile/.test(e));
@@ -748,6 +751,309 @@ const MAP_POPUP = () => {
   const r3 = await a2.gen();
   ok('新用户零历史：画像段整段省略（不写「去过 无」这种废话）', r3.body && /用户画像/.test(r3.body) === false, r3.body.slice(0, 40));
   ok('新用户零历史：生成不报错且出满 5 条', a2.clean().length === 0 && r3.n === 5, '.aroute ' + r3.n + ' 张 / 报错 ' + a2.clean().length + ' 条');
+
+  /* ===== 阶段六（批次 20）：出行方式档位 + 锁定点不参与重排 =====
+     站点是我们自己造的四个点，不用 AI 召回的候选：这一族判据要求「站距正好跨过档位阈值」
+     确定成立（1.00km 必走步行、2.34km 必走骑行、18.9km 必走自驾）。用真实景点的话，候选库
+     一改这条就随机翻绿／翻红。四点同经度、纬度递增，直线序＝纬度序，排线结果可手算；
+     选点顺序刻意打散成 丁甲丙乙，「自动重排会不会动它」才看得出来。
+     出发地输入框每轮都要清空：不清的话 matchStart('TB起点') 查不到坐标，state.start 退化成
+     只有名字，最近邻第一站就变成数组首元素（T10／T11 的顺序断言当场失真）。 */
+  const tbNode = (n, lat) => ({ name: n, label: n, region: '晋', city: '太原', theme: '自然风光', flag: '', lat: lat, lng: 112.5500 });
+  const TB_JIA = tbNode('TB甲', 37.8700), TB_YI = tbNode('TB乙', 37.8790), TB_BING = tbNode('TB丙', 37.9000), TB_DING = tbNode('TB丁', 38.0700);
+  const TB_START = { name: 'TB起点', lat: 37.8700, lng: 112.5500 };
+  const TB_SNAP = {
+    stage: 'stagePick', regions: ['晋'], days: 0, prefs: [], autoPrefs: [],
+    start: TB_START, end: null, startDate: '', isLoop: false, wiz: null,
+    candidates: [TB_DING, TB_JIA, TB_BING, TB_YI], selected: [TB_DING, TB_JIA, TB_BING, TB_YI],
+    trip: null, fromWish: false, candFilter: '', amapSorted: false, wishPool: null, matrix: null
+  };
+  const p5 = await browser.newPage();
+  await p5.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  const errs5 = [];
+  p5.on('pageerror', e => errs5.push('pageerror: ' + e.message));
+  p5.on('console', m => { if (m.type() === 'error') errs5.push('console: ' + m.text().slice(0, 200)); });
+  await p5.evaluateOnNewDocument(snap => {
+    try { sessionStorage.setItem('tn_planner_state', JSON.stringify(snap)); } catch (e) {}
+  }, TB_SNAP);
+  await p5.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3000);
+  /* 无 Key 才走地理档（不打网络，配额与矩阵都不参与这一族判据）；已存行程从零开始 */
+  await p5.evaluate(() => { try { localStorage.removeItem('tn_amap_key'); localStorage.removeItem('tn_trips'); } catch (e) {} });
+
+  const TB_LAB = { auto: '自动', drive: '自驾', bike: '骑行', walk: '步行' };
+  const tbRead = () => p5.evaluate(() => {
+    const list = JSON.parse(localStorage.getItem('tn_trips') || '[]');
+    const txt = el => el ? (el.textContent || '') : '';
+    const t = list.length ? list[0] : null;
+    const days = t ? (t.days || []) : [];
+    const seq = Array.from(document.querySelectorAll('#resultBody .day-card .stop .lbl')).map(e => (e.textContent || '').trim());
+    const tseq = [];
+    days.forEach(d => (d.stops || []).forEach(s => tseq.push(s.name)));
+    const cs = Array.from(document.querySelectorAll('#tbRow .chip'));
+    return {
+      trip: t,
+      km: days.reduce((a, d) => a + (d.driveKm || 0), 0), h: days.reduce((a, d) => a + (d.driveH || 0), 0),
+      locked: days.reduce((a, d) => a + (d.stops || []).filter(s => s.locked).length, 0),
+      nStops: tseq.length,
+      /* 探针自校准：tn_trips[0] 是「已保存」那一份，屏上画的是 state.trip。
+         「重新排期」每次造一个新 id 的行程，不重新点保存就读 JSON＝读上一轮的旧对象：
+         数字全都能取到，却全是旧账（T9／T11 那样「三档一模一样的数」就是这么来的）。 */
+      stale: tseq.join(',') !== seq.join(','),
+      title: txt(document.getElementById('resultTitle')),
+      ruler: txt(document.querySelector('#resultBody > div')),
+      busTip: txt(document.getElementById('tbRow')).indexOf('公共交通未覆盖') >= 0,
+      chips: cs.map(c => (c.textContent || '').trim()),
+      onLabels: cs.filter(c => c.getAttribute('aria-pressed') === 'true').map(c => (c.textContent || '').trim()),
+      seq: seq,
+      pinLabels: Array.from(document.querySelectorAll('#resultBody .stop .mv.on')).map(e => e.getAttribute('aria-label')),
+      lkHint: Array.from(document.querySelectorAll('#actRow .lk-hint')).map(e => (e.textContent || '').trim()),
+      transit: Array.from(document.querySelectorAll('#resultBody .day-card.transit .dmeta')).map(e => (e.textContent || '').trim()),
+      transFull: Array.from(document.querySelectorAll('#resultBody .day-card.transit')).map(e => (e.innerText || '').replace(/\s+/g, ' ')),
+      toast: txt(document.querySelector('.ui-toast'))
+    };
+  });
+  const tbSave = async () => {
+    await p5.evaluate(() => {
+      const b = Array.from(document.querySelectorAll('#actRow button')).filter(x => /保存行程/.test(x.textContent))[0];
+      if (b) b.click();
+    });
+    await sleep(600);
+    return tbRead();
+  };
+  const tbSet = async m => { await p5.evaluate(mm => window.plannerTravelBy(mm), m); await sleep(700); return tbRead(); };
+  const tbClearWiz = () => p5.evaluate(() => {
+    const a = document.getElementById('wStart'), b = document.getElementById('wEnd');
+    if (a) a.value = ''; if (b) b.value = '';
+  });
+  /* 向导走一遍：起终点清空 → 第 3 步（档位 chip + 排线轴，档位 chip 只在这一步在 DOM 里）
+     → 第 4 步摘要 → 开始排期 → 等第一张日卡进 DOM → 立刻保存（见上面的 stale 注释）。 */
+  async function tbWalk() {
+    await tbClearWiz();
+    await p5.click('#wNext'); await sleep(300);
+    await p5.click('#wNext'); await sleep(300);
+    const wiz3 = await p5.evaluate(() => ({
+      chips: Array.from(document.querySelectorAll('#wizardBox [data-tb]')).map(e => e.getAttribute('data-tb') + (e.classList.contains('on') ? '*' : '')),
+      geoOn: /primary/.test((document.getElementById('wSortGeo') || {}).className || ''),
+      text: (document.getElementById('wizardBox') || {}).innerText || ''
+    }));
+    await p5.click('#wNext'); await sleep(300);
+    const wiz4 = await p5.evaluate(() => ({ text: (document.getElementById('wizardBox') || {}).innerText || '' }));
+    await p5.evaluate(() => {
+      window.__dcLat = document.querySelector('#resultBody .day-card') ? 0 : null;
+      const t0 = Date.now();
+      const ob = new MutationObserver(() => {
+        if (window.__dcLat === null && document.querySelector('#resultBody .day-card')) { window.__dcLat = Date.now() - t0; ob.disconnect(); }
+      });
+      if (window.__dcLat === null) ob.observe(document.body, { childList: true, subtree: true });
+    });
+    await p5.click('#wDone');
+    const t1 = Date.now();
+    while (Date.now() - t1 < 20000) { if (await p5.evaluate(() => !!document.querySelector('#resultBody .day-card'))) break; await sleep(200); }
+    await sleep(700);
+    const dcLat = await p5.evaluate(() => window.__dcLat);
+    return { wiz3, wiz4, dcLat, after: await tbSave() };
+  }
+  const tbSchedule = async () => { await p5.click('#scheduleBtn'); await sleep(500); return tbWalk(); };
+  const tbResort = async () => { await p5.evaluate(() => window.plannerReschedule()); await sleep(600); return tbWalk(); };
+  /* 点某一行的按钮（按站名定位，重渲染后下标会漂） */
+  const tbRowClick = (name, label) => p5.evaluate((n, lb) => {
+    const rows = Array.from(document.querySelectorAll('#resultBody .day-card .stop'));
+    const row = rows.filter(r => ((r.querySelector('.lbl') || {}).textContent || '').trim() === n)[0];
+    if (!row) return 'no-row';
+    const b = row.querySelector('.mv[aria-label="' + lb + '"]');
+    if (!b) return 'no-btn:' + lb;
+    b.click(); return 'ok';
+  }, name, label);
+  const tbCandN = await p5.evaluate(() => document.querySelectorAll('#candList .cand').length);
+  ok('T0 造点快照恢复到选点阶段（这一族判据有被测对象）', tbCandN === 4 && await p5.evaluate(() => document.getElementById('stagePick').style.display === 'block'), '候选 ' + tbCandN + ' 处');
+  const W1 = await tbSchedule();
+  const A0 = W1.after, wiz3 = W1.wiz3, wiz4 = W1.wiz4;
+  /* 这条不是产品断言，是给下面 12 条数值判据把关的：读的是「已保存的那一份」，画的是 state.trip。
+     「重新排期」换新 id 后不重存就读取，T2／T3 那种漂亮的单调关系会拿旧账算出来（真跑过：三档读数一模一样还全绿）。 */
+  ok('T0b 探针自校准：读到的 trip 与屏上日卡同一份序（stale 必须为假）',
+    A0.stale === false && A0.nStops === A0.seq.length && A0.nStops >= 2,
+    'JSON ' + A0.seq.length + ' 站 vs 屏上 ' + A0.nStops + ' 站 / stale=' + A0.stale + '（末步点击→首张日卡 ' + W1.dcLat + 'ms）');
+  ok('T1 新建行程默认落在自动档（向导 chip／摘要／trip 字段三处一致，排线轴没被档位挤掉）',
+    wiz3.chips.join(',') === 'auto*,drive,bike,walk' && /出行方式：\s*自动/.test(wiz4.text) &&
+    !!A0.trip && A0.trip.travelBy === 'auto' && wiz3.geoOn === true,
+    '向导第 3 步 ' + (wiz3.chips.join('/') || '没有档位 chip') + ' / 摘要「' + ((wiz4.text.match(/出行方式：\s*\S+/) || ['无'])[0]).trim() +
+    '」/ trip.travelBy=' + (A0.trip || {}).travelBy + ' / 地理最近邻 primary=' + wiz3.geoOn);
+
+  /* --- 三档扫一遍：只用关系断言，不写死绝对小时数（机器快慢会变，量级关系不会） --- */
+  const M = { auto: A0 };
+  M.drive = await tbSet('drive'); M.bike = await tbSet('bike'); M.walk = await tbSet('walk'); M.auto = await tbSet('auto');
+  const f2 = x => (x === null || x === undefined ? 'NaN' : x.toFixed(2));
+  ok('T2 同一行程三档时长单调：步行 > 骑行 > 自驾（相邻两档都要差 2 倍以上）',
+    M.walk.h > M.bike.h * 2 && M.bike.h > M.drive.h * 2,
+    'Σ在途 h 步行 ' + f2(M.walk.h) + ' / 骑行 ' + f2(M.bike.h) + ' / 自驾 ' + f2(M.drive.h));
+  const titleKm = r => { const m = /约 (\d+(?:\.\d+)?) km/.exec(r.title); return m ? +m[1] : null; };
+  ok('T3 三档里程单调：步行 < 骑行 < 自驾（道路系数 1.15<1.25<1.35），且标题全程 km 与日卡同一把尺子中',
+    M.walk.km < M.bike.km && M.bike.km < M.drive.km &&
+    ['auto', 'drive', 'bike', 'walk'].every(k => Math.abs(titleKm(M[k]) - Math.round(M[k].km)) <= 1 && M[k].stale === false),
+    'Σkm 步行 ' + f2(M.walk.km) + ' / 骑行 ' + f2(M.bike.km) + ' / 自驾 ' + f2(M.drive.km) +
+    '；标题 ' + ['auto', 'drive', 'bike', 'walk'].map(k => k + ' ' + titleKm(M[k])).join(' / ') + '（日卡之和四舍五入 ' + ['auto', 'drive', 'bike', 'walk'].map(k => Math.round(M[k].km)).join('/') + '）');
+  ok('T4 自动档按站距现场混档：auto 的时长严格落在自驾与骑行之间',
+    M.auto.h > M.drive.h * 1.3 && M.auto.h < M.bike.h * 0.9,
+    'auto ' + f2(M.auto.h) + 'h / drive ' + f2(M.drive.h) + 'h / bike ' + f2(M.bike.h) + 'h（1.0km 那段按步行算、18.9km 那段按自驾算的净效果）');
+  ok('T5 档位口径文案全部从 MODE 表派生（×系数／kmh／本地估算／自动档阈值）',
+    /自驾 · 日卡里程按直线 ×1\.35 折算（未取真实道路数据）/.test(M.drive.ruler) &&
+    /骑行 · 里程按直线 ×1\.25 折算、时长按 15 km\/h（本地估算，未接骑行路线源）/.test(M.bike.ruler) &&
+    /步行 · 里程按直线 ×1\.15 折算、时长按 4\.5 km\/h（本地估算，未接步行路线源）/.test(M.walk.ruler) &&
+    /≤1\.5km 步行 \/ ≤6km 骑行 \/ 更远自驾/.test(M.auto.ruler),
+    'auto「' + M.auto.ruler.slice(0, 46) + '…」/ walk「' + M.walk.ruler.slice(0, 52) + '…」');
+  ok('T6 切换条四颗 chip 且只亮当前那一颗，「公共交通未覆盖」的边界话在案',
+    ['auto', 'drive', 'bike', 'walk'].every(k => M[k].chips.length === 4 && M[k].onLabels.length === 1 && M[k].onLabels[0] === TB_LAB[k]) &&
+    ['auto', 'drive', 'bike', 'walk'].every(k => M[k].busTip === true),
+    ['auto', 'drive', 'bike', 'walk'].map(k => k + '「' + M[k].chips.join(' ') + '」亮「' + M[k].onLabels.join('、') + '」').join(' / ') + ' / 公交边界 ' + M.walk.busTip);
+
+  /* --- 载荷：档位与钉住进得去，杂键进不去 --- */
+  const pin1 = await tbRowClick('TB甲', '锁定顺序'); await sleep(600);
+  const P1 = await tbRead();
+  const payload = await p5.evaluate(t => {
+    const pl = window.Share.payloadOf(t);
+    return { b: pl.b, stray: window.Share.strayKeys(pl), stop0: pl.days.length ? (pl.days[0].stops[0] || {}) : null,
+             anyK: JSON.stringify(pl).indexOf('"k":1') >= 0, lab: window.Share.TB_LAB[pl.b] || null };
+  }, P1.trip);
+  ok('T7 分享载荷带档位 b 与钉住 k，且白名单外零杂键（钱与隐私仍然进不去）',
+    payload.b === 'auto' && payload.stray.length === 0 && payload.anyK === true && !!payload.lab,
+    'b=' + payload.b + ' / 杂键 ' + JSON.stringify(payload.stray) + ' / 钉住键 ' + payload.anyK + ' / ' + pin1);
+  await tbRowClick('TB甲', '解除锁定'); await sleep(600);
+
+  /* --- 锁定：把末站顶到最前（每按一次 ↑ 都当场钉住被移动的站） --- */
+  const beforeLock = (await tbRead()).seq.join(',');
+  for (let i = 0; i < 3; i++) { await tbRowClick('TB丁', '上移'); await sleep(600); }
+  const L1 = await tbRead();
+  const L2 = (await tbResort()).after;
+  ok('T8 灵魂断言：手动把某站挪到最前（自动钉住）后触发自动重排，该站的先后位置没被动过',
+    L1.seq[0] === 'TB丁' && L2.seq.join(',') === L1.seq.join(',') && L2.locked === 1 &&
+    L1.pinLabels.indexOf('解除锁定') >= 0 && L2.stale === false,
+    '挪完 ' + L1.seq.join('→') + '（钉 ' + L1.locked + ' 站，提示「' + (L1.lkHint[0] || '无') + '」）→ 重排后 ' + L2.seq.join('→') +
+    '（钉 ' + L2.locked + ' 站 / stale=' + L2.stale + '）；挪之前是 ' + beforeLock.split(',').slice(0, 4).join('→'));
+  const un1 = await tbRowClick('TB丁', '解除锁定'); await sleep(600);
+  const L3 = await tbRead();
+  const L4 = (await tbResort()).after;
+  ok('T9 牙齿断言：解除锁定后同样的自动重排把该站打回末位（证明上面那条不是空测）',
+    L3.seq[0] === 'TB丁' && L3.locked === 0 && L4.seq.join(',') !== L3.seq.join(',') && L4.seq[L4.seq.length - 1] === 'TB丁' &&
+    L4.locked === 0 && L4.lkHint.length === 0 && L4.stale === false,
+    '解锁 ' + un1 + ' → ' + L3.seq.join('→') + ' 重排后 ' + L4.seq.join('→') + '（钉 ' + L4.locked + ' 站，提示 ' + L4.lkHint.length + ' 条 / stale=' + L4.stale + '）');
+  await tbRowClick('TB丙', '移除'); await sleep(700);
+  const L5 = (await tbResort()).after;
+  ok('T10 移掉的站不复活：删站要同时退出选点集，否则「重新排期」按选点集重排会把它捞回行程',
+    L5.seq.indexOf('TB丙') < 0 && L5.nStops === L5.seq.length && L5.seq.length === 3,
+    '现有 ' + L5.seq.join('→') + '（JSON ' + L5.nStops + ' 站 / stale=' + L5.stale + '）');
+
+  /* --- 只剩一对 ≤1.5km 的站：自动档必须与步行档逐字相等 --- */
+  await tbRowClick('TB丁', '移除'); await sleep(700);
+  const S1 = await tbSet('drive'); const S2 = await tbSet('walk'); const S3 = await tbSet('auto');
+  ok('T11 一对 1.0km 的站：自动档与步行档的里程／时长逐字相等，且远比自驾档慢（旧写法把这段排成「车程 0.0h」）',
+    S1.nStops === 2 && [S1, S2, S3].every(r => r.stale === false) &&
+    Math.abs(S3.km - S2.km) < 0.005 && Math.abs(S3.h - S2.h) < 0.005 && S3.h > S1.h * 5,
+    'auto ' + f2(S3.km) + 'km／' + f2(S3.h) + 'h ≡ walk ' + f2(S2.km) + 'km／' + f2(S2.h) + 'h，drive ' + f2(S1.km) + 'km／' + f2(S1.h) + 'h（' + S1.nStops + ' 站／stale ' + [S1, S2, S3].map(r => r.stale).join(',') + '）');
+
+  /* --- 存回：换档 + 钉站之后重新打开已保存行程 --- */
+  await tbSet('bike');
+  await tbRowClick('TB甲', '锁定顺序'); await sleep(700);
+  const R0 = await tbSave();
+  await p5.reload({ waitUntil: 'domcontentloaded' }); await sleep(3000);
+  await p5.evaluate(() => window.plannerOpenTrip(0)); await sleep(1200);
+  const R1 = await tbRead();
+  ok('T12 重新打开已存行程：档位与图钉态都随 trip JSON 存回来了（reload 后不必重算也不丢钉）',
+    R1.trip.travelBy === 'bike' && R1.locked === 1 && R1.pinLabels.indexOf('解除锁定') >= 0 &&
+    R1.onLabels.join(',') === '骑行' && /骑行 · 里程按直线 ×1\.25/.test(R1.ruler),
+    'reload 前 ' + R0.trip.travelBy + '／钉 ' + R0.locked + ' → reload 后 ' + R1.trip.travelBy + '／钉 ' + R1.locked + '（chip ' + R1.chips.join(' ') + ' 亮「' + R1.onLabels.join('') + '」）');
+  const real5 = errs5.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch/.test(e));
+  ok('档位与锁定档无 JS 报错', real5.length === 0, real5.slice(0, 3).join(' | '));
+
+  /* ===== 阶段七（批次 20）：有驾车矩阵的行程——非自驾档不许吃它 =====
+       桩矩阵每段 700km（与直线折算差两个量级，一眼看得出谁在吃谁的数）。
+       A→B 直线约 111km：自驾 2.5h（不拆段），步行 127.9km／28.4h（必然出转场日）。 */
+  const ck = p => p.lat.toFixed(3) + ',' + p.lng.toFixed(3);
+  const TB_B = tbNode('TB远', 38.8700);
+  const TB_PAIRS = [TB_START, TB_JIA, TB_B];
+  const TB_MATRIX = {};
+  TB_PAIRS.forEach(a => TB_PAIRS.forEach(b => { if (a !== b) TB_MATRIX[ck(a) + '|' + ck(b)] = 700; }));
+  const TB_TRIP = {
+    id: 'ptbm1', name: 'TB矩阵行程', createdAt: 1, start: TB_START, end: null, startDate: '', aiLevel: 'off',
+    travelBy: 'drive', dist: TB_MATRIX, narrative: { story: '测试叙事' },
+    days: [{ stops: [TB_JIA, TB_B], driveKm: 700, driveH: 11.7, playH: 4, totalH: 18.2, endKm: 0 }]
+  };
+  const TB_SNAP2 = {
+    stage: 'stageResult', regions: ['晋'], days: 0, prefs: [], autoPrefs: [],
+    start: TB_START, end: null, startDate: '', isLoop: false,
+    wiz: { step: 4, sortMode: 'geo', sortOrder: 'asc', travelBy: 'drive' },
+    candidates: [TB_JIA, TB_B], selected: [TB_JIA, TB_B], trip: TB_TRIP,
+    fromWish: false, candFilter: '', amapSorted: true, wishPool: null, matrix: null
+  };
+  const p6 = await browser.newPage();
+  await p6.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  const errs6 = [];
+  p6.on('pageerror', e => errs6.push('pageerror: ' + e.message));
+  p6.on('console', m => { if (m.type() === 'error') errs6.push('console: ' + m.text().slice(0, 200)); });
+  await p6.evaluateOnNewDocument(snap => {
+    try { sessionStorage.setItem('tn_planner_state', JSON.stringify(snap)); } catch (e) {}
+  }, TB_SNAP2);
+  await p6.goto('file:///' + path.join(ROOT, 'planner.html').replace(/\\/g, '/'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(3000);
+  const tb6Read = () => p6.evaluate(() => {
+    const txt = el => el ? (el.textContent || '') : '';
+    const cards = Array.from(document.querySelectorAll('#resultBody .day-card.transit'));
+    return {
+      ruler: txt(document.querySelector('#resultBody > div')),
+      onChip: Array.from(document.querySelectorAll('#tbRow .chip')).filter(c => c.getAttribute('aria-pressed') === 'true').map(c => (c.textContent || '').trim()).join(''),
+      transit: cards.map(e => (e.innerText || '').replace(/\s+/g, ' ')),
+      /* 日卡上的 km 是从 driveKm 来的：矩阵（700）还是直线折算（127.9）在这一个数上就见分晓 */
+      tkm: cards.map(e => { const m = /约 (\d+) km/.exec((e.querySelector('.dmeta') || {}).textContent || ''); return m ? +m[1] : null; }),
+      seq: Array.from(document.querySelectorAll('#resultBody .day-card .stop .lbl')).map(e => (e.textContent || '').trim())
+    };
+  });
+  const X0 = await tb6Read();
+  await p6.evaluate(() => window.plannerTravelBy('walk')); await sleep(1200);
+  const X1 = await tb6Read();
+  await p6.evaluate(() => window.plannerTravelBy('drive')); await sleep(1200);
+  const X2 = await tb6Read();
+  /* 快照里那一版 days 没经过重切，所以 drive 侧的「车程」要看切过一次的 X2（与批次 13 同一条教训：
+     判据要落在真的走过 resplit 的那次渲染上，否则测的是造出来的假数据）。 */
+  const C6 = {
+    'walk 档口径行说本地估算': /步行 · 里程按直线 ×1\.15 折算、时长按 4\.5 km\/h（本地估算，未接步行路线源）/.test(X1.ruler),
+    'walk 档承认折线还是驾车形状': /地图折线为驾车路线形状/.test(X1.ruler),
+    'walk 转场日存在': X1.transit.length > 0,
+    'walk 转场日动词是步行不是车程': X1.transit.every(t => t.indexOf('步行') >= 0) && X1.transit.every(t => t.indexOf('车程') < 0),
+    'walk 超长段单独成天并说明上限': /这段路的步行超过单日上限 9 小时/.test(X1.transit.join(' ')),
+    'walk 日卡 km 是直线量级（<100）': X1.tkm.length > 0 && X1.tkm.every(k => k != null && k < 100),
+    'walk 合计远小于 drive 合计（矩阵的数没漏进非自驾档）':
+      X1.tkm.reduce((a, b) => a + (b || 0), 0) < X2.tkm.reduce((a, b) => a + (b || 0), 0) / 2,
+    '切回 drive 又用真实道路里程': /自驾 · 日卡里程为高德真实道路里程/.test(X2.ruler) && X2.onChip === '自驾',
+    'drive 日卡 km 合计是矩阵量级（≥600）': X2.tkm.length > 0 && X2.tkm.reduce((a, b) => a + (b || 0), 0) >= 600,
+    'drive 转场日动词是车程': X2.transit.length > 0 && X2.transit.every(t => t.indexOf('车程') >= 0),
+    'drive 档口径行不再挂折线警告': !/地图折线为驾车路线形状/.test(X2.ruler)
+  };
+  const K6 = Object.keys(C6);
+  ok('非自驾档不吃驾车矩阵（里程、时长、动词、折线说明四处都要跟着档走）',
+    K6.every(k => C6[k] === true),
+    K6.filter(k => C6[k] !== true).join('；') + ' | walk「' + X1.ruler.slice(0, 60) + '」/ drive「' + X2.ruler.slice(0, 40) +
+    '」| walk km ' + X1.tkm.join(',') + '（' + X1.transit.length + ' 天）/ drive km ' + X2.tkm.join(',') + '（' + X2.transit.length + ' 天）' +
+    ' | 快照初读「' + X0.ruler.slice(0, 30) + '」');
+
+  /* 真机档（一加 Ace6T 452×995）：切换条与口径行不许把页面撑出横向溢出 */
+  await p6.setViewport({ width: 452, height: 995, isMobile: true, hasTouch: true });
+  await sleep(600);
+  const fit452 = await p6.evaluate(() => {
+    const row = document.getElementById('tbRow');
+    const rr = row ? row.getBoundingClientRect() : null;
+    const chips = Array.from(document.querySelectorAll('#tbRow .chip')).map(c => c.getBoundingClientRect());
+    return {
+      pageOver: Math.round(document.documentElement.scrollWidth - window.innerWidth),
+      rowOver: rr ? Math.round(rr.right - window.innerWidth) : null,
+      n: chips.length, out: chips.filter(c => c.right > window.innerWidth + 1 || c.left < -1).length,
+      minH: chips.length ? Math.round(Math.min.apply(null, chips.map(c => c.height))) : 0
+    };
+  });
+  ok('452×995 真机档：档位切换条不横向溢出，四颗 chip 全在屏内',
+    fit452.pageOver <= 0 && fit452.out === 0 && fit452.n === 4 && fit452.minH >= 30,
+    '页面溢出 ' + fit452.pageOver + 'px / chip ' + fit452.n + ' 颗（屏外 ' + fit452.out + '）/ 最矮 ' + fit452.minH + 'px');
+  const real6 = errs6.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch/.test(e));
+  ok('矩阵档无 JS 报错', real6.length === 0, real6.slice(0, 3).join(' | '));
 
   await browser.close();
   console.log(fails ? ('\n' + fails + ' 项失败') : '\n全部通过');

@@ -2643,7 +2643,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['planner.js', 'window.__tnSaveDone = function (r) {', 1, 'APK 腿读真实回吐：err / need_perm / 成功三种真话，不假装成功'],
     ['planner.js', "' style=\"opacity:.55\"'", 1, '灰态用 opacity 不用 disabled（下面 design.css 那条锚就是原因）'],
     ['planner.js', 'var icsOn = !!buildTripIcs(trip);', 1, '按钮置灰判据与"能否真生成"同一个函数，不许两套口径'],
-    ['planner.js', "startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(", 1, 'AI 路线那条行程要带上已选出发日期'],
+    ['planner.js', "startDate: state.startDate, aiLevel: getAILevel(), travelBy: modeOf(travelByNow()), days: buildAiDays(", 1, 'AI 路线那条行程要带上已选出发日期'],
     ['planner.js', "state.startDate = '';", 1, '抹日期只许在重置路径这一处（AI 路径以前也抹，日卡天气/季节提醒/导出日历三样同时失效）'],
     ['planner.js', "'@page{margin:14mm}'", 1, '分页边距只在分页介质下起作用，放顶层不动屏幕态'],
     ['planner.js', "'@media print{'", 1, '打印样式必须圈在 media 查询里（漏出去＝手机屏幕上那层纸色底被改死）'],
@@ -3281,7 +3281,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['planner.js', 'renderTrips(); renderExpense();', 2, '两处（删除后 + 撤销后）都要重绘汇总卡：只 renderTrips 这张卡还挂着上一趟的金额与进度条'],
     ['planner.js', String.raw`if (exRaw != null) lsSet('tn_expense', exRaw); if (bdRaw != null) lsSet('tn_budget', bdRaw);`, 1, '撤销按原字节还原两桶（重算一遍会丢 ts 与插入序细节）'],
     /* ⑤ 隐私：钱不进分享载荷；备份两键逐字登记 */
-    ['share.js', 'var ALLOWED = { v: 1, t: 1, sd: 1, from: 1, to: 1, loop: 1, r: 1, days: 1, km: 1, h: 1, stops: 1, tr: 1, f: 1, o: 1, n: 1, la: 1, lo: 1 };', 1, '白名单整串（下面三条期望 0 的对照物）'],
+    ['share.js', 'var ALLOWED = { v: 1, t: 1, sd: 1, from: 1, to: 1, loop: 1, r: 1, b: 1, days: 1, km: 1, h: 1, stops: 1, tr: 1, f: 1, o: 1, n: 1, la: 1, lo: 1, k: 1 };', 1, '白名单整串（下面三条期望 0 的对照物）'],
     ['backup.js', "{ k: 'tn_expense', g: 'data', m: 'id' },", 1, '账目走 id 并集：同天同额是两笔真开销，不能按内容散列去重'],
     ['backup.js', "{ k: 'tn_budget', g: 'data', m: 'dict' },", 1, '预算走 dict：顶层属性就是 tripId，各趟互不覆盖'],
     ['tools/gen-sw-shell.cjs', "'expense.js', 'share.js', 'checklist.js', 'ticketbox.js'", 1, 'CORE_JS 名单含记账模块（生成器的 filter 会静默抹掉不在名单里的文件，离线首屏就是一片白）'],
@@ -3364,6 +3364,236 @@ const EMOJI_MARK = 'emoji-ok:';
   console.log('记账闸门: ' + A32.length + ' 条代码锚点（浮点→分两处入口 + 显示单点不碰 toFixed + 分类唯一来源 + 「显示即存入」单点 + 隐私两键 + 44px 触控族 + CSV BOM/CRLF/RFC 判定）+ plannerExpSave/expEditor 两处函数体结构断言 + 八族期望 0（toFixed/parseFloat/第二套分类/window.confirm/Notification/share 三键）+ smoke A01–A63 与 A16b/c/d 齐备检；每条期望 0 都配正向对照；变异自测两层在案（源码腿 tools/out/mut-verify32.js 65 条应红全红、异常 0；浏览器腿由上面 A01–A63 齐备检与 smoke 自身承担）');
   fail += bad32;
 }
+
+/* ============ §33 路线档位与锁定闸门（批次 20） ============
+   这一批改的是「一把尺子量所有出行方式」和「用户钉过的顺序被自动重排打散」。
+   两种坏法都是静默的：800m 的两站按 60km/h 排成「车程 1 分钟」，界面上没有任何一处说这不对；
+   手动把第三站挪到第一位、下一次点「重新排期」它又飞回去，用户只会觉得软件在乱来。
+   所以源码侧钉四族：
+   ① MODE 表六个数字逐值钉死 + 旧的单值常量 AVG_KMH/ROAD_FACTOR 期望 0（残留＝某个入口还在用
+      一把没分档的尺子）；mkLeg 形参必须带 tb，且**矩阵只喂自驾档**（把驾车里程当骑行里程，
+      40km 的段会算成「骑行 40 分钟」）。
+   ② 档位数字不许在文案里重抄一遍：rulerNote 从 MODE 派生，旧那句「直线 ×1.35」硬编码期望 0；
+      时长动词走 verbOf，「车程」二字只在自驾档出现。
+   ③ 锁定只在一个地方生效（withLocked），orderStops 与 orderByMatrix 各自**恰一次**经过它——
+      两条独立锚，防止「只在一个里做」；plannerMoveStop 交换成功后必须置 locked=1（不留痕＝本批
+      要修的原始 bug）；锁定的 UI 出口只有 plannerLockStop 一个。
+   ④ 分享载荷：出行方式与钉住标记进白名单（短键 b/k），钱仍然不许进；osrm 域名全站期望 0
+      （公开实例只有 driving profile，写了就是兑现不了的承诺）。
+   口径同 §28/§31/§32：四元组守卫、期望 0 一律配正向对照、锚点串不落块注释、.html 只归一空白不剥注释。
+   ============================================================ */
+{
+  let bad33 = 0;
+  const F33 = m => { bad33++; console.log('FAIL §33 路线档位闸门: ' + m); };
+  const ws33 = s => s.replace(/\s+/g, ' ').trim();
+  const flat33 = s => ws33(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt33 = (s, n) => s.split(n).length - 1;
+  const rd33 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view33 = f => /\.html$/.test(f) ? ws33(rd33(f)) : flat33(rd33(f));
+  const fnBody33 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+
+  const FILES33 = ['planner.js', 'planner.html', 'share.js', 'share.html',
+    'tools/smoke-planner.js', 'README.md', 'docs/功能完善实施方案-2026-10-05.md'];
+  const V33 = {};
+  FILES33.forEach(f => {
+    if (!fs.existsSync(f)) { F33('缺 ' + f); V33[f] = ''; return; }
+    V33[f] = view33(f);
+  });
+
+  const A33 = [
+    /* ① MODE 表：六个数字逐值钉（改一个数就是改产品口径，必须留字在这里） */
+    ['planner.js', 'var MODE = {', 1, '档位表单点'],
+    ['planner.js', "auto: { label: '自动', kmh: 0, factor: 0 }", 1, '自动档自己不给出速度：kmh/factor 必须是 0，否则 pickMode 形同虚设'],
+    ['planner.js', "drive: { label: '自驾', kmh: 60, factor: 1.35 }", 1, '60 是门到门均速（含加油找位吃饭），不是限速；48 会把 440km 这种一天能到的段拆成两天'],
+    ['planner.js', "bike: { label: '骑行', kmh: 15, factor: 1.25 }", 1, '骑行档'],
+    ['planner.js', "walk: { label: '步行', kmh: 4.5, factor: 1.15 }", 1, '步行档'],
+    ['planner.js', 'var AUTO_WALK_KM = 1.5, AUTO_BIKE_KM = 6;', 1, '自动档的站距判据（市内 800m 不该按自驾算，跨市 100km 不该按步行算）'],
+    ['planner.js', "function modeOf(tb) { return MODE[tb] ? tb : 'drive'; }", 1, '老行程没有这个字段＝自驾：不许回头改口，否则存好的账全变'],
+    ['planner.js', "function travelByNow() { var w = state.wiz && state.wiz.travelBy; return MODE[w] ? w : 'auto'; }", 1, '新建行程默认档只有这一个读法（两个入口各写字面量就是「这里自动、那里自驾」的开始）'],
+    ['planner.js', "return straightKm <= AUTO_WALK_KM ? 'walk' : straightKm <= AUTO_BIKE_KM ? 'bike' : 'drive';", 1, '选档判定单点'],
+    ['planner.js', 'function mkLeg(matrix, tb) {', 1, '唯一尺子的形参含档位'],
+    ['planner.js', 'var want = modeOf(tb);', 1, '入口先归一档位'],
+    ['planner.js', "var m = want === 'auto' ? pickMode(straight) : want;", 1, '自动档按这一段的直线距离现场选'],
+    ['planner.js', "if (m === 'drive' && matrix) {", 1, '高德矩阵只喂自驾档：把驾车里程当骑行里程，40km 会算成「骑行 40 分钟」'],
+    ['planner.js', 'if (km == null) km = straight * mo.factor;', 1, '缺矩阵时按本档系数折算，不是恒 1.35'],
+    ['planner.js', 'return { km: km, h: km / mo.kmh, mode: m };', 1, '时长 = 里程 / 本档速度，且把用的哪档带出去'],
+    ['planner.js', 'var leg = mkLeg(null, tb);', 1, '最近邻排序用同一把尺子（旧写法按直线距离排，自动档里把「要走 4 小时」的站当近的捞进来）'],
+    ['planner.js', 'var leg = mkLeg(dist || {}, tb);', 1, '矩阵排序路径同一条尺子'],
+    ['planner.js', "leg = leg || mkLeg(null, state.trip ? state.trip.travelBy : travelByNow());", 1, '兜底也走档：裸 mkLeg(null) 会把没传尺子的入口悄悄送回自驾'],
+    /* ② 文案跟着档位走 */
+    ['planner.js', "return m === 'drive' ? '车程' : m === 'bike' ? '骑行' : m === 'walk' ? '步行' : '在途';", 1, '时长动词单点：把走出来的 4 小时写成「车程 4.0h」是谎报口径'],
+    ['planner.js', "'日卡里程按直线 ×' + mo.factor", 1, 'rulerNote 的数字从 MODE 派生'],
+    ['planner.js', "这段路的' + verbOf(trip.travelBy) + '超过单日上限 ' + DRIVE_H + ' 小时", 1, '转场日的解释跟着档位走（原句写死「单日驾驶上限」）'],
+    ['planner.js', '公共交通未覆盖', 2, '能力边界要说给用户听（公交要实时数据，与离线定位冲突，本批不做）；两处在案：结果页切换条 ' + "'public 未覆盖' 说明 + 向导 step3 排线说明尾部"],
+    ['planner.js', "'；地图折线为驾车路线形状'", 1, '非自驾档的折线仍是高德驾车线：不说这句，用户以为图上那就是骑行道'],
+    /* 标题与「N 站已锁定」挂在哪：这两处都是「算对了但屏幕上看不出来」的现场 */
+    ['planner.js', "$id('resultTitle').textContent = trip.name", 1, '全程 km 在 renderDaysBody 里现算：换档/删站只重画日卡的话，标题挂着上一档的数（屏上两个口径并存）'],
+    ['planner.js', "<span id=\"lkSlot\">' + lockedHint()", 1, '锁定提示挂在稳定插槽里（整块重画 actRow 会让按钮闪一下，钉完站没反馈）'],
+    ['planner.js', "var lk = $id('lkSlot'); if (lk) lk.innerHTML = lockedHint();", 1, '插槽取不到就跳过：不许把 null.innerHTML 抛进渲染链'],
+    /* ③ 锁定：单点生效 + 两条重排路径各自经过 + 移动即钉 */
+    ['planner.js', 'function withLocked(sel, reorder) {', 1, '锁定处理收成单点 helper（在两条路径里各写一遍 filter＝将来改一处漏一处的半新半旧）'],
+    ['planner.js', 'if (s && s.locked) held.push([i, s]); else free.push(s);', 1, '钉住的站先摘出参与重排的集合'],
+    ['planner.js', 'out.splice(Math.min(hp[0], out.length), 0, hp[1]);', 1, '再按原索引插回（夹到 out.length：重排后变短了不许插到数组外）'],
+    ['planner.js', 'function orderStops(sel, start, tb) {', 1, '地理档签名带 tb'],
+    ['planner.js', 'function orderByMatrix(sel, start, dist, tb) {', 1, '矩阵档签名带 tb'],
+    ['planner.js', 'flat[to].locked = 1;', 1, '手动移动成功即视为「用户钉过这一站」——这就是本批要修的原始 bug 的解'],
+    /* 钉住的下标是按「用户看到的那一序」算的：屏上顺序不写回选点集，下一次重排就按选点时的旧序插回，
+       锁定的站还是会被挪位；移掉的站同理会整站回来。三处出口各钉一条。 */
+    ['planner.js', 'state.selected = ordered;', 2, '排期落档与高德规划两条入口都把排好的顺序写回选点集'],
+    ['planner.js', 'state.selected = flat.slice();', 2, '手动调序与编辑选点都把当前站点序写回选点集'],
+    ['planner.js', 'state.selected = flatStops();', 1, '移站要同时退出选点集，否则「重新排期」把它捞回行程'],
+    ['planner.js', 'window.plannerLockStop = function (di, si) {', 1, '图钉的唯一出口'],
+    ['planner.js', 's.locked = s.locked ? 0 : 1;', 1, '切换只认 0/1（trip JSON 里第三种值＝下一次 filter 的判据说不清）'],
+    ['planner.js', 'function lockedCount() { return flatStops().filter(function (s) { return s.locked; }).length; }', 1, '计数单点：向导与结果页两处提示共用'],
+    ['planner.js', "return n ? '<span class=\"lk-hint\">' + TI('pinned', 13) + n + ' 站已锁定 · 自动重排不参与</span>' : '';", 1, '提示只在有锁定时出现（0 站还挂一句是噪音）'],
+    ['planner.js', "var tb = modeOf(w.travelBy);", 1, '排期落档单点'],
+    ['planner.js', 'travelBy: tb,', 1, '新建行程把档位写进 trip（不存＝下次打开回到自驾）'],
+    ['planner.js', "travelBy: modeOf(travelByNow()),", 1, 'AI 精选那条路径同样存档（漏一处就是两个入口两种口径）'],
+    ['planner.js', "if (state.wiz) state.wiz.travelBy = m;", 1, '结果页换档要回写向导，否则回到向导看到的还是上一轮口径'],
+    ['planner.js', 'window.plannerTravelBy = function (m) {', 1, '档位切换单点'],
+    ['planner.js', "var TB_ORDER = ['auto', 'drive', 'bike', 'walk'];", 1, '档位顺序单点（结果页与向导共用一组）'],
+    ['planner.js', 'function travelByRow(trip) {', 1, '结果页切换条'],
+    ['planner.js', 'persistTrip(); resplitTrip();', 2, '两个出口都「先存再重切」（删站 + 换档）：换档不 persist 的话刷新回到旧档，账白算'],
+    ['planner.js', "toast('出行方式：' + MODE[m].label + ' · '", 1, '换档要说清换了什么口径（本地估算还是真实道路），点下去没反应比点错更难查'],
+    ['planner.html', '.mv.on{background:var(--color-primary)', 1, '钉住态必须看得出来（不点亮，用户以为顺序还是算出来的）'],
+    ['planner.html', '.lk-hint{', 1, '锁定提示样式在案'],
+    ['planner.html', '#tbRow{margin:', 1, '档位切换条留位'],
+    /* ④ 分享载荷：短键登记，钱仍然不进 */
+    ['share.js', "if (s && s.locked) st.k = 1;", 1, '钉住标记进载荷（只有 1 才带；方案 8.2.6 要求登记 locked，短键命名收成 k，偏离在文档 8.6 登记）'],
+    ['share.js', "b: /^(auto|drive|bike|walk)$/.test(trip && trip.travelBy ? String(trip.travelBy) : '') ? String(trip.travelBy) : '',", 1, '出行方式进载荷且只认这四值（脏值宁可不带，不发一个收件人看不懂的字）'],
+    ['share.js', "var TB_LAB = { auto: '按站距自动选（步行/骑行/自驾）', drive: '自驾', bike: '骑行', walk: '步行' };", 1, '档位中文名在分享侧的唯一定义'],
+    ['share.js', "payloadOf: payloadOf, strayKeys: strayKeys, ALLOWED: ALLOWED, TB_LAB: TB_LAB,", 1, 'TB_LAB 必须导出：share.html 拿不到就是各写一套'],
+    ['share.html', 'Share.TB_LAB[p.b]', 2, '收件人看到的档位来自 share.js 单点（存在判定 + 取值，两处都走它就不可能有第二套名字）'],
+    ['share.html', "'钉住</span>'", 1, '钉住标记在只读页有呈现（进了载荷却不渲染＝死数据）'],
+    ['share.html', "'日卡里程按直线折算，是估算不是实测'", 1, '只读页不再重抄系数（两处各写一个 1.35 迟早一升一降）'],
+    ['tools/smoke-planner.js', 'setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true })', 7, 'smoke-planner 全程用手机档量（桌面宽度量出来的档位排版与触控不作数）'],
+    ['tools/smoke-planner.js', 'setViewport({ width: 452, height: 995, isMobile: true, hasTouch: true })', 1, '真机档（一加 Ace6T）量一次切换条：四颗 chip + 一句「公共交通未覆盖」是这一批新加的行，窄屏挤不挤要有人量'],
+    ['tools/smoke-planner.js', 'stale === false', 5, '档位/锁定那族判据逐个要求「读到的 trip 与屏上日卡同一份序」：重新排期会换新 id，不重存就读 localStorage＝拿旧账算单调关系（全绿但是假的）'],
+  ];
+  A33.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F33('A33 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V33)) { F33('A33 登记了 §33 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt33(V33[file], needle);
+    if (got !== want) F33(file + ' 里「' + needle + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A33.length < 61) F33('锚点表被削减：' + A33.length + ' 条（批次 20 落地时实测 61 条，整组删掉就等于这节没了）');
+
+  /* ③ 结构断言：锁定必须真的在两条重排路径里各生效一次（字符串锚只证明 withLocked 存在过） */
+  {
+    const OS = fnBody33(V33['planner.js'], 'function orderStops(sel, start, tb) {');
+    if (!OS) F33('抽不出 orderStops 函数体（「地理档经过锁定」这条断言失去依据）');
+    else if (cnt33(OS, 'withLocked(') !== 1) F33('orderStops 体里 withLocked( 不是恰 1 次：地理档这条路不认锁定了');
+    const OM = fnBody33(V33['planner.js'], 'function orderByMatrix(sel, start, dist, tb) {');
+    if (!OM) F33('抽不出 orderByMatrix 函数体（「矩阵档经过锁定」这条断言失去依据）');
+    else if (cnt33(OM, 'withLocked(') !== 1) F33('orderByMatrix 体里 withLocked( 不是恰 1 次：高德档这条路不认锁定了');
+    /* 重排的实活在 orderFree* 里，它们自己不许再碰 locked（两处都 filter＝插回两次，顺序会重复） */
+    const OFG = fnBody33(V33['planner.js'], 'function orderFreeByGeo(sel, start, tb) {');
+    if (!OFG) F33('抽不出 orderFreeByGeo 函数体');
+    else if (cnt33(OFG, '.locked') !== 0) F33('orderFreeByGeo 体里出现 .locked：过滤不该在两条路径各写一遍');
+    const OFM = fnBody33(V33['planner.js'], 'function orderFreeByMatrix(sel, start, dist, tb) {');
+    if (!OFM) F33('抽不出 orderFreeByMatrix 函数体');
+    else if (cnt33(OFM, '.locked') !== 0) F33('orderFreeByMatrix 体里出现 .locked：同上');
+    const MV = fnBody33(V33['planner.js'], 'window.plannerMoveStop = function (di, si, dir) {');
+    if (!MV) F33('抽不出 plannerMoveStop 函数体（「移动即钉」的结构断言失去依据）');
+    else if (cnt33(MV, 'locked = 1') !== 1) F33('plannerMoveStop 体里 locked = 1 不是恰 1 次：移动不留痕，下一次自动重排照样把它打散');
+    const CTRL33 = flat33("function orderStops(sel, start, tb) { return withLocked(sel, f); } function plannerMoveStop(di) { s.locked = 1; }");
+    if (cnt33(CTRL33, 'withLocked(') !== 1 || cnt33(CTRL33, 'locked = 1') !== 1)
+      F33('上面四条函数体断言的正向对照失效了（那些 0/1 不是证据）');
+  }
+
+  /* ③b 结构断言：重切要落盘、标题与锁定提示要在日卡那一次渲染里一起动 */
+  {
+    const RS = fnBody33(V33['planner.js'], 'function resplitTrip() {');
+    if (!RS) F33('抽不出 resplitTrip 函数体（「重切后必须落盘」这条断言失去依据）');
+    else if (cnt33(RS, 'persistTrip();') !== 1) F33('resplitTrip 体里 persistTrip(); 不是恰 1 次：换档改了日卡却不重存，从「已保存行程」重开看到的是旧档算出来的数');
+    const RD = fnBody33(V33['planner.js'], 'function renderDaysBody() {');
+    if (!RD) F33('抽不出 renderDaysBody 函数体');
+    else {
+      if (cnt33(RD, "$id('resultTitle').textContent") !== 1) F33('renderDaysBody 体里 resultTitle 赋值不是恰 1 次：标题不跟日卡同一次渲染动＝换档后两个口径同屏');
+      if (cnt33(RD, 'lockedHint()') !== 1) F33('renderDaysBody 体里 lockedHint( 不是恰 1 次：钉完站提示不当场出现');
+    }
+    const RR = fnBody33(V33['planner.js'], 'function renderResult() {');
+    if (!RR) F33('抽不出 renderResult 函数体');
+    else if (cnt33(RR, 'resultTitle') !== 0) F33('renderResult 体里还有 resultTitle：标题算了两处（重画日卡那条路径不经过它，就是旧数挂在屏上）');
+    const CTRL33B = flat33("function resplitTrip() { persistTrip(); } function renderDaysBody() { $id('resultTitle').textContent = x; var lk = $id('lkSlot'); lk.innerHTML = lockedHint(); } function renderResult() { travelByRow(t); }");
+    if (cnt33(CTRL33B, 'persistTrip();') !== 1 || cnt33(CTRL33B, "$id('resultTitle').textContent") !== 1 ||
+      cnt33(CTRL33B, 'lockedHint()') !== 1 || cnt33(CTRL33B, 'resultTitle') !== 1)
+      F33('上面四条函数体断言的正向对照失效了（那些 0/1 不是证据）');
+  }
+
+  /* 期望 0：旧尺子残留、硬编码文案、裸 mkLeg、未承诺的路由源 */
+  const ZERO33 = [
+    ['planner.js', 'AVG_KMH', "var AVG_KMH = 60, ROAD_FACTOR = 1.35;", '单值均速常量必须不再存在：存在就意味着某个入口还在用一把没分档的尺子'],
+    ['planner.js', 'ROAD_FACTOR', "var AVG_KMH = 60, ROAD_FACTOR = 1.35;", '同上'],
+    ['planner.js', '日卡里程按直线 ×1.35 折算（未取真实道路数据）', "return '日卡里程按直线 ×1.35 折算（未取真实道路数据）';", '文案里重抄系数：改了 MODE 表改不了这句话，两本账回来'],
+    ['planner.js', '这段路超过单日驾驶上限', "h += '这段路超过单日驾驶上限，单独成一天';", '动词写死「驾驶」：骑行档的转场日不该被说成开车'],
+    ['planner.js', 'mkLeg(null)', "var leg = mkLeg(null);", '裸 mkLeg(null)＝漏传档位的调用点（默认回自驾，界面上没人看得出这一段被当成开车算）'],
+    ['planner.js', 'mkLeg(matrix)', "var days = mkLeg(matrix);", '同上，排期入口'],
+    ['planner.js', 'mkLeg(trip.dist)', "var leg = mkLeg(trip.dist);", '同上，日卡路径'],
+    ['planner.js', 'mkLeg(state.trip.dist)', "state.trip.days = splitIntoDays(flat, mkLeg(state.trip.dist));", '同上，重切分路径'],
+    ['planner.js', "sortMode === 'walk'", "if (w.sortMode === 'walk') {", '出行方式不许挤进 sortMode：排线依据与算时长的档是两个正交轴（合并要造四个组合值，而「重新排期」只该改后者）'],
+    ['planner.js', "sortMode === 'bike'", "if (w.sortMode === 'bike') {", '同上'],
+    ['planner.js', 'router.project-osrm.org', "fetch('https://router.project-osrm.org/route');", '公开 OSRM 实例只有 driving profile：写进来就是兑现不了的承诺'],
+    ['share.js', '直线 ×1.35', "return '里程按直线 ×1.35 折算（估算）';", '分享侧同样不许重抄系数'],
+    ['share.html', '直线 ×1.35', "h += '日卡里程按直线 ×1.35 折算，是估算不是实测';", '同上'],
+    ['share.js', "locked: 1", "var ALLOWED = { locked: 1 };", '载荷用短键 k：8.2.6 说的 locked 是字段语义不是键名（这条钉的是「别把长键写进来把白名单撑爆」）'],
+    ['planner.js', 'totalKm', "var totalKm = trip.days.reduce(function (s, d) { return s + d.driveKm; }, 0);", '旧标题用局部 totalKm 单独算全程（换档后不跟日卡动）；现在标题从 days 现算，残留一个 totalKm＝两处两个口径'],
+  ];
+  ZERO33.forEach(([f, needle, ctrl, why]) => {
+    if (cnt33(V33[f], needle) !== 0) F33(f + ' 里出现「' + needle + '」：' + why);
+    if (cnt33(flat33(ctrl), needle) < 1) F33('「' + needle + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* osrm 全站扫一遍（不只 planner：承诺一旦写在某个角落，就有人照着它等一个不会来的功能） */
+  let osrmScope33 = 0;
+  {
+    const osrmFiles = fs.readdirSync('.').filter(f => /\.js$/.test(f) && fs.statSync(f).isFile());
+    osrmScope33 = osrmFiles.length;
+    let hits = 0;
+    osrmFiles.forEach(f => { if (rd33(f).indexOf('project-osrm.org') >= 0) hits++; });
+    if (hits) F33('全站根目录 JS 里出现 project-osrm.org 的文件数 ' + hits + '（本批不承诺 OSRM，见方案 8.2.3）');
+    if (osrmFiles.length < 40) F33('全站扫描只覆盖到 ' + osrmFiles.length + ' 个根 JS 文件，这条期望 0 已经退化成没扫（预期 ≥40）');
+  }
+
+  /* 浏览器腿：T0／T0b／T1–T12 一条不许少（探针自校准、档位单调、1.5km 走步行、移动后重排顺序不变、locked 存回） */
+  ["ok('T0 ", "ok('T0b "].forEach(n => {
+    if (V33['tools/smoke-planner.js'].indexOf(n) < 0)
+      F33('tools/smoke-planner.js 缺 ' + n.trim() + ' 这条（造点快照有没有恢复、读的是不是当前那份 trip——下面 12 条的数值全靠这两条兜底）');
+  });
+  for (let i = 1; i <= 12; i++) {
+    if (V33['tools/smoke-planner.js'].indexOf("ok('T" + i + ' ') < 0)
+      F33('tools/smoke-planner.js 缺 T' + i + ' 这条判据（批次 20 的 12 条档位/锁定判据是一整组，少一条就是有个症状没人管）');
+  }
+
+  if (V33['README.md'].indexOf('§33') < 0) F33('README.md 的 verify 清单没提 §33（新闸门不写进 README 就等于没装）');
+  if (V33['docs/功能完善实施方案-2026-10-05.md'].indexOf('批次 20 已实施') < 0)
+    F33('方案文档没登记「批次 20 已实施」（收工状态只能靠文档留在案上）');
+  /* 两条偏离必须在文档里留字，否则下一个人会照着 8.2/8.3 的原文再找一遍代码 */
+  if (V33['docs/功能完善实施方案-2026-10-05.md'].indexOf('不扩 `sortMode`，另立 `travelBy` 轴') < 0)
+    F33('方案文档没登记「出行方式不扩 sortMode」这条偏离（8.3 原文要求扩枚举）');
+  if (V33['docs/功能完善实施方案-2026-10-05.md'].indexOf('端点在本机无法实查') < 0)
+    F33('方案文档没登记「高德 walking/bicycling 端点无法实查」的否定读数（8.2.2 要求先实查再定档）');
+
+  console.log('路线档位闸门: ' + A33.length + ' 条代码锚点（MODE 四档六数逐值 + 自动档两阈值 + mkLeg 形参带档 + 矩阵只喂自驾 + 动词/文案从表派生 + withLocked 单点与两条重排路径 + 移动即钉 + 档位单点 + 分享 b/k 与 TB_LAB 导出）+ 九处函数体结构断言（orderStops/orderByMatrix 各恰一次 withLocked、orderFree* 两处零 locked、plannerMoveStop 恰一次 locked=1、resplitTrip 恰一次 persistTrip、renderDaysBody 里标题赋值与 lockedHint 各恰一次、renderResult 里 resultTitle 恰零次）+ 十五族期望 0（旧单值常量/硬编码 ×1.35/写死「驾驶」/裸 mkLeg/sortMode 挤档/OSRM/share 重抄系数/长键 locked/旧标题 totalKm）+ osrm 全站 ' + osrmScope33 + ' 个根 JS 扫 + smoke T0／T0b／T1–T12 齐备检（T0b 是探针自校准：读到的 trip 必须与屏上同序）；每条期望 0 都配正向对照；变异自测见 tools/out/mut-verify33.js');
+  fail += bad33;
+}
+
 
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');

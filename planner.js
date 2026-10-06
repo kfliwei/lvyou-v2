@@ -351,28 +351,55 @@
      此前 4 处向导初始化各写各的 'geo'，等于把兜底当首选——
      每个配好 Key 的用户第一眼看到的仍是一条不像路的直线示意。 */
   function defaultSortMode() { return getAmapKey() ? 'amap' : 'geo'; }
-  function wizNew() { return { step: 1, sortMode: defaultSortMode(), sortOrder: 'asc' }; }
+  function wizNew() { return { step: 1, sortMode: defaultSortMode(), sortOrder: 'asc', travelBy: travelByNow() }; }
   /* 逐对取数的成本闸文案：超过上限就不硬扛，并且当场说清退回了什么口径——
      静默退直线是最坏的结果，用户会以为看到的就是真实道路。 */
   function overCapMsg(n) { return '已选 ' + n + ' 站，超过真实里程取数上限 ' + AMAP_MAX_STOPS + ' 站（逐对查询要 ' + (n * (n - 1) / 2) + ' 段），本次按地理最近邻排期'; }
 
-  /* ---------- 排期（一把尺子：有真实里程就按真实里程，没有才按直线折算） ----------
-     AVG_KMH 取 60 是门到门均速（含加油、找车位、吃饭），不是高速公路限速。
-     定 48 会把 440 km 这种"一天确实能到"的段拆成两天，实测川西 4 站凭空多一个转场日。 */
-  var AVG_KMH = 60, ROAD_FACTOR = 1.35;
+  /* ---------- 排期（一把尺子：先按出行方式定速度与道路系数，再谈真实里程） ----------
+     MODE.drive 的 60 是门到门均速（含加油、找车位、吃饭），不是高速公路限速；定 48 会把
+     440 km 这种"一天确实能到"的段拆成两天，实测川西 4 站凭空多一个转场日。
+     walk/bike 两档是**免 Key 的本地估算**：经纬度本来就在手上，量级正确的"步行 12 分钟"
+     不需要任何外部路由服务。反过来，我们目前没有实测过的步行路线源（高德 walking/bicycling
+     在本机无 Key，端点字段与配额都查不到），所以这两档的里程与时长一律标"估"，不许冒充实测。 */
+  var MODE = {
+    auto: { label: '自动', kmh: 0, factor: 0 },   /* 按站距现场选档，本身不给出速度 */
+    drive: { label: '自驾', kmh: 60, factor: 1.35 },
+    bike: { label: '骑行', kmh: 15, factor: 1.25 },
+    walk: { label: '步行', kmh: 4.5, factor: 1.15 }
+  };
+  /* 自动档的站距判据（直线 km）：市内 800m 的两站不该按 60 km/h 排成"车程 1 分钟"，
+     跨市 100km 也不该按步行折成"一天走 22 小时"。 */
+  var AUTO_WALK_KM = 1.5, AUTO_BIKE_KM = 6;
+  /* 档位只有一个读法：老行程没有这个字段就是自驾（不许回头改口，否则存好的账全变） */
+  function modeOf(tb) { return MODE[tb] ? tb : 'drive'; }
+  /* 新建行程的默认档：向导没走完（AI 精选直接成行）也认这一个默认值，
+     两个入口各写一遍字面量就是"这里默认自驾、那里默认自动"的开始。 */
+  function travelByNow() { var w = state.wiz && state.wiz.travelBy; return MODE[w] ? w : 'auto'; }
+  function pickMode(straightKm) {
+    return straightKm <= AUTO_WALK_KM ? 'walk' : straightKm <= AUTO_BIKE_KM ? 'bike' : 'drive';
+  }
   function coordKey(p) { return p.lat.toFixed(3) + ',' + p.lng.toFixed(3); }
   /* 选点集签名：矩阵缓存只在站点集合不变时可复用（增删一站就必须重取） */
   function picksSig(sel) { return sel.map(function (s) { return coordKey(s); }).sort().join('|'); }
-  /* mkLeg(matrix)：日卡里程/耗时与排线依据共用的唯一尺子。
-     matrix 为高德真实里程（按坐标对索引），未命中的段才退直线折算——
-     此前排线按高德、日卡按 hav×1.35，同一个行程两本账，标题里程与地图对不上。 */
-  function mkLeg(matrix) {
+  /* mkLeg(matrix, tb)：日卡里程/耗时与排线依据共用的唯一尺子。
+     matrix 是高德**驾车**真实里程（按坐标对索引），只有落在自驾档的那一段才配用它；
+     其余档一律退直线 × 本档道路系数。此前排线按高德、日卡按直线折算，同一个行程两本账，
+     标题里程与地图对不上。 */
+  function mkLeg(matrix, tb) {
+    var want = modeOf(tb);
     return function (a, b) {
-      if (!a || !b || a.lat == null || b.lat == null) return { km: 0, h: 0 };
-      var k1 = coordKey(a) + '|' + coordKey(b), k2 = coordKey(b) + '|' + coordKey(a);
-      var km = matrix && (matrix[k1] != null ? matrix[k1] : matrix[k2]);
-      if (km == null) km = window.Geo.hav(a.lat, a.lng, b.lat, b.lng) * ROAD_FACTOR;
-      return { km: km, h: km / AVG_KMH };
+      if (!a || !b || a.lat == null || b.lat == null) return { km: 0, h: 0, mode: want === 'auto' ? 'drive' : want };
+      var straight = window.Geo.hav(a.lat, a.lng, b.lat, b.lng);
+      var m = want === 'auto' ? pickMode(straight) : want;
+      var mo = MODE[m];
+      var km = null;
+      if (m === 'drive' && matrix) {
+        var k1 = coordKey(a) + '|' + coordKey(b), k2 = coordKey(b) + '|' + coordKey(a);
+        km = matrix[k1] != null ? matrix[k1] : matrix[k2];
+      }
+      if (km == null) km = straight * mo.factor;
+      return { km: km, h: km / mo.kmh, mode: m };
     };
   }
   /* 单日驾驶超过 DRIVE_H 小时的长途自成一「在途转场日」；全天硬顶 DAY_CAP_H。
@@ -383,15 +410,34 @@
     for (var i = 0; i < n; i++) out.push({ km: L.km / n, h: L.h / n });
     return out;
   }
+  /* 锁定的站先摘出来，剩下的才参与重排，最后按原索引插回。
+     收成单点 helper 而不是在 orderStops / orderByMatrix 里各写一遍 filter：写两遍的话，
+     将来改一处漏一处就是"这里还认锁定、那里已经不认"的半新半旧。 */
+  function withLocked(sel, reorder) {
+    var held = [], free = [];
+    (sel || []).forEach(function (s, i) { if (s && s.locked) held.push([i, s]); else free.push(s); });
+    if (!held.length) return reorder(free);
+    var out = reorder(free).slice();
+    held.sort(function (a, b) { return a[0] - b[0]; }).forEach(function (hp) {
+      out.splice(Math.min(hp[0], out.length), 0, hp[1]);
+    });
+    return out;
+  }
   /* 最近邻排序 + 2-opt（起终点锚定与矩阵路径同一套边界处理） */
-  function orderStops(sel, start) {
-    var hav = function (a, b) { return window.Geo.hav(a.lat, a.lng, b.lat, b.lng); };
+  function orderStops(sel, start, tb) {
+    return withLocked(sel, function (free) { return orderFreeByGeo(free, start, tb); });
+  }
+  function orderFreeByGeo(sel, start, tb) {
+    /* 排序用的尺子和日卡用的必须是同一把：自动档里 20km 的步行为主站对，
+       按直线距离排会把"要走 4 小时"的那一站当近的捞进来。 */
+    var leg = mkLeg(null, tb);
+    var kmOf = function (a, b) { return leg(a, b).km; };
     var startPt = (start && start.lat != null) ? start : null;
     var pts = sel.slice(), ordered = [];
     var cur = startPt;
     while (pts.length) {
       var idx = 0, bestD = Infinity;
-      for (var k = 0; k < pts.length; k++) { var d = cur ? hav(cur, pts[k]) : 0; if (d < bestD) { bestD = d; idx = k; } }
+      for (var k = 0; k < pts.length; k++) { var d = cur ? kmOf(cur, pts[k]) : 0; if (d < bestD) { bestD = d; idx = k; } }
       var nx = pts.splice(idx, 1)[0]; ordered.push(nx); cur = nx;
     }
     /* 2-opt 优化：任意站数都跑（旧写法 N>3 早退，3 站只剩最近邻，
@@ -405,8 +451,8 @@
           var pb = ordered[i2], pc = ordered[k2], pd = (k2 + 1 < N) ? ordered[k2 + 1] : null;
           if (!pb || !pc || !pd) continue;
           var pa = i2 === 0 ? startPt : ordered[i2 - 1];
-          var d1 = hav(pc, pd) + (pa ? hav(pa, pb) : 0);
-          var d2 = hav(pb, pd) + (pa ? hav(pa, pc) : 0);
+          var d1 = kmOf(pc, pd) + (pa ? kmOf(pa, pb) : 0);
+          var d2 = kmOf(pb, pd) + (pa ? kmOf(pa, pc) : 0);
           if (d2 + 0.5 < d1) {
             ordered = ordered.slice(0, i2).concat(ordered.slice(i2, k2 + 1).reverse(), ordered.slice(k2 + 1));
             improved = true;
@@ -425,7 +471,7 @@
      `if (cur.stops.length >= 2 && …)` 挡死，1800 km 段整段压进景点当天 = 27 小时的一天）。 */
   function splitIntoDays(ordered, start, targetDays, end, leg, forcedStart) {
     var MAX_KM = 260, MAX_H = 12, MAX_STOPS = 6;
-    leg = leg || mkLeg(null);
+    leg = leg || mkLeg(null, state.trip ? state.trip.travelBy : travelByNow());
     var maxStops = targetDays && targetDays > 0
       ? Math.max(1, Math.min(MAX_STOPS, Math.ceil(ordered.length / targetDays)))
       : MAX_STOPS;
@@ -646,7 +692,7 @@
          否则分组按 AI、日卡按直线，同一行程两本账。 */
       var tripName = (arData.dest || '') + ' · ' + r.name + ' ' + dayLists.length + ' 日' + arData.trans + '之旅';
       var commitAi = function (matrix) {
-        state.trip = { id: 'p' + Date.now(), name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: buildAiDays(dayLists, state.start, mkLeg(matrix)), dist: matrix || null, narrative: null };
+        state.trip = { id: 'p' + Date.now(), name: tripName, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), travelBy: modeOf(travelByNow()), days: buildAiDays(dayLists, state.start, mkLeg(matrix, travelByNow())), dist: matrix || null, narrative: null };
         renderAiRoutes(); /* 返回输入页时备选卡仍在，可直接换一条 */
         showStage('stageResult'); renderResult();
         if (miss) toast('已跳过 ' + miss + ' 处无法定位的景点');
@@ -893,8 +939,8 @@
     var sel = state.selected;
     if (!sel.length) return 0;
     var matrix = state.matrix && state.matrix.sig === picksSig(sel) ? state.matrix.dist : null;
-    var ordered = state.amapSorted ? sel.slice() : (matrix ? orderByMatrix(sel, state.start, matrix) : orderStops(sel, state.start));
-    return splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix)).length;
+    var ordered = state.amapSorted ? sel.slice() : (matrix ? orderByMatrix(sel, state.start, matrix, travelByNow()) : orderStops(sel, state.start, travelByNow()));
+    return splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix, travelByNow())).length;
   }
   function renderSumm() {
     var bar = $id('summbar');
@@ -904,11 +950,45 @@
   }
 
   /* 阶段三：结果 */
-  /* 一把尺子的可见性：日卡里程到底是真实道路还是直线折算，必须在页面上说清 */
+  /* 一把尺子的可见性：日卡里程到底是真实道路还是直线折算、是实测还是本地估算，必须在页面上说清。
+     数字一律从 MODE 表派生——这里再写死一个 1.35，改了表也改不了话，就是两本账。 */
+  function hasMatrix(trip) { return !!(trip && trip.dist && Object.keys(trip.dist).length); }
+  /* 高德只给**驾车**折线，非自驾档的路线形状仍是那条驾车线：不说这句，用户会以为图上那就是骑行道。 */
+  function polyNote(trip) {
+    return modeOf(trip && trip.travelBy) !== 'drive' && hasMatrix(trip) ? '；地图折线为驾车路线形状' : '';
+  }
   function rulerNote(trip) {
-    return trip.dist && Object.keys(trip.dist).length
-      ? '日卡里程为高德真实道路里程'
-      : '日卡里程按直线 ×1.35 折算（未取真实道路数据）';
+    var tb = modeOf(trip && trip.travelBy);
+    if (tb === 'auto') {
+      return '出行方式按站距自动选档（≤' + AUTO_WALK_KM + 'km 步行 / ≤' + AUTO_BIKE_KM + 'km 骑行 / 更远自驾）；' +
+        (hasMatrix(trip) ? '自驾段用高德真实道路里程，步行骑行段按直线折算估' : '里程按直线 × 本档道路系数折算（估，未取真实道路数据）') + polyNote(trip);
+    }
+    var mo = MODE[tb];
+    if (tb === 'drive') {
+      return '自驾 · ' + (hasMatrix(trip)
+        ? '日卡里程为高德真实道路里程'
+        : '日卡里程按直线 ×' + mo.factor + ' 折算（未取真实道路数据）');
+    }
+    return mo.label + ' · 里程按直线 ×' + mo.factor + ' 折算、时长按 ' + mo.kmh + ' km/h（本地估算，未接' + mo.label + '路线源）' + polyNote(trip);
+  }
+  /* 时长的动词必须跟着档位走：把走出来的 4 小时写成「车程 4.0h」是谎报口径 */
+  function verbOf(tb) {
+    var m = modeOf(tb);
+    return m === 'drive' ? '车程' : m === 'bike' ? '骑行' : m === 'walk' ? '步行' : '在途';
+  }
+  /* 出行方式切换条：结果页与向导同一组档、同一个窗口函数。
+     换档只换尺子（重算时长/里程 + 重画折线），不换用户已经排好的站点顺序——
+     排线依据是另一根轴（sortMode），两轴合并就会互相打架。 */
+  var TB_ORDER = ['auto', 'drive', 'bike', 'walk'];
+  function travelByRow(trip) {
+    var cur = modeOf(trip && trip.travelBy);
+    return '<div class="chip-row" id="tbRow" role="group" aria-label="出行方式">' +
+      '<span style="font-size:var(--fs-3);color:var(--color-muted);align-self:center">出行方式</span>' +
+      TB_ORDER.map(function (m) {
+        return '<span class="chip' + (m === cur ? ' on' : '') + '" role="button" tabindex="0" aria-pressed="' + (m === cur ? 'true' : 'false') +
+          '" onclick="window.plannerTravelBy(\'' + m + '\')">' + MODE[m].label + '</span>';
+      }).join('') +
+      '<span style="font-size:var(--fs-3);color:var(--color-muted);align-self:center">公共交通未覆盖</span></div>';
   }
 
   /* ---------- 逐日天气（Open-Meteo，免费无 Key、CORS 开放） ----------
@@ -1017,19 +1097,26 @@
   function renderDaysBody() {
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
-    var leg = mkLeg(trip.dist);
+    var leg = mkLeg(trip.dist, trip.travelBy);
+    /* 标题的全程 km 与日卡是同一把尺子算出来的，必须在同一次渲染里一起动：
+       换档/删站只重画日卡的话，标题还挂着上一档的数（屏上两个口径并存）。 */
+    $id('resultTitle').textContent = trip.name + ' · ' + days.length + ' 天 · ' +
+      days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站 · 约 ' +
+      Math.round(days.reduce(function (s, d) { return s + d.driveKm; }, 0)) + ' km';
+    var lk = $id('lkSlot'); if (lk) lk.innerHTML = lockedHint();
     var h = '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-bottom:4px">' +
       rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
-      (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>';
+      (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>' +
+      travelByRow(trip);
     days.forEach(function (d, di) {
       var over = d.totalH > 12;
       var seal = 'day-seal ds-' + (di % 6 + 1);
       if (d.transit) {
         /* 转场日：只赶路、不塞景点，没有起讫站点可导航，所以不挂导航按钮 */
         h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
-          '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · 车程 ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
+          '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · ' + verbOf(trip.travelBy) + ' ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
-          '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路超过单日驾驶上限，单独成一天；中途可在服务区/沿途城市休整。</div>' +
+          '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路的' + verbOf(trip.travelBy) + '超过单日上限 ' + DRIVE_H + ' 小时，单独成一天；中途可在服务区/沿途城市休整。</div>' +
           expRow(di) + '</div>';
         return;
       }
@@ -1050,6 +1137,7 @@
         acts += '<span class="ops">' +
           '<button class="mv" aria-label="上移" onclick="window.plannerMoveStop(' + di + ',' + si + ',-1)">↑</button>' +
           '<button class="mv" aria-label="下移" onclick="window.plannerMoveStop(' + di + ',' + si + ',1)">↓</button>' +
+          '<button class="mv' + (s.locked ? ' on' : '') + '" aria-label="' + (s.locked ? '解除锁定' : '锁定顺序') + '" title="' + (s.locked ? '已锁定：自动重排不会动这一站' : '锁定这一站：自动重排不参与') + '" onclick="window.plannerLockStop(' + di + ',' + si + ')">' + TI(s.locked ? 'pinned' : 'pin', 14) + '</button>' +
           '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">'+TI('close', 14)+'</button></span>';
         h += '<div class="stop' + (warn ? ' warn' : '') + (s.done ? ' done' : '') + '">' +
           '<div class="stop-name"><span class="n">' + (si + 1) + '</span><span class="lbl">' + (s.done ? TI('check') + ' ' : '') + esc(s.name) + '</span></div>' +
@@ -1269,9 +1357,6 @@
     var days = trip.days;
     /* 终到地：有名称即设置（环线=与出发地同名），有坐标则参与里程 */
     if (state.end && state.end.name) { trip.end = state.end; trip.end.isLoop = !!(state.start && state.start.name && state.start.name === state.end.name); }
-    $id('resultTitle').textContent = trip.name + ' · ' + days.length + ' 天 · ' + days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站';
-    var totalKm = days.reduce(function (s, d) { return s + d.driveKm; }, 0);
-    $id('resultTitle').textContent += ' · 约 ' + Math.round(totalKm) + ' km';
     renderDaysBody();
     renderExpense();
     /* 「导出日历」在没日期时是灰的，但必须仍可点：点下去那句 toast 才是教用户去哪补日期的路。
@@ -1287,7 +1372,7 @@
       '<button class="btn' + (icsOn ? '' : ' ghost') + '"' + (icsOn ? '' : ' style="opacity:.55"') + ' onclick="window.plannerExportIcs()">' + (icsOn ? '导出日历' : '导出日历（要先在上方选出发日期）') + '</button>' +
       '<button class="btn" onclick="window.plannerBuildBook()">'+TI('book')+'导出路书</button>' +
       '<button class="btn" onclick="window.plannerBuildAlbum()">'+TI('gallery')+'生成纪念册</button>' +
-      '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button>' +
+      '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button><span id="lkSlot">' + lockedHint() + '</span>' +
       '<button class="btn ghost" onclick="window.plannerEditPick()">'+TI('edit')+'编辑选点</button>' +
       '<button class="btn ghost" onclick="window.plannerOpenFootprint()">'+TI('map')+'足迹地图</button>';
     renderMap();
@@ -1466,15 +1551,15 @@
   /* 距离矩阵最近邻 + 2-opt（真实距离优先，缺失用直线兜底）。
      兜底统一走 hav，绝不返回 0——旧写法缺失时落到 hav(sel[i],sel[j]) 是对的，
      但起点/终点没有坐标时过去按 0 处理，等于把出发地从天平上摘掉。 */
-  function orderByMatrix(sel, start, dist) {
+  function orderByMatrix(sel, start, dist, tb) {
+    return withLocked(sel, function (free) { return orderFreeByMatrix(free, start, dist, tb); });
+  }
+  function orderFreeByMatrix(sel, start, dist, tb) {
     var N = sel.length;
-    dist = dist || {};
-    function pairKm(a, b) {
-      var k1 = coordKey(a) + '|' + coordKey(b), k2 = coordKey(b) + '|' + coordKey(a);
-      if (dist[k1] != null) return dist[k1];
-      if (dist[k2] != null) return dist[k2];
-      return window.Geo.hav(a.lat, a.lng, b.lat, b.lng) * ROAD_FACTOR;
-    }
+    /* 兜底走同一把尺子：矩阵只喂自驾档，其余档按本档系数折算（旧写法在这里硬编码
+       直线 ×1.35，等于排线用驾车口径、日卡用骑行口径，两本账又回来了） */
+    var leg = mkLeg(dist || {}, tb);
+    function pairKm(a, b) { return leg(a, b).km; }
     var startPt = (start && start.lat != null) ? start : null;
     var remain = sel.slice(), ordered = [], cur = startPt;
     while (remain.length) {
@@ -1550,7 +1635,7 @@
     if (mk) { var pb = mk.querySelector('#browsePlanBtn'); if (pb) { pb.disabled = true; pb.textContent = '距离计算中…'; } }
     fetchDistMatrix(state.selected, function (dist, failed) {
       amapPlanning = false;
-      var ordered = orderByMatrix(state.selected, state.start, dist);
+      var ordered = orderByMatrix(state.selected, state.start, dist, travelByNow());
       state.selected = ordered;
       state.amapSorted = true;
       /* 矩阵随选点集签名缓存：同一批站点排期时直接复用，不再打第二次 66 段网络 */
@@ -2010,13 +2095,28 @@
   function resplitTrip() {
     var flat = flatStops();
     if (!flat.length) { state.trip = null; showStage('stagePick'); return; }
-    state.trip.days = splitIntoDays(flat, state.trip.start, state.days, state.trip.end, mkLeg(state.trip.dist));
+    state.trip.days = splitIntoDays(flat, state.trip.start, state.days, state.trip.end, mkLeg(state.trip.dist, state.trip.travelBy));
+    /* 重切完必须再落一次：换档改的是日卡里的时长/里程，只存「切之前」那一拍的话，
+       从「已保存行程」重新打开看到的就是旧档算出来的数（屏幕上算了、账上没改）。 */
+    persistTrip();
     renderDaysBody(); renderMap();
   }
+  window.plannerTravelBy = function (m) {
+    var trip = state.trip;
+    if (!trip || !MODE[m] || trip.travelBy === m) return;
+    trip.travelBy = m;
+    /* 向导与结果页必须同一个档：只改一处，回到向导看到的还是上一轮的口径 */
+    if (state.wiz) state.wiz.travelBy = m;
+    persistTrip(); resplitTrip();
+    toast('出行方式：' + MODE[m].label + ' · ' + (m === 'drive' && hasMatrix(trip) ? '里程来自高德真实道路'
+      : m === 'auto' ? '按站距自动选档' : '时长里程为本地估算'));
+  };
   window.plannerRemoveStop = function (di, si) {
     var d = state.trip && state.trip.days[di]; if (!d) return;
     d.stops.splice(si, 1);
     if (!d.stops.length) state.trip.days.splice(di, 1);
+    /* 移掉的站必须同时退出选点集，否则「重新排期」按选点集重排会把它捞回行程 */
+    state.selected = flatStops();
     persistTrip(); resplitTrip();
   };
   window.plannerMoveStop = function (di, si, dir) {
@@ -2026,9 +2126,25 @@
     var to = idx + dir;
     if (to < 0 || to >= flat.length) return;
     var t = flat[idx]; flat[idx] = flat[to]; flat[to] = t;
-    state.trip.days = splitIntoDays(flat, state.trip.start, state.days, state.trip.end, mkLeg(state.trip.dist));
+    /* 交换成功即视为「用户钉过这一站」：不留痕的话，下一次自动重排照样把它打散 */
+    flat[to].locked = 1;
+    state.selected = flat.slice();
+    state.trip.days = splitIntoDays(flat, state.trip.start, state.days, state.trip.end, mkLeg(state.trip.dist, state.trip.travelBy));
     persistTrip(); renderDaysBody(); renderMap();
   };
+  window.plannerLockStop = function (di, si) {
+    var d = state.trip && state.trip.days[di]; if (!d) return;
+    var s = d.stops[si]; if (!s) return;
+    s.locked = s.locked ? 0 : 1;
+    persistTrip(); renderDaysBody();
+    toast(s.locked ? '已锁定「' + s.name + '」：自动重排不参与' : '已解除锁定');
+  };
+  /* 参与重排的站有多少被钉住了：结果页与向导都用这句话，别各写一遍数字 */
+  function lockedCount() { return flatStops().filter(function (s) { return s.locked; }).length; }
+  function lockedHint() {
+    var n = lockedCount();
+    return n ? '<span class="lk-hint">' + TI('pinned', 13) + n + ' 站已锁定 · 自动重排不参与</span>' : '';
+  }
   window.plannerReschedule = function () {
     /* 打开排期向导（步骤可回退调整） */
     showStage('stagePick');
@@ -2196,16 +2312,24 @@
         (w.sortMode === 'amap'
           ? '按高德真实道路里程排序并计入日卡：当前 ' + nSel + ' 站需逐对查询 ' + nPairs + ' 段' + (nSel > AMAP_MAX_STOPS ? '，已超过上限 ' + AMAP_MAX_STOPS + ' 站，排期会自动退回地理最近邻' : '，免费 Key 配额下建议 ≤ ' + AMAP_MAX_STOPS + ' 站') + '。'
           : '按直线折算的地理邻近排序，不消耗高德配额；日卡里程仍按道路系数折算。') +
+        (lockedCount() ? '已锁定 <b>' + lockedCount() + '</b> 站，本次自动重排不参与。' : '') +
         '</div></div>' +
         '<div class="fld"><label>方向（排序完成后）</label><div class="row" style="gap:10px">' +
         '<button class="btn' + (w.sortOrder === 'asc' ? ' primary' : '') + '" id="wOrderAsc" style="flex:1">正序 · 从起点出发</button>' +
-        '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button></div></div>';
+        '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button></div></div>' +
+        '<div class="fld"><label>出行方式（算时长与里程的尺子）</label><div class="chip-row">' +
+        TB_ORDER.map(function (m) { return '<span class="chip' + (modeOf(w.travelBy) === m ? ' on' : '') + '" data-tb="' + m + '" role="button" tabindex="0">' + MODE[m].label + '</span>'; }).join('') +
+        '</div><div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">' +
+        '自动＝按站距选档：≤' + AUTO_WALK_KM + 'km 步行、≤' + AUTO_BIKE_KM + 'km 骑行、更远自驾。步行与骑行档为本地估算（' +
+        MODE.walk.kmh + '／' + MODE.bike.kmh + ' km/h），公共交通未覆盖。' +
+        '</div></div>';
     } else {
       body = '<div style="font-size:var(--fs-4);line-height:2.1;padding:4px 2px">' +
         '<div>出发地：<b>' + (state.start && state.start.name ? esc(state.start.name) : '当前位置') + '</b></div>' +
         '<div>终到地：<b>' + (state.end && state.end.name ? esc(state.end.name) : '单程（不设终点）') + '</b></div>' +
         '<div>环线：<b>' + (state.isLoop ? '是 · 回到起点' : '否 · 单程') + '</b></div>' +
-        '<div>排序：<b>' + (w.sortMode === 'amap' ? '高德路线' : '地理最近邻') + ' · ' + (w.sortOrder === 'desc' ? '倒序' : '正序') + '</b></div></div>';
+        '<div>排序：<b>' + (w.sortMode === 'amap' ? '高德路线' : '地理最近邻') + ' · ' + (w.sortOrder === 'desc' ? '倒序' : '正序') + '</b></div>' +
+        '<div>出行方式：<b>' + MODE[modeOf(w.travelBy)].label + '</b></div></div>';
     }
     var nav = '<div class="row" style="gap:8px;margin-top:14px">' +
       (w.step > 1 ? '<button class="btn" id="wBack" style="flex:1">上一步</button>' : '<button class="btn ghost" id="wCancel" style="flex:1">取消</button>') +
@@ -2227,6 +2351,9 @@
       $id('wSortAmap').onclick = function () { if (!getAmapKey()) { toast('按高德路线需要先在「我的地点」或设置里配置高德 Key，已改用地理最近邻'); w.sortMode = 'geo'; renderWizard(); return; } w.sortMode = 'amap'; renderWizard(); };
       $id('wOrderAsc').onclick = function () { w.sortOrder = 'asc'; renderWizard(); };
       $id('wOrderDesc').onclick = function () { w.sortOrder = 'desc'; renderWizard(); };
+      /* 出行方式与排序方式两根轴：这里只改尺子，不碰 sortMode，也不重排已选站点 */
+      var tbs = $id('wizardBox').querySelectorAll('[data-tb]');
+      for (var ti = 0; ti < tbs.length; ti++) (function (el) { el.onclick = function () { w.travelBy = el.getAttribute('data-tb'); renderWizard(); }; })(tbs[ti]);
     }
     var nxt = $id('wNext'), bak = $id('wBack'), can = $id('wCancel'), don = $id('wDone');
     if (nxt) nxt.onclick = function () {
@@ -2272,13 +2399,17 @@
     });
   }
   function commitSchedule(matrix, w) {
+    var tb = modeOf(w.travelBy);
     /* amapSorted=已经按真实道路/AI 精选排过序，不再打乱人工顺序 */
     var ordered = state.amapSorted ? state.selected.slice()
-      : (matrix ? orderByMatrix(state.selected, state.start, matrix) : orderStops(state.selected, state.start));
+      : (matrix ? orderByMatrix(state.selected, state.start, matrix, tb) : orderStops(state.selected, state.start, tb));
     if (w.sortOrder === 'desc') ordered = ordered.slice().reverse();
-    var days = splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix));
+    /* 屏上顺序写回选点集：锁定的下标是按「用户看到的那一序」算的，不同步的话
+       下一次重排会把钉住的站插回选点时的旧位置（批次 15 的规划入口早就这么做了） */
+    state.selected = ordered;
+    var days = splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix, tb));
     var name = (state.regions.join('/') || '旅行') + ' ' + days.length + ' 日' + (state.prefs.length ? state.prefs.join('·') : '') + '之旅';
-    state.trip = { id: 'p' + Date.now(), name: name, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), days: days, dist: matrix || null, narrative: null };
+    state.trip = { id: 'p' + Date.now(), name: name, createdAt: Date.now(), start: state.start, end: state.end, startDate: state.startDate, aiLevel: getAILevel(), travelBy: tb, days: days, dist: matrix || null, narrative: null };
     showStage('stageResult'); renderResult();
   }
   window.plannerSchedule = doSchedule;
