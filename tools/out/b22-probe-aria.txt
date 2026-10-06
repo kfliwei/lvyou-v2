@@ -1,0 +1,55 @@
+=== ① topic.html（nation 档）divIcon 标记 DOM ===
+标记数：11  首枚 tagName=DIV  class=leaflet-marker-icon leaflet-zoom-animated leaflet-interactive
+  tabindex 前 6：["0","0","0","0","0","0"]  role：["button","button","button","button","button","button"]  alt：[null,null,null,null,null,null]  aria-label：[null,null,null,null,null,null]
+  outerHTML：<div class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: 0px; margin-top: 0px; width: 0px; height: 0px; transform: translate3d(386px, 436px, 0px); z-index: -164;"><div class="lod-cl lod-mini" sty
+  innerHTML：<div class="lod-cl lod-mini" style="--lod-dx: 0px; --lod-dy: 0px;"><span class="lod-cl__n">117</span><span class="lod-cl__t">宁夏</span><span class="lod-cl__m">必去
+  按形态分类：{"cluster":11}
+=== ② 焦点环（程序 focus + 临时 tabindex=0）===
+  {"active":true,"outline":"2px solid rgb(174, 87, 56)","fv":true}
+  Tab 一次后落点与环：{"tag":"DIV.leaflet-marker-icon","outline":"2px solid rgb(174, 87, 56)","fv":true}
+  连按 Tab 的焦点序列：div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon → div.leaflet-marker-icon
+=== ③ accessibility.snapshot ===
+快照节点数(前 40 条已列)
+RootWebArea "全国风光人文地图"
+  banner
+    button "返回"
+    StaticText "全国风光人文地图"
+    StaticText "· 共 7794 处"
+    button "随手记"
+    button "游记"
+    textbox "搜名称 / 城市 / 类型 / 简介…"
+    combobox
+      option "默认"
+      option "距我"
+      option "距北京"
+      option "距上海"
+      option "距广州"
+      option "距成都"
+      option "距西安"
+      option "距乌鲁木齐"
+      option "距拉萨"
+      option "距兰州"
+      option "距贵阳"
+      option "距昆明"
+      option "距南宁"
+      option "距太原"
+      option "距西宁"
+      option "距银川"
+      option "距重庆"
+      option "距郑州"
+      option "距武汉"
+      option "距南昌"
+      option "距长沙"
+    button "全部"
+    button "必去"
+    button "网红"
+    button "这一带"
+    button "上海"
+    button "云南"
+    button "内蒙古"
+    button "北京"
+    button "台湾"
+    button "吉林"
+=== ④ planner #resultBody 现状：{"children":0,"role":null,"own":"<div id=\"resultBody\"></div>"}
+  日卡（若有）：null
+未捕获页面异常：0 条

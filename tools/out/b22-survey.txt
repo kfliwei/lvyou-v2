@@ -1,0 +1,207 @@
+=== 产品文件清单（排除 tools/docs/vendor/node_modules/images*/fonts/data）：103 个 ===
+--- aria-*=（属性写法）：出现 107 次，分布在 25 个文件 ---
+  album-edit.html:1  album.html:2  album.js:1  checklist.html:7  explore-map.html:3  icons.js:2  index.html:9  md-manager.html:3  me.html:8  nav.js:3  node-manager.html:11  planner.html:2  planner.js:12  review.html:5  search.html:5  settings.html:1  share.html:2  story.html:4  test-data.html:1  topic-common.js:4  topic.html:11  travel-map.html:1  travel-notes.js:5  ui.js:2  wishlist.html:2
+--- aria-* 任意（含 JS 里 setAttribute 的字符串）：出现 110 次，分布在 25 个文件 ---
+  album-edit.html:1  album.html:2  album.js:1  checklist.html:7  explore-map.html:3  icons.js:2  index.html:9  md-manager.html:3  me.html:8  nav.js:3  node-manager.html:12  planner.html:2  planner.js:12  review.html:5  search.html:5  settings.html:1  share.html:2  story.html:4  test-data.html:1  topic-common.js:5  topic.html:11  travel-map.html:1  travel-notes.js:5  ui.js:3  wishlist.html:2
+--- role="：出现 29 次，分布在 11 个文件 ---
+  album.html:1  index.html:1  node-manager.html:5  planner.js:5  review.html:1  search.html:3  share.html:1  story.html:1  topic.html:7  travel-notes.js:2  ui.js:2
+--- aria-live：出现 1 次，分布在 1 个文件 ---
+  ui.js:1
+aria-live 逐处行号：
+  ui.js:157  bar.setAttribute('aria-live', 'polite');
+含 aria/role 的文件：25 / 103（并集口径，不是逐类相加）
+aria 属性名种类：6 → aria-current aria-hidden aria-label aria-live aria-modal aria-pressed
+--- 日卡生成点（class="day-card） ---
+  planner.js:1116  h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plan
+  planner.js:1124  h += '<div class="day-card" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay
+  share.html:104  return '<div class="day-card transit">' + head +
+  share.html:114  return '<div class="day-card">' + head +
+--- day-card 全串（含 CSS/选择器） ---
+  planner.html:88  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padd
+  planner.html:89  .day-card:hover{box-shadow:var(--shadow-medium)}
+  planner.html:90  .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-botto
+  planner.html:91  .day-card .dhead .dmeta{font-size:var(--fs-2);color:var(--color-muted);flex:1}
+  planner.html:93  .day-card .dhead .wx{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;font-size:var(--fs-2);line-height:1;color:var(--
+  planner.html:94  .day-card .dhead .wxh{display:none}
+  planner.html:95  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:var(-
+  planner.html:96  .day-card .stop:active{background:var(--color-bg-soft)}
+  planner.html:97  .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family
+  planner.html:98  .day-card .stop.done{opacity:.55}
+  planner.html:99  .day-card .stop .meta{font-size:var(--fs-2);color:var(--color-muted)}
+  planner.html:118  .day-card.transit{background:var(--color-bg-soft);border-style:dashed}
+  planner.html:119  .day-card.transit .dhead{border-bottom-style:dashed}
+  planner.html:138  .day-card .exfoot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--color-line)}
+  planner.html:139  .day-card .exfoot .extot{flex:1;min-width:0;font-size:var(--fs-3);color:var(--color-muted)}
+  planner.html:140  .day-card .exfoot .extot b{font-weight:600;color:var(--color-ink-soft);font-variant-numeric:tabular-nums}
+  planner.html:149  .day-card .exfoot .btn{min-height:44px}
+  planner.html:178  .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
+  planner.html:179  .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
+  planner.html:180  .theme-dark .day-card .stop .n{background:rgba(220,174,94,.18);color:var(--color-gold-bright,#DCAE5E)}
+  planner.js:1116  h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plan
+  planner.js:1124  h += '<div class="day-card" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay
+  planner.js:1149  h += '</div>'; /* 闭合 day-card（2026-08-15） */
+  share.html:34  .day-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;box-shadow:var(--shadow-soft);padd
+  share.html:35  .day-card:hover{box-shadow:var(--shadow-medium)}
+  share.html:36  .day-card .dhead{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-line);padding-bottom:9px;margin-botto
+  share.html:37  .day-card .dhead .dmeta{font-size:var(--fs-2);color:var(--color-muted);flex:1}
+  share.html:38  .day-card .stop{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px 10px;border-radius:10px;font-size:var(-
+  share.html:39  .day-card .stop:active{background:var(--color-bg-soft)}
+  share.html:40  .day-card .stop .n{flex:0 0 20px;height:20px;border-radius:7px;background:rgba(220,174,94,.14);color:var(--color-gold);font-family
+  share.html:41  .day-card .stop .meta{font-size:var(--fs-2);color:var(--color-muted)}
+  share.html:48  .day-card.transit{background:var(--color-bg-soft);border-style:dashed}
+  share.html:49  .day-card.transit .dhead{border-bottom-style:dashed}
+  share.html:53  .theme-dark .day-card{background:var(--color-surface);border-color:var(--color-line)}
+  share.html:54  .theme-dark .day-card .dhead{border-bottom-color:var(--color-line)}
+  share.html:55  .theme-dark .day-card .stop .n{background:rgba(220,174,94,.18);color:var(--color-gold-bright,#DCAE5E)}
+  share.html:104  return '<div class="day-card transit">' + head +
+  share.html:114  return '<div class="day-card">' + head +
+--- divIcon 调用点 ---
+  node-lod.js:164  return L.divIcon({ className: '', html: html, iconSize: [0, 0], iconAnchor: [0, 0] });
+  node-manager.html:132  icon: L.divIcon({ className: '', html: '<div class="tr-node tr-user"><span class="tr-ring" style="--tint:#5F7A4E"></span><span cla
+  node-manager.html:718  pickMarker = L.marker([lat, lng], { icon: L.divIcon({ className: '', html: '<div class="tr-node tr-major" style="--pulse:1"><span 
+  planner.js:1721  var m = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', i
+  share.html:166  L.marker([s.la, s.lo], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', iconSize: [
+  story.html:157  L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+(cur?'16':'8')+'px;height:'+(cur?'16':'8')+'px;border-radius:50
+  topic-common.js:180  return L.divIcon({ className: '', html: html, iconSize: [40, 40], iconAnchor: [20, 20] });
+  topic-common.js:315  var m = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba
+  topic-common.js:381  return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
+  topic-common.js:1205  function userDotIcon() { return L.divIcon({ className: '', html: '<div class="uwrap"><span class="upulse"></span><span class="udot
+  travel-map.html:441  const m=L.marker(p,{icon:L.divIcon({html:node.html,className:'',iconSize:node.size,iconAnchor:node.anchor})});
+  travel-notes.js:1394  icon: L.divIcon({
+  travel-notes.js:2078  icon: L.divIcon({
+  wishlist.html:142  icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:
+--- 弹层开法 classList.add(show) ---
+  node-manager.html:122  function tip(msg, ms) { var t = $('nmTip'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(
+  node-manager.html:476  requestAnimationFrame(function () { m.classList.add('show'); });
+  node-manager.html:591  requestAnimationFrame(function () { m.classList.add('show'); });
+  node-manager.html:675  $('rsSheet').classList.add('show');
+  node-manager.html:735  $('infoSheet').classList.add('show');
+  node-manager.html:761  $('infoSheet').classList.add('show');
+  node-manager.html:844  requestAnimationFrame(function () { m.classList.add('show'); });
+  node-manager.html:964  requestAnimationFrame(function () { m.classList.add('show'); });
+  node-manager.html:1031  requestAnimationFrame(function () { m.classList.add('show'); });
+  topic-common.js:729  $('locSheet').classList.add('show');
+  topic-common.js:819  t.textContent = msg; t.classList.add('show');
+  topic-common.js:896  $('arriveDlg').classList.add('show');
+  travel-map.html:544  document.getElementById('memSheet').classList.add('show');
+  travel-map.html:571  document.getElementById('memSheet').classList.add('show');
+  travel-notes.js:1809  requestAnimationFrame(function () { m.classList.add('show'); });
+  travel-notes.js:1862  requestAnimationFrame(function () { m.classList.add('show'); });
+  ui.js:22  requestAnimationFrame(function () { d.classList.add('show'); });
+  ui.js:70  requestAnimationFrame(function () { m.classList.add('show'); ok.focus(); });
+  ui.js:140  requestAnimationFrame(function () { tileWarnEl && tileWarnEl.classList.add('show'); });
+  ui.js:153  if (bar && document.body.contains(bar)) { requestAnimationFrame(function () { bar.classList.add('show'); }); return; }
+  ui.js:162  requestAnimationFrame(function () { bar && bar.classList.add('show'); });
+--- .sheet / *Sheet 挂点 ---
+  design.css:733  .sheet{
+  design.css:1538  .sheet,.map-sheet,.location-sheet{border-color:var(--edge-hair-soft)}
+  node-manager.html:94  <div id="rsSheet">
+  node-manager.html:98  <div id="infoSheet"><div id="isBody"></div></div>
+  topic-common.js:263  '<button type="button" class="nx" id="nearSheetX" aria-label="关闭这一带结果">' + TI('close', 12) + '</button></div>';
+  topic.html:111  <div class="location-sheet" id="locSheet">
+  travel-map.html:274  <div id="memSheet">
+--- role 属性逐处 ---
+  index.html:234  <div class="hero__search fade-up" style="animation-delay:var(--motion-normal)" onclick="goFullSearch()" role="button" tabindex="0"
+  node-manager.html:457  '<div class="ui-modal nm-form" role="dialog" aria-modal="true" style="max-width:420px">' +
+  node-manager.html:582  '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
+  node-manager.html:819  '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
+  node-manager.html:959  '<div class="ui-modal nm-form" role="dialog" aria-modal="true">' +
+  node-manager.html:1020  '<div class="ui-modal nm-menu" role="dialog" aria-modal="true">' +
+  planner.js:988  return '<span class="chip' + (m === cur ? ' on' : '') + '" role="button" tabindex="0" aria-pressed="' + (m === cur ? 'true' : 'fal
+  planner.js:1238  return '<span class="chip' + (c === sel ? ' on' : '') + '" data-cat="' + c + '" role="button" tabindex="0" onclick="window.planner
+  planner.js:2321  TB_ORDER.map(function (m) { return '<span class="chip' + (modeOf(w.travelBy) === m ? ' on' : '') + '" data-tb="' + m + '" role="bu
+  search.html:160  html+='<div class="item" data-rk="'+esc(r.k)+'" data-rn="'+esc(r.n)+'" role="button" tabindex="0" aria-label="'+esc(r.n)+'"><span 
+  search.html:202  out+='<div class="item" role="button" tabindex="0" aria-label="'+esc(s.label)+'" data-go="'+(key?'topic.html?p='+key+'&q='+encodeU
+  topic-common.js:251  nearSheet.setAttribute('role', 'dialog');
+  travel-notes.js:1800  m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
+  travel-notes.js:1852  m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
+  ui.js:10  d.setAttribute('role', 'status');
+  ui.js:79  d.setAttribute('role', 'status');
+  ui.js:135  tileWarnEl.setAttribute('role', 'status');
+  ui.js:156  bar.setAttribute('role', 'status');
+--- tabindex 逐处 ---
+  index.html:234  <div class="hero__search fade-up" style="animation-delay:var(--motion-normal)" onclick="goFullSearch()" role="button" tabindex="0"
+  planner.js:988  return '<span class="chip' + (m === cur ? ' on' : '') + '" role="button" tabindex="0" aria-pressed="' + (m === cur ? 'true' : 'fal
+  planner.js:1238  return '<span class="chip' + (c === sel ? ' on' : '') + '" data-cat="' + c + '" role="button" tabindex="0" onclick="window.planner
+  planner.js:2321  TB_ORDER.map(function (m) { return '<span class="chip' + (modeOf(w.travelBy) === m ? ' on' : '') + '" data-tb="' + m + '" role="bu
+  search.html:160  html+='<div class="item" data-rk="'+esc(r.k)+'" data-rn="'+esc(r.n)+'" role="button" tabindex="0" aria-label="'+esc(r.n)+'"><span 
+  search.html:202  out+='<div class="item" role="button" tabindex="0" aria-label="'+esc(s.label)+'" data-go="'+(key?'topic.html?p='+key+'&q='+encodeU
+--- 焦点相关（focus()/trap/:focus） ---
+  album-edit.html:32  .ed-field:focus{outline:none;border-color:var(--color-primary)}
+  album-edit.html:44  .ech-title:focus{border-bottom:1px dashed var(--color-line-strong)}
+  album-edit.html:67  .ech-text:focus{outline:none;border-color:var(--color-primary)}
+  album-edit.html:115  .ed-field:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.10)}
+  checklist.html:38  .add-row input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  checklist.html:65  .tb-form input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  design.css:365  :focus-visible{outline:2px solid var(--cinnabar-500);outline-offset:2px;border-radius:4px}
+  design.css:645  .theme-dark :focus-visible{outline-color:var(--brand-600)}
+  design.css:812  }body .tn-recbox b{font-family:var(--font-sans);color:var(--color-muted);letter-spacing:.12em;text-transform:uppercase}body .tn-re
+  design.css:918  body .tn-quotes .sr input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  design.css:963  body .tn-listbar input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  design.css:1019  body .tn-settings input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  design.css:1037  body .tn-editpage .body input:focus,body .tn-editpage .body textarea:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px 
+  design.css:1046  body .tn-dlg textarea:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  design.css:1304  :focus-visible{outline:2px solid var(--color-primary,#ae5738);outline-offset:2px;border-radius:6px}
+  map.css:1159  .s-row .search:focus-within{border-color:rgba(200,109,75,.45);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  md-manager.html:100  .art-edit:focus{border-color:var(--color-primary)}
+  md-manager.html:113  .search-bar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
+  node-manager.html:24  .nsearch-bar:focus-within{box-shadow:0 10px 34px rgba(200,109,75,.16),var(--shadow-soft)}
+  node-manager.html:28  .nsearch-bar input:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  node-manager.html:484  input.focus();
+  node-manager.html:602  document.getElementById('akKey').focus();
+  node-manager.html:847  document.getElementById('nmName').focus();
+  node-manager.html:1041  else if (a === 'search') { $('q').focus(); }
+  planner.html:34  .input-bar input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  planner.html:61  .fld input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  planner.html:185  #candFilter:focus{outline:none;border-color:rgba(200,109,75,.5)!important;box-shadow:0 0 0 3px rgba(200,109,75,.12)!important}
+  planner.js:1283  if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }
+  search.html:45  .sbar:focus-within{border-color:rgba(200,109,75,.42);box-shadow:0 0 0 3px rgba(200,109,75,.10),var(--shadow-soft)}
+  settings.html:21  input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-soft)}
+  settings.html:55  input:focus{border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.10)}
+  settings.html:506  if (b.dataset.m === '__custom') { showCustom = true; im.style.display = ''; im.focus(); }
+  share.html:182  try { ta.focus(); ta.setSelectionRange(0, t.length); } catch (e) {}
+  travel-notes.js:309  :focus-visible{outline:2px solid var(--a3);outline-offset:2px;border-radius:2px}\
+  travel-notes.js:344  .tn-tags:focus{border-color:rgba(184,134,11,.6);box-shadow:0 0 0 3px rgba(184,134,11,.15)}\
+  travel-notes.js:410  .tn-listbar input:focus{border-color:var(--a3);box-shadow:0 0 0 3px rgba(184,134,11,.14)}\
+  travel-notes.js:450  .tn-settings input:focus{border-color:var(--a3);box-shadow:0 0 0 3px rgba(184,134,11,.14)}\
+  travel-notes.js:466  .tn-wall .grid img:active{transform:scale(.97)}\.tn-editpage{position:fixed;inset:0;z-index:9010;display:none;flex-direction:colum
+  travel-notes.js:471  .tn-dlg textarea:focus{border-color:var(--a3);box-shadow:0 0 0 3px rgba(184,134,11,.14)}\
+  travel-notes.js:473  .tn-dlg input:focus{border-color:var(--a3)}\
+  travel-notes.js:489  .tn-quotes .sr input:focus{border-color:var(--a3);box-shadow:0 0 0 3px rgba(184,134,11,.14)}\
+  travel-notes.js:755  edit.focus();
+  travel-notes.js:1815  t.focus(); t.select();
+  ui.js:53  try { if (opener && opener.focus) opener.focus(); } catch (e) {}
+  ui.js:61  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  ui.js:62  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  ui.js:70  requestAnimationFrame(function () { m.classList.add('show'); ok.focus(); });
+--- ui.js 关键行 ---
+  "UI.confirm" 行号：4（1 处）
+  "confirm:" 行号：339（1 处）
+  "sheet" 行号：无（0 处）
+  "export" 行号：无（0 处）
+  "window.UI" 行号：243,339（2 处）
+  "offlineBar" 行号：147,339,343,344（4 处）
+  "errorBox" 行号：178,339（2 处）
+  "toast" 行号：3,7,9,15,25,120,201,206,307,339（10 处）
+--- design.css .sheet 段 ---
+  design.css:117  --z-topbar:600; --z-nav:1050; --z-sheet:1100; --z-modal:9700; --z-toast:9800;
+  design.css:227  --blur-sheet:blur(26px) saturate(1.6);
+  design.css:229  --glass-sheet:rgba(250,248,243,.90);
+  design.css:330  --glass-sheet:rgba(29,28,25,.90);
+  design.css:733  .sheet{
+  design.css:736  background:var(--glass-sheet);
+  design.css:739  backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-sheet);
+  design.css:740  animation:sheet-up var(--motion-enter) var(--ease-standard);
+  design.css:742  .sheet__handle{width:34px;height:4px;margin:6px auto 20px;border-radius:999px;background:rgba(32,32,29,.18)}
+  design.css:743  @keyframes sheet-up{from{opacity:0;transform:translateY(35px)}to{opacity:1;transform:translateY(0)}}
+  design.css:840  .location-sheet{position:absolute;z-index:50;left:12px;right:12px;bottom:12px;max-height:82dvh;overflow-y:auto;padding:0
+  design.css:845  @keyframes sheet-enter{from{opacity:0;transform:translateY(30px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1
+  design.css:852  .map-sheet{position:absolute;z-index:80;left:10px;right:10px;bottom:10px;max-height:82dvh;overflow-y:auto;padding:0.625r
+  design.css:853  .map-sheet__handle{width:34px;height:4px;margin:6px auto 22px;border-radius:999px;background:rgba(32,32,29,.18)}
+  design.css:1015  body .tn-settings{background:var(--glass-sheet);backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-she
+  design.css:1043  body .tn-dlg{background:var(--glass-sheet);backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-sheet);b
+  design.css:1097  .theme-dark .location-sheet{background:rgba(29,28,25,.96);border-color:var(--color-line)}
+  design.css:1137  .theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+  design.css:1538  .sheet,.map-sheet,.location-sheet{border-color:var(--edge-hair-soft)}
+  design.css:1539  .sheet__handle,.map-sheet__handle{height:3px;background:var(--grad-gold-line);opacity:.55}
+  design.css:1685  body.topic-page .near-sheet{bottom:12px;left:auto;right:12px;width:340px}

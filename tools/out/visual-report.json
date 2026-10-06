@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-06T03:26:31.832Z",
+  "ranAt": "2026-10-06T06:46:03.449Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -11,7 +11,7 @@
   ],
   "states": 79,
   "fail": 0,
-  "elapsedSec": 473.8,
+  "elapsedSec": 464.1,
   "results": [
     {
       "state": "index.320x640.png",
@@ -488,8 +488,7 @@
       "state": "album.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05,
-      "toastsRemoved": 1
+      "limitPct": 0.05
     },
     {
       "state": "story.seed.390x844.png",
@@ -507,11 +506,11 @@
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1116,
+      "lcpMs": 988,
       "lcpSamples": [
-        1776,
-        1116,
-        968
+        1644,
+        896,
+        988
       ],
       "lcpEl": "H1",
       "cls": 0
@@ -519,11 +518,11 @@
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 496,
+      "lcpMs": 868,
       "lcpSamples": [
-        1232,
-        496,
-        468
+        872,
+        868,
+        564
       ],
       "lcpEl": "?",
       "cls": 0.0009

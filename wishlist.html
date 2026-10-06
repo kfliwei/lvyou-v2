@@ -142,6 +142,7 @@
         icon: L.divIcon({ className: '', html: '<div style="position:relative;width:26px;height:26px"><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:' + (x.visited ? '#9C9A92' : '#AE5738') + ';border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)"></span>' + (x.visited ? '' : '<span style="position:absolute;right:-2px;top:-2px;width:9px;height:9px;border-radius:50%;background:#FF7A50;border:1.5px solid #fff"></span>') + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] })
       });
       m.bindPopup('<b>' + x.label + '</b><br>' + (x.region || '') + (x.city ? ' · ' + x.city : '') + (x.visited ? '<br><span style="color:#9C9A92">已打卡</span>' : ''));
+      if (window.UI) { UI.markerLabel(m, (x.label || '想去的地方') + '，' + (x.visited ? '已打卡' : '想去') + '，点击看详情'); UI.markerKeys(m, function () { m.openPopup(); }); }
       map.addLayer(m);
       bnd.push([x.lat, x.lng]);
     });

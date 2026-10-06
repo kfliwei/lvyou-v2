@@ -1108,12 +1108,16 @@
       rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
       (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>' +
       travelByRow(trip);
+    /* 日卡是一串没有边界的 div：读屏念到第 3 张就不知道「还有几天」。包成 list，
+       报得出「列表，共 8 项」也能按项跳（批次 22-B，只加属性不动版式） */
+    h += '<div class="day-list" role="list" aria-label="' + esc(trip.name || '行程安排') + '，共 ' + days.length + ' 天">';
     days.forEach(function (d, di) {
       var over = d.totalH > 12;
       var seal = 'day-seal ds-' + (di % 6 + 1);
       if (d.transit) {
         /* 转场日：只赶路、不塞景点，没有起讫站点可导航，所以不挂导航按钮 */
-        h += '<div class="day-card transit" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
+        var tl = '第 ' + (di + 1) + ' 天，赶路日，约 ' + Math.round(d.driveKm) + ' km，' + verbOf(trip.travelBy) + ' ' + d.driveH.toFixed(1) + ' 小时';
+        h += '<div class="day-card transit" role="listitem" aria-label="' + esc(tl) + '" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + '">D' + (di + 1) + '</span>' +
           '<span class="dmeta">赶路日 · 约 ' + Math.round(d.driveKm) + ' km · ' + verbOf(trip.travelBy) + ' ' + d.driveH.toFixed(1) + 'h</span>' + wxSlot(trip, di) + '</div>' +
           '<div class="transit-route">' + esc(d.from || '出发地') + '<span>→</span>' + esc(d.to || '目的地') + '</div>' +
           '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">这段路的' + verbOf(trip.travelBy) + '超过单日上限 ' + DRIVE_H + ' 小时，单独成一天；中途可在服务区/沿途城市休整。</div>' +
@@ -1121,7 +1125,9 @@
         return;
       }
       var allDone = d.stops.length > 0 && d.stops.every(function (s) { return s.done; });
-      h += '<div class="day-card" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
+      var dl = '第 ' + (di + 1) + ' 天，' + d.stops.length + ' 站，约 ' + Math.round(d.driveKm) + ' km，游玩 ' +
+        d.playH.toFixed(1) + ' 小时，全程 ' + d.totalH.toFixed(1) + ' 小时' + (over ? '，偏赶' : '');
+      h += '<div class="day-card" role="listitem" aria-label="' + esc(dl) + '" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
         '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' + wxSlot(trip, di) +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
       if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
@@ -1148,6 +1154,7 @@
       h += expRow(di);
       h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
+    h += '</div>'; /* 闭合 day-list（批次 22-B） */
     /* 终到地行：有名称即显示（环线标注；里程与日卡同一把尺子，含真实矩阵） */
     if (trip.end && trip.end.name) {
       var lastDay = days[days.length - 1];
@@ -1721,6 +1728,10 @@
       var m = L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', iconSize: [26, 26], iconAnchor: [13, 24] }) });
       m.bindPopup('<b>' + esc(s.name) + '</b><br>' + esc(s.region || '') + (s.city ? ' · ' + esc(s.city) : ''));
       mapLayer.addLayer(m);
+      /* 站点针脚是 divIcon，Leaflet 不给名字；序号 + 站名补上（批次 22-C）。
+         popup 型标记的键盘激活统一是「按下就把这张卡叫出来」——库的 Keyboard
+         handler 只管平移/缩放/Esc，聚焦标记按 Enter 原本什么都不发生。 */
+      if (window.UI) { UI.markerLabel(m, (i + 1) + '，' + s.name + (s.city ? '，' + s.city : '')); UI.markerKeys(m, function () { m.openPopup(); }); }
     });
     if (bnd.length > 1) map.fitBounds(bnd, { padding: [40, 40] });
     else if (bnd.length === 1) map.setView(bnd[0], 9);

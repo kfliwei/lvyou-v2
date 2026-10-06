@@ -91,7 +91,7 @@
   <div class="title">我的地点 <small>My Places</small></div>
 </header>
 <div class="nm-tip" id="nmTip"></div>
-<div id="rsSheet">
+<div id="rsSheet" role="dialog" aria-label="地点搜索结果">
   <div class="rs-head"><b>搜索结果</b><button class="x" id="rsClose" aria-label="关闭"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button></div>
   <div id="rsBody"></div>
 </div>
@@ -120,7 +120,7 @@
   function $(id) { return document.getElementById(id); }
   function esc(s) { return window.UI.esc(s); }
   function tip(msg, ms) { var t = $('nmTip'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(function () { t.classList.remove('show'); }, ms || 2200); }
-  function closeSheets() { $('rsSheet').classList.remove('show'); $('infoSheet').classList.remove('show'); }
+  function closeSheets() { UI.sheet($('rsSheet')).close(); UI.sheet($('infoSheet')).close(); }
 
   /* ---------- 用户节点地图标记（保存后可见） ---------- */
   var userMarkers = {};
@@ -131,7 +131,10 @@
     var m = L.marker([lat, lng], {
       icon: L.divIcon({ className: '', html: '<div class="tr-node tr-user"><span class="tr-ring" style="--tint:#5F7A4E"></span><span class="tr-dot"></span><span class="node-num" style="background:#5F7A4E">我</span><span class="node-label" style="opacity:.85">' + esc(u.name) + '</span></div>', iconSize: [30, 30], iconAnchor: [15, 15] })
     }).addTo(map);
-    m.on('click', function () { var u2 = loadUserNodes().find(function (x) { return x.id === u.id; }); if (u2) openUserInfo(u2); });
+    var act = function () { var u2 = loadUserNodes().find(function (x) { return x.id === u.id; }); if (u2) openUserInfo(u2); };
+    m.on('click', act);
+    UI.markerLabel(m, (u.name || '我的地点') + '，我的地点，点击看详情');
+    UI.markerKeys(m, act);
     userMarkers[u.id] = m;
   }
   function removeUserMarker(uid) { if (userMarkers[uid]) { userMarkers[uid].remove(); delete userMarkers[uid]; } }
@@ -672,10 +675,10 @@
         }
       };
     });
-    $('rsSheet').classList.add('show');
-    $('infoSheet').classList.remove('show');
+    UI.sheet($('rsSheet')).open();
+    UI.sheet($('infoSheet')).close();
   }
-  $('rsClose').onclick = function () { $('rsSheet').classList.remove('show'); };
+  $('rsClose').onclick = function () { UI.sheet($('rsSheet')).close(); };
   $('qGo').onclick = doSearch;
   $('q').onkeydown = function (e) { if (e.key === 'Enter') doSearch(); };
   $('qKey').onclick = function () { promptKey(function () { doSearch(); }); };
@@ -692,7 +695,7 @@
   $('q').oninput = function () {
     clearTimeout(searchTimer);
     var v = this.value.trim();
-    if (!v) { $('rsSheet').classList.remove('show'); return; }
+    if (!v) { UI.sheet($('rsSheet')).close(); return; }
     searchTimer = setTimeout(doSearch, 260);
   };
 
@@ -716,6 +719,7 @@
   function putMarker(lat, lng) {
     if (pickMarker) pickMarker.remove();
     pickMarker = L.marker([lat, lng], { icon: L.divIcon({ className: '', html: '<div class="tr-node tr-major" style="--pulse:1"><span class="tr-ring" style="--tint:#AE5738"></span><span class="tr-dot"></span></div>', iconSize: [34, 34], iconAnchor: [17, 17] }) }).addTo(map);
+    UI.markerLabel(pickMarker, '已选位置');
     setTimeout(function () { if (pickMarker) { pickMarker.remove(); pickMarker = null; } }, 5000);
   }
 
@@ -732,8 +736,8 @@
       '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.sysRecord(' + s.__i + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
       '<button class="is-btn" onclick="window.NM.flyToSys(' + s.__i + ')">在地图查看</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
-    $('infoSheet').classList.add('show');
-    $('rsSheet').classList.remove('show');
+    UI.sheet($('infoSheet')).open((s.label || s.name || '系统地点') + '，系统地点详情');
+    UI.sheet($('rsSheet')).close();
   }
   function openUserInfo(u) {
     var box = $('isBody');
@@ -758,8 +762,8 @@
       (notesN ? '<button class="is-btn" onclick="location.href=\'travel-map.html\'">'+TI('book')+'记录 ' + notesN + ' 篇</button>' : '') +
       '<button class="is-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
-    $('infoSheet').classList.add('show');
-    $('rsSheet').classList.remove('show');
+    UI.sheet($('infoSheet')).open((u.name || '我的地点') + '，我的地点详情');
+    UI.sheet($('rsSheet')).close();
   }
   function toggleWish(uid) {
     var u = loadUserNodes().find(function (x) { return x.id === uid; });
@@ -776,7 +780,7 @@
       try { TravelNotes.openPanel({ label: u.name, lat: +u.lat, lng: +u.lng }); } catch (e) { UI.toast('记录面板打开失败'); }
     } else UI.toast('当前环境不支持语音记录');
   }
-  function closeInfo() { $('infoSheet').classList.remove('show'); }
+  function closeInfo() { UI.sheet($('infoSheet')).close(); }
   function sysWish(i) {
     var s = SITES[i]; if (!s) return;
     if (!window.Wish) { UI.toast('想去功能不可用'); return; }

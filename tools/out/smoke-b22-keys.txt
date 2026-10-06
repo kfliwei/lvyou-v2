@@ -1,0 +1,44 @@
+##### smoke-states
+  PASS travel-map.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS album.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS review.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html#ai :: {"errorBoxOnFail":true}
+smoke-states: 9 项，失败 0
+##### smoke-nearby
+PASS  N43 失败静默：只发一次、零重试、无错误卡
+PASS  N44 挂起 3s 时面板仍未出（超时没提前）
+PASS  N45 超时后静默降级（出内置空态，不吊死、不出 LIVE_NOTE）  [这一带内置库里没有记录，实时查询这次也没返回 | 来源：包内景点库，离线可用]
+PASS  N46 降级耗时落在常量 8000ms 附近（实测 8529ms）  [8529ms]
+PASS  N47 全程零未捕获异常 / 零 console.error（0 条，另有 62 条 net::ERR_* 资源噪声按环境计）
+smoke-nearby: 49/49 通过
+##### smoke-planner
+PASS  档位与锁定档无 JS 报错
+PASS  非自驾档不吃驾车矩阵（里程、时长、动词、折线说明四处都要跟着档走）  [ | walk「步行 · 里程按直线 ×1.15 折算、时长按 4.5 km/h（本地估算，未接步行路线源）；地图折线为驾车路线形状；按」/ drive「自驾 · 日卡里程为高德真实道路里程；按地理邻近自动分日，耗时含路程+游玩+休息」| walk km 32,32,32（3 天）/ drive km 350,350（2 天） | 快照初读「自驾 · 日卡里程为高德真实道路里程；按地理邻近自动分日，耗」]
+PASS  452×995 真机档：档位切换条不横向溢出，四颗 chip 全在屏内  [页面溢出 0px / chip 4 颗（屏外 0）/ 最矮 34px]
+PASS  矩阵档无 JS 报错
+
+全部通过
+##### smoke-share
+分享冒烟: 通过 64 · 失败 0（报告 tools/out/share-smoke-report.json）
+##### smoke-node-mgr
+PASS  A.无脚本错误
+PASS  B.专题页无 FAB
+PASS  B.专题页无节点管理 API
+PASS  B.节点详情无编辑删除菜单
+PASS  B.无脚本错误
+=== NODE-MGR SMOKE ALL PASSED ===
+##### smoke-usable
+PASS U19 手机三档：地图容器仍满宽贴着视口左边（双栏 CSS 一条都没漏进手机档）  [320→左0/宽320 390→左0/宽390 452→左0/宽452]
+PASS U20 手机三档：横向内缩恒 0，纵向仍扣到底带（横向分支没把手机档算出新的死区）  [320→(左0,右0,底82) 390→(左0,右0,底82) 452→(左0,右0,底82)]
+PASS U13 全程无页面未捕获异常  []
+
+=== smoke-usable: 29/29 PASS ===
+（信息）404/资源类控制台报错 2 条：http://127.0.0.1:8168/favicon.ico | Failed to load resource: the server responded with a status of 404 (Not Found)
+##### smoke-motion
+PASS E2 避让真的动过手：至少隐藏 1 个重叠标签（正向对照）  [隐藏=8]
+PASS E3 动画全部结束后，可见标签两两不重叠  [0 对]
+PASS E4 缩小视野后补测真的又跑过、且可见标签仍不重叠  [避让被调 3 次 / 重叠 0 对 / 隐藏 12（等动画跑完用了 850ms）]
+PASS D4 全程无页面未捕获异常  [0 条]
+
+smoke-motion: 35 项，失败 0

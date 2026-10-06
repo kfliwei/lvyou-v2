@@ -101,7 +101,8 @@
   function dayCard(d, di) {
     var head = '<div class="dhead"><span class="' + sealClass(di) + '">D' + (di + 1) + '</span>';
     if (d.tr) {
-      return '<div class="day-card transit">' + head +
+      return '<div class="day-card transit" role="listitem" aria-label="' +
+        esc('第 ' + (di + 1) + ' 天，赶路日，约 ' + (d.km || 0) + ' km') + '">' + head +
         '<span class="dmeta">赶路日 · 约 ' + (d.km || 0) + ' km</span></div>' +
         '<div class="transit-route">' + esc(d.f || '出发地') + '<span>→</span>' + esc(d.o || '目的地') + '</div></div>';
     }
@@ -111,7 +112,8 @@
         '<span class="lbl">' + esc(s.n) + '</span>' +
         (s.k ? '<span class="slk" title="规划者钉住的一站，自动重排不参与它">' + TI('pinned', 12) + '钉住</span>' : '') + '</div></div>';
     }).join('');
-    return '<div class="day-card">' + head +
+    return '<div class="day-card" role="listitem" aria-label="' +
+      esc('第 ' + (di + 1) + ' 天，' + n + ' 站，约 ' + (d.km || 0) + ' km，全程 ' + (d.h || 0) + ' 小时') + '">' + head +
       '<span class="dmeta">' + n + ' 站 · 约 ' + (d.km || 0) + ' km · 全程 ' + (d.h || 0) + 'h</span></div>' + body + '</div>';
   }
 
@@ -128,7 +130,9 @@
       (p.b && Share.TB_LAB[p.b] ? ' · 出行方式：' + Share.TB_LAB[p.b] : '') + '</div>';
     h += '<div id="mapBox"></div>';
     h += '<div class="mapnote">地图是站点连线示意（真实道路轨迹只在规划者本机有高德 Key 时才画得出，不随链接走）。底图要联网，断网时下面的站点列表照样看得全。</div>';
-    h += (p.days || []).map(dayCard).join('');
+    /* 与规划结果页同一口径：日卡包成 list，读屏报得出「共几天、这是第几天」 */
+    h += '<div class="day-list" role="list" aria-label="' + esc(p.t || '我的行程') + '，共 ' + (p.days || []).length + ' 天">' +
+      (p.days || []).map(dayCard).join('') + '</div>';
     h += '<div class="foot"><b>关于这份行程</b>' +
       '内容全部写在链接里，打开即见，不需要账号，也不用下载应用。<br>' +
       '分享出去的只有站点名称、坐标与天数——不含游记正文，也不含照片。<br>' +
@@ -163,8 +167,9 @@
         L.polyline([a, b], { color: LINE, weight: 3, opacity: .85, dashArray: '7 7' }).addTo(map);
       }
       pts.forEach(function (s, i) {
-        L.marker([s.la, s.lo], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', iconSize: [26, 26], iconAnchor: [13, 24] }) })
+        var mk = L.marker([s.la, s.lo], { icon: L.divIcon({ className: '', html: '<span class="map-pin"><b>' + (i + 1) + '</b></span>', iconSize: [26, 26], iconAnchor: [13, 24] }) })
           .bindPopup('<b>' + esc(s.n) + '</b>').addTo(map);
+        if (window.UI) { UI.markerLabel(mk, (i + 1) + '，' + (s.n || '站点')); UI.markerKeys(mk, function () { mk.openPopup(); }); }
         bnd.push([s.la, s.lo]);
       });
       map.fitBounds(bnd, { padding: [40, 40] });

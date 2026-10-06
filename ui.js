@@ -4,22 +4,28 @@
  *   UI.confirm({title:'删除', text:'确定？', okText:'删除', danger:true}, function(ok){ if(ok) ... })
  */
 (function () {
+  /* 播报要两步：活区先「空着」入 DOM，文案晚一帧再写。带着文案一次性插入的话，
+     读屏把它当成静态内容（新增节点）而不是状态变更，一个字都不播（批次 22 实测，
+     toast / tileWarn / errorBox 原本全是这个形状）。aria-live 必须随节点一起进去。 */
   function toast(msg, ms, action) {
     var d = document.createElement('div');
     d.className = 'ui-toast';
     d.setAttribute('role', 'status');
-    d.appendChild(document.createTextNode(msg));
-    if (action && action.text) {
-      d.classList.add('act');
-      var b = document.createElement('button');
-      b.className = 'ui-toast-act';
-      b.type = 'button';
-      b.textContent = action.text;
-      b.onclick = function () { d.remove(); if (action.fn) action.fn(); };
-      d.appendChild(b);
-    }
+    d.setAttribute('aria-live', 'polite');
     document.body.appendChild(d);
-    requestAnimationFrame(function () { d.classList.add('show'); });
+    requestAnimationFrame(function () {
+      d.appendChild(document.createTextNode(msg));
+      if (action && action.text) {
+        d.classList.add('act');
+        var b = document.createElement('button');
+        b.className = 'ui-toast-act';
+        b.type = 'button';
+        b.textContent = action.text;
+        b.onclick = function () { d.remove(); if (action.fn) action.fn(); };
+        d.appendChild(b);
+      }
+      d.classList.add('show');
+    });
     setTimeout(function () {
       d.classList.remove('show');
       /* 退场等待跟 .ui-toast 的 CSS transition 同源，谁改 token 都不会把 toast 截在半空 */
@@ -27,12 +33,37 @@
     }, ms || (action && action.text ? 5000 : 2600));
   }
 
+  /* 焦点圈定（批次 22 从 confirm 抽成单点，弹层共用）。返回 keydown 处理器：
+     命中 Tab 返回 true（已处理）。verify.js §36 钉这里「function trapFocus」声明数 === 1，
+     复制粘贴出第二份 trap 一定红。
+     清单要过滤：默认选择器里的 [href] 会命中 SVG 的 <use href>（图标 <svg><use>），
+     而 <use> 根本聚焦不上——last 是个按不动的节点，e.preventDefault() 后焦点原地不动，
+     「转到末尾回第一枚」永远不触发，实测第三次 Tab 就跑到 tabbar 上（452×995 topic.html）。 */
+  function trapFocus(container, sel) {
+    return function (e) {
+      if (!e || e.key !== 'Tab') return false;
+      var nodes = container.querySelectorAll(sel || 'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var f = [];
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (n.namespaceURI && n.namespaceURI !== 'http://www.w3.org/1999/xhtml') continue;
+        if (n.disabled || n.getAttribute && n.getAttribute('disabled') !== null) continue;
+        f.push(n);
+      }
+      if (!f.length) return false;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return true;
+    };
+  }
+
   function confirm(o, cb) {
     if (typeof o === 'string') o = { text: o };
     var m = document.createElement('div');
     m.className = 'ui-modal-mask';
     m.innerHTML =
-      '<div class="ui-modal" role="alertdialog" aria-modal="true" aria-label="' + (o.title || '提示') + '">' +
+      '<div class="ui-modal" role="alertdialog" aria-modal="true" aria-label="' + esc(o.title || '提示') + '">' +
       (o.title ? '<div class="ui-modal-title"></div>' : '') +
       '<div class="ui-modal-text"></div>' +
       '<div class="ui-modal-acts">' +
@@ -47,6 +78,7 @@
     cancel.textContent = o.cancelText || '取消';
     if (o.danger) ok.classList.add('danger');
     var opener = document.activeElement;
+    var trap = trapFocus(m, 'button');
     function close(rs) {
       m.remove();
       document.removeEventListener('keydown', kd);
@@ -55,12 +87,7 @@
     }
     function kd(e) {
       if (e.key === 'Escape') { e.preventDefault(); close(false); return; }
-      if (e.key === 'Tab') { /* 焦点圈定在对话框内 */
-        var f = m.querySelectorAll('button');
-        var first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
+      trap(e);
     }
     ok.onclick = function () { close(true); };
     cancel.onclick = function () { close(false); };
@@ -77,20 +104,23 @@
     var d = document.createElement('div');
     d.className = 'ui-nudge';
     d.setAttribute('role', 'status');
-    var msg = document.createElement('span');
-    msg.className = 'txt';
-    if (o.pre) msg.appendChild(document.createTextNode(o.pre));
-    if (o.strong) { var b = document.createElement('b'); b.textContent = o.strong; msg.appendChild(b); }
-    msg.appendChild(document.createTextNode(o.text || ''));
-    d.appendChild(msg);
-    if (o.actionText) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = o.actionText;
-      btn.onclick = function () { d.remove(); if (o.onAction) o.onAction(); };
-      d.appendChild(btn);
-    }
+    d.setAttribute('aria-live', 'polite');
     document.body.appendChild(d);
+    requestAnimationFrame(function () {
+      var msg = document.createElement('span');
+      msg.className = 'txt';
+      if (o.pre) msg.appendChild(document.createTextNode(o.pre));
+      if (o.strong) { var b = document.createElement('b'); b.textContent = o.strong; msg.appendChild(b); }
+      msg.appendChild(document.createTextNode(o.text || ''));
+      d.appendChild(msg);
+      if (o.actionText) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = o.actionText;
+        btn.onclick = function () { d.remove(); if (o.onAction) o.onAction(); };
+        d.appendChild(btn);
+      }
+    });
     /* 10s 自移除是提醒纪律，不是可选项：常驻会把页面挤成广告位 */
     setTimeout(function () { if (d.parentNode) d.remove(); }, o.ms || 10000);
     return d;
@@ -133,11 +163,16 @@
       tileWarnEl = document.createElement('div');
       tileWarnEl.className = 'ui-tilewarn';
       tileWarnEl.setAttribute('role', 'status');
+      tileWarnEl.setAttribute('aria-live', 'polite');
       document.body.appendChild(tileWarnEl);
     }
     if (!document.querySelector('.bottom-nav')) tileWarnEl.classList.add('bare');
-    tileWarnEl.textContent = msg;
-    requestAnimationFrame(function () { tileWarnEl && tileWarnEl.classList.add('show'); });
+    /* 同上：文案晚一帧写，首次那条才播得出来 */
+    requestAnimationFrame(function () {
+      if (!tileWarnEl) return;
+      tileWarnEl.textContent = msg;
+      tileWarnEl.classList.add('show');
+    });
     if (tileWarnTimer) clearTimeout(tileWarnTimer);
     tileWarnTimer = setTimeout(function () { if (tileWarnEl) tileWarnEl.classList.remove('show'); }, 4000);
   }
@@ -156,10 +191,14 @@
       bar.setAttribute('role', 'status');
       bar.setAttribute('aria-live', 'polite');
       if (!document.querySelector('.bottom-nav')) bar.classList.add('bare');
-      bar.innerHTML = '<span class="oic">' + (window.TI ? TI('wifioff', 16) : '') + '</span>' +
-        '<span>当前离线 · 已缓存内容仍可浏览，联网后自动恢复</span>';
       document.body.appendChild(bar);
-      requestAnimationFrame(function () { bar && bar.classList.add('show'); });
+      /* 同上：空活区先入 DOM，文案下一帧再写，「当前离线」这件事才播得出来（批次 22） */
+      requestAnimationFrame(function () {
+        if (!bar) return;
+        bar.innerHTML = '<span class="oic">' + (window.TI ? TI('wifioff', 16) : '') + '</span>' +
+          '<span>当前离线 · 已缓存内容仍可浏览，联网后自动恢复</span>';
+        bar.classList.add('show');
+      });
     }
     function hide() {
       if (!bar) return;
@@ -180,16 +219,22 @@
     host = typeof host === 'string' ? document.querySelector(host) : host;
     if (!host) return null;
     host.innerHTML =
-      '<div class="ui-errorbox" role="alert">' +
+      '<div class="ui-errorbox" role="alert" aria-live="assertive">' +
       '<span class="eb-ic">' + (window.TI ? TI('warn', 24) : '') + '</span>' +
       '<div class="eb-t"></div><div class="eb-d"></div>' +
       '<button class="ui-btn ui-btn-primary eb-retry" type="button"></button>' +
       '</div>';
-    host.querySelector('.eb-t').textContent = opts.title || '加载失败';
-    host.querySelector('.eb-d').textContent = opts.text || '请检查网络后重试。';
     var btn = host.querySelector('.eb-retry');
     var label = opts.retryText || '重试';
-    btn.textContent = label;
+    /* 带 role=alert 的活区先入 DOM，标题/正文/按钮字下一帧再写：
+       同一次插入里既建区又填字，读屏当静态内容，出错那句话播不出来（批次 22） */
+    requestAnimationFrame(function () {
+      var t = host.querySelector('.eb-t'), dd = host.querySelector('.eb-d');
+      if (!t || !dd || !btn) return;   /* 调用方已把卡换掉 */
+      t.textContent = opts.title || '加载失败';
+      dd.textContent = opts.text || '请检查网络后重试。';
+      btn.textContent = label;
+    });
     btn.onclick = function () {
       if (!opts.onRetry) { location.reload(); return; }
       btn.disabled = true; btn.textContent = opts.retryingText || '重试中…';
@@ -206,6 +251,113 @@
       }, function () { btn.disabled = false; btn.textContent = label; toast('重试失败，请检查网络'); });
     };
     return btn;
+  }
+
+  /* 地图标记的 accessible name（批次 22-C）：Leaflet 1.1.1 会给 marker 容器加
+     tabindex="0" + role="button"，但 divIcon 的 alt 根本落不成属性（452 档实测 11 枚标记
+     aria-label/alt 全 null），读屏只念得到「按钮」。名字钉在标记的 DOM 元素上；
+     还没入图的挂 add 事件补。node-lod.js 比 ui.js 先载入，调用方一律带 window.UI 运行时保护。 */
+  function markerLabel(m, label) {
+    if (!m || !label) return;
+    function set() {
+      var el = m._icon || (m.getElement ? m.getElement() : null);
+      if (el && el.setAttribute) el.setAttribute('aria-label', label);
+    }
+    if (m._icon) set();
+    else if (m.on) m.on('add', set);
+  }
+
+  /* 标记的键盘激活（批次 22-C）：Leaflet 1.1.1 的 Keyboard handler 只做平移/缩放/Esc 关
+     popup，聚焦标记后按 Enter 什么也不会发生——Tab 停得下来却打不开，等于只做了半个可达。
+     这里把 Enter/Space 等同点一下。Space 默认会滚页，必须 preventDefault。 */
+  function markerKeys(m, fn) {
+    if (!m || typeof fn !== 'function') return;
+    function bind() {
+      var el = m._icon || (m.getElement ? m.getElement() : null);
+      if (!el || !el.addEventListener || el.__uiKeys) return;
+      el.__uiKeys = 1;
+      el.addEventListener('keydown', function (e) {
+        var k = e.key;
+        if (k !== 'Enter' && k !== ' ' && k !== 'Spacebar' && e.keyCode !== 13 && e.keyCode !== 32) return;
+        e.preventDefault();
+        e.stopPropagation();
+        fn(e);
+      });
+    }
+    if (m._icon) bind();
+    else if (m.on) m.on('add', bind);
+  }
+
+  /* 弹层单点（批次 22-D）：抽屉/对话框此前只是 classList.add('show') 一塞了之——
+     读屏进得去也出不来，Esc 无效，焦点留在背后的地图上。这里一次补齐
+     role=dialog + aria-label + Esc 关闭 + 焦点归还触发元素 + aria-expanded，
+     并把 Tab 圈在弹层内。开合仍认同一个 class（opts.cls，默认 'show'），各页显隐逻辑不变。
+     aria-modal 只在真模态上挂（opts.modal）：locSheet 升起时地图照样能点，
+     报「外面不可达」是谎报。控制器缓存在元素上，重复 UI.sheet(el) 拿同一个。 */
+  function sheet(el, opts) {
+    if (!el) return null;
+    if (el.__uiSheet) return el.__uiSheet;
+    opts = opts || {};
+    var cls = opts.cls || 'show';
+    /* 页面建好时就写死的 aria-label 归页面管（nearSheet 的「这一带还有什么」），
+       没写的才由这里跟着内容更新（locSheet 的名字要跟着这一站走） */
+    var pageLabel = !!el.getAttribute('aria-label');
+    var opener = null, keyH = null, trap = null;
+    function detach() { if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } }
+    var api = {
+      el: el,
+      isOpen: function () { return el.classList.contains(cls); },
+      open: function (label) {
+        var lb = typeof label === 'function' ? label() : (label === undefined ? opts.label : label);
+        if (!el.getAttribute('role')) el.setAttribute('role', 'dialog');
+        if (!pageLabel && lb) el.setAttribute('aria-label', lb);
+        /* 已经开着再调一次 = 只换内容（node-manager 的「想去」开关会重画整张卡）：
+           opener / 焦点 / 监听都不重记，否则焦点会归还到一个已被 innerHTML 换掉的按钮上 */
+        if (api.isOpen()) return;
+        if (opts.modal) el.setAttribute('aria-modal', 'true');
+        opener = (document.activeElement && document.activeElement !== document.body) ? document.activeElement : null;
+        if (opener) opener.setAttribute('aria-expanded', 'true');
+        el.classList.add(cls);
+        trap = trapFocus(el, opts.focus);
+        detach();
+        keyH = function (e) {
+          if (!api.isOpen()) { detach(); return; }   /* 别的路径关掉的：监听器自我回收，不留在文档上 */
+          if (e.key === 'Escape') { e.preventDefault(); api.close(); return; }
+          trap(e);
+        };
+        document.addEventListener('keydown', keyH);
+        /* 焦点落进弹层本身（tabindex=-1），读屏从这里开始念整块内容，
+           也不会在没按钮的弹层里把焦点丢回 body */
+        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+        try { el.focus({ preventScroll: true }); } catch (e) { try { el.focus(); } catch (e2) {} }
+      },
+      close: function () {
+        var was = api.isOpen();
+        el.classList.remove(cls);
+        el.removeAttribute('aria-modal');
+        detach();
+        if (!was) return;
+        if (opener) {
+          opener.setAttribute('aria-expanded', 'false');
+          /* 归还要认「还活着的那一枚」：开一趟景点卡会触发标记层整层重建（探针实测 clearLayers 1 /
+             addLayer 36 / _initIcon 108 / removeIcon 36），点开它的那枚 DOM 当场离场，
+             opener.focus() 静默失败（实测焦点落到 body，键盘用户从页首重新 Tab）。
+             注意不是 setIcon 那条腿：vendor/leaflet 1.1.1 的 DivIcon.createIcon 复用同一枚 DIV，
+             实测 setIcon 36 次、节点换手 0 次。同站点的替代者按 aria-label 找回；都找不到就交还给
+             地图容器，焦点至少还停在这张图上。 */
+          var back = opener;
+          if (!back.isConnected) {
+            var want = back.getAttribute && back.getAttribute('aria-label');
+            back = (want ? document.querySelector('.leaflet-marker-icon[aria-label="' + want.replace(/["\\]/g, '\\$&') + '"]') : null) ||
+              document.querySelector('.leaflet-container') || null;
+          }
+          if (back) { try { back.focus({ preventScroll: true }); } catch (e) { try { back.focus(); } catch (e2) {} } }
+          opener = null;
+        }
+      }
+    };
+    el.__uiSheet = api;
+    return api;
   }
 
   function esc(s) {
@@ -336,7 +488,7 @@
     } catch (e) { fn(); return null; }
   }
 
-  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt };
+  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt, sheet: sheet, markerLabel: markerLabel, markerKeys: markerKeys, trapFocus: trapFocus };
 
   /* 载入即安装离线条（幂等，见 __uiOfflineBarOn）；引 ui.js 的每个页面自动获得离线态，无需逐页接线 */
   if (typeof document !== 'undefined') {

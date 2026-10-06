@@ -154,7 +154,8 @@ function drawRoute(upto){
   if(pts.length>1) L.polyline(pts,{color:'#AE5738',weight:3,opacity:.5,dashArray:'6 6',lineCap:'round'}).addTo(routeLayer);
   for(var k=0;k<=upto&&k<cards.length;k++){
     var p=gxy(cards[k].lat,cards[k].lng), cur=(k===upto);
-    L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+(cur?'16':'8')+'px;height:'+(cur?'16':'8')+'px;border-radius:50%;background:'+(cur?'#AE5738':'#9C9A92')+';border:'+(cur?'3px':'2px')+' solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[cur?16:8,cur?16:8],iconAnchor:[cur?8:4,cur?8:4]})}).addTo(routeLayer);
+    var mk=L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+(cur?'16':'8')+'px;height:'+(cur?'16':'8')+'px;border-radius:50%;background:'+(cur?'#AE5738':'#9C9A92')+';border:'+(cur?'3px':'2px')+' solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[cur?16:8,cur?16:8],iconAnchor:[cur?8:4,cur?8:4]})}).addTo(routeLayer);
+    if(window.UI) UI.markerLabel(mk,(cards[k].title||cards[k].siteName||'第 '+(k+1)+' 站')+(cur?'，正讲到这一站':''));
   }
 }
 function updateNav(i){

@@ -153,7 +153,7 @@
   function loadScript(src, cb, errcb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = function () { if (errcb) errcb(src); else if (cb) cb(); }; document.head.appendChild(s); }
   function boot() {
     /* 到 Sheet / 到达卡片的面板关闭钩子 */
-    window.TopicEngine._closeArrive = function () { var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show'); };
+    window.TopicEngine._closeArrive = function () { var d = document.getElementById('arriveDlg'); if (d && window.UI) UI.sheet(d).close(); };
     window.TopicEngine.init();
     var _sk = document.getElementById('mapSkel'); if (_sk) { setTimeout(function () { _sk.style.display = 'none'; }, 300); }
   }

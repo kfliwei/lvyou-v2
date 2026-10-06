@@ -167,7 +167,7 @@
   var nearNodeLayer = null;   /* 圈内未渲染节点的补画层（LOD 重渲染时清理，避免残留拦截点击） */
   function clearNearLayer() { if (nearLayer) { map.removeLayer(nearLayer); nearLayer = null; } if (nearNodeLayer) { map.removeLayer(nearNodeLayer); nearNodeLayer = null; } }
   function hideNearBar() { if (nearBar) nearBar.style.display = 'none'; }
-  function hideNearSheet() { if (nearSheet) nearSheet.classList.remove('open'); }
+  function hideNearSheet() { if (nearSheet) UI.sheet(nearSheet, { cls: 'open' }).close(); }
   function restoreMarkers() {
     /* 恢复被「查附近」高亮的节点为普通图标 */
     if (nearHits.length && lastMarkerList) renderMarkers(lastMarkerList);
@@ -234,11 +234,15 @@
       var s = SITES[i];
       nearHits.push(i);
       var m = markers.get(i);
-      if (m) m.setIcon(nearIcon(s));
-      else {
+      /* 换图标＝换 DOM：这一支也要补回名字与 Enter，理由同 setActiveNode */
+      if (m) {
+        m.setIcon(nearIcon(s));
+        if (window.UI) { UI.markerLabel(m, siteAria(s)); UI.markerKeys(m, function () { openSheet(i); }); }
+      } else {
         var nm = L.marker(pt(s), { icon: nearIcon(s), zIndexOffset: 800 });
         nm.on('click', function () { openSheet(i); });
         nm.addTo(nearNodeLayer);
+        if (window.UI) { UI.markerLabel(nm, siteAria(s)); UI.markerKeys(nm, function () { openSheet(i); }); }
       }
     });
   }
@@ -273,7 +277,7 @@
     /* 来源口径必须写进 DOM（§34 文案锚 + smoke N 族都读它） */
     var foot = '<div class="nf">' + (res.live ? esc(Nearby.LIVE_NOTE) : '来源：包内景点库，离线可用') + '</div>';
     sh.innerHTML = head + body + foot;
-    sh.classList.add('open');
+    UI.sheet(sh, { cls: 'open' }).open();
     raiseCenterClear(sh);
     $('nearSheetX').onclick = function (ev) { if (ev) ev.stopPropagation(); hideNearSheet(); };
     sh.querySelectorAll('.ni').forEach(function (b) {
@@ -315,6 +319,7 @@
     var m = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))">' + TI('mic', 22) + '</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 22] }) }).addTo(map);
     m.bindPopup('<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div><div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div><div class="pfoot"><button class="addtrip tnvo" onclick="window.__tnSpot(' + lat + ',' + lng + ')">' + TI('mic', 13) + '在此语音记录</button></div></div>', { maxWidth: 260, className: 'trippop', autoPan: true }).openPopup();
     m.on('popupclose', function () { if (map.hasLayer(m)) map.removeLayer(m); });
+    if (window.UI) { UI.markerLabel(m, '途经点随手记'); UI.markerKeys(m, function () { m.openPopup(); }); }
   }
   window.__tnSpot = function (lat, lng) { window.TravelNotes.openPanel({ label: '途经点', lat: lat, lng: lng }); };
   window.__tnAnywhere = function () {
@@ -339,6 +344,16 @@
 
   /* ---------- 节点 / Sheet ---------- */
   function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0 || (s.flag && s.flag.indexOf('m') >= 0); }
+  /* 节点的读屏名（批次 22-C）：地图上的标记是 divIcon，Leaflet 只给了 tabindex/role，
+     不给名字，读屏念得出「按钮」念不出「青海湖」。这串就是那缺的一个名字。 */
+  function siteAria(s) {
+    var bits = [s.label || s.name];
+    bits.push(s.city || s.region);
+    bits.push(tk(s));
+    if (s.flag && s.flag.indexOf('m') >= 0) bits.push('必去');
+    if (s.__i === curSite) bits.push('当前正在看');
+    return bits.filter(Boolean).join('，');
+  }
   /* 实景照映射（tools/fetch-site-images.js 本地镜像优先，tools/gen-site-images.js 远端兜底，图源高德 POI） */
   function imgSrc(s) {
     try {
@@ -380,7 +395,16 @@
     html += '</div>';
     return L.divIcon({ className: '', html: html, iconSize: [30, 30], iconAnchor: [15, 15] });
   }
-  function setActiveNode(i) { markers.forEach(function (m, idx) { if (SITES[idx]) m.setIcon(nodeIcon(SITES[idx], idx === i)); }); }
+  /* setIcon 会把标记的 DOM 整个换掉，而 Leaflet 1.1.1 没有 iconchange 事件：重画之后不补回去，
+     aria-label 和 Enter 键位跟着旧节点一起消失——点开一趟景点卡回来，全图标记就成了「按不动的
+     无名点」（452×995 实测 Esc 之后焦点掉到 body）。批次 22-C：可达名要活得过每一次重画。 */
+  function setActiveNode(i) {
+    markers.forEach(function (m, idx) {
+      if (!SITES[idx]) return;
+      m.setIcon(nodeIcon(SITES[idx], idx === i));
+      if (window.UI) { UI.markerLabel(m, siteAria(SITES[idx])); UI.markerKeys(m, function () { openSheet(idx); }); }
+    });
+  }
   /* 避让补测的统一入口。为什么要等两拍 rAF：.tr-node 带入场动画 node-fade-in
      （design.css:940，from 是 scale(.6)），节点创建的同一帧里 getBoundingClientRect
      量到的是动画首帧的盒子（实测标签宽 67px，稳定后 112px），labelAvoid 据此判重叠就漏隐藏。
@@ -533,6 +557,7 @@
       colorOf: colorOf,
       onNode: function (s) { openSheet(s.__i); },
       majorOf: isMajorSite,
+      labelOf: siteAria,
       onRendered: function () { clampCapsules(); clearTimeout(window.__cavT); window.__cavT = setTimeout(refitAvoid, 80); },
       vb: contentBounds,
       focus: focusUsable,
@@ -726,7 +751,8 @@
       }
     } catch (e) {}
     $('lsBody').innerHTML = buildSheet(i);
-    $('locSheet').classList.add('show');
+    /* 弹层统一走 UI.sheet：role=dialog + 名字跟着这一站 + Esc 关闭 + 焦点归还点开的标记 */
+    UI.sheet($('locSheet')).open((SITES[i] && (SITES[i].label || SITES[i].name) || '景点') + ' 详情');
     setActiveNode(i);
     /* 全国页：按省懒加载详情后刷新面板 */
     var _s0 = SITES[i];
@@ -789,7 +815,7 @@
     if (map) setTimeout(function () { map.panBy([0, -160], { duration: 420 }); }, 80);
   }
   function closeSheet() {
-    $('locSheet').classList.remove('show');
+    UI.sheet($('locSheet')).close();
     document.querySelector('.tabbar').classList.remove('is-hidden');
     curSite = null; setActiveNode(-1);
     if (map) setTimeout(function () { map.panBy([0, 160], { duration: 420 }); }, 80);
@@ -893,9 +919,9 @@
     var s = tripSite(trip[0]);
     $('arPlace').textContent = s ? esc(s.label) : '—';
     $('arSub').textContent = trip.length + ' 站 · ' + (s ? (s.region || '') : '');
-    $('arriveDlg').classList.add('show');
+    UI.sheet($('arriveDlg'), { label: '到了这一带，想留下些什么', modal: true }).open();
   }
-  function closeArrive() { $('arriveDlg').classList.remove('show'); }
+  function closeArrive() { UI.sheet($('arriveDlg')).close(); }
   function flyToSite(i, fromSheet) {
     var s = SITES[i]; if (!s) return;
     /* 先切 tab 再聚焦：#map 不是当前视图时容器 display:none，getSize() 量到 0×0，
@@ -903,7 +929,7 @@
        80ms 是 switchTab 里那次 invalidateSize(60ms) 之后。 */
     switchTab('map');
     setTimeout(function () { flyToUsable(pt(s), Math.max(map.getZoom(), 12), { duration: .6 }); }, 80);
-    if (fromSheet) { $('locSheet').classList.remove('show'); document.querySelector('.tabbar').classList.remove('is-hidden'); curSite = i; setActiveNode(i); }
+    if (fromSheet) { UI.sheet($('locSheet')).close(); document.querySelector('.tabbar').classList.remove('is-hidden'); curSite = i; setActiveNode(i); }
     else { openSheet(i); }
   }
 
@@ -1208,7 +1234,10 @@
     userLatLng = [pos.coords.latitude, pos.coords.longitude];
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.marker(gxy(userLatLng[0], userLatLng[1]), { icon: userDotIcon(), zIndexOffset: 1000 }).addTo(map);
+    if (window.UI) UI.markerLabel(userMarker, '我的位置');
     userMarker.bindPopup('<div style="text-align:center;min-width:130px"><b style="font-size:var(--fs-5)">' + TI('pin', 13) + '我的位置</b><br><button onclick="window.TopicEngine.addTripPos()" style="margin-top:9px;padding:7px 18px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);font-weight:600;cursor:pointer">＋ 加入行程</button></div>').openPopup();
+    /* 聚焦标记按 Enter 要能把这张卡再叫出来：库的 Keyboard handler 只管平移/缩放/Esc */
+    if (window.UI) UI.markerKeys(userMarker, function () { userMarker.openPopup(); });
     if (!watchId && navigator.geolocation) watchId = navigator.geolocation.watchPosition(function (p) {
       userLatLng = [p.coords.latitude, p.coords.longitude];
       if (userMarker) userMarker.setLatLng(gxy(userLatLng[0], userLatLng[1]));

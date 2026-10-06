@@ -1397,6 +1397,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         })
       });
       m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:160px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span><br>' + (n.weather ? esc(n.weather) + '<br>' : '') + esc((n.text || n.raw).slice(0, 140)) + (n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '" style="width:100%;margin-top:6px;height:32px"></audio>' : '') + '</div>');
+      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + (n.date || '')); UI.markerKeys(m, function () { m.openPopup(); }); }
       m.addTo(tnLayer);
     });
   }
@@ -2081,6 +2082,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         })
       });
       m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span>' + pic + '<div style="white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px">' + esc(n.text || n.raw) + '</div><div style="color:#6b665c;font-size:var(--fs-2);margin-top:6px">' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) + (n.style ? ' · ' + n.style : '') + '</div></div>', { maxWidth: 280 });
+      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + (n.date || '') + '，点击查看全文'); UI.markerKeys(m, function () { m.openPopup(); }); }
       m.addTo(layer);
     });
     if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));

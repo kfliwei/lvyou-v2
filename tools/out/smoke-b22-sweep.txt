@@ -1,0 +1,80 @@
+########## smoke-expense
+PASS  A61 1440 双栏档汇总卡仍在视口内且读数没掉（批次 18 的侧栏不许把它挤出去）  [{"w":380,"right":496,"vw":1440,"over":0,"count":"共 1034.30 元 · 6 笔"}]
+PASS  A62 全程零页面报错
+PASS  A63 全程零原生 confirm/alert（所有破坏性操作都走 UI.confirm）  [0]
+=== SMOKE EXPENSE ALL PASS ===
+########## smoke-checklist
+PASS  C43 规则矩阵跑满 42 条断言（下限 20；条数掉了就是有分支被删却没说）  [42 条]
+PASS  Z 全程零页面报错
+
+=== SMOKE ALL PASS ===
+########## smoke-ticketbox
+PASS  T34b Notification 计数是活的（主动构造一次就抓到一次）  [抓到 1 次]
+PASS  Z 全程零页面报错
+
+=== SMOKE ALL PASS ===
+########## smoke-export
+PASS P7 打印态：屏幕那层米白纸底退回纯白（纸上不铺底色，模糊与投影一类屏幕态装饰同理关掉）  [rgb(255, 255, 255)]
+PASS P8 打印态：h2 题签描边退回黑（打印不许靠颜色承载信息）  [rgb(0, 0, 0)]
+PASS P9 打印态：字号换成固定 pt（不吃手机「加大字号」档位），与屏幕态不同  [17px → 17.3333px]
+smoke-export: 32 PASS / 0 FAIL（共 32 条）
+########## smoke-motion
+PASS E4 缩小视野后补测真的又跑过、且可见标签仍不重叠  [避让被调 3 次 / 重叠 0 对 / 隐藏 12（等动画跑完用了 850ms）]
+PASS D4 全程无页面未捕获异常  [0 条]
+
+smoke-motion: 35 项，失败 0
+########## smoke-texture
+PASS G1 15 个质感 token 在 393dp 与 452dp 上同值（字号随机型变是刻意的，纸和影不是）  [两档一致]
+PASS G2 393dp 上 body 仍铺 grain 且尺寸不变  []
+
+=== smoke-texture: 48 项通过 / 0 项失败 ===
+########## smoke-usable
+PASS U13 全程无页面未捕获异常  []
+
+=== smoke-usable: 29/29 PASS ===
+（信息）404/资源类控制台报错 2 条：http://127.0.0.1:8168/favicon.ico | Failed to load resource: the server responded with a status of 404 (Not Found)
+########## smoke-album
+... STEP clean
+FAIL  clean: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/travel-map.html]
+
+FAILS: 5
+########## smoke-nodes
+FAIL  图例选中态同步
+PASS  顶部标签选中态同步  [古建寺院]
+PASS  无脚本错误
+=== NODES SMOKE FAIL: 2 issue(s) ===
+########## smoke-story
+PASS  上一站/下一站按钮存在
+PASS  无 JS 报错
+
+全部通过
+########## smoke-review
+PASS  持久化后日历格回显走图标  [cal=""]
+PASS  全程无 JS 报错
+
+全部通过
+########## smoke-tickets
+PASS T10 旧文案「核对」在这行零残留（样本 晋祠）  [block|11月至3月 08:00-17:00,4月至10月 08:30-18:00,2026-02-16,09:00-14:00]
+PASS T11 未收录景点整行隐藏且行内不出现「元」（样本 华严寺）  [none|]
+PASS T12 实时营业时间缀「（高德实时）」（样本 华严寺）  [block|08:00-17:40（造样本）更新于 2026-10（高德实时）]
+smoke-tickets: 12 PASS / 0 FAIL（共 12 条）
+########## smoke-backup
+PASS  五个同步按钮触控目标 ≥44px   [ok]
+
+=== smoke-backup: 53 PASS / 0 FAIL / 共 53 ===
+截图与报告目录：F:\MyAi\trace\lvyou-v2\tools\out\shots\2026-10-06-b8-backup
+########## smoke-photo
+PASS E2 暗色档下外圈描边翻成 --edge-hair（画在表面上，不翻就等于没有）  [edge-hair=rgba(33,26,19,.14) shadow=rgba(239, 233, 220, 0.16) 0px 0px 0px 1px]
+PASS E3 随笔缩略图吃滤镜 + 外圈描边  [filter=saturate(0.94) shadow=rgba(33, 26, 19, 0.2) 0px 0px 0px 1px]
+
+=== smoke-photo: 16/16 通过 ===
+########## smoke-album-edit-obscure
+PASS  场景3: 长文本+滚动后自动校正不遮挡  [{"bottom":705,"barTop":754}]
+PASS  无脚本错误
+
+ALL PASS
+########## smoke-flag-link
+PASS  全部恢复：数字还原且无降透明  [sum=92 dims=0]
+PASS  节点层：网红筛选降透明  [dim=55 total=80]
+PASS  无脚本错误
+=== FLAG-LINK SMOKE ALL PASSED ===

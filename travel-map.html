@@ -273,7 +273,7 @@
   <!-- TRACE v2 Memory Sheet -->
   <div id="memSheet">
     <div class="sheet__handle" onclick="closeMemSheet()"></div>
-    <button class="ms-close" onclick="closeMemSheet()"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
+    <button class="ms-close" aria-label="关闭这一张卡片" onclick="closeMemSheet()"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
     <div id="msBody"></div>
   </div>
   <!-- 右上控制组：图层 + 缩放 -->
@@ -420,7 +420,7 @@ function refresh(){
     if(isGroup){
       const nodeCls=photo?'mem-node mem-node--photo':'mem-node mem-node--dot';
       const nodeInner=(photo?'<img loading="lazy" decoding="async" src="'+photo+'" alt="" onerror="window.UI&&UI.imgFail(this)">':'<span class="mem-dot" style="background:'+tagColor(first)+'"></span>')+'<span class="mem-badge">'+items.length+'</span>';
-      return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:photo?[44,44]:[26,26], anchor:photo?[22,22]:[13,13], onclick:function(){openGroupSheet(items);} };
+      return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:photo?[44,44]:[26,26], anchor:photo?[22,22]:[13,13], aria:(first.title||first.siteName||'未命名地点')+'，'+items.length+' 段记忆，点击查看', onclick:function(){openGroupSheet(items);} };
     }
     const n=items[0];
     const nodeCls=isStart||isEnd?'mem-node mem-node--endpoint':(photo?'mem-node mem-node--photo':'mem-node mem-node--dot');
@@ -429,7 +429,7 @@ function refresh(){
       :((isStart||isEnd)?'<span class="mem-ring"></span><span class="mem-dot" style="background:'+tagColor(n)+'"></span>':'<span class="mem-dot" style="background:'+tagColor(n)+'"></span>');
     const size=(isStart||isEnd)?[40,40]:(photo?[44,44]:[26,26]);
     const anchor=(isStart||isEnd)?[20,20]:(photo?[22,22]:[13,13]);
-    return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:size, anchor:anchor, onclick:function(){openMemSheet(n);} };
+    return { html:'<div class="'+nodeCls+'">'+nodeInner+'</div>', size:size, anchor:anchor, aria:(n.title||n.siteName||'未命名地点')+(isStart?'，出发地':(isEnd?'，终点':''))+'，点击查看这一篇', onclick:function(){openMemSheet(n);} };
   }
   const gkeys=Object.keys(groups);
   const delayStep=gkeys.length>1?Math.min(220,1300/gkeys.length):200;
@@ -440,6 +440,7 @@ function refresh(){
     const node=makeNode(items);
     const m=L.marker(p,{icon:L.divIcon({html:node.html,className:'',iconSize:node.size,iconAnchor:node.anchor})});
     m.on('click',node.onclick);
+    if(window.UI){ UI.markerLabel(m,node.aria); UI.markerKeys(m,node.onclick); }
     setTimeout(function(){
       m.addTo(tnLayer);
       var ic=m._icon;
@@ -541,7 +542,7 @@ function openGroupSheet(items){
   document.getElementById('msBody').innerHTML='<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+sorted.length+' 段记忆 · 点击查看</div>'
     +'<div style="margin-top:12px">'+listHtml+'</div>';
-  document.getElementById('memSheet').classList.add('show');
+  UI.sheet(document.getElementById('memSheet')).open(place + ' 的记忆列表');
   if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
 }
 /* 供聚合列表点击：按 id 打开单篇 Memory Sheet */
@@ -568,11 +569,11 @@ function openMemSheet(n){
     +photosHtml
     +audioHtml
     +tagsHtml;
-  document.getElementById('memSheet').classList.add('show');
+  UI.sheet(document.getElementById('memSheet')).open(place + ' 的随手记');
   if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
 }
 function closeMemSheet(){
-  document.getElementById('memSheet').classList.remove('show');
+  UI.sheet(document.getElementById('memSheet')).close();
   if(map) setTimeout(function(){map.panBy([0,180],{duration:420});},80);
 }
 /* 照片全屏查看（点击信息框缩略图放大，再点关闭） */

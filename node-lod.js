@@ -208,8 +208,13 @@
         drawn[key] = 1;
         p = avoidOverlap(p, posUsed, z);
         var m = L.marker(p, { icon: C.icon(s, false) });
-        m.on('click', function () { C.onNode && C.onNode(s); });
+        var act = function () { C.onNode && C.onNode(s); };
+        m.on('click', act);
         layer.addLayer(m);
+        /* 读屏口径：Leaflet 给 marker 容器加了 tabindex/role，divIcon 里的名字它不管，
+           不钉 aria-label 整幅地图就只念得出「按钮」（批次 22-C） */
+        if (window.UI && C.labelOf) UI.markerLabel(m, C.labelOf(s));
+        if (window.UI) UI.markerKeys(m, act);   /* 库的 Keyboard handler 不管 Enter，键盘停得下来打不开 */
         if (C.onMarker) C.onMarker(m, s);
         i++;
       });
@@ -225,8 +230,11 @@
           drawn[key] = 1;
           p = avoidOverlap(p, posUsed, z);
           var m = L.marker(p, { icon: C.icon(s, false) });
-          m.on('click', function () { C.onNode && C.onNode(s); });
+          var act = function () { C.onNode && C.onNode(s); };
+          m.on('click', act);
           layer.addLayer(m);
+          if (window.UI && C.labelOf) UI.markerLabel(m, C.labelOf(s));
+          if (window.UI) UI.markerKeys(m, act);
           if (C.onMarker) C.onMarker(m, s);
           i++;
         });
@@ -285,7 +293,7 @@
         var n = matched ? matched.length : arr.length;
         var dim = matched ? matched.length === 0 : false;
         var m = L.marker(bnd.getCenter(), { icon: clusterIcon(lbl, n, tint, mcnt, dim), zIndexOffset: -600 });
-        m.on('click', function () {
+        var act = function () {
           /* 点击聚合 → 聚焦该行政区。
              region（省）直接 flyTo(中心, 8) 跳过市级直达 county 层，
              因为省 bounds 宽高比在 16:9 屏上 fitBounds 受高度方向限制只能到 z~6，无法聚焦单省；
@@ -306,8 +314,13 @@
              不扣内缩就会把聚焦出来的胶囊整排塞进底部统计卡与 tabbar 下面） */
           if (C.focus) { C.focus({ bounds: bnd, maxZoom: mz }); return; }
           C.map.flyToBounds(bnd, { padding: C.pad || [24, 40], maxZoom: mz, duration: .5 });
-        });
+        };
+        m.on('click', act);
         layer.addLayer(m);
+        /* 聚合胶囊同样要念得出名字：胶囊里的省名/数字是 divIcon 的文本，
+           读屏进不到标记这一层（批次 22-C） */
+        if (window.UI) UI.markerLabel(m, lbl + ' ' + n + ' 处' + (dim ? '，当前筛选没有匹配' : '，点击查看这一片'));
+        if (window.UI) UI.markerKeys(m, act);
       });
       if (C.onRendered) C.onRendered();   /* 渲染完成钩子：供胶囊避让紧跟重排 */
       return;

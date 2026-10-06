@@ -3792,6 +3792,322 @@ const EMOJI_MARK = 'emoji-ok:';
   fail += bad34;
 }
 
+/* ============ §36 无障碍三类关键结构闸门（批次 22） ============
+   这一批的东西坏了全都「看不出来」：aria-label 拼成空串、活区带字一次插入、Tab 跑出弹层、
+   Esc 关不掉、焦点还不回触发元素——界面一个字都没变，读屏用户却整段用不了。
+   所以源码侧只钉两类东西：①单点（同一族语义只允许有一个出处，复制粘贴必红）；
+   ②顺序（这一批的灵魂全是顺序，存在性检查一条都守不住）：
+     · 活区先「空着」入 DOM、文案下一帧再写；aria-live 属性必须和节点一起进去；
+     · trapFocus 的 SVG/禁用过滤必须排在 first/last 取值之前（否则过滤了个寂寞）；
+     · sheet.open 的「已开着就只换内容」守卫必须排在 aria-modal 与 classList.add 之前；
+     · 重画（setIcon）之后必须补回 marker 的名字与 Enter。
+   期望 0 那一族钉的是「旧写法不许回潮」：弹层开合只有一个入口，各页 classList.add('show')
+   的裸开关、页面私搭 aria-live、node-lod 自己 setAttribute('aria-label') 全部为零。
+   口径同 §28/§31/§32/§33/§34：四元组守卫、期望 0 一律配正向对照、.js 视图剥块注释、
+   .html 视图只归一空白不剥注释，所以锚点串一律写成归一后的整串。
+   ============================================================ */
+{
+  let bad36 = 0;
+  const F36 = m => { bad36++; console.log('FAIL §36 无障碍闸门: ' + m); };
+  const ws36 = s => s.replace(/\s+/g, ' ').trim();
+  const flat36 = s => ws36(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt36 = (s, n) => s.split(n).length - 1;
+  const rd36 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view36 = f => /\.html$/.test(f) ? ws36(rd36(f)) : flat36(rd36(f));
+  const fnBody36 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+
+  const FILES36 = ['ui.js', 'design.css', 'topic-common.js', 'topic.html', 'node-manager.html',
+    'travel-map.html', 'node-lod.js', 'planner.js', 'share.html', 'story.html', 'wishlist.html',
+    'travel-notes.js', 'README.md', 'tools/smoke-aria.js'];
+  const V36 = {};
+  FILES36.forEach(f => {
+    if (!fs.existsSync(f)) { F36('缺 ' + f); V36[f] = ''; return; }
+    V36[f] = view36(f);
+  });
+
+  const A36 = [
+    /* ① 三件套单点：trap / 标记可达 / 弹层入口 */
+    ['ui.js', 'function trapFocus(container, sel) {', 1, '焦点圈定单点（从 confirm 里抽出来的那一个）：冒出第二份 trap 就是两套口径'],
+    ['ui.js', "var trap = trapFocus(m, 'button');", 1, 'confirm 走单点，不再自带一套 Tab 逻辑'],
+    ['ui.js', 'trap = trapFocus(el, opts.focus);', 1, 'sheet 走同一个单点（模态与弹层共用一条 Tab 圈定）'],
+    ['ui.js', 'function markerLabel(m, label) {', 1, '标记 accessible name 单点'],
+    ['ui.js', 'function markerKeys(m, fn) {', 1, '标记键盘激活单点（Leaflet 1.1.1 的 Keyboard handler 不管 Enter，不补就是「Tab 停得下来却打不开」的半个可达）'],
+    ['ui.js', 'function sheet(el, opts) {', 1, '弹层开合单点——本批立论就是「开合只有一个入口」'],
+    ['ui.js', 'if (el.__uiSheet) return el.__uiSheet;', 1, '控制器缓存在元素上：重复 UI.sheet(el) 拿同一个，不会叠监听器'],
+    ['ui.js', 'el.__uiSheet = api;', 1, '缓存写入点（与上一条一一对应，只留一条就等于没缓存）'],
+    ['ui.js', 'sheet: sheet, markerLabel: markerLabel, markerKeys: markerKeys, trapFocus: trapFocus', 1, '四个新单点都在导出串上：漏一个导出页面就调不到，只有运行时才红'],
+    ['ui.js', 'el.__uiKeys = 1;', 1, '键位幂等旗子（同一节点不重复绑，重画出的新节点要能再绑上）'],
+    ['ui.js', 'if (!el || !el.addEventListener || el.__uiKeys) return;', 1, '绑定的幂等判定本身（只钉旗子不够：把判定摘掉就是同一节点绑两遍，Enter 一次开两层——而两层都看不出，界面上只是「又点了一次」）'],
+    /* ② trapFocus 的清单过滤：本批实测缺陷之一 */
+    ["ui.js", "if (n.namespaceURI && n.namespaceURI !== 'http://www.w3.org/1999/xhtml') continue;", 1, '清单要跳 SVG：[href] 会命中 <use href>，而 <use> 聚焦不上，last 成了按不动的节点，圈定永远兜不回弹层（实测第三次 Tab 跑到 tabbar）'],
+    ['ui.js', "if (n.disabled || n.getAttribute && n.getAttribute('disabled') !== null) continue;", 1, '禁用按钮同样聚焦不上，留着它 last 又是死结'],
+    ['ui.js', 'var f = [];', 1, '过滤结果另建数组（直接复用 NodeList 等于没过滤）'],
+    ['ui.js', 'f.push(n);', 1, '入队只在这一处'],
+    ['ui.js', 'if (!f.length) return false;', 1, '空清单不拦（没控件的弹层不该把 Tab 焊死在里面）'],
+    /* ③ aria-live：全站只由 ui.js 造，且只有关键状态变更点 */
+    ['ui.js', "setAttribute('aria-live', 'polite')", 4, '四个 polite 活区：toast / nudge / tileWarn / offlineBar'],
+    ['ui.js', 'aria-live', 5, 'ui.js 内 aria-live 恰 5 处（4 polite + 错误卡 assertive）；多一处就是有人在五个组件之外私搭活区'],
+    ['ui.js', '\'<div class="ui-errorbox" role="alert" aria-live="assertive">\'', 1, '错误卡整串：出错必须打断（polite 会被念出时机不明的等待）'],
+    ['ui.js', '\'<div class="eb-t"></div><div class="eb-d"></div>', 1, '建区时标题/正文是两只空槽——填字在下一帧（灵魂那条的形状证据）'],
+    /* ④ sheet 语义：dialog / modal / expanded / tabindex / 名字归属 */
+    ['ui.js', "if (!el.getAttribute('role')) el.setAttribute('role', 'dialog');", 1, 'role=dialog 只在这一处补，且页面已写的 role 不覆盖'],
+    ['ui.js', "if (opts.modal) el.setAttribute('aria-modal', 'true');", 1, 'aria-modal 只给真模态：locSheet 升起时地图照样能点，报「外面不可达」是谎报'],
+    ['ui.js', "el.removeAttribute('aria-modal');", 1, '关闭必须摘：留着下一次开之间读屏把整页当不可达'],
+    ['ui.js', "if (opener) opener.setAttribute('aria-expanded', 'true');", 1, '开启态给触发元素标 expanded'],
+    ['ui.js', "opener.setAttribute('aria-expanded', 'false');", 1, '关闭回落：不回落读屏一直报「已展开」'],
+    ['ui.js', 'if (api.isOpen()) return;', 1, '已开着再 open＝只换内容：opener/焦点/监听都不重记（否则焦点归还到被 innerHTML 换掉的按钮上）'],
+    ['ui.js', 'if (!api.isOpen()) { detach(); return; }', 1, '别的路径关掉的：监听器自我回收，不在文档上越积越多'],
+    ['ui.js', "if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');", 1, '焦点落进弹层本身，读屏从这块念起，也不会把焦点丢回 body'],
+    ['ui.js', "var pageLabel = !!el.getAttribute('aria-label');", 1, '页面建好就写死的名字归页面管'],
+    ['ui.js', "if (!pageLabel && lb) el.setAttribute('aria-label', lb);", 1, '没写死的才跟着内容走（景点卡的名字要跟着这一站）'],
+    ['ui.js', "var cls = opts.cls || 'show';", 1, '开合仍认同一个 class：各页显隐逻辑不变，抽屉的 open 也接得上'],
+    ['ui.js', "if (e.key === 'Escape') { e.preventDefault(); api.close(); return; }", 1, 'Esc 关弹层：键盘进得去也要出得来'],
+    /* ⑤ 焦点归还：认「还活着的那一枚」（本批实测缺陷之二） */
+    ['ui.js', 'if (!back.isConnected) {', 1, 'setIcon 换掉整个 DOM，opener.focus() 会静默失败（实测 Esc 后焦点掉 body）'],
+    ['ui.js', "var want = back.getAttribute && back.getAttribute('aria-label');", 1, '按名字找回同一站点的替代标记'],
+    ['ui.js', "document.querySelector('.leaflet-container')", 1, '都找不到就交还地图容器：焦点还停在这张图上，而不是从页首重新 Tab'],
+    ['ui.js', "el.classList.add(cls);", 1, '开层只在这一处写 class'],
+    ['ui.js', "el.classList.remove(cls);", 1, '关层只在这一处去 class'],
+    /* ⑥ 日卡结构：planner 与只读分享页同一套口径 */
+    ['planner.js', 'h += \'<div class="day-list" role="list" aria-label="\' + esc(trip.name || \'行程安排\') + \'，共 \' + days.length + \' 天">\';', 1, '列表容器整串：名字带「共 N 天」且过 esc'],
+    ['planner.js', 'var tl = \'第 \' + (di + 1) + \' 天，赶路日，约 \' + Math.round(d.driveKm) + \' km，\' + verbOf(trip.travelBy) + \' \' + d.driveH.toFixed(1) + \' 小时\';', 1, '转场日名字：明说「赶路日」（否则读屏只念得出 0 站）'],
+    ['planner.js', '<div class="day-card transit" role="listitem" aria-label="\' + esc(tl) + \'"', 1, '转场卡 listitem + esc 后的名字'],
+    ['planner.js', 'var dl = \'第 \' + (di + 1) + \' 天，\' + d.stops.length + \' 站，约 \' + Math.round(d.driveKm) + \' km，游玩 \' +', 1, '常规日名字：天数＋站数＋里程'],
+    ['planner.js', '<div class="day-card" role="listitem" aria-label="\' + esc(dl) + \'"', 1, '常规卡 listitem'],
+    ['share.html', 'h += \'<div class="day-list" role="list" aria-label="\' + esc(p.t || \'我的行程\') + \'，共 \' + (p.days || []).length + \' 天">\'', 1, '分享页同一套容器口径（读的是别人，更不能给个无名列表）'],
+    ['share.html', 'esc(\'第 \' + (di + 1) + \' 天，赶路日，约 \' + (d.km || 0) + \' km\')', 1, '分享页转场日名字'],
+    ['share.html', 'esc(\'第 \' + (di + 1) + \' 天，\' + n + \' 站，约 \' + (d.km || 0) + \' km，全程 \' + (d.h || 0) + \' 小时\')', 1, '分享页常规日名字'],
+    ['share.html', '<div class="day-card transit" role="listitem" aria-label="\'', 1, '分享页转场卡 listitem'],
+    ['share.html', '<div class="day-card" role="listitem" aria-label="\'', 1, '分享页常规卡 listitem'],
+    ['design.css', ':focus-visible', 3, '焦点环仍只有已在案的三条（亮色/暗色翻色/第二套声明）：本批零新增 CSS，数量变了要回文档说明'],
+    /* ⑦ 弹层迁移：抽屉口径也走 sheet（cls 传 open） */
+    ['topic-common.js', "UI.sheet(nearSheet, { cls: 'open' })", 1, '近邻面板抽屉开合走单点'],
+    ['topic-common.js', "UI.sheet(sh, { cls: 'open' })", 1, '这一带面板抽屉同一条腿'],
+    ['topic-common.js', "UI.sheet($('arriveDlg'), { label:", 1, '到达弹层是唯一真模态（带 label + modal）'],
+    ['node-lod.js', 'if (window.UI && C.labelOf) UI.markerLabel(m, C.labelOf(s));', 2, 'LOD 两条绘制分支各补一次名（漏一条就是那一档缩放全图无名）'],
+    ['node-lod.js', 'if (window.UI) UI.markerKeys(m, act);', 3, '三条绘制路径都接键盘：act 与点击同一个函数，不另写一套语义'],
+    ['topic-common.js', 'UI.markerLabel(m, siteAria(SITES[idx]));', 1, '重画后补名（setActiveNode 体内）'],
+    ['topic-common.js', 'UI.markerKeys(m, function () { openSheet(idx); });', 1, '重画后补键位'],
+    ['topic-common.js', "if (window.UI) { UI.markerLabel(nm, siteAria(s)); UI.markerKeys(nm, function () { openSheet(i); }); }", 1, '近邻高亮的补画分支：新建的标记同样要有名字和 Enter'],
+    ['topic-common.js', 'm.setIcon(nodeIcon(SITES[idx], idx === i));', 1, '重画单点（Leaflet 1.1.1 无 iconchange，后面两条补回是必须的）'],
+    ['planner.js', 'UI.markerLabel(m, (i + 1) + \'，\' + s.name', 1, '规划结果页地图针脚带站序与站名'],
+    ['travel-notes.js', 'UI.markerKeys(m, function () { m.openPopup(); });', 2, '随手记两处：Enter 等价于点开这张卡'],
+    ['share.html', 'UI.markerKeys(mk, function () { mk.openPopup(); });', 1, '分享页针脚键盘可达'],
+    ['wishlist.html', 'UI.markerKeys(m, function () { m.openPopup(); });', 1, '想去页标记键盘可达'],
+  ];
+  A36.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F36('A36 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V36)) { F36('A36 登记了 §36 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt36(V36[file], needle);
+    if (got !== want) F36(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A36.length < 50) F36('锚点表被削减：' + A36.length + ' 条（批次 22 落地时实测 61 条，阈值取 50——整组删掉就等于这节没了）');
+
+  /* ⑧ 接线数量表：15 处标记站点里哪些有键位、哪些只给名字（story 针脚与选点脉冲针没有点击语义） */
+  {
+    const MAP = [
+      ['node-lod.js', 3, 3, 3, 'LOD 三条绘制路径（列表两分支 + 聚合胶囊）名与键位都齐'],
+      ['topic-common.js', 3, 5, 5, '3 处建标记 + setActiveNode/近邻高亮两处重画后补回'],
+      ['node-manager.html', 2, 2, 1, 'pickMarker 是脉冲定位针，没有点击语义：给名字就够了，不硬塞 Enter'],
+      ['planner.js', 1, 1, 1, '结果页站点'],
+      ['share.html', 1, 1, 1, '只读分享页站点'],
+      ['story.html', 1, 1, 0, '游记针脚只有装饰意义：只报名字，不给 Enter（点了没反应比按不动更糟）'],
+      ['travel-map.html', 1, 1, 1, '足迹页节点'],
+      ['travel-notes.js', 2, 2, 2, '随手记两处'],
+      ['wishlist.html', 1, 1, 1, '想去页'],
+    ];
+    let mk = 0, lb = 0, ky = 0;
+    MAP.forEach(([f, nMarker, nLabel, nKeys, why]) => {
+      const c1 = cnt36(V36[f], 'L.marker('), c2 = cnt36(V36[f], 'UI.markerLabel('), c3 = cnt36(V36[f], 'UI.markerKeys(');
+      if (c1 !== nMarker) F36(f + ' 的 L.marker( 数 ' + c1 + '（登记 ' + nMarker + '）：' + why);
+      if (c2 !== nLabel) F36(f + ' 的 UI.markerLabel( 数 ' + c2 + '（登记 ' + nLabel + '）：' + why);
+      if (c3 !== nKeys) F36(f + ' 的 UI.markerKeys( 数 ' + c3 + '（登记 ' + nKeys + '）：' + why);
+      mk += c1; lb += c2; ky += c3;
+    });
+    if (mk !== 15) F36('全站标记站点总数不是 15：' + mk + '（方案文档写的是「四处」，实测 15 处才是要接的全集；少一处就是有一页的地图读屏仍念得出「按钮」）');
+    if (ky !== 15) F36('全站 UI.markerKeys( 总数不是 15：' + ky + '（接线数随重画补回而高于标记数；对不上就是有绘制路径漏了键盘）');
+  }
+
+  /* ⑨ 弹层入口数量表：开合只有一个入口，调用点数就是要钉的入口面 */
+  {
+    const SHEET = [
+      ['topic-common.js', 7, '景点卡/到达弹层/近邻/这一带四条路径'],
+      ['node-manager.html', 11, 'rsSheet 与 infoSheet 的开关与互斥（另 5 处未迁移的旧弹层登记在方案文档）'],
+      ['travel-map.html', 3, '记忆列表抽屉的三处开合'],
+      ['topic.html', 1, '壳层兜底的 _closeArrive'],
+    ];
+    SHEET.forEach(([f, want, why]) => {
+      const got = cnt36(V36[f], 'UI.sheet(');
+      if (got !== want) F36(f + ' 的 UI.sheet( 调用点数 ' + got + '（登记 ' + want + '）：' + why);
+    });
+    if (cnt36(V36['travel-notes.js'], 'UI.sheet(') !== 0) F36('travel-notes.js 里出现了 UI.sheet(：随手记的面板走的是自己的显隐，不在本批迁移范围，混用会把两套口径焊在一起');
+  }
+
+  /* ⑩ 灵魂 A：五个活区的「先空插入、下一帧写字」顺序（存在性检查守不住这个） */
+  {
+    const SITES36 = [
+      ['function toast(msg, ms, action) {', "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(document.createTextNode(msg));', 'toast'],
+      ['function nudge(o) {', "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(msg);', 'nudge'],
+      ['function showTileWarn(msg) {', "tileWarnEl.setAttribute('aria-live', 'polite');", 'document.body.appendChild(tileWarnEl);', 'tileWarnEl.textContent = msg;', 'tileWarn'],
+      ['function offlineBar() {', "bar.setAttribute('aria-live', 'polite');", 'document.body.appendChild(bar);', 'bar.innerHTML = \'<span class="oic">\'', 'offlineBar'],
+      ['function errorBox(host, opts) {', '\'<div class="ui-errorbox" role="alert" aria-live="assertive">\'', '\'<div class="eb-t"></div><div class="eb-d"></div>\'', 't.textContent = opts.title || \'加载失败\';', 'errorBox'],
+    ];
+    const twoStep = (body, attr, ins, fill) => {
+      const ia = body.indexOf(attr), ii = body.indexOf(ins);
+      /* rAF 与填字都从「插入点之后」找：offlineBar 的 show() 里有一条同族早退分支
+         （bar 已在 DOM 上时只补 classList.add("show")），它自己也用一个 rAF——从头找会先撞上它 */
+      const ir = body.indexOf('requestAnimationFrame(', ii), ifi = body.indexOf(fill, ir);
+      return ia >= 0 && ia < ii && ir > ii && ifi > ir;
+    };
+    SITES36.forEach(([head, attr, ins, fill, name]) => {
+      const B = fnBody36(V36['ui.js'], head);
+      if (!B) { F36('抽不出 ' + name + ' 函数体（两步时序断言失去依据）'); return; }
+      if (!twoStep(B, attr, ins, fill))
+        F36(name + ' 不再满足「活区先空着入 DOM、文案下一帧再写」：带着文案一次性插入，读屏把它当静态内容（新增节点）而不是状态变更，一个字都不播');
+      if (B.indexOf(attr) < 0 || B.indexOf(ins) < 0 || B.indexOf(fill) < 0)
+        F36(name + ' 里三件套（aria-live / 插入 / 填字）有缺件，顺序断言已失去意义');
+    });
+    /* 反向对照：带文案一次插入的改前形态必须被打红；否则上面全是恒真判据。
+       合成串里的引号要跟锚点一致（单引号），否则「找不到串」也会被判成红——那不是证据。 */
+    const BAD = flat36("function f(msg) { var d = document.createElement('div'); d.appendChild(document.createTextNode(msg)); d.setAttribute('role', 'status'); d.setAttribute('aria-live', 'polite'); document.body.appendChild(d); }");
+    if (twoStep(BAD, "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(document.createTextNode(msg));'))
+      F36('两步时序断言的反向对照失效：合成的「带字一次插入」源码都没触发它');
+    /* 反向对照 2：aria-live 晚于插入（先挂节点再补属性，首帧那次变更没人监听） */
+    const BAD2 = flat36("function f(msg) { var d = document.createElement('div'); document.body.appendChild(d); d.setAttribute('aria-live', 'polite'); requestAnimationFrame(function () { d.appendChild(document.createTextNode(msg)); }); }");
+    if (twoStep(BAD2, "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(document.createTextNode(msg));'))
+      F36('两步时序断言的反向对照 2 失效：合成的「属性晚于插入」源码都没触发它');
+    /* 正向对照：同形但不同文案的正确写法不许被打红（守的是顺序，不是某一家的写法） */
+    const GOOD = flat36("function f(msg) { var d = document.createElement('div'); d.setAttribute('role', 'status'); d.setAttribute('aria-live', 'polite'); document.body.appendChild(d); requestAnimationFrame(function () { d.appendChild(document.createTextNode(msg)); }); }");
+    if (!twoStep(GOOD, "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(document.createTextNode(msg));'))
+      F36('两步时序断言的正向对照失效：正确的合成源也被打红，那这条锚会不分对错一直红');
+    /* 反向对照 3：正确形状但活区在插入之后才建（属性根本没跟着节点进 DOM） */
+    const BAD3 = flat36("function f(msg) { var d = document.createElement('div'); document.body.appendChild(d); requestAnimationFrame(function () { d.setAttribute('aria-live', 'polite'); d.appendChild(document.createTextNode(msg)); }); }");
+    if (twoStep(BAD3, "d.setAttribute('aria-live', 'polite');", 'document.body.appendChild(d);', 'd.appendChild(document.createTextNode(msg));'))
+      F36('两步时序断言的反向对照 3 失效：合成的「aria-live 下一帧才补」源码都没触发它');
+  }
+
+  /* ⑩ 灵魂 B：trap 的过滤必须排在 first/last 取值之前 */
+  {
+    const TB = fnBody36(V36['ui.js'], 'function trapFocus(container, sel) {');
+    if (!TB) F36('抽不出 trapFocus 函数体');
+    else {
+      const trapOrder = src => {
+        const iF = src.indexOf('var f = [];'), iN = src.indexOf("'http://www.w3.org/1999/xhtml'");
+        const iL = src.indexOf('var first = f[0], last = f[f.length - 1];');
+        return iF >= 0 && iN > iF && iN < iL && iL >= 0;
+      };
+      if (!trapOrder(TB)) F36('trapFocus 的 SVG/禁用过滤不在 first/last 取值之前：last 仍是那枚聚焦不上的 <use>，「转到末尾回第一枚」永远不触发');
+      const BADT = flat36("function trapFocus(container, sel) { var f = []; var first = f[0], last = f[f.length - 1]; var n = nodes[0]; if (n.namespaceURI !== 'http://www.w3.org/1999/xhtml') { continue; } }");
+      if (trapOrder(BADT)) F36('trap 过滤顺序断言的反向对照失效：合成的「先取 first/last 再过滤」源码都没触发它');
+      const GOODT = flat36("function trapFocus(container, sel) { var f = []; var n = nodes[0]; if (n.namespaceURI !== 'http://www.w3.org/1999/xhtml') { continue; } f.push(n); var first = f[0], last = f[f.length - 1]; }");
+      if (!trapOrder(GOODT)) F36('trap 过滤顺序断言的正向对照失效：合成正确源也被打红');
+    }
+  }
+
+  /* ⑩ 灵魂 C：open 里「已开着只换内容」的守卫必须早于 aria-modal 与 classList.add */
+  {
+    const OB = fnBody36(V36['ui.js'], 'open: function (label) {');
+    if (!OB) F36('抽不出 sheet.open 函数体');
+    else {
+      const g = OB.indexOf('if (api.isOpen()) return;'), mo = OB.indexOf("if (opts.modal)"), ad = OB.indexOf('el.classList.add(cls);');
+      if (g < 0) F36('sheet.open 里没有 isOpen 守卫：已开着再 open 会重记 opener／焦点／监听，焦点归还到一个已被 innerHTML 换掉的按钮上');
+      if (!(g >= 0 && g < mo && g < ad)) F36('sheet.open 的 isOpen 守卫没有排在 aria-modal 与 classList.add 之前：二次 open 会重新走一遍开层流程');
+      if (cnt36(OB, 'el.classList.add(cls);') !== 1) F36('sheet.open 体内 classList.add(cls) 不是恰 1 次：开层路径分叉了');
+      const BADG = flat36('open: function (label) { if (opts.modal) el.setAttribute("aria-modal", "true"); el.classList.add(cls); if (api.isOpen()) return; }');
+      if (!(BADG.indexOf('if (api.isOpen()) return;') > BADG.indexOf('el.classList.add(cls);'))) F36('open 守卫顺序断言的反向对照失效（合成的「守卫在后的」源码没排在 add 之后）');
+    }
+    const CB = fnBody36(V36['ui.js'], 'close: function () {');
+    if (!CB) F36('抽不出 sheet.close 函数体');
+    else {
+      if (cnt36(CB, "el.removeAttribute('aria-modal');") !== 1) F36('sheet.close 没摘 aria-modal（恰 1 次）：关闭期间整页在读屏里不可达');
+      if (cnt36(CB, "opener.setAttribute('aria-expanded', 'false');") !== 1) F36('sheet.close 没回落 aria-expanded：读屏报的还是「已展开」');
+      if (cnt36(CB, 'el.classList.remove(cls);') !== 1) F36('sheet.close 体内 classList.remove(cls) 不是恰 1 次：关层路径分叉了');
+      if (CB.indexOf('if (!back.isConnected) {') < 0) F36('sheet.close 没有 isConnected 判定：标记层整层重建换掉节点时焦点归还静默失败（实测落 body；setIcon 那条腿实测复用同一枚 DIV，不是它）');
+    }
+  }
+
+  /* ⑩ 灵魂 D：重画之后补名/补键位，必须排在 setIcon 之后 */
+  {
+    const SA = fnBody36(V36['topic-common.js'], 'function setActiveNode(i) {');
+    if (!SA) F36('抽不出 setActiveNode 函数体');
+    else {
+      const iSet = SA.indexOf('m.setIcon('), iL = SA.indexOf('UI.markerLabel('), iK = SA.indexOf('UI.markerKeys(');
+      if (!(iSet >= 0 && iL > iSet && iK > iSet)) F36('setActiveNode 里补名/补键位没有排在 setIcon 之后：Leaflet 1.1.1 没有 iconchange，补在重画之前等于补在旧节点上；浏览器腿对这条顺序没有视野（vendor 反解 DivIcon.createIcon 复用同一枚 DIV，探针实测 setIcon 36 次节点换手 0），所以它是结构不变量，不是可观测缺陷');
+      if (cnt36(SA, 'm.setIcon(') !== 1 || cnt36(SA, 'UI.markerLabel(') !== 1 || cnt36(SA, 'UI.markerKeys(') !== 1) F36('setActiveNode 体内 setIcon / markerLabel / markerKeys 不是各恰 1 次');
+      const BADS = flat36('function setActiveNode(i) { UI.markerLabel(m, x); UI.markerKeys(m, y); m.setIcon(nodeIcon(s)); }');
+      if (!(BADS.indexOf('m.setIcon(') > BADS.indexOf('UI.markerLabel('))) F36('重画补名断言的反向对照失效（合成的「补在重画之前」源码没排在前面）');
+    }
+  }
+
+  /* 期望 0：旧写法不许回潮（弹层裸开关 / 页面私搭活区 / 组件外补 aria 属性） */
+  const ZERO36 = [
+    ['ui.js', 'aria-hidden', 'el.setAttribute(\'aria-hidden\', \'true\');', '关闭态弹层靠 CSS display:none 退出 tab 序列，不双写 aria-hidden（两套状态迟早自相矛盾：CSS 关了这里还标着可见）'],
+    ['ui.js', 'inert', 'el.inert = true;', '同上，也不用 inert（本批只在真模态上报 aria-modal）'],
+    ['node-lod.js', "setAttribute('aria-label'", "m._icon.setAttribute('aria-label', name);", '标记的名字只走 UI.markerLabel 单点：LOD 自己搭一套就没法在重画后统一补回'],
+    ['node-lod.js', "addEventListener('keydown'", "el.addEventListener('keydown', function (e) { if (e.key === \'Enter\') act(); });", '键位只走 UI.markerKeys 单点（幂等旗子在它那里）'],
+    ['topic-common.js', "addEventListener('keydown'", "document.addEventListener('keydown', function (e) { if (e.key === \'Escape\') closeSheet(); });", 'Esc／Tab 归 sheet 与 trapFocus，页面不再各自挂一份（两份监听器会让 Esc 按两下才关）'],
+    ['topic-common.js', "$('locSheet').classList.add('show')", "$('locSheet').classList.add('show');", '景点卡开层走 UI.sheet：裸开关没有 role／没有 Esc／焦点留在背后的地图上'],
+    ['topic-common.js', "$('locSheet').classList.remove('show')", "$('locSheet').classList.remove('show');", '关层同上'],
+    ['topic-common.js', "$('arriveDlg').classList.add('show')", "$('arriveDlg').classList.add('show');", '到达弹层是真模态，更要走单点（aria-modal 只在 opts.modal 那一条腿上挂）'],
+    ['topic-common.js', "$('arriveDlg').classList.remove('show')", "$('arriveDlg').classList.remove('show');", '同上'],
+    ['topic-common.js', "nearSheet.classList.remove('open')", 'nearSheet.classList.remove(\'open\');', '近邻抽屉的开合也走单点（cls 传 open，显隐逻辑不变）'],
+    ['topic-common.js', "sh.classList.add('open')", "sh.classList.add('open');", '这一带抽屉同上'],
+    ['topic.html', "var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show');", "var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show');", '壳层兜底也走 UI.sheet，否则关了层还留着 aria-modal／expanded'],
+    ['node-manager.html', "$('rsSheet').classList", "$('rsSheet').classList.add('show');", '自建点面板开合走单点（这里曾有 5 处裸开关，批次 22 迁了 rsSheet/infoSheet）'],
+    ['node-manager.html', "$('infoSheet').classList", "$('infoSheet').classList.remove('show');", '同上'],
+    ['travel-map.html', "document.getElementById('memSheet').classList.add('show')", "document.getElementById('memSheet').classList.add('show');", '足迹记忆抽屉走单点'],
+    ['travel-map.html', "document.getElementById('memSheet').classList.remove('show')", "document.getElementById('memSheet').classList.remove('show');", '同上'],
+  ];
+  ZERO36.forEach(([f, needle, ctrl, why]) => {
+    if (cnt36(V36[f], needle) !== 0) F36(f + ' 里出现「' + needle + '」：' + why);
+    if (cnt36(flat34ctrl36(ctrl), needle) < 1) F36('「' + needle + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+  function flat34ctrl36(s) { return ws36(s.replace(/\/\*[\s\S]*?\*\//g, '')); }
+  /* 全站 aria-live 只由 ui.js 造：其余文件出现即为组件外私搭活区 */
+  FILES36.forEach(f => {
+    if (f === 'ui.js' || f === 'README.md' || f === 'tools/smoke-aria.js') return;
+    if (cnt36(V36[f], 'aria-live') !== 0) F36(f + ' 里出现 aria-live：播报区只允许由 ui.js 的五个组件造，页面自己搭的区没人负责「先空后写」的时序');
+  });
+  if (cnt36(flat34ctrl36('<div class="x" aria-live="polite"></div>'), 'aria-live') < 1) F36('aria-live 全站唯一出处那条期望 0 的正向对照失效了');
+
+  /* 浏览器腿：A01–A25 / C01–C06 / D01–D09 / S01–S04 / E01 一条不许少 */
+  const pad36 = (pre, i) => pre + (i < 10 ? '0' + i : '' + i);
+  [['A', 25], ['C', 6], ['D', 9], ['S', 4]].forEach(([pre, n]) => {
+    for (let i = 1; i <= n; i++) {
+      if (V36['tools/smoke-aria.js'].indexOf("ok('" + pad36(pre, i) + ' ') < 0)
+        F36('tools/smoke-aria.js 缺 ' + pad36(pre, i) + ' 这条判据（' + pre + ' 组是一整组：A 键盘闭环／C 两步时序／D 日卡快照／S 分享页同口径，少一条就是有个症状没人管）');
+    }
+  });
+  if (V36['tools/smoke-aria.js'].indexOf("ok('E01 ") < 0) F36('tools/smoke-aria.js 缺 E01（零未捕获异常——可达属性改动最容易把某页的初始化改崩，而它表现为静默卡住）');
+  if (cnt36(V36['tools/smoke-aria.js'], "ok('") !== 46)
+    F36('tools/smoke-aria.js 的判据条数不是 46：' + cnt36(V36['tools/smoke-aria.js'], "ok('") + ' 条（批次 22 落地时实测 46＝A25+C6+D9+S4×2 条 S01 分支+E01；整组削减等于把这节拆了）');
+  if (cnt36(V36['tools/smoke-aria.js'], 'interestingOnly: false') !== 1)
+    F36('smoke-aria 的 D 组快照没有 interestingOnly: false：默认口径会把 generic 列表容器剪掉，量出来的 list/listitem 全 0 是眼睛的问题不是结构的问题');
+  if (cnt36(V36['tools/smoke-aria.js'], 'Share.encodePayload(window.Share.payloadOf(t))') !== 1)
+    F36('smoke-aria 的 S 组没有直接编 hash：file:// 下 Share.build 走 no-base 降级分支，返回值里根本没有 hash 字段，拿它猜就是 S 组恒不跑');
+
+  if (V36['README.md'].indexOf('§36') < 0) F36('README.md 的 verify 清单没提 §36（新闸门不写进 README 就等于没装）');
+
+  console.log('无障碍闸门: ' + A36.length + ' 条代码锚点（三件套单点各恰 1 + trap 的 SVG/禁用过滤族 + aria-live 4 polite/5 总数/1 assertive 整串 + sheet 语义九条 + 焦点归还三条 + 日卡两套页面各五条 + :focus-visible 恰 3 + 抽屉 cls:open 两条 + 重画补名三条）+ 接线数量表（9 页 15 处标记、名 17／键位 15，story 针脚与脉冲针只给名字的口子写进表）+ 弹层入口数量表（7/11/3/1）+ 四组灵魂顺序断言（活区五处「先空入 DOM、下一帧写字」并配「带字一次插入」与「属性晚于插入」两条反向对照、trap 过滤早于 first/last、open 的 isOpen 守卫早于 aria-modal 与 add、setIcon 早于补名补键位）+ close 函数体四条（摘 modal／回落 expanded／remove 恰一／isConnected 判定）+ 十七族期望 0（aria-hidden、inert、node-lod 自搭 aria-label/keydown、各页 classList 裸开关、全站 aria-live 只出自 ui.js）；每条期望 0 都配正向对照；smoke A01–A25／C01–C06／D01–D09／S01–S04／E01 齐备检 + 条数守卫（46）+ 快照口径与分享 hash 两条测试自校准；变异自测两层见 tools/out/mut-verify36.js');
+  fail += bad36;
+}
+
 
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');

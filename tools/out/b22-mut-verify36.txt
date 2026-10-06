@@ -1,0 +1,82 @@
+红  M1 trapFocus 定义改名（导出串与调用点同时断）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: ui.js 里「function trapFocus(container, sel) {」命中 0 次（要 1）：焦点圈定单点（从 confirm 里抽出来的那一个）：冒出第二份 trap 就是两套口径
+红  M2 confirm 自带一套 Tab 逻辑（回到批次 22 之前的两份 trap）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「var trap = trapFocus(m, 'button');」命中 0 次（要 1）：confirm 走单点，不再自带一套 Tab 逻辑
+红  M3 sheet 不走单点（弹层重新没有 Tab 圈定）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「trap = trapFocus(el, opts.focus);」命中 0 次（要 1）：sheet 走同一个单点（模态与弹层共用一条 Tab 圈定）
+红  M4 markerLabel 定义改名（各页调用点全哑）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「function markerLabel(m, label) {」命中 0 次（要 1）：标记 accessible name 单点
+红  M5 markerKeys 定义改名  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「function markerKeys(m, fn) {」命中 0 次（要 1）：标记键盘激活单点（Leaflet 1.1.1 的 Keyboard handler 不管 Enter，不补就是「Tab 停得下来却打不开」的半个可达）
+红  M6 sheet 定义改名  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「function sheet(el, opts) {」命中 0 次（要 1）：弹层开合单点——本批立论就是「开合只有一个入口」
+红  M7 导出漏一个（页面调不到，只有运行时才红——所以必须钉导出串）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「sheet: sheet, markerLabel: markerLabel, markerKeys: markerKe」命中 0 次（要 1）：四个新单点都在导出串上：漏一个导出页面就调不到，只有运行时才红
+红  M8 控制器缓存读的那半摘掉（重复 UI.sheet(el) 叠监听器）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (el.__uiSheet) return el.__uiSheet;」命中 0 次（要 1）：控制器缓存在元素上：重复 UI.sheet(el) 拿同一个，不会叠监听器
+红  M9 控制器缓存写的那半摘掉（与 M8 成对：只留一条＝没有缓存）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「el.__uiSheet = api;」命中 0 次（要 1）：缓存写入点（与上一条一一对应，只留一条就等于没缓存）
+红  M10 键位幂等旗子摘掉  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「el.__uiKeys = 1;」命中 0 次（要 1）：键位幂等旗子（同一节点不重复绑，重画出的新节点要能再绑上）
+红  M11 绑定处的幂等判定摘掉（同一节点绑两遍，Enter 一次触发两层开层）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (!el || !el.addEventListener || el.__uiKeys) return;」命中 0 次（要 1）：绑定的幂等判定本身（只钉旗子不够：把判定摘掉就是同一节点绑两遍，Enter 一次开两层——而两层都看不出，
+红  M12 SVG 过滤摘掉（<use href> 混进清单当 last，Tab 第三次就跑到 tabbar）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: ui.js 里「if (n.namespaceURI && n.namespaceURI !== 'http://www.w3.org/」命中 0 次（要 1）：清单要跳 SVG：[href] 会命中 <use href>，而 <use> 聚焦不上，last
+红  M13 禁用按钮过滤摘掉（另一种按不动的 last）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (n.disabled || n.getAttribute && n.getAttribute('disabled」命中 0 次（要 1）：禁用按钮同样聚焦不上，留着它 last 又是死结
+红  M14 过滤结果直接复用 NodeList（过滤了个寂寞）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: ui.js 里「var f = [];」命中 0 次（要 1）：过滤结果另建数组（直接复用 NodeList 等于没过滤）
+红  M15 入队口删掉（清单永远空）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「f.push(n);」命中 0 次（要 1）：入队只在这一处
+红  M16 空清单也拦（没控件的弹层把 Tab 焊死在里面）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (!f.length) return false;」命中 0 次（要 1）：空清单不拦（没控件的弹层不该把 Tab 焊死在里面）
+红  M17 first/last 取在过滤之前（过滤照样跑，但 last 已是过滤前的死节点）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: trapFocus 的 SVG/禁用过滤不在 first/last 取值之前：last 仍是那枚聚焦不上的 <use>，「转到末尾回第一枚」永远不触发
+红  M18 toast 的活区属性摘掉（提示音全无，界面照常）  → §36 红 4 条（总红 4），指定那条：§36 无障碍闸门: ui.js 里「setAttribute('aria-live', 'polite')」命中 3 次（要 4）：四个 polite 活区：toast / nudge / tileWarn / offlineBar
+红  M19 错误卡从 assertive 降成 polite（出错那句被排在等待之后）  → §36 红 3 条（总红 3），指定那条：§36 无障碍闸门: ui.js 里「'<div class="ui-errorbox" role="alert" aria-live="assertive"」命中 0 次（要 1）：错误卡整串：出错必须打断（polite 会被念出时机不明的等待）
+红  M20 ui.js 里多出第六处 aria-live（组件外私搭活区的形状）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: ui.js 里「aria-live」命中 6 次（要 5）：ui.js 内 aria-live 恰 5 处（4 polite + 错误卡 assertive）；多一处就是有人在五个组件之外私搭活区
+红  M21 页面侧自己搭活区（design.css 出现 aria-live）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: design.css 里出现 aria-live：播报区只允许由 ui.js 的五个组件造，页面自己搭的区没人负责「先空后写」的时序
+红  M22 提醒条 nudge 退回带文案一次插入（读屏当静态内容，一个字不播）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: nudge 不再满足「活区先空着入 DOM、文案下一帧再写」：带着文案一次性插入，读屏把它当静态内容（新增节点）而不是状态变更，一个字都不播
+红  M23 离线条的 aria-live 摘掉（常驻状态没有活区）  → §36 红 4 条（总红 4），指定那条：§36 无障碍闸门: offlineBar 里三件套（aria-live / 插入 / 填字）有缺件，顺序断言已失去意义
+红  M24 错误卡的空槽改成建区就带字（两步时序失去意义）  → §36 红 3 条（总红 3），指定那条：§36 无障碍闸门: ui.js 里「'<div class="eb-t"></div><div class="eb-d"></div>」命中 0 次（要 1）：建区时标题/正文是两只空槽——填字在下一帧（灵魂那条的形状证据）
+红  M25 role 覆盖页面已写的 role  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (!el.getAttribute('role')) el.setAttribute('role', 'dialo」命中 0 次（要 1）：role=dialog 只在这一处补，且页面已写的 role 不覆盖
+红  M26 aria-modal 不分真模态全挂（景点卡升起时地图照样能点，报「外面不可达」是谎报）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: ui.js 里「if (opts.modal) el.setAttribute('aria-modal', 'true');」命中 0 次（要 1）：aria-modal 只给真模态：locSheet 升起时地图照样能点，报「外面不可达」是谎报
+红  M27 关闭不摘 aria-modal（到下一次开之间整页读屏不可达）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: sheet.close 没摘 aria-modal（恰 1 次）：关闭期间整页在读屏里不可达
+红  M28 开启不标 aria-expanded=true  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (opener) opener.setAttribute('aria-expanded', 'true');」命中 0 次（要 1）：开启态给触发元素标 expanded
+红  M29 关闭不回落 aria-expanded（读屏一直报「已展开」）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: sheet.close 没回落 aria-expanded：读屏报的还是「已展开」
+红  M30 摘掉「已开着只换内容」守卫（二次 open 重记 opener／焦点／监听）  → §36 红 3 条（总红 3），指定那条：§36 无障碍闸门: sheet.open 里没有 isOpen 守卫：已开着再 open 会重记 opener／焦点／监听，焦点归还到一个已被 innerHTML 换掉的按钮上
+红  M31 守卫排在 aria-modal 与 add 之后（顺序错＝二次 open 照样走一遍开层流程）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: sheet.open 的 isOpen 守卫没有排在 aria-modal 与 classList.add 之前：二次 open 会重新走一遍开层流程
+红  M32 别的路径关层后监听器不回收（文档上越积越多）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (!api.isOpen()) { detach(); return; }」命中 0 次（要 1）：别的路径关掉的：监听器自我回收，不在文档上越积越多
+红  M33 焦点不落进弹层（读屏从头念，弹层里没按钮时焦点丢回 body）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex'」命中 0 次（要 1）：焦点落进弹层本身，读屏从这块念起，也不会把焦点丢回 body
+红  M34 页面写死的 aria-label 被覆盖（近邻面板那句「这一带还有什么」没了）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「var pageLabel = !!el.getAttribute('aria-label');」命中 0 次（要 1）：页面建好就写死的名字归页面管
+红  M35 开层 class 写两处（路径分叉）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: sheet.open 体内 classList.add(cls) 不是恰 1 次：开层路径分叉了
+红  M36 关层 class 写两处  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: sheet.close 体内 classList.remove(cls) 不是恰 1 次：关层路径分叉了
+红  M37 Esc 分支摘掉（键盘进得去出不来）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「if (e.key === 'Escape') { e.preventDefault(); api.close(); r」命中 0 次（要 1）：Esc 关弹层：键盘进得去也要出得来
+红  M38 cls 默认值写死 show（抽屉传 open 失效）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「var cls = opts.cls || 'show';」命中 0 次（要 1）：开合仍认同一个 class：各页显隐逻辑不变，抽屉的 open 也接得上
+红  M39 isConnected 判定摘掉（opener 已被 setIcon 换掉，focus() 静默失败、焦点落 body）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: sheet.close 没有 isConnected 判定：标记层整层重建换掉节点时焦点归还静默失败（实测落 body；setIcon 那条腿实测复用同一枚 DIV，不是它）
+红  M40 按名字找回替代标记那半摘掉  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「var want = back.getAttribute && back.getAttribute('aria-labe」命中 0 次（要 1）：按名字找回同一站点的替代标记
+红  M41 兜底交还地图容器摘掉（焦点从页首重新 Tab）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里「document.querySelector('.leaflet-container')」命中 0 次（要 1）：都找不到就交还地图容器：焦点还停在这张图上，而不是从页首重新 Tab
+红  M42 列表容器名不带「共 N 天」（列表报得出却报不出长度）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: planner.js 里「h += '<div class="day-list" role="list" aria-label="' + esc(」命中 0 次（要 1）：列表容器整串：名字带「共 N 天」且过 esc
+红  M43 常规卡漏 role=listitem（漏一张就有一天的内容读屏跳不过去）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: planner.js 里「<div class="day-card" role="listitem" aria-label="' + esc(dl」命中 0 次（要 1）：常规卡 listitem
+红  M44 转场卡名字不写「赶路日」（读屏只念得出 0 站）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: planner.js 里「var tl = '第 ' + (di + 1) + ' 天，赶路日，约 ' + Math.round(d.driveK」命中 0 次（要 1）：转场日名字：明说「赶路日」（否则读屏只念得出 0 站）
+红  M45 分享页列表容器不带「共 N 天」  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: share.html 里「h += '<div class="day-list" role="list" aria-label="' + esc(」命中 0 次（要 1）：分享页同一套容器口径（读的是别人，更不能给个无名列表）
+红  M46 分享页常规卡漏 role=listitem  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: share.html 里「<div class="day-card" role="listitem" aria-label="'」命中 0 次（要 1）：分享页常规卡 listitem
+红  M47 design.css 里多出第 4 条 :focus-visible（本批「零新增 CSS」的账漂了）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: design.css 里「:focus-visible」命中 4 次（要 3）：焦点环仍只有已在案的三条（亮色/暗色翻色/第二套声明）：本批零新增 CSS，数量变了要回文档说明
+红  M48 topic-common 重画补名整条摘掉（点开一趟景点卡回来全图标记集体失名）  → §36 红 7 条（总红 7），指定那条：§36 无障碍闸门: topic-common.js 里「UI.markerLabel(m, siteAria(SITES[idx]));」命中 0 次（要 1）：重画后补名（setActiveNode 体内）
+红  M49 node-lod 第三条绘制路径漏接键位（聚合胶囊 Tab 停得下来打不开）  → §36 红 3 条（总红 3），指定那条：§36 无障碍闸门: node-lod.js 里「if (window.UI) UI.markerKeys(m, act);」命中 2 次（要 3）：三条绘制路径都接键盘：act 与点击同一个函数，不另写一套语义
+红  M50 travel-notes 两处漏一处  → §36 红 3 条（总红 3），指定那条：§36 无障碍闸门: travel-notes.js 里「UI.markerKeys(m, function () { m.openPopup(); });」命中 1 次（要 2）：随手记两处：Enter 等价于点开这张卡
+红  M51 story 针脚多接一个 Enter（点了没反应比按不动更糟，登记表要如实反映）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: story.html 的 UI.markerKeys( 数 1（登记 0）：游记针脚只有装饰意义：只报名字，不给 Enter（点了没反应比按不动更糟）
+红  M52 多建一枚标记但没接可达（全站 15 处的账不平）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: wishlist.html 的 L.marker( 数 2（登记 1）：想去页
+红  M53 topic-common 多出第 8 个弹层入口（「开合只有一个入口」被破）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: topic-common.js 的 UI.sheet( 调用点数 8（登记 7）：景点卡/到达弹层/近邻/这一带四条路径
+红  M54 随手记的面板混用 sheet（两套口径焊在一起）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: travel-notes.js 里出现了 UI.sheet(：随手记的面板走的是自己的显隐，不在本批迁移范围，混用会把两套口径焊在一起
+红  M55 补名排在 setIcon 之前（Leaflet 1.1.1 无 iconchange，补在旧节点上）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: setActiveNode 里补名/补键位没有排在 setIcon 之后：Leaflet 1.1.1 没有 iconchange，补在重画之前等于补在旧节点上；浏览器腿对这条顺序没有视野（vendor 反解 DivIcon.createIcon 复用同一枚 
+红  M56 setIcon 写两遍（体内恰 1 次的账不平）  → §36 红 2 条（总红 2），指定那条：§36 无障碍闸门: topic-common.js 里「m.setIcon(nodeIcon(SITES[idx], idx === i));」命中 2 次（要 1）：重画单点（Leaflet 1.1.1 无 iconchange，后面两条补回是必须的）
+红  M57 ui.js 回潮 aria-hidden（CSS 与 aria 两套状态迟早自相矛盾）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里出现「aria-hidden」：关闭态弹层靠 CSS display:none 退出 tab 序列，不双写 aria-hidden（两套状态迟早自相矛盾：CSS 关了这里还标着可见）
+红  M58 ui.js 回潮 inert  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: ui.js 里出现「inert」：同上，也不用 inert（本批只在真模态上报 aria-modal）
+红  M59 node-lod 自搭 aria-label（绕开单点，重画后没人补回）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: node-lod.js 里出现「setAttribute('aria-label'」：标记的名字只走 UI.markerLabel 单点：LOD 自己搭一套就没法在重画后统一补回
+红  M60 node-lod 自挂 keydown（幂等旗子在单点那里）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: node-lod.js 里出现「addEventListener('keydown'」：键位只走 UI.markerKeys 单点（幂等旗子在它那里）
+红  M61 topic-common 页面自己挂 Esc（两份监听器＝Esc 要按两下才关）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: topic-common.js 里出现「addEventListener('keydown'」：Esc／Tab 归 sheet 与 trapFocus，页面不再各自挂一份（两份监听器会让 Esc 按两下才关）
+红  M62 景点卡回潮裸 classList 开关（没有 role／没有 Esc／焦点留在地图上）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: topic-common.js 里出现「$('locSheet').classList.add('show')」：景点卡开层走 UI.sheet：裸开关没有 role／没有 Esc／焦点留在背后的地图上
+红  M63 node-manager 旧弹层裸开关回潮  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: node-manager.html 里出现「$('rsSheet').classList」：自建点面板开合走单点（这里曾有 5 处裸开关，批次 22 迁了 rsSheet/infoSheet）
+红  M64 travel-map 记忆抽屉裸开关回潮  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: travel-map.html 里出现「document.getElementById('memSheet').classList.add('show')」：足迹记忆抽屉走单点
+红  M65 topic.html 壳层兜底不走 sheet（关了层还留着 aria-modal／expanded）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: topic.html 里出现「var d = document.getElementById('arriveDlg'); if (d) d.classList.remove('show');」：壳层兜底也走 UI.sheet，否则关了层还留着 aria-mo
+红  M66 A36 锚点表被削减 12 条（整组删掉＝这节没了，但它只是少几行）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: 锚点表被削减：49 条（批次 22 落地时实测 61 条，阈值取 50——整组删掉就等于这节没了）
+红  M67 四元组形状破掉（期望次数写成字符串＝这条锚静默跳过）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: A36 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：["ui.js","el.__uiKeys = 1;","1","键位幂等旗子（同一节点不重复绑，重画出的新节点要能再绑上）"]
+红  M68 A36 登记了 §36 没读的文件（一条锚一次都没跑过）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: A36 登记了 §36 没读的文件「map.css」，这条锚一次都没跑过：焦点环仍只有已在案的三条（亮色/暗色翻色/第二套声明）：本批零新增 CSS，数量变了要回文档说明
+红  M69 README 抹掉 §36 登记（新闸门不写进 README 就等于没装）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: README.md 的 verify 清单没提 §36（新闸门不写进 README 就等于没装）
+红  M70 判据改名成 A16x（齐备检按「id + 空格」认，要红）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: tools/smoke-aria.js 缺 A16 这条判据（A 组是一整组：A 键盘闭环／C 两步时序／D 日卡快照／S 分享页同口径，少一条就是有个症状没人管）
+红  M71 复制一条判据（条数守卫：整组被灌水也是漂移）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: tools/smoke-aria.js 的判据条数不是 46：47 条（批次 22 落地时实测 46＝A25+C6+D9+S4×2 条 S01 分支+E01；整组削减等于把这节拆了）
+红  M72 快照口径退回默认（interestingOnly:true 把 generic 列表容器剪掉，D 组量出来全 0）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: smoke-aria 的 D 组快照没有 interestingOnly: false：默认口径会把 generic 列表容器剪掉，量出来的 list/listitem 全 0 是眼睛的问题不是结构的问题
+红  M73 S 组退回 Share.build（file:// 走 no-base 降级，返回值里根本没有 hash 字段＝整组恒不跑）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: smoke-aria 的 S 组没有直接编 hash：file:// 下 Share.build 走 no-base 降级分支，返回值里根本没有 hash 字段，拿它猜就是 S 组恒不跑
+红  M74 §36 少读一个文件（design.css 的 :focus-visible 锚从此不再跑）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: A36 登记了 §36 没读的文件「design.css」，这条锚一次都没跑过：焦点环仍只有已在案的三条（亮色/暗色翻色/第二套声明）：本批零新增 CSS，数量变了要回文档说明
+红  M78 toast 把文案写进插入前的节点（活区带字进场，读屏当静态内容）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: toast 不再满足「活区先空着入 DOM、文案下一帧再写」：带着文案一次性插入，读屏把它当静态内容（新增节点）而不是状态变更，一个字都不播
+红  M75 两步时序的反向对照改成正确形状（合成源不再触发它＝那条红是空的）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: 两步时序断言的反向对照失效：合成的「带字一次插入」源码都没触发它
+红  M76 trap 顺序断言的反向对照改成正确顺序  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: trap 过滤顺序断言的反向对照失效：合成的「先取 first/last 再过滤」源码都没触发它
+红  M77 期望 0 的正向对照串里抹掉 needle（那个 0 从此不是证据）  → §36 红 1 条（总红 1），指定那条：§36 无障碍闸门: 「aria-hidden」这条期望 0 的正向对照失效了（上面那个 0 不是证据）
+静默  G1 UI.esc 恒返回空串（日卡 aria-label 实测全空，而 §36 钉的每条字面量都还在）  → 源码腿 0 红（只有浏览器腿能抓，配 mut-smoke36 的同名变异成对读）
+静默  G2 siteAria 恒返回空串（标记名全空，调用点的字面量一根没动）  → 源码腿 0 红（只有浏览器腿能抓，配 mut-smoke36 的同名变异成对读）
+静默  G3 markerLabel 的赋值行不执行（单点还在、导出还在，名字从来没写上去）  → 源码腿 0 红（只有浏览器腿能抓，配 mut-smoke36 的同名变异成对读）
+源码腿小结: 共 81 条 → 按预期红 78 · 设计内静默 3 · 异常 0
