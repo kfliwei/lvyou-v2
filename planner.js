@@ -1370,6 +1370,12 @@
     if (state.end && state.end.name) { trip.end = state.end; trip.end.isLoop = !!(state.start && state.start.name && state.start.name === state.end.name); }
     renderDaysBody();
     renderExpense();
+    /* 行程主页入口（批次 24-D）：打卡 / 开销 / 出发前 / 我的票在 trip.html 收成一页。
+       这里只是**加**一行，下面 actRow 那 12 颗按钮一颗都不动——删入口既踩批次 23 的闸门，
+       也踩用户已经长在手上的肌肉记忆。 */
+    var th = $id('tripHomeSlot');
+    if (th) th.innerHTML = '<a class="btn ghost" style="width:100%;margin-top:10px" href="trip.html?trip=' +
+      encodeURIComponent(ensureTripId(trip)) + '">' + TI('route') + '这趟的主页：打卡 · 开销 · 出发前 · 我的票</a>';
     /* 「导出日历」在没日期时是灰的，但必须仍可点：点下去那句 toast 才是教用户去哪补日期的路。
        真 disabled 会让 pointer-events 吃掉点击，按钮灰着却不说话，等于把人堵死。 */
     var icsOn = !!buildTripIcs(trip);
@@ -2548,6 +2554,18 @@
         } else if (_wl.length === 1) {
           toast('心愿节点不足 2 处，请先在地图多收藏几处');
         }
+      }
+    } catch (e) {}
+    /* 从行程主页／记账页带着 ?trip=<id> 跳回来：直接落到那一趟的结果页。
+       放在快照恢复之后——URL 上指名道姓的那一趟，优先于「上次规划进度」。
+       认不出这个 id（换机 / 已删）就说一句，别默默停在输入页让人以为链接坏了。 */
+    try {
+      var qTrip = new URLSearchParams(location.search).get('trip');
+      if (qTrip) {
+        var tl = loadTrips(), at = -1;
+        for (var ti = 0; ti < tl.length; ti++) if (tl[ti] && tl[ti].id === qTrip) { at = ti; break; }
+        if (at >= 0) window.plannerOpenTrip(at);
+        else toast('本机没有这趟行程（可能已删除，或换了一台机）');
       }
     } catch (e) {}
     renderTrips();

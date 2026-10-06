@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>这趟行程 · 行迹</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+  .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;padding:18px;margin-bottom:14px}
+  .ph{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:0 0 12px}
+  .ph::before{content:"";width:14px;height:3px;border-radius:99px;flex:0 0 auto;background:var(--grad-gold)}
+  .note{font-size:var(--fs-2);color:var(--color-muted);line-height:1.7;margin:8px 0 0}
+  .none-tip{font-size:var(--fs-3);color:var(--color-muted);line-height:1.8;padding:6px 2px 2px}
+  .btn{min-height:44px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
+  .btn.ghost{background:transparent}
+  .btn.wide{width:100%;margin-top:10px}
+  /* 双读数：这一页的第一眼就是「计划 vs 实际」，两个数并排、同字号，谁也不是谁的注脚 */
+  .t-dual{display:flex;align-items:flex-end;gap:18px}
+  .t-dual .one{flex:1;min-width:0}
+  .t-dual .one i{display:block;font-style:normal;font-size:var(--fs-2);color:var(--color-muted);margin-bottom:2px}
+  .t-dual .one b{font-family:var(--font-serif);font-size:var(--fs-11);font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+  .t-dual .one u{text-decoration:none;font-size:var(--fs-4);color:var(--color-muted);margin-left:3px}
+  .t-dual .vs{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted);padding-bottom:8px}
+  .t-date{font-size:var(--fs-3);color:var(--color-muted);line-height:1.7;margin-top:10px}
+  /* 实际口径编辑：两个框都是可留空的——留空就是「按计划的算」，不逼用户编一个数 */
+  .t-real{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line)}
+  .t-real label{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted)}
+  .t-real input{min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4);font-variant-numeric:tabular-nums}
+  .t-real input[type=date]{flex:1 1 9.5em}
+  .t-real input[type=number]{flex:0 0 5.5em;text-align:center}
+  /* 概览：进度条与结果页/记账页同一把尺子 */
+  .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
+  .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  .t-today{font-size:var(--fs-4);line-height:1.75;color:var(--color-ink-soft);margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line)}
+  .t-today b{font-family:var(--font-serif);font-weight:400;font-size:var(--fs-5)}
+  .t-stops{margin:8px 0 0;padding:0;list-style:none}
+  .t-stops li{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--color-line);font-size:var(--fs-3)}
+  .t-stops li:last-child{border-bottom:0}
+  .t-stops .dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--color-line-strong)}
+  .t-stops li.done .dot{background:var(--color-primary)}
+  .t-stops li.done .nm{color:var(--color-muted);text-decoration:line-through}
+  .t-stops .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .t-stops .ct{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  /* 开销：金额是这一卡的主角，条形只列前三（全量在记账页） */
+  .t-money{display:flex;align-items:baseline;gap:6px}
+  .t-money b{font-family:var(--font-serif);font-size:var(--fs-11);font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+  .t-money i{font-style:normal;font-size:var(--fs-4);color:var(--color-muted)}
+  .t-money small{margin-left:auto;font-size:var(--fs-3);color:var(--color-muted)}
+  .t-over{display:flex;align-items:center;gap:7px;margin:10px 0 0;font-size:var(--fs-3);line-height:1.6}
+  .t-over.warn{color:var(--color-danger)}
+  .t-over.ok{color:var(--color-muted)}
+  .xbars{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+  .xbars .b{display:flex;align-items:center;gap:9px;font-size:var(--fs-2)}
+  .xbars .b .n{flex:0 0 2.4em;color:var(--color-muted)}
+  .xbars .b .t{flex:1;height:8px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .xbars .b .t i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);transition:width var(--motion-mid) var(--ease-out)}
+  .xbars .b .v{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--color-ink-soft)}
+  .t-acts{display:flex;gap:8px;margin-top:14px}
+  .t-acts .btn{flex:1;min-width:0}
+  .t-acts .btn.ghost{flex:0 0 auto}
+  /* 票：只报「有几张、下一张什么时候用」，票面与附件都在清单页（那边有表单） */
+  .t-tb{display:flex;align-items:center;gap:10px}
+  .t-tb .n{font-family:var(--font-serif);font-size:var(--fs-9);font-weight:400;line-height:1.2;font-variant-numeric:tabular-nums}
+  .t-tb .d{flex:1;min-width:0;font-size:var(--fs-3);color:var(--color-muted);line-height:1.6}
+  /* 行程选择器：与 checklist.html / expense.html 同一套行版式 */
+  .trip-pick{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid var(--color-line);cursor:pointer;background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;font:inherit;color:inherit}
+  .trip-pick:last-child{border-bottom:0}
+  .trip-pick .main{flex:1;min-width:0}
+  .trip-pick .main b{display:block;font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400}
+  .trip-pick .main small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;line-height:1.6}
+  .trip-pick .amt{flex:0 0 auto;text-align:right;font-size:var(--fs-3);font-variant-numeric:tabular-nums;color:var(--color-ink-soft)}
+  .trip-pick .arr{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6)}
+  .free-line{margin-top:12px;padding-top:12px;border-top:1px solid var(--color-line);font-size:var(--fs-3);color:var(--color-muted);line-height:1.7}
+  .free-line a{color:var(--color-primary-dark);font-weight:600;text-decoration:none}
+  .empty-line{text-align:center;padding:56px 20px;color:var(--color-muted)}
+  .empty-line .em{font-family:var(--font-serif);font-size:var(--fs-9);color:var(--color-ink-soft);line-height:1.8}
+  .empty-line p{font-size:var(--fs-4);margin-top:10px;line-height:1.8}
+  .empty-line a{color:var(--color-primary-dark);font-size:var(--fs-5);font-weight:600;text-decoration:none}
+  #addSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:24px;box-shadow:var(--shadow-float);padding:16px 16px 14px;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard)}
+  #addSheet.show{display:block;transform:translateY(0)}
+  .sht-t{font-family:var(--font-serif);font-size:var(--fs-7);margin:2px 0 12px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
+    <div class="title">这趟行程 <small id="tripLabel">还没选定行程</small></div>
+    <a href="planner.html" aria-label="行程规划" style="flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);text-decoration:none"><svg class="ti" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-route"/></svg></a>
+  </div>
+</header>
+<div class="wrap">
+
+  <div class="card" id="pickCard" style="display:none">
+    <div class="ph">哪一趟行程</div>
+    <div id="pickList"></div>
+    <div class="free-line">没排过期也能记账：<a href="expense.html?trip=free">未编排行程 →</a></div>
+  </div>
+
+  <div id="tripWrap" style="display:none">
+
+    <div class="card">
+      <div class="ph">计划 与 实际</div>
+      <div class="t-dual">
+        <span class="one"><i>计划</i><b id="tPlanN">0</b><u>天</u></span>
+        <span class="vs">·</span>
+        <span class="one"><i>实际</i><b id="tRealN">0</b><u>天</u></span>
+      </div>
+      <div class="t-date" id="tDate"></div>
+      <div class="t-real">
+        <label for="tRealStart">实际出发</label>
+        <input id="tRealStart" type="date" aria-label="实际出发日期">
+        <label for="tRealDays">实际天数</label>
+        <input id="tRealDays" type="number" min="1" step="1" inputmode="numeric" placeholder="同计划" aria-label="实际走了几天">
+      </div>
+      <div class="note">排期只是参考的话，把实际出发日与实走天数写在这里：账单的「第几天」、上面那句「今天走了哪」都按这个口径说真话。留空就是按计划的算。</div>
+      <a class="btn ghost wide" id="tOpenPlanner" href="planner.html">打开这趟的排期页</a>
+    </div>
+
+    <div class="card">
+      <div class="ph">概览</div>
+      <div class="phead"><span class="pbar"><i id="tBar"></i></span><span class="pcount" id="tCount"></span></div>
+      <div class="t-today" id="tToday" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <div class="ph">开销</div>
+      <div class="t-money"><b id="tExpSum">0.00</b><i>元</i><small id="tExpCount"></small></div>
+      <div id="tExpOver"></div>
+      <div class="xbars" id="tExpBars"></div>
+      <div class="t-acts">
+        <button class="btn primary" id="tAdd">记一笔</button>
+        <a class="btn ghost" id="tExpAll" href="expense.html">全部账单与导出</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ph">出发前</div>
+      <div class="phead"><span class="pbar"><i id="tCkBar"></i></span><span class="pcount" id="tCkCount"></span></div>
+      <div class="none-tip" id="tCkNone" style="display:none"></div>
+      <a class="btn ghost wide" id="tCkAll" href="checklist.html">打开行前清单</a>
+    </div>
+
+    <div class="card">
+      <div class="ph">我的票</div>
+      <div class="t-tb"><span class="n" id="tTbN">0</span><span class="d" id="tTbD"></span></div>
+      <div class="note">票号、座位、入住时间存在清单页。<b>附件只存这台机，不进云备份。</b>这里不订票、也不认票面。</div>
+      <a class="btn ghost wide" id="tTbAll" href="checklist.html">看票与加票</a>
+    </div>
+
+  </div>
+
+  <div class="empty-line" id="tEmpty" style="display:none">
+    <div class="em">一趟行程，<br>该有个自己的页面。</div>
+    <p>排期、打卡、开销、清单、票，收在这里一页看完。<br>还没排过期也没关系：先记一笔账也行。</p>
+    <a href="planner.html">去规划一页 →</a>
+    <p><a href="expense.html?trip=free">不排期，直接记一笔 →</a></p>
+    <p id="tSwitchWrap" style="display:none"><a id="tSwitch" href="#">换一趟行程 →</a></p>
+  </div>
+
+</div>
+
+<div id="addSheet">
+  <div class="sht-t">记一笔</div>
+  <div id="adForm"></div>
+</div>
+
+<script src="icons.js"></script>
+<script src="ui.js"></script>
+<script src="expense.js"></script>
+<script src="expense-form.js"></script>
+<script src="checklist.js"></script>
+<script src="ticketbox.js"></script>
+<script>
+(function () {
+  function esc(s) { return window.UI.esc(s); }
+  function $(i) { return document.getElementById(i); }
+  var tripId = '', trip = null;
+
+  function readTrips() {
+    try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  }
+  function writeTrips(list) {
+    try { localStorage.setItem('tn_trips', JSON.stringify(list)); return true; }
+    catch (e) { UI.toast('存储空间已满，这次改动没存上'); return false; }
+  }
+  function findTrip(id) {
+    var list = readTrips();
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
+    /* 还没保存的行程：结果页跳转前把快照同步写进了 sessionStorage，同一标签页里能接上 */
+    try {
+      var snap = JSON.parse(sessionStorage.getItem('tn_planner_state') || 'null');
+      if (snap && snap.trip && snap.trip.id === id) return snap.trip;
+    } catch (e) {}
+    return null;
+  }
+  /* 计划口径与实际口径分开取，谁也不冒充谁：这一页的全部读数都从这两个函数出发 */
+  function planStart(t) { return Expense.isoOf(t && t.startDate); }
+  function realStart(t) { return Expense.isoOf(t && t.logStart); }
+  function startOf(t) { return realStart(t) || planStart(t); }
+  function planDays(t) { return (t && t.days) ? t.days.length : 0; }
+  function realDays(t) {
+    var n = Math.round(Number(t && t.realDays));
+    return isFinite(n) && n > 0 ? n : planDays(t);
+  }
+  function stopStats(t) {
+    var total = 0, done = 0;
+    ((t && t.days) || []).forEach(function (d) {
+      (d.stops || []).forEach(function (s) { total++; if (s && s.done) done++; });
+    });
+    return { total: total, done: done };
+  }
+
+  /* ---------- 列表态 ---------- */
+  function renderPick() {
+    tripId = ''; trip = null;
+    var list = readTrips().filter(function (t) { return t && t.id; });
+    $('pickList').innerHTML = list.map(function (t) {
+      var n = Expense.listOf(t.id).length, c = Expense.totalCents(t.id);
+      var ck = window.Checklist ? Checklist.statsOf(t.id) : { total: 0, done: 0 };
+      var ss = stopStats(t), st = startOf(t);
+      return '<button class="trip-pick" data-id="' + esc(t.id) + '"><span class="main"><b>' + esc(t.name || '未命名行程') + '</b><small>' +
+        (st ? (realStart(t) ? '实际 ' : '计划 ') + esc(st) + ' · ' : '没填出发日期 · ') +
+        '计划 ' + planDays(t) + ' 天' + (realDays(t) !== planDays(t) ? ' · 实际 ' + realDays(t) + ' 天' : '') +
+        (ss.total ? ' · 打卡 ' + ss.done + '/' + ss.total : '') + (ck.total ? ' · 清单 ' + ck.done + '/' + ck.total : '') +
+        '</small></span><span class="amt">' + (n ? Expense.fmtMoney(c) + ' 元 · ' + n + ' 笔' : '还没记账') +
+        '</span><span class="arr">›</span></button>';
+    }).join('');
+    var rows = $('pickList').querySelectorAll('.trip-pick');
+    for (var i = 0; i < rows.length; i++) rows[i].onclick = function () { open(this.getAttribute('data-id')); };
+    /* 票数是 IndexedDB 的异步读数：先把行画出来，读到再补进那格小字；读不到就不提，不印「票 0 张」骗人 */
+    if (window.TicketBox) {
+      list.forEach(function (t) {
+        TicketBox.list(t.id).then(function (tk) {
+          if (!tk || !tk.length) return;
+          var row = $('pickList').querySelector('.trip-pick[data-id="' + t.id + '"] small');
+          if (row) row.textContent += ' · 票 ' + tk.length + ' 张';
+        }).catch(function () {});
+      });
+    }
+    $('tripLabel').textContent = '还没选定行程';
+    /* 一趟都没有时只留空态：选择器卡片空着一行标题，看着像加载失败而不是「还没有行程」 */
+    $('pickCard').style.display = list.length ? 'block' : 'none';
+    $('tripWrap').style.display = 'none';
+    $('tEmpty').style.display = list.length ? 'none' : 'block';
+    $('tSwitchWrap').style.display = 'none';
+  }
+
+  /* ---------- 单趟态 ---------- */
+  function renderHead() {
+    var pn = planDays(trip), rn = realDays(trip), ps = planStart(trip), rs = realStart(trip);
+    $('tripLabel').textContent = trip.name || '未命名行程';
+    $('tPlanN').textContent = pn;
+    $('tRealN').textContent = rn;
+    var d = [];
+    d.push(ps ? '计划出发 ' + ps : '没填计划出发日期');
+    d.push(rs ? '实际出发 ' + rs : '实际出发日没填，按计划的算');
+    if (rn !== pn) d.push('比计划' + (rn > pn ? '多走 ' + (rn - pn) + ' 天' : '少走 ' + (pn - rn) + ' 天'));
+    $('tDate').textContent = d.join(' · ');
+    /* 输入框正在编辑时不回写：change 到达时焦点还在框上，回写会把用户刚敲的数按自己的口径重排 */
+    if (document.activeElement !== $('tRealStart')) $('tRealStart').value = rs || '';
+    if (document.activeElement !== $('tRealDays')) $('tRealDays').value = trip.realDays || '';
+    var pl = $('tOpenPlanner');
+    pl.href = 'planner.html?trip=' + encodeURIComponent(tripId);
+    pl.textContent = pn ? '打开这趟的排期页' : '这趟还没有排期表，去排一页';
+  }
+  function renderOverview() {
+    var ss = stopStats(trip);
+    var pct = ss.total ? Math.round(ss.done / ss.total * 100) : 0;
+    $('tBar').style.width = pct + '%';
+    $('tCount').textContent = ss.total ? '打卡 ' + ss.done + '/' + ss.total + ' 站' : '还没有排期站点';
+    var start = startOf(trip), today = Expense.todayISO(), pn = planDays(trip), rn = realDays(trip);
+    var h = '';
+    if (!start) {
+      h = '没填出发日期，说不出「今天是第几天」。在上面填一个<b>实际出发日</b>，这里就会报当天该走哪几站。';
+    } else {
+      var k = Expense.dayFromStart(start, today);
+      if (k <= 0) {
+        var a = new Date(start + 'T00:00:00'), b = new Date(today + 'T00:00:00');
+        var left = Math.round((a - b) / 86400000);
+        h = '还没出发：距 ' + esc(start) + ' 还有 <b>' + left + ' 天</b>。出发前把清单理一理，票放进「我的票」。';
+      } else if (k > rn) {
+        h = '按实际出发日算，今天已经超出这趟的<b>' + rn + ' 天</b>。真还在路上的话，把上面的「实际天数」补上——账照样记，账单里那几天会标「计划外」。';
+      } else {
+        var d = (trip.days || [])[k - 1];
+        h = '今天是第 <b>' + k + '</b> 天' + (realStart(trip) ? '（按实际出发日算）' : '（按计划出发日算）') + '。';
+        if (k > pn) {
+          h += ' 计划表里没有这一天：这是实际多走出来的，钱照记、笔记照写。';
+        } else if (d && d.stops && d.stops.length) {
+          h += ' 计划里今天走这几站：';
+          h += '<ul class="t-stops">' + d.stops.map(function (s) {
+            return '<li class="' + (s.done ? 'done' : '') + '"><span class="dot"></span><span class="nm">' + esc(s.name || '未命名站点') + '</span>' +
+              (s.city ? '<span class="ct">' + esc(s.city) + '</span>' : '') + '</li>';
+          }).join('') + '</ul>';
+        } else {
+          h += ' 计划里这天是赶路日，没有排站点。';
+        }
+      }
+    }
+    $('tToday').innerHTML = h;
+  }
+  function renderExpense() {
+    var total = Expense.totalCents(tripId), list = Expense.listOf(tripId);
+    var budget = Expense.budgetOf(tripId), over = Expense.overCents(tripId);
+    $('tExpSum').textContent = Expense.fmtMoney(total);
+    $('tExpCount').textContent = list.length ? list.length + ' 笔' : '还没记账';
+    var oh = '';
+    if (over) oh = '<div class="t-over warn">' + TI('warn', 13) + '已超预算 ' + Expense.fmtMoney(over) + ' 元</div>';
+    else if (budget) oh = '<div class="t-over ok">预算 ' + Expense.fmtMoney(budget) + ' 元，还剩 ' + Expense.fmtMoney(budget - total) + ' 元</div>';
+    $('tExpOver').innerHTML = oh;
+    var cats = Expense.catTotals(tripId).filter(function (c) { return c.cents > 0; });
+    var max = 0; cats.forEach(function (c) { if (c.cents > max) max = c.cents; });
+    $('tExpBars').innerHTML = cats.slice(0, 3).map(function (c) {
+      return '<div class="b"><span class="n">' + esc(c.cat) + '</span><span class="t"><i style="width:' +
+        (max ? Math.round(c.cents / max * 100) : 0) + '%"></i></span><span class="v">' + Expense.fmtMoney(c.cents) + '</span></div>';
+    }).join('') + (cats.length > 3 ? '<div class="b"><span class="n">其余</span><span class="t"></span><span class="v">' +
+      Expense.fmtMoney(cats.slice(3).reduce(function (s, c) { return s + c.cents; }, 0)) + '</span></div>' : '');
+    $('tExpAll').href = 'expense.html?trip=' + encodeURIComponent(tripId);
+  }
+  function renderChecklist() {
+    var st = window.Checklist ? Checklist.statsOf(tripId) : { total: 0, done: 0 };
+    var pct = st.total ? Math.round(st.done / st.total * 100) : 0;
+    $('tCkBar').style.width = pct + '%';
+    $('tCkCount').textContent = st.total ? '已备 ' + st.done + '/' + st.total + ' 件' : '还没有条目';
+    $('tCkNone').style.display = st.total ? 'none' : 'block';
+    $('tCkNone').innerHTML = st.total ? '' :
+      '这趟还没有清单条目。建议是排期时按海拔与季节自动长出来的；打开清单页也能自己补几件。';
+    $('tCkAll').href = 'checklist.html?trip=' + encodeURIComponent(tripId);
+  }
+  function renderTickets() {
+    $('tTbAll').href = 'checklist.html?trip=' + encodeURIComponent(tripId);
+    if (!window.TicketBox) { $('tTbN').textContent = '—'; $('tTbD').textContent = '这台机的浏览器没有 IndexedDB，票据存不了。'; return; }
+    /* 先置空再异步填：上一趟的读数留在屏上，比短暂少一个数更容易骗人 */
+    $('tTbN').textContent = '…'; $('tTbD').textContent = '';
+    var tid = tripId;
+    TicketBox.list(tid).then(function (rows) {
+      if (tripId !== tid) return;   /* 期间换了趟：这张卡已经不是我那张 */
+      rows = rows || [];
+      $('tTbN').textContent = String(rows.length);
+      if (!rows.length) { $('tTbD').textContent = '还没存票。机票、车票、酒店确认号都可以放进来。'; return; }
+      var now = Date.now(), next = null;
+      rows.forEach(function (r) {
+        if (!r.at) return;
+        var t = Date.parse(r.at);
+        if (t >= now && (!next || t < Date.parse(next.at))) next = r;
+      });
+      $('tTbD').textContent = rows.length + ' 张票' + (next
+        ? '，下一张「' + (next.title || next.kind) + '」在 ' + TicketBox.fmt(next.at)
+        : '，都没填使用时间');
+    }).catch(function () {
+      $('tTbN').textContent = '—';
+      $('tTbD').textContent = '票据库打不开（这台机的浏览器拦了 IndexedDB）。';
+    });
+  }
+  function renderTrip() {
+    renderHead(); renderOverview(); renderExpense(); renderChecklist(); renderTickets();
+    $('pickCard').style.display = 'none';
+    $('tripWrap').style.display = 'block';
+    $('tEmpty').style.display = 'none';
+    /* 24 小时页内横幅：只在页内提醒，不碰系统通知（批次 17 的红线） */
+    if (window.TicketBox && TicketBox.nudge) TicketBox.nudge(tripId);
+  }
+  function render() { if (trip) renderTrip(); else renderPick(); }
+
+  /* ---------- 实际口径落盘：写进 tn_trips 那一条，不动别的字段 ---------- */
+  function patchTrip(fn) {
+    var list = readTrips(), hit = null;
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === tripId) { hit = list[i]; break; }
+    if (!hit) { UI.toast('这趟行程在本机找不到，改动没存上'); return false; }
+    fn(hit);
+    if (!writeTrips(list)) return false;
+    trip = hit;
+    return true;
+  }
+  $('tRealStart').addEventListener('change', function () {
+    var v = Expense.isoOf(this.value);
+    if (!patchTrip(function (t) { if (v) t.logStart = v; else delete t.logStart; })) { renderHead(); return; }
+    UI.toast(v ? '实际出发日记为 ' + v : '已清掉实际出发日，回到计划口径');
+    renderTrip();
+  });
+  $('tRealDays').addEventListener('change', function () {
+    var n = Math.round(Number(this.value)), v = (isFinite(n) && n > 0) ? n : 0;
+    if (!patchTrip(function (t) { if (v) t.realDays = v; else delete t.realDays; })) { renderHead(); return; }
+    UI.toast(v ? '实际天数记为 ' + v + ' 天' : '已清掉实际天数，回到计划口径');
+    renderTrip();
+  });
+
+  /* ---------- 记一笔：表单本体是 expense-form.js 那一份，这里只管容器与记完重画 ---------- */
+  var sheet = UI.sheet($('addSheet'), { modal: true, label: '记一笔开销' });
+  var form = ExpenseForm.render($('adForm'), {
+    getTrip: function () { return { id: tripId, start: startOf(trip), days: planDays(trip) }; },
+    onSaved: function () { sheet.close(); renderTrip(); },
+    onCancel: function () { sheet.close(); }
+  });
+  $('tAdd').onclick = function () {
+    if (!trip || !form) return;
+    sheet.open('记一笔开销');
+    form.open();
+  };
+
+  function open(id) {
+    var t = findTrip(id);
+    if (!t) { showUnknown(); return; }
+    tripId = t.id; trip = t;
+    render();
+    try { history.replaceState(null, '', 'trip.html?trip=' + encodeURIComponent(tripId)); } catch (e) {}
+  }
+  /* URL 上的 trip 在这台机认不出来（换机 / 行程已删）：绝不拿它建桶，否则孤儿桶无界攒在 localStorage 里 */
+  function showUnknown() {
+    tripId = ''; trip = null;
+    $('tripLabel').textContent = '没找到这趟行程';
+    $('pickCard').style.display = 'none';
+    $('tripWrap').style.display = 'none';
+    $('tEmpty').style.display = 'block';
+    $('tSwitchWrap').style.display = readTrips().length ? 'block' : 'none';
+  }
+  $('tSwitch').onclick = function (e) {
+    e.preventDefault();
+    try { history.replaceState(null, '', 'trip.html'); } catch (e2) {}
+    renderPick();
+  };
+
+  var q = new URLSearchParams(location.search).get('trip');
+  /* free 桶不是行程，没有主页可言：直接送到记账页，别在这里造一个空壳 trip */
+  if (q === Expense.FREE_ID) { location.replace('expense.html?trip=' + Expense.FREE_ID); }
+  else if (q) open(q);
+  else renderPick();
+})();
+</script>
+</body>
+</html>
