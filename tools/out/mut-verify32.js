@@ -253,10 +253,10 @@ run('M43 撤销只还账不还预算（两桶不同源，预算悄悄丢了）',
 
 /* ============ ⑤ 隐私与登记 ============ */
 run('M44 预算进了分享白名单（点开链接的人看见每趟花多少）', 'share.js',
-  'n: 1, la: 1, lo: 1 };', 'n: 1, la: 1, lo: 1, budget: 1 };',
+  'lo: 1, k: 1 };', 'lo: 1, k: 1, budget: 1 };',
   'share.js 里出现「budget」');
 run('M45 账目并进 trip 对象（分享载荷的来源就是 trip，白名单成了唯一防线）', 'share.js',
-  'n: 1, la: 1, lo: 1 };', 'n: 1, la: 1, lo: 1, expense: 1 };',
+  'lo: 1, k: 1 };', 'lo: 1, k: 1, expense: 1 };',
   'share.js 里出现「expense」');
 run('M46 备份侧账目改成按内容去重（跨机并集把两笔真开销并成一笔）', 'backup.js',
   "{ k: 'tn_expense', g: 'data', m: 'id' },", "{ k: 'tn_expense', g: 'data', m: 'text' },",

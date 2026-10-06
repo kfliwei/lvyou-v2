@@ -608,6 +608,171 @@ const setBudget = async (p, v) => {
     WIDE.w > 120 && WIDE.right <= WIDE.vw + 1 && WIDE.over <= 0 && WIDE.count === '共 1034.30 元 · 6 笔',
     JSON.stringify(WIDE));
 
+  /* ================= 12. 批次 24 数据层：真实日期 / 迁移 / free 桶 / 进行中判定 =================
+     这一段全走 window.Expense 本身（不复制实现、不在 node 侧另算一遍）。
+     构造的旧形状条目只在内存里过 migrate；byDate 那两条用一次性假桶，跑完按字节还原盘。 */
+  const RAW24 = await page.evaluate(() => localStorage.getItem('tn_expense'));
+  const M24 = await page.evaluate(o => {
+    const raw = o.raw, START = o.start;
+    const E = window.Expense;
+    const old = [
+      { id: 'o1', tripId: 'zz', day: 1, cents: 3333, cat: '交通', who: '', note: '', ts: 1700000000000 },
+      { id: 'o2', tripId: 'zz', day: 2, cents: 3333, cat: '住宿', who: '', note: '', ts: 1700000001000 },
+      { id: 'o3', tripId: 'zz', day: 3, cents: 3334, cat: '餐饮', who: '', note: '', ts: 1700000002000 }
+    ];
+    const key = l => l.map(x => x.id + ':' + x.cents).join('|');
+    const one = E.migrate(old, START);
+    const two = E.migrate(one.list, START);
+    const nog = E.migrate(old, '');
+    return {
+      sumBefore: old.reduce((t, x) => t + x.cents, 0),
+      sumAfter: one.list.reduce((t, x) => t + x.cents, 0),
+      centsSame: key(old) === key(one.list),
+      filled: one.filled,
+      dates: one.list.map(x => x.date),
+      idempotent: E.migrate(one.list, START).filled === 0 && JSON.stringify(two.list) === JSON.stringify(one.list),
+      secondFilled: two.filled,
+      oldUntouched: old.every(x => x.date === undefined),
+      nogFilled: nog.filled,
+      nogDates: nog.list.map(x => x.date || ''),
+      /* ts=1700000000000 → 2023-11-14；反推不出时宁可留空，也不许拿记账动作的时刻冒充花钱那天 */
+      noTsLie: nog.list.every(x => !/2023/.test(String(x.date || ''))),
+      onDisk: localStorage.getItem('tn_expense') === raw,
+      badAddDays: E.addDays('2026-13-40', 3),
+      badShape: E.isoOf('2026-1-5'),
+      padOk: E.isoOf('2026-01-05'),
+      addDaysCross: E.addDays('2026-02-27', 2),
+      dayFrom: E.dayFromStart(START, '2026-11-10'),
+      dayBefore: E.dayFromStart(START, '2026-11-07'),
+      freeId: E.FREE_ID, freeName: E.FREE_NAME
+    };
+  }, { raw: RAW24, start: START });
+  ok('A64 迁移前后逐条金额求和相等、逐条 id:cents 一致（钱只认整数分，这条能精确比）',
+    M24.sumBefore === M24.sumAfter && M24.sumBefore === 10000 && M24.centsSame,
+    M24.sumBefore + ' → ' + M24.sumAfter);
+  ok('A65 缺 date 的旧条目按 startDate+(day-1) 反推：第 1/2/3 天钉在出发日往后三天',
+    M24.filled === 3 && M24.dates.join(',') === '2026-11-08,2026-11-09,2026-11-10',
+    M24.dates.join(','));
+  ok('A66 migrate 幂等（跑第二遍一笔也不补、输出字节相同），且不许就地改用户传进来的那份数组',
+    M24.idempotent && M24.oldUntouched && M24.secondFilled === 0,
+    '第二遍 filled=' + M24.secondFilled + ' / 原数组被改=' + !M24.oldUntouched);
+  ok('A67 推不出就留空：行程没有出发日期时 date 仍是空串，绝不拿 ts（2023-11-14）冒充花钱那天',
+    M24.nogFilled === 0 && M24.nogDates.every(d => d === '') && M24.noTsLie,
+    JSON.stringify(M24.nogDates));
+  ok('A68 迁移只在内存派生视图，跑完盘上还是原来那串字节（替用户写日期＝对账时最坏的一种）',
+    M24.onDisk, '盘上未变=' + M24.onDisk);
+  ok('A69 日期只认零补齐的 YYYY-MM-DD：\'2026-1-5\' 不收（字符串序会排到 \'2026-11-02\' 前面），越界的 2026-13-40 也不编',
+    M24.badShape === '' && M24.padOk === '2026-01-05' && M24.badAddDays === '',
+    'bad=' + JSON.stringify(M24.badAddDays) + ' shape=' + JSON.stringify(M24.badShape));
+  ok('A70 按日历日加减、不按毫秒除法：跨到月底那两天照样对；真实日期→计划第几天可反推，早于出发返回 0',
+    M24.addDaysCross === '2026-03-01' && M24.dayFrom === 3 && M24.dayBefore === 0,
+    M24.addDaysCross + ' / day=' + M24.dayFrom + ' / 早于出发=' + M24.dayBefore);
+
+  const B24 = await page.evaluate(o => {
+    const raw = o.raw, START = o.start;
+    const E = window.Expense, T = 'zz-plan24';
+    const mk = (id, day, date, cents) => ({ id: id, tripId: T, day: day, date: date, cents: cents, cat: '其他', who: '', note: '', ts: 1 });
+    const synth = [mk('s1', 1, '2026-11-08', 100), mk('s2', 2, '2026-11-09', 200), mk('s3', 5, '2026-11-12', 300), mk('s4', 3, '', 400)];
+    localStorage.setItem('tn_expense', JSON.stringify(synth));
+    const g = E.byDate(T, START);
+    const gNo = E.byDate(T, '');
+    const und = E.undated(T);
+    /* tripOf 故意给不出出发日期：反推不出的那笔（s4）就不许进任何年份 */
+    const y26 = E.yearCents('2026', () => ({ startDate: '' }));
+    const y27 = E.yearCents('2027', () => ({ startDate: START }));
+    localStorage.setItem('tn_expense', raw);
+    return {
+      groups: g.map(x => x.date + ':' + x.cents + ':' + x.count),
+      order: g.map(x => x.date).join(','),
+      orderNoStart: gNo.map(x => x.date).join(','),
+      overPlan: g.filter(x => E.dayFromStart(START, x.date) > 3).map(x => x.date),
+      undated: und, y26: y26, y27: y27,
+      restored: localStorage.getItem('tn_expense') === raw
+    };
+  }, { raw: RAW24, start: START });
+  ok('A71 byDate 按真实日期分组、与 days.length 无关：计划 3 天而钱在第 5 天，照样独立成一行（多走的天不再没有入口）',
+    B24.groups.length === 4 && B24.overPlan.join(',') === '2026-11-12',
+    B24.groups.join(' | ') + ' / 计划外: ' + B24.overPlan.join(','));
+  ok('A72 按日期倒序；有出发日期时空串被反推补齐，没出发日期时「日期未知」那组落最后（不洗成某个日期去「排整齐」）',
+    B24.order === '2026-11-12,2026-11-10,2026-11-09,2026-11-08' &&
+    B24.orderNoStart === '2026-11-12,2026-11-09,2026-11-08,',
+    '有档: ' + B24.order + ' / 无档: ' + JSON.stringify(B24.orderNoStart));
+  ok('A73 undated 数出「重排期会跟着新序号搬走」的那批：1 笔 4.00 元（只看条目自己写没写过日期，不看能不能反推）',
+    B24.undated.n === 1 && B24.undated.cents === 400, JSON.stringify(B24.undated));
+  ok('A74 yearCents 反推不出的条目不进任何年份：2026 只算到 3 笔 6.00 元，宁可少算也不多算',
+    B24.y26.count === 3 && B24.y26.cents === 600 && B24.y27.cents === 0,
+    JSON.stringify(B24.y26) + ' / ' + JSON.stringify(B24.y27));
+  ok('A75 假桶跑完按字节还原，真账一个字节没动', B24.restored, 'restored=' + B24.restored);
+
+  const RAWB24 = await page.evaluate(() => localStorage.getItem('tn_budget'));
+  const F24 = await page.evaluate(raw => {
+    const E = window.Expense, T = 'zz-plan24';
+    const free = E.add(E.FREE_ID, 3, '12.34', '餐饮', '阿明', '没排行程也能记', '2026-12-01');
+    const bad = E.add(T, 1, '9.99', '交通', '', '日期形状不合法', '2026-1-5');
+    const out = {
+      freeId: free && free.tripId, freeCents: free && free.cents, freeDate: free && free.date, freeDay: free && free.day,
+      freeTotal: E.totalCents(E.FREE_ID),
+      tripTotal: E.totalCents(T),
+      badDate: bad && bad.date, badCents: bad && bad.cents,
+      budget: E.setBudget(E.FREE_ID, '50'), budgetOf: E.budgetOf(E.FREE_ID),
+      over: E.overCents(E.FREE_ID),
+      cleared: E.clearTrip(E.FREE_ID), gone: E.totalCents(E.FREE_ID),
+      budgetGone: Object.prototype.hasOwnProperty.call(JSON.parse(localStorage.getItem('tn_budget') || '{}'), E.FREE_ID)
+    };
+    localStorage.setItem('tn_expense', raw);
+    return out;
+  }, RAW24);
+  ok('A76 未编排行程桶（free）：没有 trip 也能记上一笔，金额照样进整数分、日期照形状落盘，显示名是「未编排行程」',
+    F24.freeId === 'free' && F24.freeCents === 1234 && F24.freeDate === '2026-12-01' && F24.freeDay === 3 &&
+    M24.freeId === 'free' && M24.freeName === '未编排行程',
+    JSON.stringify([F24.freeId, F24.freeCents, F24.freeDate, F24.freeDay, M24.freeName]));
+  ok('A77 free 桶单独成账：它的合计只有它自己那笔，另一趟的合计也只有那一趟的（入口豁免 ≠ 账混桶）',
+    F24.freeTotal === 1234 && F24.tripTotal === 999, 'free ' + F24.freeTotal + ' / 另一桶 ' + F24.tripTotal);
+  ok('A78 非法形状的第 7 参不落盘：date 记空串进「日期未知」，而不是硬凑一个日期',
+    F24.badDate === '' && F24.badCents === 999, JSON.stringify([F24.badDate, F24.badCents]));
+  ok('A79 预算与超支对 free 桶同样成立（这是「从不规划的人」唯一的口径），清桶时预算键跟着走不留档',
+    F24.budget === 5000 && F24.budgetOf === 5000 && F24.over === 0 && F24.cleared >= 1 && F24.gone === 0 && !F24.budgetGone,
+    '预算 ' + F24.budget + ' / 清掉 ' + F24.cleared + ' 笔 / 残留 ' + F24.gone + ' / 预算键在=' + F24.budgetGone);
+  await page.evaluate(o => {
+    localStorage.setItem('tn_expense', o.exp); localStorage.setItem('tn_budget', o.bud);
+  }, { exp: RAW24, bud: RAWB24 });
+
+  const A24 = await page.evaluate(() => {
+    const E = window.Expense;
+    const tr = id => ({ id: id, name: id, startDate: '2026-11-08', days: [[], [], []] });
+    const inRange = E.activeTripOf([tr('a')], '2026-11-09');
+    const lastDay = E.activeTripOf([tr('a')], '2026-11-10');
+    const outRange = E.activeTripOf([tr('a')], '2026-11-11');
+    const beforeStart = E.activeTripOf([tr('a')], '2026-11-07');
+    const overlap = E.activeTripOf([tr('a'), { id: 'b', startDate: '2026-11-09', days: [[], []] }], '2026-11-09');
+    const noStart = E.activeTripOf([{ id: 'c', days: [[], []] }], '2026-11-09');
+    const empty = E.activeTripOf([], '2026-11-09');
+    const real = E.activeTripOf([{ id: 'd', startDate: '2026-11-08', days: [[], [], []], realDays: 6 }], '2026-11-13');
+    const log = E.activeTripOf([{ id: 'e', startDate: '2026-11-08', days: [[], [], []], logStart: '2026-11-10' }], '2026-11-09');
+    const logIn = E.activeTripOf([{ id: 'e', startDate: '2026-11-08', days: [[], [], []], logStart: '2026-11-10' }], '2026-11-10');
+    const dayNum = E.activeDayOf({ id: 'f', logStart: '2026-11-10', startDate: '2026-11-08', days: [[], [], []] }, '2026-11-11');
+    const dayNull = E.activeDayOf(null, '2026-11-11');
+    const dayNo = E.activeDayOf({ id: 'g', days: [[], []] }, '2026-11-11');
+    return {
+      inRange: inRange && inRange.id, lastDay: lastDay && lastDay.id,
+      outRange: !!outRange, beforeStart: !!beforeStart, overlap: overlap && overlap.id,
+      noStart: !!noStart, empty: !!empty, real: real && real.id, log: !!log, logIn: logIn && logIn.id,
+      dayNum: dayNum, dayNull: dayNull, dayNo: dayNo
+    };
+  });
+  ok('A80 进行中判定按区间闭合：出发日与最后一天都算在内，早于出发和结束次日一律判不出',
+    A24.inRange === 'a' && A24.lastDay === 'a' && !A24.outRange && !A24.beforeStart,
+    JSON.stringify([A24.inRange, A24.lastDay, A24.outRange, A24.beforeStart]));
+  ok('A81 多趟重叠取最近开始的那趟；猜错行程＝把钱记到另一趟头上，判不出（无出发日／空列表）返回空让调用方落到选择器',
+    A24.overlap === 'b' && !A24.noStart && !A24.empty,
+    '重叠→' + A24.overlap + ' / 无出发日→' + A24.noStart + ' / 空列表→' + A24.empty);
+  ok('A82 实际口径优先于计划口径：logStart 存在时按它判（计划 11-08 出发、实际 11-10 才走，11-09 不算进行中）；realDays 比 days.length 长时按实走天数',
+    !A24.log && A24.logIn === 'e' && A24.real === 'd',
+    JSON.stringify([A24.log, A24.logIn, A24.real]));
+  ok('A83 activeDayOf 反推第几天按 logStart 不按 startDate；没有行程／没有出发日返回 0 而不是 1',
+    A24.dayNum === 2 && A24.dayNull === 0 && A24.dayNo === 0,
+    A24.dayNum + ' / ' + A24.dayNull + ' / ' + A24.dayNo);
+
   ok('A62 全程零页面报错', errs.length === 0, errs.slice(0, 3).join(' | '));
   ok('A63 全程零原生 confirm/alert（所有破坏性操作都走 UI.confirm）',
     await page.evaluate(() => window.__native) === 0, String(await page.evaluate(() => window.__native)));

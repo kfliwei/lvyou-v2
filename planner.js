@@ -1104,6 +1104,7 @@
       days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站 · 约 ' +
       Math.round(days.reduce(function (s, d) { return s + d.driveKm; }, 0)) + ' km';
     var lk = $id('lkSlot'); if (lk) lk.innerHTML = lockedHint();
+    var ed = $id('expDriftSlot'); if (ed) ed.innerHTML = expDriftHint();
     var h = '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-bottom:4px">' +
       rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
       (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>' +
@@ -1288,10 +1289,13 @@
     var yuan = amt ? amt.value : '';
     var n = Number(yuan);
     if (!isFinite(n) || n <= 0) { toast('先填一个大于 0 的金额'); if (amt) amt.focus(); return; }
+    /* 第 7 个参数＝这一天的真实日期（有计划日期就给，没有就空着）。
+       钱一旦带上日期，后面「重新排期／上下移／换档」都搬不动它挂在第几天。 */
     var it = Expense.add(expTripId(), di + 1, yuan,
       lump ? '其他' : expCatNow(),
       lump ? '' : ($id('exWho') || {}).value,
-      lump ? '全天一笔带过' : (($id('exNote') || {}).value || ''));
+      lump ? '全天一笔带过' : (($id('exNote') || {}).value || ''),
+      dayDate(trip, di));
     if (!it) return;   /* 写满时 Expense.save 已经如实报过一句，不再叠第二句 */
     toast('已记 ' + Expense.fmtMoney(it.cents) + ' 元 · ' + it.cat);
     state.expEdit = -1; state.expLump = 0;
@@ -1379,7 +1383,7 @@
       '<button class="btn' + (icsOn ? '' : ' ghost') + '"' + (icsOn ? '' : ' style="opacity:.55"') + ' onclick="window.plannerExportIcs()">' + (icsOn ? '导出日历' : '导出日历（要先在上方选出发日期）') + '</button>' +
       '<button class="btn" onclick="window.plannerBuildBook()">'+TI('book')+'导出路书</button>' +
       '<button class="btn" onclick="window.plannerBuildAlbum()">'+TI('gallery')+'生成纪念册</button>' +
-      '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button><span id="lkSlot">' + lockedHint() + '</span>' +
+      '<button class="btn" onclick="window.plannerReschedule()">↻ 重新排期</button><span id="lkSlot">' + lockedHint() + '</span><span id="expDriftSlot">' + expDriftHint() + '</span>' +
       '<button class="btn ghost" onclick="window.plannerEditPick()">'+TI('edit')+'编辑选点</button>' +
       '<button class="btn ghost" onclick="window.plannerOpenFootprint()">'+TI('map')+'足迹地图</button>';
     renderMap();
@@ -2155,6 +2159,16 @@
   function lockedHint() {
     var n = lockedCount();
     return n ? '<span class="lk-hint">' + TI('pinned', 13) + n + ' 站已锁定 · 自动重排不参与</span>' : '';
+  }
+  /* 批次 24-A：没填出发日期时，钱只能按「第几天」归档，而重切分改的正是「第几天里有哪些站」。
+     填上出发日期＝每笔按真实日期钉住，之后怎么重排都不挪。所以提示只在真会挪的时候出现。 */
+  function expDriftHint() {
+    var t = state.trip; if (!t) return '';
+    if (Expense.isoOf(t.startDate)) return '';
+    var u = Expense.undated(ensureTripId(t));
+    if (!u.n) return '';
+    return '<span class="lk-hint">' + TI('warn', 13) + u.n + ' 笔共 ' + Expense.fmtMoney(u.cents) +
+      ' 元没记日期：填上出发日期，它们就按真实日期钉住、重排期不挪</span>';
   }
   window.plannerReschedule = function () {
     /* 打开排期向导（步骤可回退调整） */
