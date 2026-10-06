@@ -751,7 +751,7 @@ button,a,.chip,.btn,.tabbar button,.bottom-nav__item,.bottom-nav__fab{touch-acti
 .sheet__handle{width:34px;height:4px;margin:6px auto 20px;border-radius:999px;background:rgba(32,32,29,.18)}
 /* 弹层右上角关闭：节点由 ui.js 的 UI.sheet 单点生成（见 ensureX），这里只管长相。
    float 让首行标题绕开它，40×40 是这枚控件的命中区（图标本身 14px）。 */
-.ui-sheet-x{float:right;width:40px;height:40px;margin:-2px -6px 0 0;padding:0;border:0;border-radius:999px;background:rgba(32,32,29,.07);color:var(--color-ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:2;transition:transform var(--motion-tap) var(--ease-pop),background var(--motion-fast)}
+.ui-sheet-x{float:right;width:44px;height:44px;margin:-4px -8px 0 0;padding:0;border:0;border-radius:999px;background:rgba(32,32,29,.07);color:var(--color-ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:2;transition:transform var(--motion-tap) var(--ease-pop),background var(--motion-fast)}
 .ui-sheet-x:active{transform:scale(.92);background:rgba(32,32,29,.13)}
 @keyframes sheet-up{from{opacity:0;transform:translateY(35px)}to{opacity:1;transform:translateY(0)}}
 

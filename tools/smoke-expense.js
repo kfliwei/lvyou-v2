@@ -5,6 +5,10 @@
  * 直接断言落盘值是整数分且精确等于 3333/3333/3334。
  * 判据取自 DOM 与 localStorage 实况 + 真调 Expense 的结果；源码锚点是 verify.js §32 的活。
  * 视口 452×995 = 一加 Ace 6T 真机档；末尾另验 1440×900 双栏档。
+ * A64–A104 是批次 24：A64–A83 验数据层（date 权威、只读派生迁移、free 桶、进行中推断），
+ * A84–A104 验 expense.html 这张独立主页——它不开规划页也能走完「选桶 → 记一笔 → 按日期看 →
+ * 预算 → 导出 CSV → 删除」，并在 328×723 真机主档下量几何；A95 那一条盯的是页面自己的同步：
+ * 记完一笔顶部年总必须跟着走，停在 0.00 就等于告诉用户「这页没记住」。
  * 用法: NODE_PATH=tools/node_modules node tools/smoke-expense.js
  */
 const puppeteer = require('puppeteer-core');
@@ -772,6 +776,278 @@ const setBudget = async (p, v) => {
   ok('A83 activeDayOf 反推第几天按 logStart 不按 startDate；没有行程／没有出发日返回 0 而不是 1',
     A24.dayNum === 2 && A24.dayNull === 0 && A24.dayNo === 0,
     A24.dayNum + ' / ' + A24.dayNull + ' / ' + A24.dayNo);
+
+  /* ================= 批次 24-B：expense.html 独立记账主页 =================
+     这一段验的是「页面」不是数据层：两态怎么切、认不出的 trip 会不会建桶、
+     记完一笔顶部年总有没有跟着走。年总那条是实测补的回归——renderTrip 原先不叫 renderYear，
+     记完一笔页面下方全变了、头顶那张卡还停在 0.00，看着就像「这页没记住」。 */
+  const PG = 'zz-page24';
+  const pg = await freshPage(browser, U('expense.html'), errs);
+  await sleep(200);
+  const P0 = await pg.evaluate(P => {
+    const q = s => document.querySelector(s);
+    const disp = s => getComputedStyle(q(s)).display;
+    return {
+      label: q('#tripLabel').textContent,
+      year: q('#yearSum').textContent,
+      pick: disp('#pickCard'), trip: disp('#tripWrap'), foot: disp('#xFoot'), empty: disp('#xEmpty'),
+      picks: Array.prototype.map.call(document.querySelectorAll('.trip-pick'), r => r.getAttribute('data-id')),
+      keys: Object.keys(localStorage).filter(k => /^tn_/.test(k)).sort()
+    };
+  });
+  ok('A84 本机一台行程也没有：选择器态照样给得出「未编排行程」这一行（不排行程的人也有入口），单趟卡／底栏／整页空态都收着',
+    P0.pick === 'block' && P0.trip === 'none' && P0.foot === 'none' && P0.empty === 'none' &&
+    P0.picks.length === 1 && P0.picks[0] === 'free' && P0.year === '0.00',
+    JSON.stringify(P0));
+  /* 造一趟 3 天行程 + 四笔账：老账只带 day、出发前一笔、计划内一笔、多走两天一笔 */
+  await pg.evaluate(P => {
+    localStorage.setItem('tn_trips', JSON.stringify([
+      { id: P, name: '页面趟', startDate: '2026-11-08', days: [{}, {}, {}] }
+    ]));
+    localStorage.setItem('tn_expense', JSON.stringify([
+      { id: 'o1', tripId: P, day: 1, date: '', cents: 1500, cat: '交通', who: '', note: '老账没日期', ts: 1 },
+      { id: 'p1', tripId: P, day: 1, date: '2026-11-05', cents: 2000, cat: '其他', who: '我', note: '买装备', ts: 2 },
+      { id: 'r1', tripId: P, day: 2, date: '2026-11-09', cents: 4000, cat: '门票', who: '', note: '', ts: 3 },
+      { id: 'q1', tripId: P, day: 5, date: '2026-11-12', cents: 3000, cat: '餐饮', who: '', note: '多走的那天', ts: 4 }
+    ]));
+  }, PG);
+  const SEED24 = await pg.evaluate(() => localStorage.getItem('tn_expense'));
+  /* 认不出的 trip：绝不拿它建桶（孤儿桶在 localStorage 里是无界攒的） */
+  await pg.goto(U('expense.html?trip=zz-nope-404'), { waitUntil: 'domcontentloaded' });
+  await sleep(180);
+  const U404 = await pg.evaluate(() => ({
+    label: document.getElementById('tripLabel').textContent,
+    empty: getComputedStyle(document.getElementById('xEmpty')).display,
+    foot: getComputedStyle(document.getElementById('xFoot')).display,
+    switch_: getComputedStyle(document.getElementById('xSwitchWrap')).display,
+    raw: localStorage.getItem('tn_expense')
+  }));
+  ok('A85 URL 上的 ?trip= 在这台机认不出来：走整页空态＋给「换一趟」，底栏收着，盘上一个字节没动（不拿陌生 id 建桶）',
+    U404.label === '没找到这趟行程' && U404.empty === 'block' && U404.foot === 'none' &&
+    U404.switch_ === 'block' && U404.raw === SEED24, 'raw变了=' + (U404.raw !== SEED24));
+
+  await pg.goto(U('expense.html?trip=' + PG), { waitUntil: 'domcontentloaded' });
+  await sleep(200);
+  const T1 = await pg.evaluate(() => {
+    const days = Array.prototype.map.call(document.querySelectorAll('.x-day'), d => {
+      const h = d.querySelector('.x-dayh');
+      return { date: h.querySelector('b').textContent, tag: h.querySelector('em') ? h.querySelector('em').textContent : '', sum: h.querySelector('span').textContent };
+    });
+    return {
+      trip: getComputedStyle(document.getElementById('tripWrap')).display,
+      foot: getComputedStyle(document.getElementById('xFoot')).display,
+      pick: getComputedStyle(document.getElementById('pickCard')).display,
+      label: document.getElementById('tripLabel').textContent,
+      days: days,
+      hint: document.querySelector('#xDays .x-hint') ? document.querySelector('#xDays .x-hint').textContent : '',
+      year: document.getElementById('yearSum').textContent,
+      ycount: document.getElementById('yearCount').textContent,
+      ynote: document.getElementById('yearNote').textContent,
+      bars: Array.prototype.map.call(document.querySelectorAll('.xbars .b'), b => b.innerText.replace(/\s+/g, ' ')),
+      count: document.getElementById('xCount').textContent
+    };
+  });
+  ok('A86 进单趟态：单趟卡与底栏出现、选择器收起、标题带上出发日期',
+    T1.trip === 'block' && T1.foot === 'block' && T1.pick === 'none' && /出发 2026-11-08/.test(T1.label),
+    JSON.stringify([T1.trip, T1.foot, T1.pick, T1.label]));
+  ok('A87 按真实日期成行、与排期排了几天无关：倒序四组，标签分别是「计划外／第2天／第1天／出发前」（早于出发≠记错地方）',
+    T1.days.length === 4 &&
+    T1.days.map(d => d.date).join(',') === '2026-11-12,2026-11-09,2026-11-08,2026-11-05' &&
+    T1.days.map(d => d.tag).join(',') === '计划外,第2天,第1天,出发前',
+    JSON.stringify(T1.days.map(d => d.date + ':' + d.tag)));
+  ok('A88 只带 day 的老账按出发日反推成组（2026-11-08），并在列尾如实说明「重排期会跟着挪天」',
+    T1.days[2].date === '2026-11-08' && /1 笔共 15\.00 元没写日期/.test(T1.hint) && /重排期会跟着挪天/.test(T1.hint),
+    T1.hint.slice(0, 70));
+  ok('A89 今年卡实时反映这一趟（4 笔 105.00），且没有「没写日期」的笔时如实说与排期无关',
+    T1.year === '105.00' && T1.ycount === '4 笔' && T1.count.indexOf('105.00') >= 0 &&
+    /与「排期排到第几天」无关/.test(T1.ynote) && !/没写日期/.test(T1.ynote),
+    JSON.stringify([T1.year, T1.ycount, T1.count, T1.ynote.slice(0, 40)]));
+  ok('A90 分类条形图六类固定顺序占位（零钱的分类也占一行，看着才像「确实没花在这一类」而不是漏了一类）',
+    T1.bars.length === 6 && /餐饮 30\.00/.test(T1.bars.join(' | ')) && /交通 15\.00/.test(T1.bars.join(' | ')),
+    T1.bars.join(' / '));
+
+  /* 预算：50 元 → 进度条顶满 + 改判超支（带 warn 图标） */
+  await pg.evaluate(() => {
+    var b = document.getElementById('xBud');
+    b.focus(); b.value = '50';
+    b.dispatchEvent(new Event('change'));
+  });
+  await sleep(200);
+  const BUD = await pg.evaluate(() => ({
+    w: document.getElementById('xBar').style.width,
+    over: document.getElementById('xOver').textContent,
+    cls: document.querySelector('#xOver .x-over') ? document.querySelector('#xOver .x-over').className : '',
+    svg: document.querySelectorAll('#xOver svg').length,
+    stored: localStorage.getItem('tn_budget')
+  }));
+  ok('A91 预算设 50 元：进度条顶到 100%、改判「已超预算 55.00 元」并挂 warn（不是默默变红），预算进账本是整数分',
+    BUD.w === '100%' && /已超预算 55\.00 元/.test(BUD.over) && /warn/.test(BUD.cls) && BUD.svg >= 1 &&
+    JSON.parse(BUD.stored)['zz-page24'] === 5000,
+    JSON.stringify(BUD));
+
+  /* 记一笔：弹层结构由 UI.sheet 单点补齐（页面没写 data-sheet-x，X 该由单点注入） */
+  await pg.click('#fAdd'); await sleep(350);
+  const SH = await pg.evaluate(() => {
+    const s = document.getElementById('addSheet');
+    return {
+      disp: getComputedStyle(s).display, role: s.getAttribute('role'),
+      modal: s.getAttribute('aria-modal'), label: s.getAttribute('aria-label'),
+      x: s.querySelectorAll('.ui-sheet-x').length,
+      own: s.getAttribute('data-sheet-x'),
+      chips: Array.prototype.map.call(document.querySelectorAll('#adCats .chip'), c => c.textContent + (c.className.indexOf('on') >= 0 ? '*' : '')),
+      date: document.getElementById('adDate').value,
+      hint: document.getElementById('adHint').textContent
+    };
+  });
+  ok('A92 记一笔弹层走 UI.sheet 单点：role=dialog + aria-modal + 右上角 X 由单点注入一枚（页面没自行认领关闭控件）',
+    SH.disp === 'block' && SH.role === 'dialog' && SH.modal === 'true' && SH.label === '记一笔开销' &&
+    SH.x === 1 && SH.own === null, JSON.stringify(SH));
+  ok('A93 弹层里六枚分类 chip、只有默认那一枚选中（选中态是「餐饮」），日期默认今天——这一屏不需要先懂「第几天」也能记',
+    SH.chips.length === 6 && SH.chips.filter(c => /\*$/.test(c)).join('') === '餐饮*',
+    SH.chips.join(',') + ' / 日期=' + SH.date);
+
+  await pg.type('#adAmt', '38.5');
+  await pg.click('#adSave'); await sleep(350);
+  const ADD = await pg.evaluate(() => {
+    const l = JSON.parse(localStorage.getItem('tn_expense'));
+    const it = l[l.length - 1];
+    return {
+      disp: getComputedStyle(document.getElementById('addSheet')).display,
+      it: it, n: l.length,
+      year: document.getElementById('yearSum').textContent,
+      ycount: document.getElementById('yearCount').textContent,
+      count: document.getElementById('xCount').textContent,
+      dates: Array.prototype.map.call(document.querySelectorAll('.x-dayh b'), b => b.textContent)
+    };
+  });
+  ok('A94 记上一笔 38.5 元：落盘是整数分 3850 + 真实日期就是表单里那天（date 才是权威，day 只是对齐锚）',
+    ADD.n === 5 && ADD.it.cents === 3850 && /^\d{4}-\d{2}-\d{2}$/.test(ADD.it.date) &&
+    ADD.it.tripId === 'zz-page24' && ADD.it.cat === '餐饮', JSON.stringify(ADD.it));
+  ok('A95 记完弹层收起、按日期那一列立刻多出一行、顶部年总跟着走（停在 0.00 就是「这页没记住」）',
+    ADD.disp === 'none' && ADD.dates.length === 5 && ADD.year === '143.50' &&
+    ADD.ycount === '5 笔' && /143\.50/.test(ADD.count),
+    JSON.stringify([ADD.disp, ADD.dates.length, ADD.year, ADD.ycount, ADD.count]));
+
+  /* 删除：必须走 UI.confirm，原生 confirm 一次都不许被调 */
+  const NAT0 = await pg.evaluate(() => window.__native);
+  await pg.click('.x-row .del[data-id="r1"]'); await sleep(300);
+  const MODAL = await pg.evaluate(() => {
+    const m = document.querySelector('.ui-modal-mask .ui-modal');
+    return m ? { label: m.getAttribute('aria-label'), text: m.querySelector('.ui-modal-text').textContent,
+      ok: m.querySelector('.ui-btn-primary').textContent } : null;
+  });
+  await pg.click('.ui-modal-mask .ui-btn-primary'); await sleep(300);
+  const DELP = await pg.evaluate(() => ({
+    ids: JSON.parse(localStorage.getItem('tn_expense')).map(x => x.id).join(','),
+    year: document.getElementById('yearSum').textContent,
+    rows: document.querySelectorAll('.x-row').length,
+    native: window.__native
+  }));
+  ok('A96 删除这一笔走 UI.confirm（原生 confirm 全程 0 次），文案如实说「删了就找不回来」，确认钮写着「删除」',
+    !!MODAL && MODAL.label === '删除这笔' && /删了就找不回来/.test(MODAL.text) && MODAL.ok === '删除' &&
+    NAT0 === 0 && DELP.native === 0, JSON.stringify(MODAL) + ' native=' + DELP.native);
+  ok('A97 删完这一笔：账本里没 r1 了、按日期少一行、年总跟着减 40.00（三处读数必须来自同一份账）',
+    DELP.ids.indexOf('r1') < 0 && DELP.rows === 4 && DELP.year === '103.50',
+    JSON.stringify([DELP.ids, DELP.rows, DELP.year]));
+
+  /* Esc 关闭：UI.sheet 单点的职责，但只有真页面上才验得出「这一页确实把弹层交给了单点」 */
+  await pg.click('#fAdd'); await sleep(350);
+  await pg.keyboard.press('Escape'); await sleep(300);
+  const ESC = await pg.evaluate(() => ({
+    disp: getComputedStyle(document.getElementById('addSheet')).display,
+    expanded: (document.querySelector('#fAdd') || {}).getAttribute ? document.querySelector('#fAdd').getAttribute('aria-expanded') : null
+  }));
+  ok('A98 Esc 能关掉记一笔（弹层交给了 UI.sheet 单点，不是页面自己 classList 一塞了之），开过的触发元素 aria-expanded 已回收',
+    ESC.disp === 'none' && ESC.expanded !== 'true', JSON.stringify(ESC));
+
+  /* CSV：浏览器走 Blob 腿；文件名带行程名，日期列是每笔自己那个真实日期 */
+  await pg.click('#fCsv'); await sleep(300);
+  const CSVP = await pg.evaluate(async () => {
+    const b = window.__cap[window.__cap.length - 1];
+    const txt = b ? await new Response(b).text() : '';
+    return { dl: window.__dl.slice(-1)[0] || '', txt: txt };
+  });
+  ok('A99 导出 CSV 走 Blob 腿：文件名是「页面趟-开销.csv」，日期列优先条目自带的真实日期（2026-11-12 那一笔不再写成计划第几天）',
+    CSVP.dl === '页面趟-开销.csv' && /日期,第几天,分类,金额\(元\),垫付人,备注/.test(CSVP.txt) &&
+    /^2026-11-12,第5天,餐饮,30\.00,/m.test(CSVP.txt) && /合计,103\.50/.test(CSVP.txt),
+    CSVP.dl + ' | ' + CSVP.txt.replace(/^﻿/, '').split('\r\n').slice(0, 3).join(' ⏎ ').slice(0, 150));
+
+  /* 未编排行程桶：这一页最短路径（本机零行程也能记） */
+  await pg.goto(U('expense.html'), { waitUntil: 'domcontentloaded' }); await sleep(200);
+  await pg.click('.trip-pick[data-id="free"]'); await sleep(200);
+  const FSTATE = await pg.evaluate(() => ({
+    label: document.getElementById('tripLabel').textContent,
+    url: location.search,
+    hint: (document.querySelector('#xNone') || {}).textContent || ''
+  }));
+  ok('A100 点「未编排行程」直接进单趟态：标题写着桶名、URL 带上 trip=free、空桶提示明说不用先排行程',
+    FSTATE.label === '未编排行程' && FSTATE.url === '?trip=free' &&
+    /不用先排行程/.test(FSTATE.hint), JSON.stringify(FSTATE));
+  await pg.click('#fAdd'); await sleep(350);
+  const FHINT = await pg.evaluate(() => document.getElementById('adHint').textContent);
+  await pg.type('#adAmt', '20');
+  await pg.click('#adSave'); await sleep(350);
+  const FREE = await pg.evaluate(() => {
+    const l = JSON.parse(localStorage.getItem('tn_expense'));
+    return { last: l[l.length - 1], year: document.getElementById('yearSum').textContent,
+      ycount: document.getElementById('yearCount').textContent };
+  });
+  ok('A101 没排行程的人在这一页记上第 N 笔：落进 free 桶、带着今天的真实日期，年总把两桶一起算（103.50 + 20.00）',
+    FREE.last.tripId === 'free' && FREE.last.cents === 2000 && /^\d{4}-\d{2}-\d{2}$/.test(FREE.last.date) &&
+    /没有行程也能记/.test(FHINT) && FREE.year === '123.50' && FREE.ycount === '5 笔',
+    JSON.stringify([FREE.last, FREE.year, FREE.ycount, FHINT.slice(0, 30)]));
+  /* 反推不出日期的笔不进任何年份，但页面上必须如实报有多少（宁可少算，少算要看得见） */
+  await pg.evaluate(() => {
+    const l = JSON.parse(localStorage.getItem('tn_expense'));
+    l.push({ id: 'z1', tripId: 'free', day: 2, date: '', cents: 7700, cat: '购物', who: '', note: '忘了哪天', ts: 9 });
+    localStorage.setItem('tn_expense', JSON.stringify(l));
+  });
+  await pg.goto(U('expense.html'), { waitUntil: 'domcontentloaded' }); await sleep(200);
+  const UNP = await pg.evaluate(() => ({
+    year: document.getElementById('yearSum').textContent,
+    note: document.getElementById('yearNote').textContent,
+    und: Array.prototype.map.call(document.querySelectorAll('.x-dayh b'), b => b.textContent)
+  }));
+  ok('A102 年总不拿记账那天冒充花钱那天：那笔没日期的 free 账不进年份（123.50 不动），但年卡如实报「1 笔共 77.00 元没写日期」',
+    UNP.year === '123.50' && /1 笔共 77\.00 元没写日期/.test(UNP.note),
+    JSON.stringify([UNP.year, UNP.note.slice(0, 60)]));
+
+  /* 真机主档 328×723：横向零溢出，触控目标除共享顶栏返回键外不小于 44px */
+  await pg.setViewport({ width: 328, height: 723, isMobile: true, hasTouch: true });
+  await pg.goto(U('expense.html?trip=' + PG), { waitUntil: 'domcontentloaded' }); await sleep(250);
+  await pg.click('#fAdd'); await sleep(400);
+  const GEOP = await pg.evaluate(() => {
+    const de = document.documentElement;
+    const over = [];
+    document.querySelectorAll('*').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return;
+      if (r.right > de.clientWidth + 1 || r.left < -1) over.push((el.id || el.className) + '@' + Math.round(r.right));
+    });
+    /* 44px 只审这一页自己的控件：顶栏那枚 40px 返回键与圆钮是全站同一个 .topbar，
+       要改是全站一起改（不在这批顺手改一个页面造成两种顶栏），这里单独读数、单独断言。 */
+    const own = [];
+    document.querySelectorAll('.wrap button, .wrap input, #xFoot button, #addSheet button, #addSheet input, #addSheet .chip').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.height > 0 && r.height < 44) own.push((el.id || el.className) + '=' + Math.round(r.height));
+    });
+    const tb = [];
+    document.querySelectorAll('.topbar button, .topbar a').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.height > 0) tb.push(Math.round(r.height));
+    });
+    const s = document.getElementById('addSheet').getBoundingClientRect();
+    return { sw: de.scrollWidth, cw: de.clientWidth, over: over.slice(0, 6), own: own.slice(0, 6), tb: tb,
+      sheetTop: Math.round(s.top), sheetBottom: Math.round(s.bottom), vh: window.innerHeight };
+  });
+  ok('A103 真机主档 328×723：记一笔弹层升起后横向零溢出、弹层不越出视口（顶满到屏外＝按不到「记上」）',
+    GEOP.sw === GEOP.cw && GEOP.over.length === 0 && GEOP.sheetTop >= 0 && GEOP.sheetBottom <= GEOP.vh + 1,
+    JSON.stringify(GEOP));
+  ok('A104 这一页自己的控件在 328 档没有一个矮于 44px（金额框 56 / chip 与钮 44 是设计口径；顶栏仍是全站同一个 40 圆钮，不在这页私改）',
+    GEOP.own.length === 0 && GEOP.tb.join(',') === '40,40', JSON.stringify([GEOP.own, GEOP.tb]));
+
+  await pg.evaluate(() => { try { localStorage.removeItem('tn_expense'); localStorage.removeItem('tn_budget'); localStorage.removeItem('tn_trips'); } catch (e) {} });
+  await pg.evaluate(o => { localStorage.setItem('tn_expense', o.exp); localStorage.setItem('tn_budget', o.bud); }, { exp: RAW24, bud: RAWB24 });
 
   ok('A62 全程零页面报错', errs.length === 0, errs.slice(0, 3).join(' | '));
   ok('A63 全程零原生 confirm/alert（所有破坏性操作都走 UI.confirm）',

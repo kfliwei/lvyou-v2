@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开销记账 · 行迹</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="design.css">
+<style>
+  html,body{min-height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
+  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 112px}
+  .card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:20px;padding:18px;margin-bottom:14px}
+  .ph{display:flex;align-items:center;gap:8px;font-size:var(--fs-2);font-weight:700;letter-spacing:.22em;color:var(--color-muted);margin:0 0 12px}
+  .ph::before{content:"";width:14px;height:3px;border-radius:99px;flex:0 0 auto;background:var(--grad-gold)}
+  .note{font-size:var(--fs-2);color:var(--color-muted);line-height:1.7;margin:8px 0 0}
+  .none-tip{font-size:var(--fs-3);color:var(--color-muted);line-height:1.8;padding:6px 2px 2px}
+  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop)}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
+  .btn.ghost{background:transparent}
+  /* 今年：这页的第一眼是「今年花到哪了」，不是某一天的账 */
+  .x-year{display:flex;align-items:baseline;gap:6px}
+  .x-year b{font-family:var(--font-serif);font-size:var(--fs-11);font-weight:400;line-height:1.1;font-variant-numeric:tabular-nums}
+  .x-year i{font-style:normal;font-size:var(--fs-4);color:var(--color-muted)}
+  .x-year small{margin-left:auto;font-size:var(--fs-3);color:var(--color-muted)}
+  /* 行程选择器：与 checklist.html 同一套行版式（这页认的是「哪一趟」，不是「哪一天」） */
+  .trip-pick{display:flex;align-items:center;gap:10px;padding:13px 4px;border-bottom:1px solid var(--color-line);cursor:pointer}
+  .trip-pick:last-child{border-bottom:0}
+  .trip-pick .main{flex:1;min-width:0}
+  .trip-pick .main b{display:block;font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400}
+  .trip-pick .main small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;line-height:1.6}
+  .trip-pick .amt{flex:0 0 auto;text-align:right;font-size:var(--fs-4);font-variant-numeric:tabular-nums;color:var(--color-ink-soft)}
+  .trip-pick .arr{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6)}
+  /* 汇总：进度条与「出发前」卡同一把尺子 */
+  .phead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .pbar{flex:1;height:4px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .pbar i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);width:0;transition:width var(--motion-mid) var(--ease-out)}
+  .pcount{flex:0 0 auto;font-size:var(--fs-2);color:var(--color-muted)}
+  .x-over{display:flex;align-items:center;gap:7px;margin:10px 0 0;font-size:var(--fs-3);line-height:1.6}
+  .x-over.warn{color:var(--color-danger)}
+  .x-over.ok{color:var(--color-muted)}
+  .x-bud{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .x-bud label{flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted)}
+  .x-bud input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--color-line-strong);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4);font-variant-numeric:tabular-nums}
+  .x-bud u{text-decoration:none;flex:0 0 auto;font-size:var(--fs-3);color:var(--color-muted)}
+  .xbars{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+  .xbars .b{display:flex;align-items:center;gap:9px;font-size:var(--fs-2)}
+  .xbars .b .n{flex:0 0 2.4em;color:var(--color-muted)}
+  .xbars .b .t{flex:1;height:8px;border-radius:99px;background:var(--color-bg-soft);overflow:hidden}
+  .xbars .b .t i{display:block;height:100%;border-radius:99px;background:var(--grad-primary);transition:width var(--motion-mid) var(--ease-out)}
+  .xbars .b .v{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--color-ink-soft)}
+  /* 按真实日期分组的一列：有账的日期就有一行，与排期排了几天无关 */
+  .x-day{border-top:1px solid var(--color-line);padding:12px 2px 2px;margin-top:10px}
+  .x-day:first-child{border-top:0;margin-top:0;padding-top:2px}
+  .x-dayh{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+  .x-dayh b{font-family:var(--font-serif);font-size:var(--fs-6);font-weight:400}
+  .x-dayh em{font-style:normal;font-size:var(--fs-2);color:var(--color-primary-dark);background:var(--color-bg-soft);border-radius:999px;padding:2px 9px}
+  .x-dayh span{margin-left:auto;font-size:var(--fs-3);color:var(--color-muted);font-variant-numeric:tabular-nums}
+  .x-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--color-line);font-size:var(--fs-3)}
+  .x-row:last-child{border-bottom:0}
+  .x-row .cat{flex:0 0 auto;color:var(--color-primary-dark)}
+  .x-row .money{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600}
+  .x-row .txt{flex:1;min-width:0;color:var(--color-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .x-row .del{width:44px;height:44px;flex:0 0 auto;border:0;border-radius:12px;background:transparent;color:var(--color-muted);display:grid;place-items:center;cursor:pointer;padding:0}
+  .x-row .del:active{background:var(--color-bg-soft)}
+  /* 底部固定「记一笔」：这页唯一的主操作，品牌色独占 */
+  .x-foot{position:fixed;z-index:60;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:var(--glass-bar);backdrop-filter:var(--blur-bar);-webkit-backdrop-filter:var(--blur-bar);border-top:1px solid var(--color-line)}
+  .x-foot .rowb{display:flex;gap:8px;max-width:520px;margin:0 auto}
+  .x-foot .btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .x-foot .btn.ghost{flex:0 0 auto}
+  #addSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-height:82dvh;overflow-y:auto;background:var(--color-surface);border:1px solid var(--color-line);border-radius:24px;box-shadow:var(--shadow-float);padding:16px 16px 14px;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard)}
+  #addSheet.show{display:block;transform:translateY(0)}
+  .theme-dark #addSheet{background:var(--color-surface);border-color:var(--color-line)}
+  .sht-t{font-family:var(--font-serif);font-size:var(--fs-7);margin:2px 0 12px}
+  .x-amtrow{display:flex;align-items:baseline;gap:8px}
+  /* 金额是这一屏的主角：字大到不需要看键盘也能按对（数字键盘直落） */
+  .x-amt{flex:1;min-width:0;min-height:56px;padding:0 14px;border:1px solid var(--color-line-strong);border-radius:14px;background:var(--color-bg);color:var(--color-ink);font-size:var(--fs-10);font-variant-numeric:tabular-nums}
+  .x-amt:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
+  .x-unit{flex:0 0 auto;font-size:var(--fs-5);color:var(--color-muted)}
+  .x-cats{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .x-cats .chip{min-height:44px}
+  .x-fields{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .x-fields label{flex:1 1 46%;min-width:0;display:flex;flex-direction:column;gap:4px;font-size:var(--fs-2);color:var(--color-muted)}
+  .x-fields input{min-width:0;height:44px;padding:0 12px;border:1px solid var(--color-line);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4)}
+  .x-fields .wide{flex:1 1 100%}
+  .x-acts{display:flex;gap:8px;margin-top:14px}
+  .x-acts .btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .x-acts .btn.ghost{flex:0 0 auto}
+  .x-hint{font-size:var(--fs-2);color:var(--color-muted);margin-top:9px;line-height:1.6}
+  .chip{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 13px;min-height:34px;border-radius:999px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-3);cursor:pointer}
+  .chip.on{background:var(--color-primary);border-color:transparent;color:#fff;font-weight:600}
+  .empty-line{text-align:center;padding:56px 20px;color:var(--color-muted)}
+  .empty-line .em{font-family:var(--font-serif);font-size:var(--fs-9);color:var(--color-ink-soft);line-height:1.8}
+  .empty-line p{font-size:var(--fs-4);margin-top:10px;line-height:1.8}
+  .empty-line a{color:var(--color-primary-dark);font-size:var(--fs-5);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="t-row">
+    <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
+    <div class="title">开销记账 <small id="tripLabel">还没选定行程</small></div>
+    <a href="planner.html" aria-label="行程规划" style="flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);text-decoration:none"><svg class="ti" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-route"/></svg></a>
+  </div>
+</header>
+<div class="wrap">
+
+  <div class="card" id="yearCard">
+    <div class="ph">今年</div>
+    <div class="x-year"><b id="yearSum">0.00</b><i>元</i><small id="yearCount"></small></div>
+    <div class="note" id="yearNote"></div>
+  </div>
+
+  <div class="card" id="pickCard" style="display:none">
+    <div class="ph">哪一趟行程</div>
+    <div id="pickList"></div>
+  </div>
+
+  <div id="tripWrap" style="display:none">
+    <div class="card">
+      <div class="ph">这趟的账</div>
+      <div class="phead"><span class="pbar"><i id="xBar"></i></span><span class="pcount" id="xCount"></span></div>
+      <div id="xOver"></div>
+      <div class="x-bud">
+        <label for="xBud">预算</label>
+        <input id="xBud" type="text" inputmode="decimal" autocomplete="off" placeholder="不设" aria-label="预算（元）">
+        <u class="x-unit">元</u>
+      </div>
+      <div class="xbars" id="xBars"></div>
+    </div>
+
+    <div class="card">
+      <div class="ph">按日期</div>
+      <div id="xDays"></div>
+      <div class="none-tip" id="xNone" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="empty-line" id="xEmpty" style="display:none">
+    <div class="em">钱花在哪，<br>得有个地方记。</div>
+    <p>这页不需要先排行程：选一趟，或者直接记到「未编排行程」。</p>
+    <a href="planner.html">去规划一页 →</a>
+    <p id="xSwitchWrap" style="display:none"><a id="xSwitch" href="#">换一趟行程 →</a></p>
+  </div>
+
+</div>
+
+<div class="x-foot" id="xFoot" style="display:none">
+  <div class="rowb">
+    <button class="btn ghost" id="fCsv">导出 CSV</button>
+    <button class="btn primary" id="fAdd">记一笔</button>
+  </div>
+</div>
+
+<div id="addSheet">
+  <div class="sht-t">记一笔</div>
+  <div class="x-amtrow">
+    <input class="x-amt" id="adAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" aria-label="金额（元）" autocomplete="off">
+    <span class="x-unit">元</span>
+  </div>
+  <div class="x-cats" id="adCats"></div>
+  <div class="x-fields">
+    <label>日期<input id="adDate" type="date" aria-label="花钱的日期"></label>
+    <label>谁付的<input id="adWho" type="text" maxlength="20" placeholder="可选" aria-label="垫付人" autocomplete="off"></label>
+    <label class="wide">备注<input id="adNote" type="text" maxlength="60" placeholder="可选，例如「索道往返」" aria-label="备注" autocomplete="off"></label>
+  </div>
+  <div class="x-acts">
+    <button class="btn ghost" id="adCancel">取消</button>
+    <button class="btn primary" id="adSave">记上</button>
+  </div>
+  <div class="x-hint" id="adHint"></div>
+</div>
+
+<script src="icons.js"></script>
+<script src="ui.js"></script>
+<script src="expense.js"></script>
+<script>
+(function () {
+  function esc(s) { return window.UI.esc(s); }
+  function $(i) { return document.getElementById(i); }
+  var tripId = '', trip = null;
+
+  function readTrips() {
+    try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  }
+  function findTrip(id) {
+    if (id === Expense.FREE_ID) return { id: Expense.FREE_ID, name: Expense.FREE_NAME };
+    var list = readTrips();
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
+    /* 还没保存的行程：结果页跳转前把快照同步写进了 sessionStorage，同一标签页里能接上 */
+    try {
+      var snap = JSON.parse(sessionStorage.getItem('tn_planner_state') || 'null');
+      if (snap && snap.trip && snap.trip.id === id) return snap.trip;
+    } catch (e) {}
+    return null;
+  }
+  /* 这趟的「实际出发日」：logStart 优先于 startDate（排期只是参考时，钱要跟着真实那天走）。 */
+  function startOf(t) {
+    if (!t || t.id === Expense.FREE_ID) return '';
+    return Expense.isoOf(t.logStart) || Expense.isoOf(t.startDate);
+  }
+  function planDays(t) { return (t && t.id !== Expense.FREE_ID && t.days) ? t.days.length : 0; }
+
+  /* ---------- 导出通道：三条腿与日历同源（APK 下载目录 / 浏览器 Blob / 复制兜底） ----------
+     这份是页面本地副本：planner.js 里的 saveTextDoc 是它的私有函数，没导出；
+     两条腿的差别只在提示文案的出口（这里用 UI.toast）。 */
+  function fileSafeName(n) { return String(n || '行程').replace(/[\\/:*?"<>|]/g, '·').slice(0, 60) || '行程'; }
+  function saveTextDoc(fname, text, mime, okHint) {
+    if (window.AndroidVoice && AndroidVoice.saveTextFile) {
+      window.__tnSaveDone = function (r) {
+        if (r === 'err') UI.toast('文件没能写进下载目录');
+        else if (r === 'need_perm') UI.toast('要先允许存储权限，然后再点一次导出');
+        else UI.toast('已存到下载目录：' + fname + '，' + okHint);
+      };
+      try { AndroidVoice.saveTextFile(fname, text); } catch (e) { UI.toast('导出失败'); }
+      return;
+    }
+    try {
+      var blob = new Blob([text], { type: mime });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = fname;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 400);
+      UI.toast('已导出 ' + fname);
+    } catch (e) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          UI.toast('浏览器拦住了下载，已复制内容：粘贴到备忘录存成同名文件同样能用');
+        }, function () { UI.toast('下载与复制都没走通，请检查浏览器设置'); });
+      } else UI.toast('这台设备的浏览器既拦住了下载也没有剪贴板权限');
+    }
+  }
+
+  /* ---------- 选择器态 ---------- */
+  function renderYear() {
+    var y = String(new Date().getFullYear());
+    var st = Expense.yearCents(y, findTrip);
+    $('yearSum').textContent = Expense.fmtMoney(st.cents);
+    $('yearCount').textContent = st.count ? st.count + ' 笔' : '';
+    var und = 0, uc = 0, all = [];
+    try { all = JSON.parse(localStorage.getItem(Expense.KEY) || '[]'); } catch (e) { all = []; }
+    all.forEach(function (x) {
+      if (!x || Expense.isoOf(x.date)) return;
+      var t = findTrip(x.tripId);
+      if (startOf(t)) return;             /* 能从出发日反推的不算「没日期」 */
+      und++; uc += Math.round(Number(x.cents)) || 0;
+    });
+    $('yearNote').innerHTML = und
+      ? '按每笔上记的真实日期算。<b>' + und + ' 笔共 ' + Expense.fmtMoney(uc) + ' 元没写日期</b>，没算在这里头（宁可少算，也不拿记账那天的时间冒充花钱那天）。'
+      : '按每笔上记的真实日期算，与「排期排到第几天」无关。';
+  }
+  function renderPick() {
+    var list = readTrips().filter(function (t) { return t && t.id; });
+    var h = list.map(function (t) {
+      var c = Expense.totalCents(t.id), n = Expense.listOf(t.id).length;
+      return '<div class="trip-pick" data-id="' + esc(t.id) + '"><span class="main"><b>' + esc(t.name || '未命名行程') + '</b><small>' +
+        (startOf(t) ? '出发 ' + esc(startOf(t)) + ' · ' : '没填出发日期 · ') + planDays(t) + ' 天' +
+        (n ? ' · ' + n + ' 笔' : ' · 还没记账') + '</small></span>' +
+        '<span class="amt">' + (n ? Expense.fmtMoney(c) : '—') + '</span><span class="arr">›</span></div>';
+    }).join('');
+    var fc = Expense.totalCents(Expense.FREE_ID), fn = Expense.listOf(Expense.FREE_ID).length;
+    h += '<div class="trip-pick" data-id="' + esc(Expense.FREE_ID) + '"><span class="main"><b>' + esc(Expense.FREE_NAME) + '</b>' +
+      '<small>没有排期也能记：这一桶不属于任何一趟行程</small></span>' +
+      '<span class="amt">' + (fn ? Expense.fmtMoney(fc) : '—') + '</span><span class="arr">›</span></div>';
+    $('pickList').innerHTML = h;
+    var rows = $('pickList').querySelectorAll('.trip-pick');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].onclick = function () { open(this.getAttribute('data-id')); };
+    }
+    renderYear();
+    $('pickCard').style.display = 'block';
+    $('tripWrap').style.display = 'none';
+    $('xFoot').style.display = 'none';
+    $('xEmpty').style.display = 'none';
+    $('tripLabel').textContent = '还没选定行程';
+  }
+
+  /* ---------- 单趟态 ---------- */
+  function renderTrip() {
+    var tid = tripId, start = startOf(trip);
+    /* 今年这张卡跟着这趟的账一起重画：记完一笔只更新下面两卡，顶上的年总停在 0.00，
+       看着像「这页没记住」——它读的是全机所有桶，本来就不属于单趟的重绘范围，但必须被叫到。 */
+    renderYear();
+    var total = Expense.totalCents(tid), list = Expense.listOf(tid);
+    var budget = Expense.budgetOf(tid), over = Expense.overCents(tid);
+    $('tripLabel').textContent = (trip.name || '') + (start ? ' · 出发 ' + start : '');
+    $('xCount').textContent = list.length ? '共 ' + Expense.fmtMoney(total) + ' 元 · ' + list.length + ' 笔' : '还没记账';
+    var st = over ? 100 : (budget ? Math.min(100, Math.round(total / budget * 100)) : 0);
+    $('xBar').style.width = st + '%';
+    var oh = '';
+    if (over) oh = '<div class="x-over warn">' + TI('warn', 13) + '已超预算 ' + Expense.fmtMoney(over) + ' 元</div>';
+    else if (budget) oh = '<div class="x-over ok">预算 ' + Expense.fmtMoney(budget) + ' 元，还剩 ' + Expense.fmtMoney(budget - total) + ' 元</div>';
+    $('xOver').innerHTML = oh;
+    var bud = $('xBud');
+    /* 正在输入时不回写：change 到达时焦点还在框上，回写会把用户刚敲的数字按分位重排 */
+    if (bud && document.activeElement !== bud) bud.value = budget ? Expense.fmtMoney(budget) : '';
+    var cats = Expense.catTotals(tid), max = 0;
+    cats.forEach(function (c) { if (c.cents > max) max = c.cents; });
+    $('xBars').innerHTML = cats.map(function (c) {
+      return '<div class="b"><span class="n">' + esc(c.cat) + '</span><span class="t"><i style="width:' +
+        (max ? Math.round(c.cents / max * 100) : 0) + '%"></i></span><span class="v">' + Expense.fmtMoney(c.cents) + '</span></div>';
+    }).join('');
+    renderDays(start);
+    $('pickCard').style.display = 'none';
+    $('tripWrap').style.display = 'block';
+    $('xFoot').style.display = 'block';
+    $('xEmpty').style.display = 'none';
+  }
+  function renderDays(start) {
+    var groups = Expense.byDate(tripId, start), n = planDays(trip);
+    if (!groups.length) {
+      $('xDays').innerHTML = '';
+      $('xNone').style.display = 'block';
+      $('xNone').innerHTML = tripId === Expense.FREE_ID
+        ? '这一桶还是空的。下面「记一笔」直接记，不用先排行程。'
+        : '这趟还没记账。点下面「记一笔」，日期默认就是今天——排期只是参考的话，按真实那天记才对得上账。';
+      return;
+    }
+    $('xNone').style.display = 'none';
+    var und = Expense.undated(tripId);
+    $('xDays').innerHTML = groups.map(function (g) {
+      var d = Expense.dayFromStart(start, g.date);
+      /* 早于出发日期的那一档不是「计划外」，是「出发前」（买装备、体检、订金都在这档）。
+         把它并进计划外，等于告诉用户这笔钱记错了地方。 */
+      var tag;
+      if (!g.date) tag = '日期未知';
+      else if (!start) tag = '';
+      else if (!d) tag = '出发前';
+      else tag = (n && d <= n) ? '第' + d + '天' : '计划外';
+      return '<div class="x-day"><div class="x-dayh"><b>' + esc(g.date || '日期未知') + '</b>' +
+        (tag ? '<em>' + esc(tag) + '</em>' : '') +
+        '<span>' + Expense.fmtMoney(g.cents) + ' 元 · ' + g.count + ' 笔</span></div>' +
+        g.items.map(function (x) {
+          return '<div class="x-row"><span class="cat">' + esc(x.cat) + '</span><span class="money">' + Expense.fmtMoney(x.cents) + '</span>' +
+            '<span class="txt">' + esc([x.who, x.note].filter(Boolean).join(' · ')) + '</span>' +
+            '<button class="del" data-id="' + esc(x.id) + '" aria-label="删除这笔「' + esc(x.cat + ' ' + Expense.fmtMoney(x.cents) + ' 元') + '」">' + TI('close', 14) + '</button></div>';
+        }).join('') + '</div>';
+    }).join('') + (und.n && start ? '<div class="x-hint">' + TI('warn', 13) + ' ' + und.n + ' 笔共 ' + Expense.fmtMoney(und.cents) +
+      ' 元没写日期：它们按出发日期反推排在计划里，重排期会跟着挪天。点开这一笔补个真实日期就钉住了。</div>' : '');
+    var ds = $('xDays').querySelectorAll('.del');
+    for (var i = 0; i < ds.length; i++) {
+      ds[i].onclick = function () { del(this.getAttribute('data-id')); };
+    }
+  }
+  function render() { if (trip) renderTrip(); else renderPick(); }
+
+  function del(id) {
+    var it = null;
+    Expense.listOf(tripId).forEach(function (x) { if (x.id === id) it = x; });
+    if (!it) return;
+    UI.confirm({
+      title: '删除这笔', danger: true, okText: '删除',
+      text: '删除「' + it.cat + ' ' + Expense.fmtMoney(it.cents) + ' 元」这条记录？删了就找不回来。'
+    }, function (ok) {
+      if (!ok) return;
+      if (!Expense.remove(tripId, it.id)) return;
+      UI.toast('已删除这笔账');
+      render();
+    });
+  }
+
+  /* ---------- 记一笔 ---------- */
+  var pickCat = '餐饮';
+  function renderCats() {
+    $('adCats').innerHTML = Expense.CATS.map(function (c) {
+      return '<span class="chip' + (c === pickCat ? ' on' : '') + '" data-c="' + esc(c) + '" role="button" tabindex="0">' + esc(c) + '</span>';
+    }).join('');
+    var cs = $('adCats').querySelectorAll('.chip');
+    for (var i = 0; i < cs.length; i++) cs[i].onclick = function () { pickCat = this.getAttribute('data-c'); renderCats(); };
+  }
+  function openAdd() {
+    if (!trip) return;
+    renderCats();
+    var today = Expense.todayISO();
+    $('adAmt').value = '';
+    $('adDate').value = today;
+    $('adWho').value = ''; $('adNote').value = '';
+    var start = startOf(trip), d = Expense.dayFromStart(start, today), n = planDays(trip);
+    $('adHint').innerHTML = tripId === Expense.FREE_ID
+      ? '这一笔进「' + esc(Expense.FREE_NAME) + '」桶：没有行程也能记，预算与 CSV 单独算这一桶。'
+      : (!start
+        ? '这趟没填出发日期，所以这一笔只有真实日期可依据。它永远排在按日期的那一列里。'
+        : (!d
+          ? '记在 <b>' + today + '</b>（早于出发日期 ' + esc(start) + '，单列成「出发前」一行）。改一下日期就能补记路上那天。'
+          : (n && d <= n
+            ? '记在 <b>' + today + '</b>（计划的第 ' + d + ' 天）。改一下日期就能补记前一天。'
+            : '记在 <b>' + today + '</b>（晚于计划排期，单列成「计划外」一行）。排期只是参考，多走的那几天照样记得下。')));
+    sheet.open('记一笔开销');
+    setTimeout(function () { $('adAmt').focus(); }, 60);
+  }
+  function saveAdd() {
+    var n = Number($('adAmt').value);
+    if (!isFinite(n) || n <= 0) { UI.toast('先填一个大于 0 的金额'); $('adAmt').focus(); return; }
+    var date = Expense.isoOf($('adDate').value) || Expense.todayISO();
+    var start = startOf(trip);
+    var it = Expense.add(tripId, Expense.dayFromStart(start, date) || 1, n, pickCat,
+      $('adWho').value, $('adNote').value, date);
+    if (!it) return;                       /* 写满时 Expense.save 已经如实报过一句，不叠第二句 */
+    sheet.close();
+    UI.toast('已记 ' + Expense.fmtMoney(it.cents) + ' 元 · ' + it.cat + ' · ' + it.date);
+    render();
+  }
+  var sheet = UI.sheet($('addSheet'), { modal: true, label: '记一笔开销' });
+  $('fAdd').onclick = openAdd;
+  $('adCancel').onclick = function () { sheet.close(); };
+  $('adSave').onclick = saveAdd;
+  $('adAmt').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveAdd(); } });
+  $('xBud').addEventListener('change', function () {
+    var n = Number(this.value);
+    var cents = Expense.setBudget(tripId, isFinite(n) && n > 0 ? n : 0);
+    UI.toast(cents ? '预算设为 ' + Expense.fmtMoney(cents) + ' 元' : '预算已清除');
+    renderTrip();
+  });
+  $('fCsv').onclick = function () {
+    if (!trip) return;
+    if (!Expense.listOf(tripId).length) { UI.toast('这笔账还是空的：先点「记一笔」，再来导出 CSV'); $('fAdd').style.opacity = '.55'; setTimeout(function () { $('fAdd').style.opacity = ''; }, 1200); return; }
+    var name = trip.name || Expense.FREE_NAME;
+    var csv = Expense.buildCsv(tripId, {
+      name: name,
+      dateOf: function (day) { return Expense.addDays(startOf(trip), day - 1) || ''; }
+    });
+    saveTextDoc(fileSafeName(name) + '-开销.csv', csv, 'text/csv;charset=utf-8', '用表格软件打开即可');
+  };
+  $('xSwitch').onclick = function (e) {
+    e.preventDefault();
+    tripId = ''; trip = null;
+    try { history.replaceState(null, '', 'expense.html'); } catch (e2) {}
+    render();
+  };
+
+  function open(id) {
+    var t = findTrip(id);
+    if (!t) { showUnknown(); return; }
+    tripId = t.id; trip = t;
+    render();
+    try { history.replaceState(null, '', 'expense.html?trip=' + encodeURIComponent(tripId)); } catch (e) {}
+  }
+  /* URL 上的 trip 在这台机认不出来（换机 / 行程已删）：绝不拿它建桶，否则孤儿桶无界攒在 localStorage 里 */
+  function showUnknown() {
+    tripId = ''; trip = null;
+    $('tripLabel').textContent = '没找到这趟行程';
+    $('pickCard').style.display = 'none';
+    $('tripWrap').style.display = 'none';
+    $('xFoot').style.display = 'none';
+    $('xEmpty').style.display = 'block';
+    $('xSwitchWrap').style.display = readTrips().length ? 'block' : 'none';
+    renderYear();
+  }
+
+  renderCats();
+  var q = new URLSearchParams(location.search).get('trip');
+  if (q) open(q); else renderPick();
+})();
+</script>
+</body>
+</html>

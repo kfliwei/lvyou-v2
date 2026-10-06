@@ -43,6 +43,7 @@
 | `explore-map.html` | 全国/专题探索地图 |
 | `topic.html` | 省级专题（数据驱动，注册表 `topic-meta.js`） |
 | `planner.html` | 对话式行程规划 |
+| `expense.html` | 开销记账主页（选桶／记一笔／按真实日期看账／预算／CSV） |
 | `travel-map.html` | 个人游记轨迹地图 |
 | `review.html` | 旅程回顾（统计/日历/海报/年报） |
 | `story.html` | 滚动叙事时间线 |

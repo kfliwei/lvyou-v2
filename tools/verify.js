@@ -4187,7 +4187,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['ui.js', 'xBtn.onclick = function () { api.close(); };', 1, '点它必须走 api.close()：只 CSS 隐藏 class 的话 aria-modal／expanded／焦点归还全留在原地'],
     ['ui.js', 'if (xBtn.parentNode !== el) el.insertBefore(xBtn, el.firstChild);', 1, '插在内容最前 + 幂等：append 到末尾会跟着内容滚到底，绝对定位又会被 overflow 的滚动容器带走（locSheet 的 lsBody 自己滚）'],
     ['ui.js', 'var opener = null, keyH = null, trap = null, xBtn = null;', 1, 'X 的引用与 opener 同族缓存在闭包里：重复 open 不重建，DOM 被 innerHTML 换掉时由 ensureX 补回'],
-    ['design.css', '.ui-sheet-x{float:right', 1, 'float 而不是 absolute：滚动容器内绝对定位会跟着内容走，40×40 的钮飘到列表中段'],
+    ['design.css', '.ui-sheet-x{float:right', 1, 'float 而不是 absolute：滚动容器内绝对定位会跟着内容走，44×44 的钮飘到列表中段'],
     ['design.css', '.ui-sheet-x:active{transform:scale(.92)', 1, '按压反馈（本项目的触控口径：:active 系，不依赖 :hover）'],
     ['design.css', '.theme-dark .ui-sheet-x{background', 1, '暗色档必须翻色，否则那枚 X 在深色弹层上还是看不见——本批的原始症状就是「看不到」'],
     /* ④ 23-C 认领表：四枚自带关闭控件的弹层各自声明一次 */
