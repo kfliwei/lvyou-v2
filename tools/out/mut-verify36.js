@@ -8,7 +8,7 @@
  * 而 §36 的判据九成是**顺序**（先空插入再写字、过滤早于 first/last、守卫早于 add、
  * 补名晚于 setIcon），顺序断言最容易写成恒真（needle 在源码里根本不存在／合成对照自己失效）。
  *
- * G1–G3 三条是**设计内静默**：变异打在 §36 不钉字面量的位置（esc 的函数体、siteAria 的
+ * G1–G4 四条是**设计内静默**（G4 是批次 23 划的 aria-hidden 口径界）：变异打在 §36 不钉字面量的位置（esc 的函数体、siteAria 的
  * 函数体、markerLabel 的赋值行），源码腿必须一根不红——它们只有浏览器腿能抓。
  * 这就是「同一变异两层视野不同」的证据，配对读 tools/out/mut-smoke36.js 的 B7–B9。
  * M75–M77 打的是「守门的门」：合成对照自己坏掉时必须说话，否则期望红不是证据。
@@ -319,7 +319,7 @@ run('M56 setIcon 写两遍（体内恰 1 次的账不平）', 'topic-common.js',
 /* ============ ⑨ 期望 0 的十七族：旧写法回潮 ============ */
 run('M57 ui.js 回潮 aria-hidden（CSS 与 aria 两套状态迟早自相矛盾）', 'ui.js',
   "        el.removeAttribute('aria-modal');",
-  "        el.removeAttribute('aria-modal'); el.setAttribute('aria-hidden', 'true');", 'ui.js 里出现「aria-hidden」');
+  "        el.removeAttribute('aria-modal'); el.setAttribute('aria-hidden', 'true');", "ui.js 里出现「setAttribute('aria-hidden'」");
 run('M58 ui.js 回潮 inert', 'ui.js',
   "        el.removeAttribute('aria-modal');",
   "        el.removeAttribute('aria-modal'); el.inert = true;", 'ui.js 里出现「inert」');
@@ -381,8 +381,8 @@ run('M76 trap 顺序断言的反向对照改成正确顺序', 'tools/verify.js',
   "const BADT = flat36(\"function trapFocus(container, sel) { var f = []; var n = nodes[0]; if (n.namespaceURI !== 'http://www.w3.org/1999/xhtml') { continue; } f.push(n); var first = f[0], last = f[f.length - 1]; }\");",
   '反向对照失效');
 run('M77 期望 0 的正向对照串里抹掉 needle（那个 0 从此不是证据）', 'tools/verify.js',
-  "['ui.js', 'aria-hidden', 'el.setAttribute(\\'aria-hidden\\', \\'true\\');',",
-  "['ui.js', 'aria-hidden', 'el.setAttribute(\\'aria-atomic\\', \\'true\\');',", '期望 0 的正向对照失效');
+  "[\"ui.js\", \"setAttribute('aria-hidden'\", \"el.setAttribute('aria-hidden', 'true');\",",
+  "[\"ui.js\", \"setAttribute('aria-hidden'\", \"el.setAttribute('aria-atomic', 'true');\",", '期望 0 的正向对照失效');
 
 /* ============ ⑫ 设计内静默：源码腿抓不到、只有浏览器腿抓得到 ============ */
 /* 这三条是「同一变异两层视野差」的样本：源码腿必须全绿，mut-smoke36.js 的 B7–B9 必须红。
@@ -395,6 +395,13 @@ greenCase('G2 siteAria 恒返回空串（标记名全空，调用点的字面量
 greenCase('G3 markerLabel 的赋值行不执行（单点还在、导出还在，名字从来没写上去）', 'ui.js',
   "if (el && el.setAttribute) el.setAttribute('aria-label', label);",
   "if (el && el.setAttribute && label.length < 0) el.setAttribute('aria-label', label);");
+/* G4 是批次 23 划的界：§36 那族 aria-hidden 期望 0 的口径从裸 token 收到 setAttribute 调用形之后，
+   innerHTML 里的装饰性 aria-hidden 必须全绿（X 那枚 glyph 就是这么写的）。
+   对偶是 M57：同一属性以弹层状态双写的形式回来，必须红。收窄前 G4 会红——那不是缺陷，
+   是「下一枚装饰图标进 ui.js 就把 §36 顶红，然后被人当误报删掉」的现场。 */
+greenCase('G4 装饰性 aria-hidden 进 innerHTML（§36 口径收窄后要绿；M57 是它的对偶）', 'ui.js',
+  "      d.innerHTML = '<span class=\"ifb-ch\">' + ch + '</span>' +",
+  "      d.innerHTML = '<span class=\"ifb-ch\" aria-hidden=\"true\">' + ch + '</span>' +");
 
 console.log('源码腿小结: 共 ' + total + ' 条 → 按预期红 ' + red + ' · 设计内静默 ' + silent + ' · 异常 ' + anomalies);
 process.exit(anomalies ? 1 : 0);

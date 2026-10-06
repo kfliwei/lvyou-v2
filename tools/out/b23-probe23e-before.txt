@@ -1,0 +1,21 @@
+=== 328 + textZoom135（真机现状） ===
+  改后（当前源码）root=20.25px 文本「倒序从远端返回」
+    asc={"left":35,"right":159,"w":124} desc={"left":169,"right":293,"w":124} row={"left":35,"right":293,"w":258} cls=row row-opt
+    右缘余量 = 视口 328 - desc.right 293 = 35px
+  改前形状回放（裸 .row + 整串文案，只动内存 DOM）
+    asc={"left":35,"right":212,"w":177} desc={"left":222,"right":395,"w":173} row={"left":35,"right":293,"w":258} cls=row
+    右缘余量 = -67px  ← 已越出视口（内容被裁，用户报的「后面看不到」）
+=== 328 + textZoom100（修壳后） ===
+  改后（当前源码）root=15px 文本「倒序从远端返回」
+    asc={"left":35,"right":159,"w":124} desc={"left":169,"right":293,"w":124} row={"left":35,"right":293,"w":258} cls=row row-opt
+    右缘余量 = 视口 328 - desc.right 293 = 35px
+  改前形状回放（裸 .row + 整串文案，只动内存 DOM）
+    asc={"left":35,"right":176,"w":141} desc={"left":186,"right":324,"w":138} row={"left":35,"right":293,"w":258} cls=row
+    右缘余量 = 4px  ← 刀锋：只要文案再长一点或字号再大一档就溢出
+=== 452 + textZoom135（闸门主档 + 放大） ===
+  改后（当前源码）root=24.192px 文本「倒序从远端返回」
+    asc={"left":35,"right":221,"w":186} desc={"left":231,"right":417,"w":186} row={"left":35,"right":417,"w":382} cls=row row-opt
+    右缘余量 = 视口 452 - desc.right 417 = 35px
+  改前形状回放（裸 .row + 整串文案，只动内存 DOM）
+    asc={"left":35,"right":239,"w":204} desc={"left":249,"right":449,"w":200} row={"left":35,"right":417,"w":382} cls=row
+    右缘余量 = 3px  ← 刀锋：只要文案再长一点或字号再大一档就溢出

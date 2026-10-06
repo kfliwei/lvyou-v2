@@ -85,6 +85,10 @@ public class MainActivity extends Activity {
         // 关闭缓存：assets 更新后每次启动强制加载最新版（避免旧 JS/CSS 残留）
         ws.setCacheMode(WebSettings.LOAD_DEFAULT);
         webView.clearCache(true);
+        // 系统「字体大小」（本机实测 font_scale=1.35）会乘进 WebView 的 textZoom，而 CSS 拿不到这个量：
+        // 328px 视口下根字号被顶到 20.3px，按钮行与弹层整片溢出裁切。归一到 100，
+        // 字号主权交回页面自己的 --fs-stage（设置页字号档）。
+        ws.setTextZoom(100);
         // 追加自定义 UA 标记，供网页识别"是否运行在 App 内"（用于直接拉起高德深链）
         ws.setUserAgentString(ws.getUserAgentString() + " GuJianApp");
 

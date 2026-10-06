@@ -318,10 +318,12 @@ const brief = a => a.out.length ? a.out.slice(0, 3).map(o => o.t + ' 越' + o.ov
     q768.mleft <= 1 && Math.abs(q768.mwidth - q768.vw) <= 1 && !q768.listShown,
     '地图左=' + q768.mleft + ' 宽=' + q768.mwidth + '/视口 ' + q768.vw + ' 列表显示=' + q768.listShown);
 
-  /* U19/U20：手机三档几何不变＝本批「不动手机档一根 CSS」的最有力反证 */
+  /* U19/U20：手机四档几何不变＝本批「不动手机档一根 CSS」的最有力反证。
+     328×723 是一加 Ace 6T 真机的 CSS 视口（ColorOS「显示大小」放大 → Override density 620，
+     1272px / (620/160) ≈ 328），此前只按 452 取样，恰好绕开了这台机子真正落在的那一档。 */
   const mob = [];
-  for (const w of [320, 390, 452]) {
-    await page.setViewport({ width: w, height: w === 320 ? 640 : (w === 390 ? 844 : 995), deviceScaleFactor: 2 });
+  for (const w of [320, 328, 390, 452]) {
+    await page.setViewport({ width: w, height: w === 320 ? 640 : (w === 328 ? 723 : (w === 390 ? 844 : 995)), deviceScaleFactor: 2 });
     await page.goto(BASE + '/topic.html?p=sx', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await sleep(2800);
     mob.push({ w: w, r: await page.evaluate(`(() => {
@@ -332,10 +334,10 @@ const brief = a => a.out.length ? a.out.slice(0, 3).map(o => o.t + ' 越' + o.ov
         listShown: getComputedStyle(document.getElementById('list')).display !== 'none' };
     })()`) });
   }
-  check('U19 手机三档：地图容器仍满宽贴着视口左边（双栏 CSS 一条都没漏进手机档）',
+  check('U19 手机四档：地图容器仍满宽贴着视口左边（双栏 CSS 一条都没漏进手机档）',
     mob.every(m => m.r.mleft <= 1 && Math.abs(m.r.mwidth - m.r.vw) <= 1 && !m.r.listShown),
     mob.map(m => m.w + '→左' + m.r.mleft + '/宽' + m.r.mwidth).join(' '));
-  check('U20 手机三档：横向内缩恒 0，纵向仍扣到底带（横向分支没把手机档算出新的死区）',
+  check('U20 手机四档：横向内缩恒 0，纵向仍扣到底带（横向分支没把手机档算出新的死区）',
     mob.every(m => m.r.l === 0 && m.r.rr === 0 && m.r.b >= 60),
     mob.map(m => m.w + '→(左' + m.r.l + ',右' + m.r.rr + ',底' + m.r.b + ')').join(' '));
 

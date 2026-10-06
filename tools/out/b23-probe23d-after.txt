@@ -1,0 +1,9 @@
+locSheet 开启方式: ok
+{"sel":"#locSheet","has":true,"off":null,"own":0,"first":true,"w":40,"h":40,"rightGap":13,"topGap":8,"float":"right","bg":"rgba(32, 32, 29, 0.07)","label":"关闭","hits":["#lsBody274x641","div.ls-place274x40"]}
+二次开启后 X 数: 1
+点 X 后 isOpen: false
+rsSheet 结果: {"items":5,"clicked":true}
+{"sel":"#infoSheet","has":true,"off":null,"own":0,"first":true,"w":40,"h":40,"rightGap":13,"topGap":17,"float":"right","bg":"rgba(32, 32, 29, 0.07)","label":"关闭","hits":["#isBody274x180","div.is-place274x30","div.is-loc274x18"]}
+rsSheet 自带控件反证: {"sel":"#rsSheet","has":false,"off":"off","own":1,"n":0}
+memSheet 反证: {"off":"off","own":1}
+页面报错: 无

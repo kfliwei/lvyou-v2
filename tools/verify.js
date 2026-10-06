@@ -4057,7 +4057,7 @@ const EMOJI_MARK = 'emoji-ok:';
 
   /* 期望 0：旧写法不许回潮（弹层裸开关 / 页面私搭活区 / 组件外补 aria 属性） */
   const ZERO36 = [
-    ['ui.js', 'aria-hidden', 'el.setAttribute(\'aria-hidden\', \'true\');', '关闭态弹层靠 CSS display:none 退出 tab 序列，不双写 aria-hidden（两套状态迟早自相矛盾：CSS 关了这里还标着可见）'],
+    ["ui.js", "setAttribute('aria-hidden'", "el.setAttribute('aria-hidden', 'true');", "关闭态弹层靠 CSS display:none 退出 tab 序列，不双写 aria-hidden（两套状态迟早自相矛盾：CSS 关了这里还标着可见）。批次 23 把口径从裸 token 收到调用形：装饰性 glyph 的 aria-hidden 挂在 innerHTML 的 <svg> 上（X 那枚），不是弹层状态双写；口径见 §37 那条 glyph 锚"],
     ['ui.js', 'inert', 'el.inert = true;', '同上，也不用 inert（本批只在真模态上报 aria-modal）'],
     ['node-lod.js', "setAttribute('aria-label'", "m._icon.setAttribute('aria-label', name);", '标记的名字只走 UI.markerLabel 单点：LOD 自己搭一套就没法在重画后统一补回'],
     ['node-lod.js', "addEventListener('keydown'", "el.addEventListener('keydown', function (e) { if (e.key === \'Enter\') act(); });", '键位只走 UI.markerKeys 单点（幂等旗子在它那里）'],
@@ -4104,8 +4104,260 @@ const EMOJI_MARK = 'emoji-ok:';
 
   if (V36['README.md'].indexOf('§36') < 0) F36('README.md 的 verify 清单没提 §36（新闸门不写进 README 就等于没装）');
 
-  console.log('无障碍闸门: ' + A36.length + ' 条代码锚点（三件套单点各恰 1 + trap 的 SVG/禁用过滤族 + aria-live 4 polite/5 总数/1 assertive 整串 + sheet 语义九条 + 焦点归还三条 + 日卡两套页面各五条 + :focus-visible 恰 3 + 抽屉 cls:open 两条 + 重画补名三条）+ 接线数量表（9 页 15 处标记、名 17／键位 15，story 针脚与脉冲针只给名字的口子写进表）+ 弹层入口数量表（7/11/3/1）+ 四组灵魂顺序断言（活区五处「先空入 DOM、下一帧写字」并配「带字一次插入」与「属性晚于插入」两条反向对照、trap 过滤早于 first/last、open 的 isOpen 守卫早于 aria-modal 与 add、setIcon 早于补名补键位）+ close 函数体四条（摘 modal／回落 expanded／remove 恰一／isConnected 判定）+ 十七族期望 0（aria-hidden、inert、node-lod 自搭 aria-label/keydown、各页 classList 裸开关、全站 aria-live 只出自 ui.js）；每条期望 0 都配正向对照；smoke A01–A25／C01–C06／D01–D09／S01–S04／E01 齐备检 + 条数守卫（46）+ 快照口径与分享 hash 两条测试自校准；变异自测两层见 tools/out/mut-verify36.js');
+  console.log('无障碍闸门: ' + A36.length + ' 条代码锚点（三件套单点各恰 1 + trap 的 SVG/禁用过滤族 + aria-live 4 polite/5 总数/1 assertive 整串 + sheet 语义九条 + 焦点归还三条 + 日卡两套页面各五条 + :focus-visible 恰 3 + 抽屉 cls:open 两条 + 重画补名三条）+ 接线数量表（9 页 15 处标记、名 17／键位 15，story 针脚与脉冲针只给名字的口子写进表）+ 弹层入口数量表（7/11/3/1）+ 四组灵魂顺序断言（活区五处「先空入 DOM、下一帧写字」并配「带字一次插入」与「属性晚于插入」两条反向对照、trap 过滤早于 first/last、open 的 isOpen 守卫早于 aria-modal 与 add、setIcon 早于补名补键位）+ close 函数体四条（摘 modal／回落 expanded／remove 恰一／isConnected 判定）+ 十七族期望 0（aria-hidden（批次 23 把口径从裸 token 收到 setAttribute 调用形，装饰性 glyph 的 aria-hidden 不算双写，见 §37）、inert、node-lod 自搭 aria-label/keydown、各页 classList 裸开关、全站 aria-live 只出自 ui.js）；每条期望 0 都配正向对照；smoke A01–A25／C01–C06／D01–D09／S01–S04／E01 齐备检 + 条数守卫（46）+ 快照口径与分享 hash 两条测试自校准；变异自测两层见 tools/out/mut-verify36.js');
   fail += bad36;
+}
+
+
+
+/* ============ §37 真机视口与弹层右上角关闭闸门（批次 23） ============
+   这一批的三条症状全是「桌面看一切正常，手机上看不到东西」：
+     · 排期向导第 3 步「倒序 · 从远端返回」后面半截没了（328 CSS 视口实测第二枚 right=395，
+       需要宽 360 / 可用 258）；
+     · locSheet 与 infoSheet 两枚弹层右上角没有任何可见关闭控件（全站 6 枚 UI.sheet 弹层里只有它俩光）；
+     · 壳侧 textZoom 没归一，系统「字体大小」1.35 直接乘进 CSS 像素，前两条在真机上被放大。
+   所以源码侧只钉三类东西：
+     ① 单点：右上角 X 只由 UI.sheet 的 ensureX 造，class 全站只有 ui.js + design.css 两处出处；
+     ② 认领表：写 data-sheet-x="off" 的弹层必须自己有可见关闭控件（「直接收起」/ .x / .ms-close / .nx），
+        而 locSheet 与 infoSheet 不许认领——它们恰恰是没控件的那两枚，这里红就是「把症状当配置关掉了」；
+     ③ 顺序：ensureX 必须排在 isOpen 守卫之前（开着重画内容的腿会把 X 连 DOM 一起 innerHTML 掉，
+        守卫在后就 return 了）；off 判定必须排在 insertBefore 之前（自带控件的先插了再退 = 两枚 X 叠在同一角）。
+   壳那一半另加一条硬账：仓库内的 MainActivity.java 与交付壳必须逐字节一致。
+   不一致就是「改了但没进 APK」——用户只在手机上验，这条比任何 CSS 锚点都值钱。
+   口径同 §21/§31/§36：四元组守卫、期望 0 一律配正向对照、.js/.css/.java 视图剥块注释、
+   .html 视图只归一空白不剥注释（所以锚点串一律写成归一后的整串）。
+   ============================================================ */
+{
+  let bad37 = 0;
+  const F37 = m => { bad37++; console.log('FAIL §37 真机视口与弹层关闭闸门: ' + m); };
+  const ws37 = s => s.replace(/\s+/g, ' ').trim();
+  const flat37 = s => ws37(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt37 = (s, n) => s.split(n).length - 1;
+  const rd37 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view37 = f => /\.html$/.test(f) ? ws37(rd37(f)) : flat37(rd37(f));
+  const fnBody37 = (src, head) => {
+    const a = src.indexOf(head);
+    if (a < 0) return null;
+    const open = src.indexOf('{', a);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let j = open; j < src.length; j++) {
+      const c = src[j];
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (depth === 0) return src.slice(a, j + 1); }
+    }
+    return null;
+  };
+  /* 归一后的 HTML 里，一枚元素的开标签 = 从它的 id="…" 到下一个 '>' 为止 */
+  const tag37 = (src, idv) => {
+    const a = src.indexOf('id="' + idv + '"');
+    if (a < 0) return null;
+    const gt = src.indexOf('>', a);
+    return gt < 0 ? null : src.slice(a, gt);
+  };
+
+  const JP = 'android_app/app/src/main/java/com/gujian/guditu/MainActivity.java';
+  const FILES37 = ['ui.js', 'design.css', 'planner.js', 'topic-common.js', 'topic.html',
+    'node-manager.html', 'travel-map.html', 'tools/smoke-usable.js', JP, 'README.md'];
+  const V37 = {};
+  FILES37.forEach(f => {
+    if (!fs.existsSync(f)) { F37('缺 ' + f); V37[f] = ''; return; }
+    V37[f] = view37(f);
+  });
+
+  const A37 = [
+    /* ① 23-A 壳侧归一：CSS 拿不到 textZoom，只能在壳里按住 */
+    [JP, 'ws.setTextZoom(100);', 1, '系统「字体大小」(本机 font_scale=1.35) 会乘进 WebView 的 textZoom，而 CSS 侧没有任何一个量能读到它；不归一，328 视口上根字号被顶到 20.3px，整片按钮与弹层裁切'],
+    [JP, 'setTextZoom', 1, '全站只许这一处碰缩放档位：出现第二处就是有人按机型钉了死数（钉死 px 正是 §21 从 html{font-size:16px} 里爬出来的那条坑）'],
+    /* ② 23-B 二选一按钮行：文案完整可读排在「一行好看」前面 */
+    ['design.css', '.row-opt>*{min-width:0;white-space:normal;align-self:stretch;flex-wrap:wrap}', 1, '整串：flex:1 留着默认 min-width:auto 就缩不到自身内容以下，两枚长文案并排必顶穿卡片。align-self 而不是动 .row——各页页面级 .fld .row 都写了 align-items:center，同权重抢不过'],
+    ['design.css', '.row-opt>*>span{white-space:nowrap}', 1, '段内不许断行：换行点只留给段与段之间，省得窄屏断出「从起点 出发」这种半截话'],
+    ['planner.js', 'class="row row-opt"', 5, '向导四行（环线/排序方式/方向/步骤条导航）+ 浏览弹层那行，共 5 处二选一或并排主操作；少一处就是有一行还留着裸 .row'],
+    ['planner.js', '<span>正序</span><span>从起点出发</span>', 1, '文案必须分两段：整串「正序 · 从起点出发」是个不可断的整体，nowrap 下只能整体溢出'],
+    ['planner.js', '<span>倒序</span><span>从远端返回</span>', 1, '用户报的就是这一枚（「倒序：从....」后面看不到内容）'],
+    ['planner.js', '<span>是</span><span>回到起点</span>', 1, '环线行同族（同宽度下这行也要换行才读得完）'],
+    ['planner.js', '<span>否</span><span>单程</span>', 1, '同上'],
+    /* ③ 23-C 右上角关闭：单点 + 样式 */
+    ['ui.js', 'function ensureX() {', 1, '右上角 X 的单点（只由 UI.sheet 造，页面不再各写一枚）'],
+    ["ui.js", "if (el.getAttribute('data-sheet-x') === 'off') return;", 1, '声明式认领：控制器缓存在元素上，只有第一次 UI.sheet() 的 opts 算数，而各页第一次调的常常是 close()——只有跟着 DOM 走才与调用顺序无关'],
+    ["ui.js", "xBtn = document.createElement('button');", 1, '按钮只建一次（配 !xBtn 的幂等）'],
+    ["ui.js", "xBtn.className = 'ui-sheet-x';", 1, '样式名只在这一处挂：全站 class 出处就是这条加 design.css 那四条'],
+    ["ui.js", "xBtn.setAttribute('aria-label', '关闭');", 1, '读屏念得出「关闭」，不念 SVG 路径'],
+    ["ui.js", '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">', 1, 'glyph 装饰性：aria-hidden 挂在 <svg> 上、名字挂在按钮上。这条同时是给 §36 那族期望 0 划界——它守的是弹层元素上的 setAttribute 双写，不是这个（口径不收窄的话，下一枚装饰图标一进 ui.js 就把 §36 顶红，然后被人当误报删掉）'],
+    ['ui.js', 'xBtn.onclick = function () { api.close(); };', 1, '点它必须走 api.close()：只 CSS 隐藏 class 的话 aria-modal／expanded／焦点归还全留在原地'],
+    ['ui.js', 'if (xBtn.parentNode !== el) el.insertBefore(xBtn, el.firstChild);', 1, '插在内容最前 + 幂等：append 到末尾会跟着内容滚到底，绝对定位又会被 overflow 的滚动容器带走（locSheet 的 lsBody 自己滚）'],
+    ['ui.js', 'var opener = null, keyH = null, trap = null, xBtn = null;', 1, 'X 的引用与 opener 同族缓存在闭包里：重复 open 不重建，DOM 被 innerHTML 换掉时由 ensureX 补回'],
+    ['design.css', '.ui-sheet-x{float:right', 1, 'float 而不是 absolute：滚动容器内绝对定位会跟着内容走，40×40 的钮飘到列表中段'],
+    ['design.css', '.ui-sheet-x:active{transform:scale(.92)', 1, '按压反馈（本项目的触控口径：:active 系，不依赖 :hover）'],
+    ['design.css', '.theme-dark .ui-sheet-x{background', 1, '暗色档必须翻色，否则那枚 X 在深色弹层上还是看不见——本批的原始症状就是「看不到」'],
+    /* ④ 23-C 认领表：四枚自带关闭控件的弹层各自声明一次 */
+    ['topic.html', 'id="arriveDlg" data-sheet-x="off"', 1, '到达弹层：卡片底部有「直接收起」'],
+    ['node-manager.html', 'data-sheet-x="off"', 1, '搜索结果面板头部自带 .x#rsClose'],
+    ['travel-map.html', 'id="memSheet" data-sheet-x="off"', 1, '足迹记忆抽屉头部自带 .ms-close'],
+    ["topic-common.js", "nearSheet.setAttribute('data-sheet-x', 'off');", 1, '这一带面板头部自带 .nx（渲染在 .nh 里，不在 HTML 上，所以只能在 JS 里声明）'],
+    /* ⑤ 自带的关闭控件确实还在（认领 off 的前提） */
+    ['topic.html', 'class="arrive-nav"', 1, '「直接收起」还在——控件没了而这行声明还留着 = 这枚弹层没人管关闭'],
+    ['node-manager.html', 'id="rsClose"', 1, '头部那枚 .x 还在'],
+    ['travel-map.html', 'class="ms-close"', 1, '绝对定位圆钮还在'],
+    ['topic-common.js', 'id="nearSheetX"', 1, '.nh 里的关闭钮还在'],
+    /* ⑥ 23-D 取样档：真机 328×723 必须进常驻闸门 */
+    ['tools/smoke-usable.js', 'for (const w of [320, 328, 390, 452]) {', 1, '手机取样四档；328 是一加 Ace 6T 实测 CSS 视口（Override density 620 → 1272/(620/160)≈328），不带它「真机档已验证」验的是一台不存在的手机'],
+    ['tools/smoke-usable.js', 'w === 328 ? 723', 1, '高度同档：328×723 是一对，只补宽度等于没补到底带裁切'],
+    ["tools/smoke-usable.js", "check('U19 手机四档", 1, '判据名跟着档数改：§31 只锚 check(\'U19 前缀，改标签安全，但「四档」这个词必须和循环体一致'],
+    ["tools/smoke-usable.js", "check('U20 手机四档", 1, '同上'],
+    ['design.css', '@media (max-width:360px){ :root{--fs-bucket:.9375}', 1, '真机落的就是这一档（328 ≤ 360）：密度已经整块放大版面，CSS px 变窄是同一件事的另一面，424/452 两根乘数在这台机上结构性不触发——不是漏配'],
+  ];
+  A37.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F37('A37 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V37)) { F37('A37 登记了 §37 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt37(V37[file], needle);
+    if (got !== want) F37(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A37.length < 25) F37('锚点表被削减：' + A37.length + ' 条（批次 23 落地时实测 34 条，阈值取 25——整组删掉就等于这节没了）');
+
+  /* ⑦ 认领表配对：写了 off 就必须自己有关闭控件（数量表，不是单点检查） */
+  {
+    const OWN37 = [
+      ['topic.html', 'data-sheet-x="off"', 'class="arrive-nav"', '「直接收起」'],
+      ['node-manager.html', 'data-sheet-x="off"', 'id="rsClose"', '头部 .x'],
+      ['travel-map.html', 'data-sheet-x="off"', 'class="ms-close"', '.ms-close 圆钮'],
+      ['topic-common.js', "setAttribute('data-sheet-x', 'off')", 'id="nearSheetX"', '.nh 里的 .nx'],
+    ];
+    OWN37.forEach(([f, off, ctl, name]) => {
+      const o = cnt37(V37[f], off), c = cnt37(V37[f], ctl);
+      if (o !== 1) F37(f + ' 的 data-sheet-x 声明数 ' + o + '（要 1）：认领要么不写，要么只写一次——写两遍就是有一枚弹层被重复认领');
+      if (c < 1) F37(f + ' 声明了 data-sheet-x="off" 却找不到自己的关闭控件（' + name + '）：这一枚弹层就此没人管关闭，右上角和头部都是空的');
+    });
+  }
+
+  /* ⑧ 反向认领表：没控件的两枚不许声明 off（症状不许被配置关掉） */
+  {
+    const NOCLAIM37 = [
+      ['topic.html', 'locSheet', '景点卡：本批要补 X 的就是它（此前只有 .sheet__handle 一根拖拽条，触屏用户不知道能拽，读屏与鼠标都关不掉）'],
+      ['node-manager.html', 'infoSheet', '地点详情卡：同上，底部四枚 .is-btn 之外没有任何关闭位'],
+    ];
+    NOCLAIM37.forEach(([f, idv, why]) => {
+      const t = tag37(V37[f], idv);
+      if (!t) { F37(f + ' 里找不到 id="' + idv + '" 的开标签（分母失守：这一族的期望 0 不是证据，可能只是元素被改名或删了）'); return; }
+      if (t.indexOf('data-sheet-x') >= 0) F37(idv + ' 写了 data-sheet-x="off"：' + why);
+    });
+    /* 正向对照：合成「locSheet 声明了 off」必须被 tag37 抓到，否则上面那个 0 是恒真判据 */
+    const SYN37 = ws37('<div class="location-sheet" id="locSheet" data-sheet-x="off"><div class="sheet__handle"></div></div>');
+    if (!tag37(SYN37, 'locSheet') || tag37(SYN37, 'locSheet').indexOf('data-sheet-x') < 0)
+      F37('反向认领表失效：合成的「locSheet 自己声明 off」源码都没抓到');
+    /* 分母自检：两枚弹层在页面上都还得存在，且第一次开层路径没被别的地方抢先声明 */
+    if (cnt37(V37['topic.html'], 'id="locSheet"') !== 1) F37('topic.html 的 locSheet 开标签不是恰 1 枚');
+    if (cnt37(V37['node-manager.html'], 'id="infoSheet"') !== 1) F37('node-manager.html 的 infoSheet 开标签不是恰 1 枚');
+  }
+
+  /* ⑨ 灵魂：open() 里 ensureX 必须排在 isOpen 守卫之前 */
+  {
+    const OB = fnBody37(V37['ui.js'], 'open: function (label) {');
+    if (!OB) F37('抽不出 sheet.open 函数体');
+    else {
+      const ix = OB.indexOf('ensureX();'), ig = OB.indexOf('if (api.isOpen()) return;');
+      if (ix < 0) F37('sheet.open 不再调 ensureX：右上角那枚 X 只有首次开层才有，而 node-manager 的「想去」开关会重画整张卡（innerHTML 换掉 DOM），X 当场消失');
+      if (ig < 0) F37('sheet.open 里没有 isOpen 守卫（§36 钉过的那条没了），本节的顺序断言失去依据');
+      else if (ix >= 0 && !(ix < ig)) F37('ensureX 没有排在 isOpen 守卫之前：已开着再 open 会先 return，重画掉的 X 补不回来');
+      if (cnt37(OB, 'ensureX();') !== 1) F37('sheet.open 体内 ensureX() 不是恰 1 次：开层路径分叉了');
+      const BADX = flat37('open: function (label) { if (api.isOpen()) return; ensureX(); el.classList.add(cls); }');
+      if (BADX.indexOf('ensureX();') < BADX.indexOf('if (api.isOpen()) return;'))
+        F37('open 顺序断言的反向对照失效（合成的「守卫在前的」源码没排在 ensureX 之前）');
+      const GOODX = flat37('open: function (label) { el.setAttribute("aria-label", lb); ensureX(); if (api.isOpen()) return; el.classList.add(cls); }');
+      if (!(GOODX.indexOf('ensureX();') < GOODX.indexOf('if (api.isOpen()) return;')))
+        F37('open 顺序断言的正向对照失效：合成正确源也被打红，这条锚会不分对错一直红');
+    }
+    /* 灵魂：ensureX 体内 off 判定必须排在插入之前 */
+    const XB = fnBody37(V37['ui.js'], 'function ensureX() {');
+    if (!XB) F37('抽不出 ensureX 函数体');
+    else {
+      const io = XB.indexOf("=== 'off') return;"), ii = XB.indexOf('el.insertBefore(xBtn, el.firstChild);');
+      if (io < 0) F37('ensureX 里没有 off 判定（认领表失去执行者，四枚自带关闭控件的弹层会被叠上第二枚 X）');
+      if (ii < 0) F37('ensureX 里没有 insertBefore（X 根本不进 DOM，本批等于没做）');
+      else if (io >= 0 && !(io < ii)) F37('ensureX 的 off 判定没有排在插入之前：自带 .x/.ms-close/.nx 的弹层会先插一枚再退回，两枚 X 叠在同一个角（实测过的「双 X」形状）');
+      if (cnt37(XB, 'insertBefore') !== 1) F37('ensureX 体内 insertBefore 不是恰 1 次：多一处就绕过了 parentNode 幂等判定，重开一次叠一枚');
+      const BADO = flat37("function ensureX() { el.insertBefore(xBtn, el.firstChild); if (el.getAttribute('data-sheet-x') === 'off') return; }");
+      if (BADO.indexOf('el.insertBefore(xBtn, el.firstChild);') > BADO.indexOf("=== 'off') return;"))
+        F37('ensureX 顺序断言的反向对照失效（合成的「先插再判」源码没排在 off 判定之后）');
+      const GOODO = flat37("function ensureX() { if (el.getAttribute('data-sheet-x') === 'off') return; if (!xBtn) { xBtn = mk(); } el.insertBefore(xBtn, el.firstChild); }");
+      if (!(GOODO.indexOf("=== 'off') return;") < GOODO.indexOf('el.insertBefore(xBtn, el.firstChild);')))
+        F37('ensureX 顺序断言的正向对照失效：合成正确源也被打红');
+    }
+  }
+
+  /* ⑩ 壳与仓库副本逐字节对账：不一致＝改了但没进 APK（用户只在手机上验） */
+  {
+    const SHELL37 = (process.env.TRACE_ANDROID_SHELL || 'F:/MyAi/trace/lvyou-v2-android').replace(/\\/g, '/');
+    const JP_REL = 'app/src/main/java/com/gujian/guditu/MainActivity.java';
+    const repoP = JP, shellP = SHELL37 + '/' + JP_REL;
+    if (!fs.existsSync(repoP)) F37('缺 ' + repoP + '（入库的壳源副本，§37 的 textZoom 锚点全挂在它上面）');
+    else if (fs.existsSync(shellP)) {
+      const norm = s => s.replace(/\r\n/g, '\n');
+      const a = norm(fs.readFileSync(repoP, 'utf8')), b = norm(fs.readFileSync(shellP, 'utf8'));
+      if (a !== b) F37('交付壳 MainActivity.java 与入库副本不一致：改的是仓库那份，构建吃的是壳那份——textZoom 归一不会进 APK（同步方向：仓库 → 壳，见「APK 构建流水线」）');
+    } else {
+      console.log('壳源对账: SKIP（' + shellP + ' 不在本机，textZoom 那条只钉了仓库内的副本，APK 里有没有要另行验包）');
+    }
+  }
+
+  /* 期望 0：改前形态与废弃写法不许回潮。
+     ctrl 一律写成**改前的那段源码形状**（不是把 needle 拼回一个串）——后者只证明 flat37 没把
+     字符串吃掉，是恒真判据；前者才证明「真有人写回旧写法，这条会说话」。口径同 §34/§36。 */
+  const ZERO37 = [
+    ['planner.js', '<div class="row" style="gap:10px">',
+      '<div class="fld"><label>是否环线</label><div class="row" style="gap:10px">',
+      '向导三行改前的裸写法：没有 row-opt 就没有 min-width:0，两枚长文案并排顶穿卡片（328 档实测第二枚 right=395）'],
+    ['planner.js', 'display:flex;gap:8px;margin-top:12px',
+      '<div style="display:flex;gap:8px;margin-top:12px">',
+      '浏览弹层那行改前是内联 flex：工具类收口后这类逐页手写的并排行要归零，否则下一处窄屏溢出没人负责'],
+    ['planner.js', '正序 · 从起点出发',
+      '<button class="btn" id="wOrderAsc" style="flex:1">正序 · 从起点出发</button>',
+      '整串不可断的旧文案：nowrap 下只能整体溢出，「从起点出发」那半截就是被裁掉的'],
+    ['planner.js', '倒序 · 从远端返回',
+      '<button class="btn" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button>',
+      '同上，用户报的那一枚（「倒序：从....」后面看不到内容）'],
+    ['ui.js', 'closeX',
+      "if (opts.closeX === false) return;",
+      'opts.closeX 方案已废弃：控制器缓存在元素上，只有第一次 UI.sheet() 的 opts 算数，而各页第一次常是 close()——跟调用顺序走的声明等于没声明'],
+    ['design.css', '.row-opt>.btn{',
+      '.row-opt>.btn{min-width:0;white-space:normal}',
+      '选择器太窄的改前形态：#infoSheet 的 .is-btn 不是 .btn，那行不会收缩——同一条修复在不同页面静默失效'],
+    ['design.css', '.ui-sheet-x{position:absolute',
+      '.ui-sheet-x{position:absolute;right:10px;top:8px}',
+      '绝对定位会被滚动容器带走：locSheet 的 lsBody 自己滚，X 会跟着内容滚出视野（这条改回 float 就是「看不到」的第二个成因）'],
+    ['ui.js', 'el.appendChild(xBtn)',
+      'el.appendChild(xBtn);',
+      'append 到末尾＝跟在长列表后面，弹层顶部看不见关闭钮；只许 insertBefore(firstChild)'],
+    ['tools/smoke-usable.js', '手机三档',
+      "check('U19 手机三档：地图容器仍满宽贴着视口左边',",
+      '取样档已改成四档（328 补进来）；标签回到「三档」而循环体是四档，就是文档与闸门各说一套'],
+  ];
+  ZERO37.forEach(([f, needle, ctrl, why]) => {
+    if (cnt37(V37[f], needle) !== 0) F37(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt37(flat37(ctrl), needle) < 1) F37('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+  /* 单点出处族：X 的 class 与 off 声明只许活在该在的地方。
+     文档（README 的 §37 登记块）里要提这些名字，所以出处族只扫代码文件——
+     把说明文字算进计数，下一句文档就顶红一条「有人私搭」的假警报。 */
+  const CODE37 = FILES37.filter(f => f !== 'README.md');
+  CODE37.forEach(f => {
+    if (f === 'ui.js' || f === 'design.css') return;
+    if (cnt37(V37[f], 'ui-sheet-x') !== 0) F37(f + ' 里出现 ui-sheet-x：右上角 X 的样式只由 ui.js 挂、design.css 定义，页面自己造第二枚就没有「重画后补回」那一条腿');
+  });
+  CODE37.forEach(f => {
+    const want = (f === 'ui.js') ? 1 : (['topic.html', 'node-manager.html', 'travel-map.html', 'topic-common.js'].indexOf(f) >= 0 ? 1 : 0);
+    const got = cnt37(V37[f], 'data-sheet-x');
+    if (got !== want) F37(f + ' 的 data-sheet-x 出现 ' + got + ' 次（登记 ' + want + '）：读取方 1（ui.js）＋声明方 4（自带关闭控件的弹层），多一处就是有人新认领了 off 却没登记控件，少一处就是那枚弹层会被叠 X');
+  });
+
+  if (V37['README.md'].indexOf('§37') < 0) F37('README.md 的 verify 清单没提 §37（新闸门不写进 README 就等于没装）');
+
+  console.log('真机视口与弹层关闭闸门: ' + A37.length + ' 条代码锚点（壳侧 setTextZoom 两处恰 1 + 二选一按钮行五条整串 + X 单点九条 + 认领声明四条 + 自带控件在案四条 + 取样档四条 + ≤360 真机档一条）+ 认领表配对（声明 off 者必须有自家关闭控件，四条各恰 1）+ 反向认领表（locSheet/infoSheet 开标签内不许出现 data-sheet-x，配合成源正向对照与 id= 恰 1 分母自检）+ 两组灵魂顺序断言（open 的 ensureX 早于 isOpen 守卫、ensureX 的 off 判定早于 insertBefore，各配反向与正向合成源；ensureX 体内 insertBefore 恰 1 次＝幂等）+ 壳与仓库副本逐字节对账（壳不在本机打 SKIP，不假装通过）+ 九族期望 0（裸 row／内联 flex 行／整串旧文案两处／opts.closeX／.row-opt>.btn 窄选择器／X 的绝对定位／append 写法／「手机三档」旧标签）与单点出处族（ui-sheet-x 只出 ui.js+design.css、data-sheet-x 读 1 声明 4）；每条期望 0 都配正向对照；变异自测见 tools/out/mut-verify37.js');
+  fail += bad37;
 }
 
 

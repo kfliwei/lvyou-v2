@@ -254,6 +254,8 @@
     nearSheet.className = 'near-sheet';
     nearSheet.setAttribute('role', 'dialog');
     nearSheet.setAttribute('aria-label', '这一带还有什么');
+    /* 头部自带 .nx 关闭按钮，别再让 UI.sheet 补一枚（两枚 X 会叠在同一角） */
+    nearSheet.setAttribute('data-sheet-x', 'off');
     $('mapEl').appendChild(nearSheet);
     /* 同 nearBar：点击不许冒泡到地图，否则点列表项会重新弹回半径条 */
     if (L.DomEvent && L.DomEvent.disableClickPropagation) L.DomEvent.disableClickPropagation(nearSheet);

@@ -1,0 +1,31 @@
+=== 328 + textZoom135（真机现状） ===
+planner.html      root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=2  ←← 分母失守：向导按钮不在 DOM，本行溢出数不可信
+      被裁样本: small+5(clip) , #arDest+4(clip)
+index.html        root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=3
+      被裁样本: path+16(clip) , path+3(clip) , path+3(clip)
+settings.html     root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=0
+checklist.html    root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=0
+topic.html        root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=68
+      被裁样本: #nearChip+17(scroll) , button.chip+134(scroll) , span.chip-dot+46(scroll)
+travel-map.html   root=20.25px scrollW= 328/328  真溢出=0  被裁(不计)=4
+      被裁样本: img.leaflet-tile+183(clip) , img.leaflet-tile+183(clip) , img.leaflet-tile+183(clip)
+=== 328 + textZoom100（修壳后应有口径） ===
+planner.html      root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=0  ←← 分母失守：向导按钮不在 DOM，本行溢出数不可信
+index.html        root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=3
+      被裁样本: path+16(clip) , path+3(clip) , path+3(clip)
+settings.html     root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=0
+checklist.html    root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=0
+topic.html        root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=65
+      被裁样本: button.chip+78(scroll) , span.chip-dot+7(scroll) , button.chip+177(scroll)
+travel-map.html   root=15px    scrollW= 328/328  真溢出=0  被裁(不计)=4
+      被裁样本: img.leaflet-tile+183(clip) , img.leaflet-tile+183(clip) , img.leaflet-tile+183(clip)
+=== 452 + textZoom135（闸门主档 + 放大） ===
+planner.html      root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=0  ←← 分母失守：向导按钮不在 DOM，本行溢出数不可信
+index.html        root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=3
+      被裁样本: path+23(clip) , path+5(clip) , path+5(clip)
+settings.html     root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=0
+checklist.html    root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=0
+topic.html        root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=66
+      被裁样本: button.chip+53(scroll) , button.chip+183(scroll) , span.chip-dot+82(scroll)
+travel-map.html   root=24.192pxscrollW= 452/452  真溢出=0  被裁(不计)=10
+      被裁样本: img.leaflet-tile+195(clip) , img.leaflet-tile+121(clip) , img.leaflet-tile+195(clip)

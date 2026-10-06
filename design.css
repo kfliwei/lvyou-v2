@@ -594,6 +594,15 @@ img{max-width:100%;display:block}
    UTILITIES
    ============================================================ */
 .row{display:flex;gap:var(--sp-2)}
+/* 二选一 / 并排主操作按钮行。flex:1 的按钮留着默认的 min-width:auto 就缩不到自身内容
+   以下，两枚长文案并排（「正序 从起点出发」+「倒序 从远端返回」）在窄视口必顶穿卡片：
+   真机口径 328px CSS 视口实测第二枚 right=395，用户看到的是「倒序 · 从…」后面没了。
+   这一档把「文案完整可读」排在「一行好看」前面：允许收缩 + 允许换行。
+   align-self 而不是动 .row：各页页面级 .fld .row 都写了 align-items:center，同权重抢不过。 */
+.row-opt>*{min-width:0;white-space:normal;align-self:stretch;flex-wrap:wrap}
+/* 段内不许断行：换行点只留给段与段之间（「正序」/「从起点出发」），
+   省得窄屏断出「从起点 出发」这种半截话。 */
+.row-opt>*>span{white-space:nowrap}
 .row-center{display:flex;align-items:center;gap:var(--sp-2)}
 .grow{flex:1}
 .mt-1{margin-top:var(--sp-2)}.mt-2{margin-top:var(--sp-4)}.mt-3{margin-top:var(--sp-6)}.mt-4{margin-top:var(--sp-8)}
@@ -740,6 +749,10 @@ button,a,.chip,.btn,.tabbar button,.bottom-nav__item,.bottom-nav__fab{touch-acti
   animation:sheet-up var(--motion-enter) var(--ease-standard);
 }
 .sheet__handle{width:34px;height:4px;margin:6px auto 20px;border-radius:999px;background:rgba(32,32,29,.18)}
+/* 弹层右上角关闭：节点由 ui.js 的 UI.sheet 单点生成（见 ensureX），这里只管长相。
+   float 让首行标题绕开它，40×40 是这枚控件的命中区（图标本身 14px）。 */
+.ui-sheet-x{float:right;width:40px;height:40px;margin:-2px -6px 0 0;padding:0;border:0;border-radius:999px;background:rgba(32,32,29,.07);color:var(--color-ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:2;transition:transform var(--motion-tap) var(--ease-pop),background var(--motion-fast)}
+.ui-sheet-x:active{transform:scale(.92);background:rgba(32,32,29,.13)}
 @keyframes sheet-up{from{opacity:0;transform:translateY(35px)}to{opacity:1;transform:translateY(0)}}
 
 /* ---- Memory Card（旅行笔记） ---- */
@@ -1135,6 +1148,8 @@ body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var
 .theme-dark .btn-primary{background:var(--color-primary);color:var(--bg)}
 .theme-dark .text-link{color:var(--color-ink)}
 .theme-dark .sheet__handle{background:rgba(239,233,220,.2)}
+.theme-dark .ui-sheet-x{background:rgba(239,233,220,.12);color:var(--color-ink)}
+.theme-dark .ui-sheet-x:active{background:rgba(239,233,220,.2)}
 .theme-dark .ls-place,.theme-dark .ls-loc,.theme-dark .arrive-place{color:var(--color-ink)}
 .theme-dark .ls-desc,.theme-dark .ls-hist,.theme-dark .arrive-eyebrow,.theme-dark .arrive-ask{color:var(--color-ink-soft)}
 .theme-dark .ls-img{background:var(--color-bg-soft)}
@@ -1200,9 +1215,15 @@ body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var
    字体大小/显示大小」里选的档位整个钉死；rem/% 才吃。收口前全站 971 处 font-size 是 px 字面量、
    走 var(--fs-*) 的只有 17 处，所以那套缩放其实只管得到这 17 处——字号进 rem 之后，用户档和机型档
    才真的管得住整站（这是 #73 装机要重点看的第一条）。
-   机型档按一加 Ace 6T 定：2800×1272 / 450ppi / 6.83"，CSS 视口宽度取决于 ColorOS 落在
+   机型档按一加 Ace 6T 定：2800×1272 / 6.83"，CSS 视口宽度取决于 ColorOS 落在
    哪一档密度——480dpi→424dp、450dpi→452dp（420dpi 会是 485dp，不在本档覆盖内），
    所以 400–479 之间分两步上浮；上限卡 479px 是为了 768 平板和桌面一点不动。
+   【批次 23 实测校正】本机开着 ColorOS「显示大小」放大：adb 读到 Override density 620
+   （display_density_forced 查不到，只有 dumpsys 里有），1272 / (620/160) ≈ 328 →
+   真机 CSS 视口 328×723，落的是下面 ≤360 那档 .9375（328 ≤ 360），424/452 两档在这台机上结构性不触发。
+   这不是漏配：密度已经整块放大了版面，CSS px 变窄是同一件事的另一面，两根乘数不该叠。
+   但它意味着闸门取样必须带上 328×723（tools/smoke-usable.js U19/U20 已补第四档），
+   否则「真机档已验证」这句话验证的是一台不存在的手机。
    系数不是照屏幕比例放：424 档全比例要 +13%、452 档要 +21%，那样按钮/chips 这些 px 控件
    会被字挤爆；按光学缩放惯例取六成量，定 108% / 112%。
    小屏那档的阈值从旧块的 ≤380 收到 ≤360：改根字号之后 ≤380 会把 375 也压成 15px 根

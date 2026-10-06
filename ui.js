@@ -302,8 +302,26 @@
     /* 页面建好时就写死的 aria-label 归页面管（nearSheet 的「这一带还有什么」），
        没写的才由这里跟着内容更新（locSheet 的名字要跟着这一站走） */
     var pageLabel = !!el.getAttribute('aria-label');
-    var opener = null, keyH = null, trap = null;
+    var opener = null, keyH = null, trap = null, xBtn = null;
     function detach() { if (keyH) { document.removeEventListener('keydown', keyH); keyH = null; } }
+    /* 右上角关闭（批次 23-C）：此前「关得掉」只有 Esc、点遮罩、以及页面自己肯写的那一枚——
+       locSheet 与 infoSheet 两枚弹层没有任何可见关闭控件，触屏用户只知道往下拽或按返回。
+       由这个单点补一枚；自带关闭控件的弹层在标记上写 data-sheet-x="off" 认领。
+       为什么不用 opts：控制器缓存在元素上，只有第一次 UI.sheet() 的 opts 算数，
+       而各页第一次调的常常是 close()——声明跟着 DOM 走才与调用顺序无关。
+       插在内容最前 + float：append 到末尾会跟着内容滚到底，绝对定位又会被 overflow 的滚动容器带走。 */
+    function ensureX() {
+      if (el.getAttribute('data-sheet-x') === 'off') return;
+      if (!xBtn) {
+        xBtn = document.createElement('button');
+        xBtn.type = 'button';
+        xBtn.className = 'ui-sheet-x';
+        xBtn.setAttribute('aria-label', '关闭');
+        xBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6 L18 18"/><path d="M18 6 L6 18"/></svg>';
+        xBtn.onclick = function () { api.close(); };
+      }
+      if (xBtn.parentNode !== el) el.insertBefore(xBtn, el.firstChild);
+    }
     var api = {
       el: el,
       isOpen: function () { return el.classList.contains(cls); },
@@ -311,6 +329,7 @@
         var lb = typeof label === 'function' ? label() : (label === undefined ? opts.label : label);
         if (!el.getAttribute('role')) el.setAttribute('role', 'dialog');
         if (!pageLabel && lb) el.setAttribute('aria-label', lb);
+        ensureX();
         /* 已经开着再调一次 = 只换内容（node-manager 的「想去」开关会重画整张卡）：
            opener / 焦点 / 监听都不重记，否则焦点会归还到一个已被 innerHTML 换掉的按钮上 */
         if (api.isOpen()) return;

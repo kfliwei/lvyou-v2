@@ -1,0 +1,24 @@
+=== 328 + textZoom135（真机现状） ===
+  stepTitle="排期设置" root=20.25px
+  asc  = {"right":159,"left":35,"w":124,"scrollW":122,"clientW":122}
+  desc = {"right":293,"left":169,"w":124,"scrollW":122,"clientW":122} 文本「倒序从远端返回」
+  desc css = {"minW":"0px","ws":"nowrap","tov":"clip","flex":"1 1 0%"}
+  row  = {"cls":"row row-opt","flexWrap":"nowrap","overflowX":"visible","w":258,"right":293,"scrollW":258}
+  wizardBox = {"right":312,"left":16,"w":296,"scrollW":296,"clientW":296}  card = null
+  判定: OK 未见裁切
+=== 328 + textZoom100（修壳后） ===
+  stepTitle="排期设置" root=15px
+  asc  = {"right":159,"left":35,"w":124,"scrollW":122,"clientW":122}
+  desc = {"right":293,"left":169,"w":124,"scrollW":122,"clientW":122} 文本「倒序从远端返回」
+  desc css = {"minW":"0px","ws":"nowrap","tov":"clip","flex":"1 1 0%"}
+  row  = {"cls":"row row-opt","flexWrap":"nowrap","overflowX":"visible","w":258,"right":293,"scrollW":258}
+  wizardBox = {"right":312,"left":16,"w":296,"scrollW":296,"clientW":296}  card = null
+  判定: OK 未见裁切
+=== 452 + textZoom135（闸门主档 + 放大） ===
+  stepTitle="排期设置" root=24.192px
+  asc  = {"right":221,"left":35,"w":186,"scrollW":184,"clientW":184}
+  desc = {"right":417,"left":231,"w":186,"scrollW":184,"clientW":184} 文本「倒序从远端返回」
+  desc css = {"minW":"0px","ws":"nowrap","tov":"clip","flex":"1 1 0%"}
+  row  = {"cls":"row row-opt","flexWrap":"nowrap","overflowX":"visible","w":382,"right":417,"scrollW":382}
+  wizardBox = {"right":436,"left":16,"w":420,"scrollW":420,"clientW":420}  card = null
+  判定: OK 未见裁切

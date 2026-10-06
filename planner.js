@@ -1419,7 +1419,7 @@
       '<div style="display:flex;align-items:center;margin-bottom:8px"><b style="font-size:var(--fs-6)">已选景点（' + state.selected.length + '）</b><span style="flex:1"></span>' +
       '<button class="btn ghost" style="padding:4px 10px;font-size:var(--fs-3)" onclick="window.plannerCloseBrowse()">'+TI('close')+'关闭</button></div>' +
       (items || '<div class="empty" style="padding:20px 0"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="帐篷线稿"><path d="M60 22 L96 76 H24 Z"/><path d="M60 22 L60 76"/><path d="M60 40 L74 76 M60 40 L46 76" opacity=".6"/><path d="M60 22 V12 H72" opacity=".55"/><path d="M6 78 H114" opacity=".35"/><path d="M88 62 Q96 58 104 62 Q112 58 118 62" opacity=".3"/></svg><span style="font-size:var(--fs-3);color:var(--color-muted)">还没有选景点</span></div>') +
-      '<div style="display:flex;gap:8px;margin-top:12px">' +
+      '<div class="row row-opt" style="gap:8px;margin-top:12px">' +
       '<button class="btn" style="flex:1" id="browseCurLocBtn" onclick="window.plannerAddCurLoc(this)">'+TI('locate')+'当前位置</button>' +
       '<button class="btn" style="flex:1" onclick="window.plannerClearPicks()">'+TI('trash')+'清空</button></div>' +
       '<button class="btn primary" style="width:100%;margin-top:8px" id="browsePlanBtn" onclick="window.plannerAmapPlan()">' + (amapPlanning ? TI('hourglass') + '距离计算中…' : TI('car') + '高德规划行程') + '</button></div>';
@@ -2310,13 +2310,13 @@
       body = '<div class="fld"><label>出发地（可不填，缺省=当前位置）</label><input type="text" id="wStart" placeholder="如：成都" value="' + esc(state.start ? state.start.name : '') + '"></div>' +
         '<div class="fld"><label>终到地（可不填，留空=单程）</label><input type="text" id="wEnd" placeholder="如：成都" value="' + esc(state.end ? state.end.name : '') + '"></div>';
     } else if (w.step === 2) {
-      body = '<div class="fld"><label>是否环线</label><div class="row" style="gap:10px">' +
-        '<button class="btn' + (state.isLoop ? ' primary' : '') + '" id="wLoopY" style="flex:1">是 · 回到起点</button>' +
-        '<button class="btn' + (!state.isLoop ? ' primary' : '') + '" id="wLoopN" style="flex:1">否 · 单程</button></div>' +
+      body = '<div class="fld"><label>是否环线</label><div class="row row-opt" style="gap:10px">' +
+        '<button class="btn' + (state.isLoop ? ' primary' : '') + '" id="wLoopY" style="flex:1"><span>是</span><span>回到起点</span></button>' +
+        '<button class="btn' + (!state.isLoop ? ' primary' : '') + '" id="wLoopN" style="flex:1"><span>否</span><span>单程</span></button></div>' +
         '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">环线：末站回到出发地，适合自驾往返；单程：终点即行程结束地。</div></div>';
     } else if (w.step === 3) {
       var nSel = state.selected.length, nPairs = nSel * (nSel - 1) / 2;
-      body = '<div class="fld"><label>排序方式</label><div class="row" style="gap:10px">' +
+      body = '<div class="fld"><label>排序方式</label><div class="row row-opt" style="gap:10px">' +
         '<button class="btn' + (w.sortMode === 'geo' ? ' primary' : '') + '" id="wSortGeo" style="flex:1">按地理最近邻</button>' +
         '<button class="btn' + (w.sortMode === 'amap' ? ' primary' : '') + '" id="wSortAmap" style="flex:1">按高德路线</button></div>' +
         '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">' +
@@ -2325,9 +2325,9 @@
           : '按直线折算的地理邻近排序，不消耗高德配额；日卡里程仍按道路系数折算。') +
         (lockedCount() ? '已锁定 <b>' + lockedCount() + '</b> 站，本次自动重排不参与。' : '') +
         '</div></div>' +
-        '<div class="fld"><label>方向（排序完成后）</label><div class="row" style="gap:10px">' +
-        '<button class="btn' + (w.sortOrder === 'asc' ? ' primary' : '') + '" id="wOrderAsc" style="flex:1">正序 · 从起点出发</button>' +
-        '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1">倒序 · 从远端返回</button></div></div>' +
+        '<div class="fld"><label>方向（排序完成后）</label><div class="row row-opt" style="gap:10px">' +
+        '<button class="btn' + (w.sortOrder === 'asc' ? ' primary' : '') + '" id="wOrderAsc" style="flex:1"><span>正序</span><span>从起点出发</span></button>' +
+        '<button class="btn' + (w.sortOrder === 'desc' ? ' primary' : '') + '" id="wOrderDesc" style="flex:1"><span>倒序</span><span>从远端返回</span></button></div></div>' +
         '<div class="fld"><label>出行方式（算时长与里程的尺子）</label><div class="chip-row">' +
         TB_ORDER.map(function (m) { return '<span class="chip' + (modeOf(w.travelBy) === m ? ' on' : '') + '" data-tb="' + m + '" role="button" tabindex="0">' + MODE[m].label + '</span>'; }).join('') +
         '</div><div style="font-size:var(--fs-3);color:var(--color-muted);margin-top:8px;line-height:1.6">' +
@@ -2342,7 +2342,7 @@
         '<div>排序：<b>' + (w.sortMode === 'amap' ? '高德路线' : '地理最近邻') + ' · ' + (w.sortOrder === 'desc' ? '倒序' : '正序') + '</b></div>' +
         '<div>出行方式：<b>' + MODE[modeOf(w.travelBy)].label + '</b></div></div>';
     }
-    var nav = '<div class="row" style="gap:8px;margin-top:14px">' +
+    var nav = '<div class="row row-opt" style="gap:8px;margin-top:14px">' +
       (w.step > 1 ? '<button class="btn" id="wBack" style="flex:1">上一步</button>' : '<button class="btn ghost" id="wCancel" style="flex:1">取消</button>') +
       (w.step < 4 ? '<button class="btn primary" id="wNext" style="flex:1">下一步</button>' : '<button class="btn primary" id="wDone" style="flex:1">开始排期</button>') +
       '</div>';
