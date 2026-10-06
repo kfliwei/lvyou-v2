@@ -2833,7 +2833,7 @@ const EMOJI_MARK = 'emoji-ok:';
     ['design.css', '.ckbox{', 1, '勾选样式定义点恰 1 处（下面 ④ 要求除它以外全站 0 处）'],
     ['design.css', '.ckbox.on{', 1, '已勾态单点'],
     ['sw.js', "'./checklist.html'", 1, '清单页在离线壳里：不在的话离线打开＝一条网络请求'],
-    ['tools/gen-sw-shell.cjs', "'share.js', 'checklist.js', 'ticketbox.js']", 1, '生成器的 CORE_JS 名单必须含两个新模块：漏列的话跑一次生成器就把它们从 SHELL 抹掉（§21 字体段、§28 M37/M38 同形状）'],
+    ['tools/gen-sw-shell.cjs', "'share.js', 'checklist.js', 'ticketbox.js'", 1, '生成器的 CORE_JS 名单必须含两个新模块：漏列的话跑一次生成器就把它们从 SHELL 抹掉（§21 字体段、§28 M37/M38 同形状）。名单结尾的 ] 不钉——后续批次会往后追加（批次 24 追加了 expense-form.js），钉住结尾就是给自己埋一条必漂移的锚'],
     ['tools/smoke-checklist.js', "[].slice.call(document.querySelectorAll('.ui-toast')).pop()", 3, '浏览器腿的 toast 采样取栈尾：toast 是堆叠的，读第一条量到的是队列顺序（本批 B16 就是这么假红过一次）'],
   ];
   A29.forEach(a => {

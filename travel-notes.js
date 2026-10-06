@@ -580,6 +580,30 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
 /* 保存后短暂"完成态"呼吸：确认提示出现时主钮给一次金色回响 */\
 @keyframes tnsavePulse{0%{box-shadow:0 6px 18px rgba(200,109,75,.32)}40%{box-shadow:0 6px 26px rgba(220,174,94,.55)}100%{box-shadow:0 6px 18px rgba(200,109,75,.32)}}\
 .tn-save.pulse{animation:tnsavePulse var(--motion-spin) ease}\
+/* ---------- 批次 24-C：面板顶部两档（记此刻／记开销） ----------\
+   分段控件只做显隐：录音那三屏状态机（is-idle/is-done/is-editing）一位不动，\
+   切到开销档只是把录音的 body/foot 收起来、把这一屏放出来。 */\
+.tn-seg{display:flex;gap:6px;padding:8px 14px 0;position:relative;z-index:3}\
+/* 门控：这一页没载 expense.js/expense-form.js（旧壳、纯预览页、专题页）时整条分段控件不出现，\
+   不能留一个点了没反应的按钮给用户。 */\
+.tn-panel:not(.has-exp) .tn-seg{display:none}\
+.tn-seg button{flex:1;min-height:44px;border:1px solid var(--color-line-strong);background:var(--color-bg-soft);color:var(--color-muted);border-radius:999px;font-size:var(--fs-4);cursor:pointer;transition:transform var(--motion-tap) var(--ease-pop)}\
+.tn-seg button:active{transform:scale(.97)}\
+.tn-seg button.on{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600}\
+.tn-expense{display:none;flex:1;min-height:0;overflow-y:auto;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 18px);position:relative;z-index:2}\
+.tn-panel.is-expense .tn-expense{display:block}\
+.tn-panel.is-expense .tn-body,.tn-panel.is-expense .tn-foot{display:none}\
+.tn-exp-pick{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:0 12px;border:1px dashed var(--color-line-strong);border-radius:12px;background:transparent;color:var(--color-muted);font-size:var(--fs-3);cursor:pointer;text-align:left}\
+.tn-exp-pick b{max-width:58%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--color-primary-dark);font-weight:600}\
+.tn-exp-pick .tn-exp-caret{margin-left:auto;display:flex;flex:0 0 auto;opacity:.6}\
+.tn-exp-list{margin-top:8px;border:1px solid var(--color-line);border-radius:14px;background:var(--color-surface);overflow:hidden}\
+.tn-exp-list button{display:block;width:100%;min-height:44px;padding:8px 12px;border:0;border-bottom:1px solid var(--color-line);background:transparent;color:var(--color-ink);font-size:var(--fs-3);text-align:left;cursor:pointer}\
+.tn-exp-list button:last-child{border-bottom:0}\
+.tn-exp-list button.on{background:var(--color-bg-soft);color:var(--color-primary-dark);font-weight:600}\
+.tn-exp-list button small{display:block;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px}\
+.tn-exp-today{margin-top:12px;font-size:var(--fs-3);color:var(--color-muted);line-height:1.8}\
+.tn-exp-today b{color:var(--color-ink);font-variant-numeric:tabular-nums}\
+.tn-exp-today a{color:var(--color-primary-dark);font-weight:600;text-decoration:none}\
 ';
 
   /* ---------- UI 构建 ---------- */
@@ -595,6 +619,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var panel = el('div', 'tn-panel');
     panel.innerHTML = '\
 <div class="tn-head"><button class="tn-x" id="tnX">←</button><div class="tn-title"><b>留下这一刻</b><small class="tn-site" id="tnSite"></small></div><span class="tn-pause">' + TI('mic', 13) + ' 5 秒停顿</span></div>\
+<div class="tn-seg" role="group" aria-label="这一档要记什么"><button type="button" class="on" id="tnTabNote" aria-pressed="true">记此刻</button><button type="button" id="tnTabExp" aria-pressed="false">记开销</button></div>\
 <div class="tn-body">\
   <div class="tn-now" id="tnNow"></div>\
   <div class="tn-prompt" id="tnPrompt">你到了这里。<br>如果愿意，说说现在看到的。</div>\
@@ -611,6 +636,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   <div class="tn-loading" id="tnLoading">正在整理这段旅程……</div>\
   <div class="tn-ai" id="tnAI"></div>\
 </div>\
+<div class="tn-expense" id="tnExpense"><button type="button" class="tn-exp-pick" id="tnExpPick" aria-expanded="false" aria-controls="tnExpList"></button><div class="tn-exp-list" id="tnExpList" style="display:none"></div><div id="tnExpForm"></div><div class="tn-exp-today" id="tnExpToday"></div></div>\
 <div class="tn-foot">\
   <div class="tn-acts">\
     <button class="tn-repolish" id="tnPolish" style="display:none">整理一下</button>\
@@ -653,6 +679,15 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(panel, '#tnRec').onclick = toggleRec;
     $X(panel, '#tnPolish').onclick = doPolish;
     $X(panel, '#tnSave').onclick = saveNote;
+    /* ---------- 批次 24-C：顶部两档（记此刻／记开销） ----------
+       没载 expense.js 的页面不接线、不打 has-exp，配合上面的 :not(.has-exp) 门控，
+       分段控件整条不出现（宁可少一个入口，也不留一个点了没反应的按钮）。 */
+    panel.classList.toggle('has-exp', expOn());
+    if (expOn()) {
+      $X(panel, '#tnTabNote').onclick = function () { setTab('note'); };
+      $X(panel, '#tnTabExp').onclick = function () { setTab('exp'); };
+      $X(panel, '#tnExpPick').onclick = toggleExpList;
+    }
     /* 转写框常驻 textarea：直接打字也能成稿（事件委托，innerHTML 重建不丢绑定） */
     $X(panel, '#tnRaw').addEventListener('input', function (e) {
       var ta = e.target;
@@ -953,6 +988,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (tt) tt.value = '';
     renderPhotos();
     setPhase('idle');
+    resetTab();   /* 批次 24-C：每次打开都回到「记此刻」，上一笔停在哪儿都不带过来 */
   }
   function closePanel() {
     if (ui) {
@@ -965,6 +1001,144 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     setPhase('idle');
   }
   function setPhase(p) { state.phase = p; }
+
+  /* ---------- 批次 24-C：面板内的「记开销」档（行中入口） ----------
+     为什么放在这一屏：花钱的那一刻人就站在这个点上。要他退出面板、翻到记账页、选行程、再填金额，
+     这笔钱多半就进不了账（方案 §4 E1）。
+     两条口径不能破：
+       · 这一档不叠第二层弹层——§36 明令本文件不许出现 UI.sheet(，混用会把两套弹层口径焊在一起，
+         所以用的是面板自己的显隐；
+       · 录音那三屏状态机（is-idle/is-done/is-editing）一位不动，切档只加/撤 is-expense。
+     表单本身与记账页同源（expense-form.js），这里只管「记到哪一趟」和今天已经花了多少。 */
+  function expOn() { return !!(window.Expense && window.ExpenseForm); }
+  var expTrip = null;        /* 当前桶：{id,name,start,days}；null＝还没定，界面上照实说 */
+  var expForm = null;
+  var expListOpen = false;
+
+  function readExpTrips() {
+    try {
+      var l = JSON.parse(localStorage.getItem('tn_trips') || '[]');
+      return Array.isArray(l) ? l.filter(function (t) { return t && t.id; }) : [];
+    } catch (e) { return []; }
+  }
+  function expBucket(t) {
+    if (!t) return null;
+    if (t.id === Expense.FREE_ID) return { id: Expense.FREE_ID, name: Expense.FREE_NAME, start: '', days: 0 };
+    return {
+      id: t.id,
+      name: t.name || '未命名行程',
+      /* 实际出发日优先于计划出发日：排期只是参考时，钱要跟着真实那一天走 */
+      start: Expense.isoOf(t.logStart) || Expense.isoOf(t.startDate),
+      days: (t.days || []).length
+    };
+  }
+  function findExpBucket(id) {
+    if (id === Expense.FREE_ID) return expBucket({ id: Expense.FREE_ID });
+    var l = readExpTrips();
+    for (var i = 0; i < l.length; i++) if (l[i].id === id) return expBucket(l[i]);
+    return null;   /* 这趟被删了：不给他留一个假桶——钱记到不存在的行程上等于丢账 */
+  }
+
+  function openExp() {
+    if (!expForm) {
+      expForm = ExpenseForm.render($X(ui.panel, '#tnExpForm'), {
+        getTrip: function () { return expTrip || { id: '', start: '', days: 0 }; },
+        /* 记完不关面板、日期停在刚那一笔：行中连着花三笔是常态，每笔记完重选日期就会漏记 */
+        onSaved: function (it) { drawExpList(); drawExpToday(); expForm.open({ date: it.date, focusAmount: true }); },
+        onCancel: function () { setTab('note'); }
+      });
+    }
+    /* 每次进这一档重新推断：上一次选中的桶可能已经走完、改名、或被删 */
+    if (expTrip) expTrip = findExpBucket(expTrip.id);
+    if (!expTrip) {
+      var act = Expense.activeTripOf(readExpTrips(), Expense.todayISO());
+      expTrip = act ? expBucket(act) : null;
+    }
+    expListOpen = !expTrip;   /* 判不出就把行程摊开让用户点一下，猜错行程比多点一次严重 */
+    drawExpPick(); drawExpList(); syncExpList();
+    expForm.open({ focusAmount: !!expTrip });
+    drawExpToday();
+    if (!expTrip) { try { $X(ui.panel, '#tnExpPick').focus({ preventScroll: true }); } catch (e) {} }
+  }
+
+  function setTab(mode) {
+    if (!expOn() || !ui) return;
+    var exp = mode === 'exp';
+    if (exp && state.phase === 'recording') {
+      /* 正在听的时候不切档：切过去录音还在跑、界面却收起来了，等于「看不见地录」；
+         原生侧只有 cancelVoice（整段丢掉），不能拿它当暂停用。 */
+      flash('正在听 · 先说完这一段再记开销');
+      return;
+    }
+    ui.panel.classList.toggle('is-expense', exp);
+    var n = $X(ui.panel, '#tnTabNote'), x = $X(ui.panel, '#tnTabExp');
+    n.classList.toggle('on', !exp); n.setAttribute('aria-pressed', exp ? 'false' : 'true');
+    x.classList.toggle('on', exp); x.setAttribute('aria-pressed', exp ? 'true' : 'false');
+    if (exp) openExp();
+  }
+  /* 默认档永远是「记此刻」：上一笔停在开销档，这次打开也不能跟着停在那儿。
+     桶也一起清空重来：上一次手动选的「未编排行程」不该悄悄接走这一趟的钱——
+     重新按进行中推断，判不出就摊开选择器，用户看得见自己点在哪儿。 */
+  function resetTab() {
+    if (!ui) return;
+    expTrip = null;
+    ui.panel.classList.remove('is-expense');
+    var n = $X(ui.panel, '#tnTabNote'), x = $X(ui.panel, '#tnTabExp');
+    if (n) { n.classList.add('on'); n.setAttribute('aria-pressed', 'true'); }
+    if (x) { x.classList.remove('on'); x.setAttribute('aria-pressed', 'false'); }
+    expListOpen = false;
+    syncExpList();
+  }
+  function toggleExpList() { expListOpen = !expListOpen; syncExpList(); }
+  function syncExpList() {
+    if (!ui) return;
+    var box = $X(ui.panel, '#tnExpList'), pick = $X(ui.panel, '#tnExpPick');
+    if (!box || !pick) return;
+    box.style.display = expListOpen ? 'block' : 'none';
+    pick.setAttribute('aria-expanded', expListOpen ? 'true' : 'false');
+  }
+  function drawExpPick() {
+    $X(ui.panel, '#tnExpPick').innerHTML = '记到：' +
+      (expTrip ? '<b>' + esc(expTrip.name) + '</b>' : '<b>点一下选一趟</b>') +
+      '<span class="tn-exp-caret">' + TI('chevron', 14) + '</span>';
+    $X(ui.panel, '#tnExpPick').setAttribute('aria-label', '记到哪一趟：' + (expTrip ? expTrip.name : '还没选定'));
+  }
+  function drawExpList() {
+    var rows = readExpTrips().map(function (t) { return expBucket(t); });
+    rows.push(expBucket({ id: Expense.FREE_ID }));   /* free 桶常驻：没排行程的人也要能记 */
+    var box = $X(ui.panel, '#tnExpList');
+    box.innerHTML = rows.map(function (b) {
+      var on = expTrip && expTrip.id === b.id;
+      var meta = b.id === Expense.FREE_ID
+        ? '没有行程也能记'
+        : (b.start ? '出发 ' + b.start + ' · ' + b.days + ' 天' : '没填出发日期 · ' + b.days + ' 天');
+      return '<button type="button" data-id="' + esc(b.id) + '"' + (on ? ' class="on"' : '') + '>' +
+        esc(b.name) + '<small>' + meta + ' · 已花 ' + Expense.fmtMoney(Expense.totalCents(b.id)) + ' 元</small></button>';
+    }).join('');
+    /* 事件委托：这一列每次切桶都要重建，逐颗绑会漏掉后建的那颗 */
+    box.onclick = function (e) {
+      var t = e.target.closest ? e.target.closest('button[data-id]') : null;
+      if (t) pickExp(t.getAttribute('data-id'));
+    };
+  }
+  function pickExp(id) {
+    var b = findExpBucket(id);
+    if (!b) { flash('这趟行程已经不在了'); return; }
+    expTrip = b; expListOpen = false;
+    drawExpPick(); drawExpList(); syncExpList(); drawExpToday();
+    if (expForm) { expForm.sync(); try { expForm.amount().focus({ preventScroll: true }); } catch (e) {} }
+  }
+  /* 今天这趟花了多少：按真实日期看，不看计划第几天（排期当参考的人 day 是错的） */
+  function drawExpToday() {
+    var box = $X(ui.panel, '#tnExpToday');
+    if (!expTrip) { box.innerHTML = '还没选定记到哪一趟 · 点上面那一行选一趟，或记进「' + esc(Expense.FREE_NAME) + '」'; return; }
+    var today = Expense.todayISO(), g = null;
+    Expense.byDate(expTrip.id, expTrip.start).forEach(function (x) { if (x.date === today) g = x; });
+    var free = expTrip.id === Expense.FREE_ID;   /* free 桶不是「一趟」，读数别说「这趟」 */
+    box.innerHTML = '今天 ' + (g ? '已花 <b>' + Expense.fmtMoney(g.cents) + '</b> 元 · ' + g.count + ' 笔' : '还没记账') +
+      ' · ' + (free ? '这一桶共' : '这趟共') + ' <b>' + Expense.fmtMoney(Expense.totalCents(expTrip.id)) + '</b> 元 · ' +
+      '<a href="expense.html?trip=' + encodeURIComponent(expTrip.id) + '">' + (free ? '看这一桶的账' : '看这一趟的账') + '</a>';
+  }
 
   /* 通用语音识别：临时消费者（如「一句话加节点」）优先，否则走默认游记面板 */
   var _voiceTemp = null;

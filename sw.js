@@ -1,5 +1,5 @@
 /* sw.js — 行迹 TRACE 离线缓存（应用壳预缓存 + 数据文件运行时缓存 + 地图瓦片按需缓存） */
-var CACHE = 'trace-v77';
+var CACHE = 'trace-v78';
 var TILES = 'trace-tiles-v1';
 var SITE_IMGS = 'trace-site-imgs-v1';   /* 实景照本地镜像运行时缓存（cache-first，LRU 同瓦片思路） */
 var IMG_MAX_ENTRIES = 300;
@@ -52,6 +52,7 @@ var SHELL = [
   './share.js',
   './checklist.js',
   './ticketbox.js',
+  './expense-form.js',
   /* ---- 各省数据/美食（预缓存，离线开箱可用） ---- */
   './ah-data.js',
   './bj-data.js',

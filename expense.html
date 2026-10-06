@@ -72,23 +72,9 @@
   #addSheet.show{display:block;transform:translateY(0)}
   .theme-dark #addSheet{background:var(--color-surface);border-color:var(--color-line)}
   .sht-t{font-family:var(--font-serif);font-size:var(--fs-7);margin:2px 0 12px}
-  .x-amtrow{display:flex;align-items:baseline;gap:8px}
-  /* 金额是这一屏的主角：字大到不需要看键盘也能按对（数字键盘直落） */
-  .x-amt{flex:1;min-width:0;min-height:56px;padding:0 14px;border:1px solid var(--color-line-strong);border-radius:14px;background:var(--color-bg);color:var(--color-ink);font-size:var(--fs-10);font-variant-numeric:tabular-nums}
-  .x-amt:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
-  .x-unit{flex:0 0 auto;font-size:var(--fs-5);color:var(--color-muted)}
-  .x-cats{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-  .x-cats .chip{min-height:44px}
-  .x-fields{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .x-fields label{flex:1 1 46%;min-width:0;display:flex;flex-direction:column;gap:4px;font-size:var(--fs-2);color:var(--color-muted)}
-  .x-fields input{min-width:0;height:44px;padding:0 12px;border:1px solid var(--color-line);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-4)}
-  .x-fields .wide{flex:1 1 100%}
-  .x-acts{display:flex;gap:8px;margin-top:14px}
-  .x-acts .btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center}
-  .x-acts .btn.ghost{flex:0 0 auto}
-  .x-hint{font-size:var(--fs-2);color:var(--color-muted);margin-top:9px;line-height:1.6}
-  .chip{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 13px;min-height:34px;border-radius:999px;border:1px solid var(--color-line);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-3);cursor:pointer}
-  .chip.on{background:var(--color-primary);border-color:transparent;color:#fff;font-weight:600}
+  /* 表单本身（金额大字框 / 六枚分类 / 日期·垫付人·备注 / 取消·记上 / 那行说明）
+     连它的皮肤一起挪到 expense-form.js：随手记面板的「记开销」档用的是同一份实现。
+     这一页只留容器——两处各写一套表单，漂的第一天就是「页面上六个分类、面板里五个」。 */
   .empty-line{text-align:center;padding:56px 20px;color:var(--color-muted)}
   .empty-line .em{font-family:var(--font-serif);font-size:var(--fs-9);color:var(--color-ink-soft);line-height:1.8}
   .empty-line p{font-size:var(--fs-4);margin-top:10px;line-height:1.8}
@@ -154,26 +140,13 @@
 
 <div id="addSheet">
   <div class="sht-t">记一笔</div>
-  <div class="x-amtrow">
-    <input class="x-amt" id="adAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" aria-label="金额（元）" autocomplete="off">
-    <span class="x-unit">元</span>
-  </div>
-  <div class="x-cats" id="adCats"></div>
-  <div class="x-fields">
-    <label>日期<input id="adDate" type="date" aria-label="花钱的日期"></label>
-    <label>谁付的<input id="adWho" type="text" maxlength="20" placeholder="可选" aria-label="垫付人" autocomplete="off"></label>
-    <label class="wide">备注<input id="adNote" type="text" maxlength="60" placeholder="可选，例如「索道往返」" aria-label="备注" autocomplete="off"></label>
-  </div>
-  <div class="x-acts">
-    <button class="btn ghost" id="adCancel">取消</button>
-    <button class="btn primary" id="adSave">记上</button>
-  </div>
-  <div class="x-hint" id="adHint"></div>
+  <div id="adForm"></div>
 </div>
 
 <script src="icons.js"></script>
 <script src="ui.js"></script>
 <script src="expense.js"></script>
+<script src="expense-form.js"></script>
 <script>
 (function () {
   function esc(s) { return window.UI.esc(s); }
@@ -359,52 +332,21 @@
     });
   }
 
-  /* ---------- 记一笔 ---------- */
-  var pickCat = '餐饮';
-  function renderCats() {
-    $('adCats').innerHTML = Expense.CATS.map(function (c) {
-      return '<span class="chip' + (c === pickCat ? ' on' : '') + '" data-c="' + esc(c) + '" role="button" tabindex="0">' + esc(c) + '</span>';
-    }).join('');
-    var cs = $('adCats').querySelectorAll('.chip');
-    for (var i = 0; i < cs.length; i++) cs[i].onclick = function () { pickCat = this.getAttribute('data-c'); renderCats(); };
-  }
-  function openAdd() {
-    if (!trip) return;
-    renderCats();
-    var today = Expense.todayISO();
-    $('adAmt').value = '';
-    $('adDate').value = today;
-    $('adWho').value = ''; $('adNote').value = '';
-    var start = startOf(trip), d = Expense.dayFromStart(start, today), n = planDays(trip);
-    $('adHint').innerHTML = tripId === Expense.FREE_ID
-      ? '这一笔进「' + esc(Expense.FREE_NAME) + '」桶：没有行程也能记，预算与 CSV 单独算这一桶。'
-      : (!start
-        ? '这趟没填出发日期，所以这一笔只有真实日期可依据。它永远排在按日期的那一列里。'
-        : (!d
-          ? '记在 <b>' + today + '</b>（早于出发日期 ' + esc(start) + '，单列成「出发前」一行）。改一下日期就能补记路上那天。'
-          : (n && d <= n
-            ? '记在 <b>' + today + '</b>（计划的第 ' + d + ' 天）。改一下日期就能补记前一天。'
-            : '记在 <b>' + today + '</b>（晚于计划排期，单列成「计划外」一行）。排期只是参考，多走的那几天照样记得下。')));
-    sheet.open('记一笔开销');
-    setTimeout(function () { $('adAmt').focus(); }, 60);
-  }
-  function saveAdd() {
-    var n = Number($('adAmt').value);
-    if (!isFinite(n) || n <= 0) { UI.toast('先填一个大于 0 的金额'); $('adAmt').focus(); return; }
-    var date = Expense.isoOf($('adDate').value) || Expense.todayISO();
-    var start = startOf(trip);
-    var it = Expense.add(tripId, Expense.dayFromStart(start, date) || 1, n, pickCat,
-      $('adWho').value, $('adNote').value, date);
-    if (!it) return;                       /* 写满时 Expense.save 已经如实报过一句，不叠第二句 */
-    sheet.close();
-    UI.toast('已记 ' + Expense.fmtMoney(it.cents) + ' 元 · ' + it.cat + ' · ' + it.date);
-    render();
-  }
+  /* ---------- 记一笔：表单连文案都来自 expense-form.js 那一份实现 ----------
+     随手记面板的「记开销」档用的是同一个 render()，两边不会漂出第二套分类或第二种「记在哪天」。
+     这一页只负责容器（弹层开合）与记完之后重画。 */
   var sheet = UI.sheet($('addSheet'), { modal: true, label: '记一笔开销' });
+  var form = ExpenseForm.render($('adForm'), {
+    getTrip: function () { return { id: tripId, start: startOf(trip), days: planDays(trip) }; },
+    onSaved: function () { sheet.close(); render(); },
+    onCancel: function () { sheet.close(); }
+  });
+  function openAdd() {
+    if (!trip || !form) return;
+    sheet.open('记一笔开销');
+    form.open();
+  }
   $('fAdd').onclick = openAdd;
-  $('adCancel').onclick = function () { sheet.close(); };
-  $('adSave').onclick = saveAdd;
-  $('adAmt').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveAdd(); } });
   $('xBud').addEventListener('change', function () {
     var n = Number(this.value);
     var cents = Expense.setBudget(tripId, isFinite(n) && n > 0 ? n : 0);
@@ -447,7 +389,6 @@
     renderYear();
   }
 
-  renderCats();
   var q = new URLSearchParams(location.search).get('trip');
   if (q) open(q); else renderPick();
 })();

@@ -9,6 +9,14 @@
  * A84–A104 验 expense.html 这张独立主页——它不开规划页也能走完「选桶 → 记一笔 → 按日期看 →
  * 预算 → 导出 CSV → 删除」，并在 328×723 真机主档下量几何；A95 那一条盯的是页面自己的同步：
  * 记完一笔顶部年总必须跟着走，停在 0.00 就等于告诉用户「这页没记住」。
+ * A105–A118 是批次 24-C：随手记 FAB 面板顶部的「记开销」档（行中入口）。这一档最容易被写歪的
+ * 两件事各有一条判据：默认档一点没被动过（A105/A107/A115：录音三屏状态机的类一位不动，切档只
+ * 做显隐），以及站在这个点上花钱的人真能把钱按真实日期记上（A108/A111：进行中那趟自动落桶、
+ * 日期就是今天、落盘整数分）；A110/A114 盯读数说真话（free 桶不说「这趟」），A116 盯门控
+ * （没载 expense.js 的页面不许出现一条点了没反应的分段控件）。
+ * 取样口径：index.html 的首启引导蒙层 .ob-mask（z 9990）盖在面板（9001）上，freshPage 清了 LS
+ * 就会每次重放引导，真鼠标点击全打在蒙层上——所以这一段先打 tn_onboarded 再 reload，
+ * 站到「引导已看过」的状态（与 tools/visual-check.js、smoke-usable.js 同一口径）。
  * 用法: NODE_PATH=tools/node_modules node tools/smoke-expense.js
  */
 const puppeteer = require('puppeteer-core');
@@ -1045,6 +1053,207 @@ const setBudget = async (p, v) => {
     JSON.stringify(GEOP));
   ok('A104 这一页自己的控件在 328 档没有一个矮于 44px（金额框 56 / chip 与钮 44 是设计口径；顶栏仍是全站同一个 40 圆钮，不在这页私改）',
     GEOP.own.length === 0 && GEOP.tb.join(',') === '40,40', JSON.stringify([GEOP.own, GEOP.tb]));
+
+  /* ================= 批次 24-C：随手记面板顶部的「记开销」档（行中入口） =================
+     这一档新不新不重要，重要的是两件事：默认档一点没被动过（A105/A107/A112），
+     以及站在这个点上花钱的人真的能把这笔钱按真实日期记上（A109/A110/A111）。
+     表单实现与 expense.html 同源（expense-form.js），金额算法那边已经审过，这里审的是面板这一屏。 */
+  const padC = n => (n < 10 ? '0' : '') + n;
+  const isoC = d => d.getFullYear() + '-' + padC(d.getMonth() + 1) + '-' + padC(d.getDate());
+  const TODAY = isoC(new Date()), YEST = isoC(new Date(Date.now() - 86400000)), FUT = isoC(new Date(Date.now() + 20 * 86400000));
+  const tp = await freshPage(browser, U('index.html'), errs);
+  /* 首启引导蒙层（index.html 的 .ob-mask，z-index 9990）盖在面板（9001）上面：freshPage 清了 LS，
+     于是引导每次都从头放，真鼠标点击全打在蒙层上。真机用户走完引导就没这一层了，所以判据得先站到
+     「引导已看过」这个状态——这不是产品缺陷，是取样口径。 */
+  await tp.evaluateOnNewDocument(() => { try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {} });
+  await tp.reload({ waitUntil: 'domcontentloaded' });
+  await tp.evaluate(seed => {
+    localStorage.setItem('tn_trips', JSON.stringify([
+      { id: 'zz-live', name: '进行中趟', startDate: seed.yest, logStart: seed.yest, realDays: 3, days: [{}, {}, {}] },
+      { id: 'zz-later', name: '以后的趟', startDate: seed.fut, days: [{}, {}] }
+    ]));
+  }, { yest: YEST, fut: FUT });
+
+  const C0 = await tp.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    TravelNotes.openPanel({ label: '鹳雀楼', lat: 34.84, lng: 110.49, city: '运城' });
+    await new Promise(r => setTimeout(r, 400));
+    const panel = q('.tn-panel');
+    return {
+      opened: panel.style.display,
+      hasExp: panel.classList.contains('has-exp'),
+      seg: getComputedStyle(q('.tn-seg')).display,
+      /* 录音三屏状态机只有 is-idle/is-done/is-editing 三个类；is-expense 是这一批新加的「档位」类，
+         切档必然带上它，所以从状态机读数里剔出去——否则这条判据等于自己判自己红。 */
+      sm: panel.className.split(/\s+/).filter(c => /^is-/.test(c) && c !== 'is-expense').sort().join(','),
+      expCls: panel.classList.contains('is-expense'),
+      notePressed: q('#tnTabNote').getAttribute('aria-pressed'),
+      body: getComputedStyle(q('.tn-body')).display,
+      segH: Array.prototype.map.call(q('.tn-seg').querySelectorAll('button'), b => Math.round(b.getBoundingClientRect().height))
+    };
+  });
+  ok('A105 默认档没被这一批改动：面板开在「记此刻」（无 is-expense、录音屏照旧可见、aria-pressed 落在记此刻）',
+    C0.opened === 'flex' && C0.hasExp && C0.seg === 'flex' && !C0.expCls &&
+    C0.notePressed === 'true' && C0.body === 'flex', JSON.stringify(C0));
+  ok('A106 两条档位钮各 44px（面板顶上的东西要用拇指点得中，不是给鼠标 hover 的）',
+    C0.segH.join(',') === '44,44', C0.segH.join(','));
+
+  const C1 = await tp.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    q('#tnTabExp').click();
+    await new Promise(r => setTimeout(r, 350));
+    const panel = q('.tn-panel');
+    return {
+      sm: panel.className.split(/\s+/).filter(c => /^is-/.test(c) && c !== 'is-expense').sort().join(','),
+      expDisp: getComputedStyle(q('.tn-expense')).display,
+      body: getComputedStyle(q('.tn-body')).display,
+      foot: getComputedStyle(q('.tn-foot')).display,
+      pressed: q('#tnTabExp').getAttribute('aria-pressed'),
+      pick: q('#tnExpPick').textContent,
+      expanded: q('#tnExpPick').getAttribute('aria-expanded'),
+      listDisp: q('#tnExpList').style.display,
+      chips: Array.prototype.map.call(q('#tnExpForm').querySelectorAll('.chip'), c => c.textContent + (c.classList.contains('on') ? '*' : '')),
+      date: q('#adDate').value,
+      hint: q('#adHint').textContent,
+      today: q('#tnExpToday').textContent,
+      link: q('#tnExpToday a') ? q('#tnExpToday a').getAttribute('href') : '',
+      amtH: Math.round(q('#adAmt').getBoundingClientRect().height),
+      focus: document.activeElement ? document.activeElement.id : ''
+    };
+  });
+  ok('A107 切档只做显隐：录音那三屏状态机的类一位没动（is-idle 还在），只是 body/foot 收起、这一屏放出',
+    C1.sm === C0.sm && C1.expDisp === 'block' && C1.body === 'none' && C1.foot === 'none' && C1.pressed === 'true',
+    JSON.stringify([C0.sm, C1.sm, C1.expDisp, C1.body, C1.foot]));
+  ok('A108 进行中自动落到那一趟：不用先选行程也不用先懂「第几天」，日期默认就是今天，说明行按 logStart 说真话（昨天出发 → 今天第 2 天），列表保持收起',
+    /进行中趟/.test(C1.pick) && C1.expanded === 'false' && C1.listDisp === 'none' && C1.date === TODAY &&
+    /第 2 天/.test(C1.hint),
+    JSON.stringify([C1.pick, C1.date, C1.hint]));
+  ok('A109 表单是同一份实现（六枚分类同 Expense.CATS、默认选中「餐饮」、金额框 56px、焦点落在金额）',
+    C1.chips.join(',') === '交通,住宿,餐饮*,门票,购物,其他' && C1.amtH === 56 && C1.focus === 'adAmt',
+    JSON.stringify([C1.chips, C1.amtH, C1.focus]));
+  ok('A110 今日读数与这趟读数是两条真话：还没记时明说「还没记账」，出口链到 expense.html?trip=这一趟',
+    /今天 还没记账/.test(C1.today) && /这趟共 0\.00 元/.test(C1.today) &&
+    C1.link === 'expense.html?trip=zz-live', JSON.stringify([C1.today, C1.link]));
+
+  await tp.type('#adAmt', '66.6');
+  await tp.click('#adSave'); await sleep(350);
+  const C2 = await tp.evaluate(function () {
+    const q = s => document.querySelector(s);
+    const l = JSON.parse(localStorage.getItem('tn_expense') || '[]');
+    return {
+      it: l[l.length - 1], n: l.length,
+      today: q('#tnExpToday').textContent,
+      amt: q('#adAmt').value, date: q('#adDate').value,
+      expCls: q('.tn-panel').classList.contains('is-expense'),
+      toast: q('.ui-toast') ? q('.ui-toast').textContent : ''
+    };
+  });
+  ok('A111 在面板里记上这一笔：落盘整数分 6660 + 真实日期就是今天 + 桶是进行中那趟（date 权威，day 只是对齐锚）',
+    C2.n === 1 && C2.it.cents === 6660 && C2.it.tripId === 'zz-live' && C2.it.date === TODAY && C2.it.day === 2 && C2.it.cat === '餐饮',
+    JSON.stringify(C2.it));
+  ok('A112 记完不关面板、金额清空而日期停在刚那一笔（行中连着花三笔是常态，每笔重选日期就会漏记），今日读数当场跟着走',
+    C2.expCls && C2.amt === '' && C2.date === TODAY &&
+    /今天 已花 66\.60 元 · 1 笔/.test(C2.today) && /这趟共 66\.60 元/.test(C2.today),
+    JSON.stringify([C2.amt, C2.date, C2.today]));
+
+  const C3 = await tp.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    q('#tnExpPick').click();
+    await new Promise(r => setTimeout(r, 200));
+    /* 摊开那一刻的读数要当场取：选完桶之后列表自己收回去，最后再读 aria-expanded 只会读到 'false' */
+    const expanded = q('#tnExpPick').getAttribute('aria-expanded');
+    const rows = Array.prototype.map.call(q('#tnExpList').querySelectorAll('button'), b => b.textContent);
+    Array.prototype.filter.call(q('#tnExpList').querySelectorAll('button'), b => b.getAttribute('data-id') === 'free')[0].click();
+    await new Promise(r => setTimeout(r, 250));
+    q('#adAmt').value = '20';
+    q('#adSave').click();
+    await new Promise(r => setTimeout(r, 250));
+    const l = JSON.parse(localStorage.getItem('tn_expense') || '[]');
+    return {
+      expanded: expanded, rows: rows,
+      pick: q('#tnExpPick').textContent, listDisp: q('#tnExpList').style.display,
+      hint: q('#adHint').textContent, today: q('#tnExpToday').textContent,
+      buckets: l.map(x => x.tripId + '/' + x.cents + '/' + x.date)
+    };
+  });
+  ok('A113 「记到」那一行摊开就是全部桶：每一趟 + 「未编排行程」常驻在最后（没排行程的人这一档照样能用）',
+    C3.expanded === 'true' && C3.rows.length === 3 && /未编排行程/.test(C3.rows[2]) && /进行中趟/.test(C3.rows[0]),
+    JSON.stringify(C3.rows));
+  ok('A114 换桶把说明行与读数一起改口：free 桶不说「这趟」，第二笔落进 free 且带着同一天的真实日期',
+    C3.listDisp === 'none' && /未编排行程/.test(C3.pick) && /没有行程也能记/.test(C3.hint) &&
+    /这一桶共/.test(C3.today) && C3.buckets.join(',') === 'zz-live/6660/' + TODAY + ',free/2000/' + TODAY,
+    JSON.stringify([C3.pick, C3.hint.slice(0, 40), C3.today, C3.buckets]));
+
+  const C4 = await tp.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    q('#tnTabNote').click();
+    await new Promise(r => setTimeout(r, 200));
+    const back = { expCls: q('.tn-panel').classList.contains('is-expense'), body: getComputedStyle(q('.tn-body')).display };
+    q('#tnX').click();
+    await new Promise(r => setTimeout(r, 250));
+    TravelNotes.openPanel({ label: '第二次开', lat: 0, lng: 0, city: 'test' });
+    await new Promise(r => setTimeout(r, 350));
+    const reopened = {
+      expCls: q('.tn-panel').classList.contains('is-expense'),
+      notePressed: q('#tnTabNote').getAttribute('aria-pressed'),
+      listDisp: q('#tnExpList').style.display
+    };
+    q('#tnTabExp').click();
+    await new Promise(r => setTimeout(r, 300));
+    return { back: back, reopened: reopened, pick: q('#tnExpPick').textContent };
+  });
+  ok('A115 切回「记此刻」立刻恢复录音屏；关掉再重开回到默认档，桶也重新按进行中推断（上一次手选的「未编排行程」不接走这一趟的钱）',
+    !C4.back.expCls && C4.back.body === 'flex' && !C4.reopened.expCls &&
+    C4.reopened.notePressed === 'true' && C4.reopened.listDisp === 'none' && /进行中趟/.test(C4.pick),
+    JSON.stringify(C4));
+  await tp.evaluate(() => { document.querySelector('#tnX').click(); });
+
+  /* 门控的反证：没载 expense.js 的页面（专题页）不该出现一条点了没反应的分段控件 */
+  const tq = await freshPage(browser, U('topic.html'), errs);
+  const GT = await tq.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    TravelNotes.openPanel({ label: '测试点', lat: 0, lng: 0, city: 'test' });
+    await new Promise(r => setTimeout(r, 400));
+    const seg = q('.tn-seg');
+    return {
+      noExpense: typeof window.Expense === 'undefined' && typeof window.ExpenseForm === 'undefined',
+      hasExp: q('.tn-panel').classList.contains('has-exp'),
+      segDisp: seg ? getComputedStyle(seg).display : 'no seg',
+      noteOk: !!q('#tnNow') && getComputedStyle(q('.tn-body')).display === 'flex'
+    };
+  });
+  ok('A116 门控：这一页没载 expense.js 时 has-exp 不打上、分段控件整条不出现（宁可少一个入口，也不留一个点了没反应的按钮）',
+    GT.noExpense && !GT.hasExp && GT.segDisp === 'none' && GT.noteOk, JSON.stringify(GT));
+  await tq.close();
+
+  /* 真机主档 328×723：这一档自己的控件全过 44px，且开销屏不横向溢出 */
+  await tp.setViewport({ width: 328, height: 723, isMobile: true, hasTouch: true });
+  const GEO24 = await tp.evaluate(async function () {
+    const q = s => document.querySelector(s);
+    TravelNotes.openPanel({ label: '窄屏点', lat: 0, lng: 0, city: 'test' });
+    await new Promise(r => setTimeout(r, 300));
+    q('#tnTabExp').click();
+    await new Promise(r => setTimeout(r, 400));
+    q('#tnExpPick').click();
+    await new Promise(r => setTimeout(r, 200));
+    const de = document.documentElement, low = [], over = [];
+    document.querySelectorAll('#tnTabNote,#tnTabExp,#tnExpPick,#tnExpList button,#tnExpense button,#tnExpense input,#tnExpense .chip').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.height > 0 && r.height < 44) low.push((el.id || el.className) + '=' + Math.round(r.height));
+      if (r.width > 0 && (r.right > de.clientWidth + 1 || r.left < -1)) over.push((el.id || el.className) + '@' + Math.round(r.right));
+    });
+    const p = q('.tn-panel').getBoundingClientRect();
+    return { sw: de.scrollWidth, cw: de.clientWidth, low: low.slice(0, 6), over: over.slice(0, 6),
+      panelTop: Math.round(p.top), panelBottom: Math.round(p.bottom), vh: window.innerHeight,
+      saveVisible: q('#adSave').getBoundingClientRect().top < window.innerHeight };
+  });
+  ok('A117 真机主档 328×723：这一档自己的控件没有一个矮于 44px，行程列表摊开也不横向溢出',
+    GEO24.low.length === 0 && GEO24.over.length === 0 && GEO24.sw === GEO24.cw, JSON.stringify(GEO24));
+  ok('A118 窄屏下「记上」那一钮仍在视口内（面板顶满到屏外＝记不上这笔）',
+    GEO24.panelTop >= 0 && GEO24.panelBottom <= GEO24.vh + 1 && GEO24.saveVisible,
+    JSON.stringify([GEO24.panelTop, GEO24.panelBottom, GEO24.vh, GEO24.saveVisible]));
+  await tp.evaluate(() => { try { localStorage.removeItem('tn_expense'); localStorage.removeItem('tn_trips'); } catch (e) {} });
+  await tp.close();
 
   await pg.evaluate(() => { try { localStorage.removeItem('tn_expense'); localStorage.removeItem('tn_budget'); localStorage.removeItem('tn_trips'); } catch (e) {} });
   await pg.evaluate(o => { localStorage.setItem('tn_expense', o.exp); localStorage.setItem('tn_budget', o.bud); }, { exp: RAW24, bud: RAWB24 });
