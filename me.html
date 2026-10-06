@@ -60,6 +60,26 @@
   .theme-dark .hero-card{background:linear-gradient(150deg,rgba(255,255,255,.06),rgba(212,113,74,.10));border-color:rgba(220,174,94,.22)}
   .theme-dark .wish-pill{background:linear-gradient(145deg,#2B241D,#1F1A15)}
   .theme-dark .entry .ic{background:linear-gradient(145deg,rgba(212,113,74,.22),rgba(212,113,74,.08))}
+  /* 批次 24-E：两张常驻卡。它们的价值不在信息量，而在「从不进规划页的人也看得见行程与记账」——
+     入口太窄的病灶就是这两个功能只活在规划结果页的尾部。版式跟着本页的 .panel/.rec 一族走，
+     不搬 trip.html 那套卡片皮肤（两页的容器不同，各写一套才不会出现"看着像但差一点"）。 */
+  .mrow{display:flex;align-items:center;gap:10px;min-height:52px;padding:9px 0;border-top:1px solid var(--color-line);text-decoration:none;color:var(--color-ink)}
+  .mrow:first-child{border-top:0}
+  .mrow .mn{flex:1;min-width:0}
+  .mrow .mn b{display:block;font-size:var(--fs-4);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mrow .mn small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:var(--fs-2);color:var(--color-muted);margin-top:2px;line-height:1.5}
+  .mrow .mm{flex:0 0 auto;text-align:right;font-family:var(--font-serif);font-size:var(--fs-5);color:var(--color-ink);font-variant-numeric:tabular-nums}
+  .mrow .mm i{display:block;font-style:normal;font-family:var(--font-sans);font-size:var(--fs-1);color:var(--color-muted);margin-top:1px}
+  .mrow .arr{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-4)}
+  .msum{display:flex;align-items:baseline;gap:6px}
+  .msum b{font-family:var(--font-serif);font-size:var(--fs-10);font-weight:400;line-height:1.15;color:var(--color-ink);font-variant-numeric:tabular-nums}
+  .msum i{font-style:normal;font-size:var(--fs-3);color:var(--color-muted)}
+  .msum .mcnt{margin-left:auto;font-size:var(--fs-2);color:var(--color-muted)}
+  .msub{font-size:var(--fs-2);color:var(--color-muted);margin-top:5px;line-height:1.6}
+  .mhint{font-size:var(--fs-3);color:var(--color-muted);padding:4px 0 2px;line-height:1.7}
+  .mbtn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:8px;padding:0 14px;border-radius:13px;border:1px solid var(--color-line-strong);background:var(--color-bg-soft);color:var(--color-ink-soft);font-size:var(--fs-4);text-decoration:none;box-sizing:border-box}
+  .mbtn.pri{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
+  .mbtn:active{transform:scale(.985)}
 </style>
 </head>
 <body>
@@ -82,6 +102,16 @@
     </div>
 
     <div class="stats" id="meStats"></div>
+
+    <!-- 批次 24-E：行程与记账在「我的」这一层常驻。此前它们只活在规划结果页尾部，
+         不进规划页的人等于没有这两个功能；两张卡都是纯读数，点击一律跳到能改的那一页。 -->
+    <div class="panel"><div class="ph">我的行程</div><div id="meTrips"></div></div>
+
+    <div class="panel"><div class="ph">今年已花</div>
+      <div class="msum"><b id="meYearSum">0.00</b><i>元</i><span class="mcnt" id="meYearCnt"></span></div>
+      <div class="msub" id="meYearCats"></div>
+      <a class="mbtn" href="expense.html">打开记账本</a>
+    </div>
 
     <div class="panel"><div class="ph">省份足迹</div><div class="provs" id="meProvs"></div></div>
 
@@ -106,11 +136,102 @@
 
 <script src="geo.js"></script>
 <script src="ui.js"></script>
+<script src="expense.js"></script>
+<script src="checklist.js"></script>
+<script src="ticketbox.js"></script>
 <script src="travel-notes.js"></script>
 <script src="wishlist.js"></script>
 <script>
 (function(){
   function esc(s){ return window.UI.esc(s); }
+  function $(i){ return document.getElementById(i); }
+  function readTrips(){ try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; } }
+  /* 计划口径与实际口径分开取，谁也不冒充谁（与 trip.html 同一把尺子） */
+  function planStart(t){ return Expense.isoOf(t && t.startDate); }
+  function realStart(t){ return Expense.isoOf(t && t.logStart); }
+  function startOf(t){ return realStart(t) || planStart(t); }
+  function planDays(t){ return (t && t.days) ? t.days.length : 0; }
+  function realDays(t){ var n = Math.round(Number(t && t.realDays)); return isFinite(n) && n > 0 ? n : planDays(t); }
+  function stopStats(t){
+    var total = 0, done = 0;
+    ((t && t.days) || []).forEach(function(d){ (d.stops || []).forEach(function(s){ total++; if (s && s.done) done++; }); });
+    return { total: total, done: done };
+  }
+  function centsOf(x){ var c = Math.round(Number(x && x.cents)); return isFinite(c) ? c : 0; }
+  function catOf(c){ return Expense.CATS.indexOf(c) >= 0 ? c : '其他'; }
+
+  /* 「我的行程」：一行一趟，读数全是只读的（要改就点进 trip.html / expense.html）。
+     一趟都没有时不留白板——这一页是「不用排期的人」唯一的落脚点，空态必须给两条能走的路。 */
+  function renderTrips(){
+    var box = $('meTrips'); if (!box) return;
+    var list = readTrips().filter(function(t){ return t && t.id; });
+    var freeN = Expense.listOf(Expense.FREE_ID).length, freeC = Expense.totalCents(Expense.FREE_ID);
+    if (!list.length) {
+      box.innerHTML = '<div class="mhint">还没有行程。不排期也能记账，两件事各走各的门。</div>' +
+        '<a class="mbtn pri" href="planner.html">去排一趟行程</a>' +
+        '<a class="mbtn" href="expense.html?trip=' + encodeURIComponent(Expense.FREE_ID) + '">不排行程，直接记一笔</a>';
+      return;
+    }
+    box.innerHTML = list.map(function(t){
+      var n = Expense.listOf(t.id).length, c = Expense.totalCents(t.id);
+      var ck = window.Checklist ? Checklist.statsOf(t.id) : { total: 0, done: 0 };
+      var ss = stopStats(t), st = startOf(t);
+      return '<a class="mrow" data-id="' + esc(t.id) + '" href="trip.html?trip=' + encodeURIComponent(t.id) + '"><span class="mn"><b>' + esc(t.name || '未命名行程') + '</b><small>' +
+        (st ? (realStart(t) ? '实际 ' : '计划 ') + st + ' · ' : '没填出发日期 · ') +
+        '计划 ' + planDays(t) + ' 天' + (realDays(t) !== planDays(t) ? ' · 实际 ' + realDays(t) + ' 天' : '') +
+        (ss.total ? ' · 打卡 ' + ss.done + '/' + ss.total : '') + (ck.total ? ' · 清单 ' + ck.done + '/' + ck.total : '') +
+        '</small></span><span class="mm">' + (n ? Expense.fmtMoney(c) + '<i>' + n + ' 笔</i>' : '<i>还没记账</i>') +
+        '</span><span class="arr">›</span></a>';
+    }).join('') + (freeN
+      ? '<a class="mrow" href="expense.html?trip=' + encodeURIComponent(Expense.FREE_ID) + '"><span class="mn"><b>' + esc(Expense.FREE_NAME) + '</b><small>没挂在任何行程上的开销</small></span><span class="mm">' + Expense.fmtMoney(freeC) + '<i>' + freeN + ' 笔</i></span><span class="arr">›</span></a>'
+      : '');
+    /* 票数是 IndexedDB 的异步读数：先画行再补字，读不到就不提（印「票 0 张」是骗人）。
+       这一页会在游记库 ready 后整体重画，两次渲染的回调可能都落在同一个新节点上，
+       所以补字要带幂等标记——否则那格小字会变成「票 2 张 · 票 2 张」。 */
+    if (window.TicketBox) {
+      list.forEach(function(t){
+        TicketBox.list(t.id).then(function(tk){
+          if (!tk || !tk.length) return;
+          var s = document.querySelector('#meTrips .mrow[data-id="' + t.id + '"] .mn small');
+          if (!s || s.getAttribute('data-tk')) return;
+          s.setAttribute('data-tk', String(tk.length));
+          s.textContent += ' · 票 ' + tk.length + ' 张';
+        }).catch(function(){});
+      });
+    }
+  }
+
+  /* 「今年已花」：合计走 yearCents（跨桶、反推不出日期的条目不进任何年份），
+     分类前二只能自己按年筛——catTotals 不分年，直接用会把往年的账算进今年。 */
+  function renderYear(){
+    var sum = $('meYearSum'); if (!sum) return;
+    var year = Expense.todayISO().slice(0, 4);
+    var trips = readTrips().filter(function(t){ return t && t.id; });
+    var byId = {}; trips.forEach(function(t){ byId[t.id] = t; });
+    var y = Expense.yearCents(year, function(id){ return byId[id] || null; });
+    sum.textContent = Expense.fmtMoney(y.cents);
+    $('meYearCnt').textContent = y.count ? y.count + ' 笔' : '';
+    var m = {}; Expense.CATS.forEach(function(c){ m[c] = 0; });
+    /* 桶列表要并上账本里出现过的 tripId：行程被删后那批孤儿账合计还认、分类不能看不见它 */
+    var seen = {};
+    var buckets = [];
+    Expense.tripIds().forEach(function(id){ seen[id] = 1; buckets.push({ id: id, start: startOf(byId[id]) }); });
+    trips.forEach(function(t){ if (!seen[t.id]) { seen[t.id] = 1; buckets.push({ id: t.id, start: startOf(t) }); } });
+    if (!seen[Expense.FREE_ID]) buckets.push({ id: Expense.FREE_ID, start: '' });
+    buckets.forEach(function(b){
+      Expense.byDate(b.id, b.start).forEach(function(g){
+        if (!g.date || g.date.slice(0, 4) !== year) return;
+        g.items.forEach(function(x){ m[catOf(x.cat)] += centsOf(x); });
+      });
+    });
+    var top = Expense.CATS.map(function(c){ return { cat: c, cents: m[c] }; })
+      .filter(function(o){ return o.cents > 0; })
+      .sort(function(a, b){ return b.cents - a.cents; });
+    $('meYearCats').textContent = top.length
+      ? '主要是 ' + top.slice(0, 2).map(function(o){ return o.cat + ' ' + Expense.fmtMoney(o.cents) + ' 元'; }).join(' · ')
+      : (y.count ? '' : '今年还没有记账，点下面记一笔');
+  }
+
   function render(){
     var notes = (window.TravelNotes && TravelNotes.list) ? TravelNotes.list() : [];
     var wish = (window.Wish && Wish.count) ? Wish.count() : 0;
@@ -132,6 +253,7 @@
     document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){
       return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc((n.date||'').slice(0,10)) + '</span></div>';
     }).join('') : '<div style="font-size:var(--fs-3);color:var(--color-muted);padding:6px 0">还没有游记，去景点点「语音记录」开始</div>';
+    if (window.Expense) { renderTrips(); renderYear(); }
   }
   render();
   /* 游记库为 IndexedDB 异步加载：ready 后重渲染（否则首屏永远读到空库） */

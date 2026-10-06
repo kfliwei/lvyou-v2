@@ -1,0 +1,58 @@
+PASS  种子就绪：游记从 IDB 载入内存   [sm_a,sm_b]
+PASS  Backup.collect 无错且拿到 2 篇游记 + 1 本图册   [2 notes / 1 albums]
+PASS  备份包 schema=2 且 kind 正确   [trace-backup-full]
+PASS  正向对照：6 个业务键全部入包   [tn_dayMoods,tn_recent,tn_search_hist,tn_trips,tn_userNodes,tn_wishlist]
+PASS  前缀规则：tn_mappos_t 归到 prefs   [tn_dark,tn_mappos_t,tn_model_deepseek]
+PASS  前缀规则：tn_model_deepseek 入包（模型名不是密钥）   [tn_dark,tn_mappos_t,tn_model_deepseek]
+PASS  密钥值一个都不在备份里   [clean]
+PASS  禁入键名被白名单挡在外面（含媒体缓存与一次性告警位）   [blocked]
+PASS  serialize 带哨兵扫描：把禁入键塞回去就拒绝出包
+PASS  validate 接受自己出的包
+PASS  validate 拒绝旧版单游记备份并说明原因   [备份 schema=1，本版本只认 2]
+PASS  validate 拒绝结构不符的包   [notes 字段缺失或不是数组]
+PASS  mergeById 取并集（a,b,c 三条都在）   [a,b,c]
+PASS  同 id 冲突：本机优先时留本机版   [L]
+PASS  同 id 冲突：指定云端优先时留云端版   [R]
+PASS  mergeDict 按属性并集且同名本机赢   [{"d2":"L","d3":"R","d1":"L"}]
+PASS  apply(merge) 无错
+PASS  合并恢复：云端新记录进来（a,b,c 三篇）   [sm_a,sm_b,sm_c]
+PASS  合并恢复：同 id 的本机原文没被云端版盖掉   [本地原文 A]
+PASS  合并恢复：想去清单按 id 并集（本机的鹳雀楼 + 云端的西厢记）   [鹳雀楼|40.5|110.2,西厢记|1|2]
+PASS  合并恢复：本机没有的偏好从云端补进来（tn_font）   [lg]
+PASS  合并恢复：本机已有的偏好保持不动（tn_dark）   [auto]
+PASS  合并恢复：本机独有的数据键原样保留（tn_trips）   [1]
+PASS  刷新后仍是 3 篇：恢复真的写进了 IndexedDB（replaceNotes 走 persist 通道）   [sm_a,sm_b,sm_c]
+PASS  图册也并集进库（本机 + 云端各一本）   [album_sm1,album_sm2]
+PASS  apply(replace) 无错
+PASS  替换式恢复：游记整库只剩云端那一条   [sm_z]
+PASS  替换式恢复：登记键里云端没有的会被清掉（tn_trips/tn_mappos_t）   [trips=null mappos=null]
+PASS  替换式恢复不动密钥：tn_aiKey / tn_key_deepseek / tn_amap_key 全部存活   [SECRET-AI-KEY-DO-NOT-SYNC / SECRET-DS-KEY-DO-NOT-SYNC / SECRET-AMAP-KEY]
+(node:10076) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS  密码错时 push 报「账号或密码不对」而不是裸 HTTP   [账号或密码不对（401）]
+PASS  失败信息里不含任何口令内容   [账号或密码不对（401）]
+PASS  网络层失败也提示可能是账号或密码被拒   [连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）]
+PASS  网络层失败信息里同样不带口令   [连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）]
+PASS  push 成功（自动建目录后 PUT 拿到 201）   [HTTP 201]
+PASS  409 后逐级 MKCOL 再重试 PUT（PUT→MKCOL×3→PUT 的真实顺序，不是 PUT 顺手建目录）   [PUT /行迹备份/2026/trace-full-backup.json | MKCOL / | MKCOL /行迹备份/ | MKCOL /行迹备份/2026/ | PUT /行迹备份/2026/trace-full-backup.json]
+PASS  远端文件是 schema 2 全量包且带回了刚恢复的那篇   [sm_z]
+PASS  上传到远端的正文里没有密钥值
+PASS  备份正文里没有 WebDAV 账号口令
+PASS  remoteInfo 读回云端摘要   [1 篇游记 · 1 本图册 · 1 项数据键 / 0 项偏好 · 0 KB · 备份于 2026-10-06 23:24]
+PASS  测试连接走 PROPFIND 并回报成功   [连接成功（HTTP 207）]
+PASS  pull 前本机已删掉云端那条（只剩 sm_local_only）   [sm_local_only]
+PASS  pull 合并：本机新增留下、云端已删的记录回得来（无墓碑的既定语义）   [sm_local_only,sm_z]
+PASS  覆盖式恢复弹危险确认（danger + 说清会被清掉）   [用云端备份覆盖本机]
+PASS  确认后本机独有条目被清掉，只剩云端那一条   [sm_z]
+PASS  离线时 push 立刻报「当前离线」   [当前离线，稍后再试]
+PASS  离线时确实一个请求都没发出去   [0 hits]
+PASS  自动上传默认关闭   [false]
+PASS  关着时 scheduleSync 不发请求   [0 hits]
+PASS  开着时防抖到点真的 PUT 一次   [1 PUT]
+PASS  自动上传挂在 TravelNotes 保存回调链上（_afterSave 已被接管）
+PASS  云同步卡片 11 个控件全在且挂在「云同步」组里   [云同步]
+PASS  卡片说明写清密钥不进备份   [把全量数据（游记 / 图册 / 行程 / 想去清单 / 自建地点 / 偏好）备份…]
+PASS  五个同步按钮触控目标 ≥44px   [ok]
+
+=== smoke-backup: 53 PASS / 0 FAIL / 共 53 ===
+截图与报告目录：F:\MyAi\trace\lvyou-v2\tools\out\shots\2026-10-06-b8-backup

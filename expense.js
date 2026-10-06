@@ -186,6 +186,13 @@ window.Expense = (function () {
     return { list: out, filled: filled };
   }
 
+  /* 账本里出现过的全部 tripId（含已删除行程留下的孤儿账）：
+     「今年已花」这类跨桶视图要按它建桶，否则行程一删，合计还认这笔钱、分类却看不见它。 */
+  function tripIds() {
+    var m = {};
+    load().forEach(function (x) { if (x && x.tripId) m[x.tripId] = 1; });
+    return Object.keys(m);
+  }
   function add(tripId, day, yuan, cat, who, note, date) {
     if (!tripId) return null;
     var n = Number(yuan);
@@ -282,7 +289,7 @@ window.Expense = (function () {
     fmtMoney: fmtMoney, listOf: listOf, daySum: daySum, dayCount: dayCount,
     totalCents: totalCents, catTotals: catTotals,
     isoOf: isoOf, todayISO: todayISO, addDays: addDays, dayFromStart: dayFromStart, effDate: effDate,
-    byDate: byDate, migrate: migrate, undated: undated, yearCents: yearCents,
+    byDate: byDate, migrate: migrate, undated: undated, yearCents: yearCents, tripIds: tripIds,
     activeTripOf: activeTripOf, activeDayOf: activeDayOf,
     add: add, remove: remove, clearTrip: clearTrip,
     budgetOf: budgetOf, setBudget: setBudget, overCents: overCents,

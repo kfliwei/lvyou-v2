@@ -400,7 +400,138 @@ const setField = (p, id, val) => p.evaluate((i, v) => {
   ok('T36 planner 结果页全程零真实报错（瓦片离线噪声已滤）', noise.length === 0, noise.slice(0, 2).join(' | '));
   await p3.close();
 
-  /* ============ 9. 收场 ============ */
+  /* ============ 9. me.html：两张常驻卡（24-E）============
+     这一节的立意不是「多了两块 UI」，而是「不进规划页的人也看得见行程与账」——
+     所以判据盯：口径不冒充（实际日期优先、往年账不进今年）、删光行程后账还在、
+     空态给的是两条能走的路而不是白板，以及大数字真的比正文大（--fs-11 那次的教训：
+     44px 触控高度与横向溢出都量不到字号，未定义令牌会静默退化成继承的 16px）。 */
+  const errs3 = [];
+  const p4 = await freshPage(browser, U('me.html'), errs3);
+  await seed(p4);
+  /* freshPage 会删掉 trace-attachments，所以票要在这一页自己种：E4 那行小字里有「票 n」 */
+  await p4.evaluate(async h => {
+    await window.TicketBox.put({ tripId: 't-live', kind: '酒店', title: '日隆镇客栈', at: h.later });
+    await window.TicketBox.put({ tripId: 't-live', kind: '车票', title: 'D2255', code: '07车12A', at: h.soon });
+  }, { soon: atHour(2), later: atHour(72) });
+  await go(p4, U('me.html')); await sleep(800);
+  const YR = TODAY.slice(0, 4);
+  const fmtC = c => Math.floor(c / 100) + '.' + ('0' + (c % 100)).slice(-2);
+  const seedYear = SEED.exp.filter(x => x.date.slice(0, 4) === YR);
+  const seedSum = seedYear.reduce((a, b) => a + b.cents, 0);
+  let mm = await p4.evaluate(() => ({
+    mods: !!(window.Expense && window.Checklist),
+    rows: Array.prototype.map.call(document.querySelectorAll('#meTrips .mrow'), a => ({
+      href: a.getAttribute('href'),
+      name: (a.querySelector('.mn b') || {}).textContent || '',
+      sub: (a.querySelector('.mn small') || {}).textContent || '',
+      amt: (a.querySelector('.mm') || {}).textContent || '',
+      h: Math.round(a.getBoundingClientRect().height)
+    })),
+    hint: document.querySelectorAll('#meTrips .mbtn').length,
+    sum: document.getElementById('meYearSum').textContent,
+    cnt: document.getElementById('meYearCnt').textContent,
+    cats: document.getElementById('meYearCats').textContent,
+    fs: getComputedStyle(document.getElementById('meYearSum')).fontSize
+  }));
+  ok('T39 me.html 载到记账与清单两个数据层（少一个这两张卡就只会印空读数）', mm.mods === true);
+  ok('T40 「我的行程」一行一趟：四趟都在，行本身跳 trip.html?trip=<id>',
+    mm.rows.length === 4 && mm.rows[0].href === 'trip.html?trip=t-live' && /川西小环线/.test(mm.rows[0].name),
+    JSON.stringify([mm.rows.length, mm.rows[0] && mm.rows[0].href]));
+  ok('T41 有实际口径就用实际口径：t-live 印「实际 <昨天> · 计划 3 天 · 实际 4 天」，不拿计划日期冒充；票数是异步补进来的那格',
+    mm.rows[0].sub.indexOf('实际 ' + YEST) === 0 && /计划 3 天 · 实际 4 天/.test(mm.rows[0].sub) &&
+    mm.rows[0].sub.indexOf(D3AGO) < 0 && /打卡 1\/5/.test(mm.rows[0].sub) && /清单 2\/4/.test(mm.rows[0].sub) &&
+    /* 恰一次：这一页会重画两遍，异步补字没有幂等标记时会印成「票 2 张 · 票 2 张」 */
+    mm.rows[0].sub.split('票 2 张').length === 2,
+    mm.rows[0].sub);
+  ok('T42 只有计划日期的那趟老实印「计划 <日期>」，不许被染成「实际」',
+    mm.rows[1].sub.indexOf('计划 ' + PLUS5) === 0 && mm.rows[1].sub.indexOf('实际') < 0, mm.rows[1].sub);
+  ok('T43 行尾金额与账本一致（446.17 / 5 笔），没记账的印「还没记账」而不是 0.00',
+    /446\.17/.test(mm.rows[0].amt) && /5 笔/.test(mm.rows[0].amt) && /还没记账/.test(mm.rows[1].amt),
+    JSON.stringify([mm.rows[0].amt, mm.rows[1].amt]));
+  ok('T44 「今年已花」= 今年那几笔之和（整数分 → 两位小数），笔数同口径',
+    mm.sum === fmtC(seedSum) && mm.cnt === seedYear.length + ' 笔', JSON.stringify([mm.sum, mm.cnt, fmtC(seedSum)]));
+  ok('T45 「今年已花」的大数字真的比正文大（≥20px，未定义令牌会静默退化成 16px）',
+    parseFloat(mm.fs) >= 20, mm.fs);
+
+  /* 往年一笔 + free 桶一笔：一条验「不进今年」，一条验「不用排期的人也在册」 */
+  await p4.evaluate(y => {
+    const l = JSON.parse(localStorage.getItem('tn_expense'));
+    l.push({ id: 'e-old', tripId: 't-live', day: 1, date: (Number(y) - 1) + '-06-01', cents: 99999, cat: '购物', who: '', note: '', ts: 9 });
+    l.push({ id: 'e-free', tripId: 'free', day: 1, date: y + '-03-02', cents: 5000, cat: '餐饮', who: '', note: '', ts: 10 });
+    localStorage.setItem('tn_expense', JSON.stringify(l));
+  }, YR);
+  await go(p4, U('me.html')); await sleep(500);
+  mm = await p4.evaluate(() => ({
+    rows: Array.prototype.map.call(document.querySelectorAll('#meTrips .mrow'), a => ({
+      href: a.getAttribute('href'), name: (a.querySelector('.mn b') || {}).textContent || '',
+      amt: (a.querySelector('.mm') || {}).textContent || ''
+    })),
+    sum: document.getElementById('meYearSum').textContent,
+    cnt: document.getElementById('meYearCnt').textContent,
+    cats: document.getElementById('meYearCats').textContent
+  }));
+  ok('T46 去年那笔不进今年合计（宁可少算也不把去年的账算进今年），free 桶那笔进',
+    mm.sum === fmtC(seedSum + 5000) && mm.cnt === (seedYear.length + 1) + ' 笔',
+    JSON.stringify([mm.sum, mm.cnt, fmtC(seedSum + 5000)]));
+  ok('T47 free 桶有账就多印一行「未编排行程」，跳 expense.html?trip=free（50.00 / 1 笔）',
+    mm.rows.length === 5 && mm.rows[4].href === 'expense.html?trip=free' && /未编排行程/.test(mm.rows[4].name) &&
+    /50\.00/.test(mm.rows[4].amt), JSON.stringify(mm.rows[4]));
+  ok('T48 分类只列今年前二：住宿 200.00 · 交通 120.50，往年那笔 999.99 不出现在这行',
+    /住宿 200\.00 元/.test(mm.cats) && /交通 120\.50 元/.test(mm.cats) &&
+    mm.cats.indexOf('999.99') < 0 && mm.cats.indexOf('购物') < 0, mm.cats);
+
+  /* 空态：把行程全删光（账留着）——这一页是「不用排期的人」唯一的落脚点，不许留白板 */
+  await p4.evaluate(() => localStorage.setItem('tn_trips', '[]'));
+  await go(p4, U('me.html')); await sleep(500);
+  const em = await p4.evaluate(() => ({
+    rows: document.querySelectorAll('#meTrips .mrow').length,
+    hint: (document.querySelector('#meTrips .mhint') || {}).textContent || '',
+    btns: Array.prototype.map.call(document.querySelectorAll('#meTrips .mbtn'), a => ({
+      href: a.getAttribute('href'), t: a.textContent.trim(), h: Math.round(a.getBoundingClientRect().height)
+    })),
+    sum: document.getElementById('meYearSum').textContent,
+    cats: document.getElementById('meYearCats').textContent
+  }));
+  ok('T49 零行程时不留白板：一句人话 + 两条 ≥44px 的指路（排一趟 / 不排行程直接记一笔）',
+    em.rows === 0 && em.btns.length === 2 && em.btns[0].href === 'planner.html' &&
+    em.btns[1].href === 'expense.html?trip=free' && em.btns.every(b => b.h >= 44) && /不排期也能记账/.test(em.hint),
+    JSON.stringify(em.btns));
+  ok('T50 行程删光了账还在：free 桶与孤儿旧账照样进「今年已花」，合计与分类前二同口径（不许合计认账、分类看不见）',
+    em.sum === fmtC(seedSum + 5000) && /住宿 200\.00 元/.test(em.cats) && /交通 120\.50 元/.test(em.cats),
+    JSON.stringify([em.sum, fmtC(seedSum + 5000), em.cats]));
+
+  /* 真机主档几何 + 三处大数字的字号（trip.html 两处 / expense.html 一处，同一族读数） */
+  const p5 = await freshPage(browser, U('me.html'), errs3, { width: 328, height: 723 });
+  await seed(p5);
+  await go(p5, U('me.html')); await sleep(500);
+  const geo4 = await p5.evaluate(() => ({
+    cw: document.documentElement.clientWidth, sw: document.documentElement.scrollWidth,
+    low: Array.prototype.filter.call(document.querySelectorAll('#meTrips .mrow, #meTrips .mbtn'),
+      a => a.getBoundingClientRect().height < 44).map(a => a.className)
+  }));
+  ok('T51 me.html 在真机主档（328×723）不横向溢出，行程行与空态按钮触控高度都 ≥44px',
+    geo4.sw === geo4.cw && geo4.low.length === 0, JSON.stringify(geo4));
+  await p5.close();
+  await go(p4, U('trip.html?trip=t-live')); await sleep(600);
+  const fsT = await p4.evaluate(() => [
+    getComputedStyle(document.getElementById('tPlanN')).fontSize,
+    getComputedStyle(document.querySelector('.t-money b')).fontSize
+  ]);
+  await go(p4, U('expense.html')); await sleep(600);
+  const fsX = await p4.evaluate(() => {
+    const b = document.querySelector('.x-year b');
+    return b ? getComputedStyle(b).fontSize : '';
+  });
+  ok('T52 三处主角数字都 ≥20px：trip 双读数 / trip 开销合计 / expense 今年合计（--fs-11 未定义令牌的回归网）',
+    fsT.concat(fsX).every(v => parseFloat(v) >= 20), JSON.stringify(fsT.concat(fsX)));
+  const noise3 = errs3.filter(e => !NOISE.test(e));
+  ok('T53 me.html / trip.html / expense.html 三页全程零真实报错', noise3.length === 0, noise3.slice(0, 3).join(' | '));
+  ok('T54 这三页全程零原生 confirm/alert，零系统通知调用',
+    (await p4.evaluate(() => window.__native + window.__notif)) === 0,
+    String(await p4.evaluate(() => window.__native + window.__notif)));
+  await p4.close();
+
+  /* ============ 10. 收场 ============ */
   await page.evaluate(() => {
     ['tn_trips', 'tn_expense', 'tn_budget', 'tn_checklist'].forEach(k => localStorage.removeItem(k));
   });
