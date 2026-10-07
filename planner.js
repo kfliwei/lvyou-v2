@@ -801,7 +801,7 @@
     buildDicts();
     var h = '';
     h += '<div class="fld"><label>目的地（可增删，留空=不限）</label><div class="chips" id="intentRegions"></div></div>';
-    h += '<div class="fld"><label>天数</label><div class="row"><input type="number" id="intentDays" min="1" max="30" value="' + (state.days || 5) + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
+    h += '<div class="fld"><label>天数（留空＝按里程与时长自动分日）</label><div class="row"><input type="number" id="intentDays" min="1" max="30" placeholder="不限" value="' + (state.days || '') + '"> <button class="btn ghost" onclick="window.plannerPickRegion(\'\')">不限目的地</button></div></div>';
     h += '<div id="intentProvThemes" style="display:none;margin-top:6px"></div>';
     h += '<div class="chips" style="margin-top:4px"><span class="chip mine" onclick="window.plannerAddMine()">'+TI('pin')+'我的节点</span></div>';
 
@@ -838,6 +838,25 @@
     if (c) return { name: name, lat: c.lat, lng: c.lng };
     /* 找不到坐标时保留名称（仅标注，不参与导航里程） */
     return { name: name, lat: null, lng: null };
+  }
+  /* 环线只有一个落点：终点＝出发地（复制一份，不是同一个对象——排期会把 end.isLoop 写回
+     终点对象，共享引用会顺着改到出发地头上）。出发地后来被清空时环线必须自己退成单程：
+     「向导末步印着 是 · 回到起点，而 end=null、排期里没有那 86 km 返程」就是改前的形状。 */
+  function syncLoopEnd() {
+    if (!state.isLoop) return;
+    if (state.start && state.start.name) state.end = { name: state.start.name, lat: state.start.lat, lng: state.start.lng };
+    else { state.isLoop = false; state.end = null; }
+  }
+  /* 出发地可以来自定位：名字叫「当前位置」，坐标是真的。而文本框回读只按名字查字典，
+     会把刚定位到的坐标洗成 null（实测：toast 说「出发地已设为当前位置」，落盘 lat 却是 null）。
+     名字没改过就沿用现值，改过才重新匹配。 */
+  function matchKeep(cur, val) {
+    return (cur && cur.name === val && cur.lat != null) ? cur : matchStart(val);
+  }
+  function readEndpointInputs() {
+    var s = $id('wStart'), e = $id('wEnd');
+    if (s && s.value) state.start = matchKeep(state.start, s.value);
+    if (e && e.value) state.end = matchKeep(state.end, e.value);
   }
   function resolveRegionName(name) {
     if (!name) return null;
@@ -933,6 +952,15 @@
     renderCandidates();
     persistState();
   };
+  /* 天数只有一个读法：输入框留空＝不限天数（0），由里程/时长预算自动分日。
+     改前输入框预填 5 而 state.days 是 0，估算读 state、排期读 DOM，同一个屏幕先印
+     「预计 1 天」再排出「2 天 1 站/天」——用户没填过的数字变成了硬约束。 */
+  function daysInput() {
+    var el = $id('intentDays');
+    if (!el) return state.days || 0;
+    var v = parseInt(String(el.value).trim(), 10);
+    return v > 0 ? v : 0;
+  }
   /* 预计天数与排期同源：同一套排序 + 同一个 splitIntoDays（纯本地，绝不为估算打网络）。
      此前是独立的 ceil(站数/6)，长途转场日一个都没算进去，选点页写「预计 5 天」实际排出 8 天。 */
   function estimateDays() {
@@ -940,7 +968,7 @@
     if (!sel.length) return 0;
     var matrix = state.matrix && state.matrix.sig === picksSig(sel) ? state.matrix.dist : null;
     var ordered = state.amapSorted ? sel.slice() : (matrix ? orderByMatrix(sel, state.start, matrix, travelByNow()) : orderStops(sel, state.start, travelByNow()));
-    return splitIntoDays(ordered, state.start, state.days, state.end, mkLeg(matrix, travelByNow())).length;
+    return splitIntoDays(ordered, state.start, daysInput(), state.end, mkLeg(matrix, travelByNow())).length;
   }
   function renderSumm() {
     var bar = $id('summbar');
@@ -1094,6 +1122,19 @@
       });
     });
   }
+  /* 起／终两行的唯一出口：同一套版式，同一条「有坐标才报里程，没坐标就明说不参与」的口径。
+     改前只有「终」这一行（出发地只在头部小字里露一次名字），而终到地认不出坐标时照旧印
+     「0 km」——看着像"终点就在隔壁"，其实是没匹配到，用户只能自己猜哪一段路没算。 */
+  function endpointRow(leg, tag, pt, other, looped) {
+    if (!pt || !pt.name) return '';
+    var hasCo = pt.lat != null && !!other && other.lat != null;
+    var txt = hasCo ? (tag === '起' ? '至首站 ' : '末站至此 ') + Math.round(leg(tag === '起' ? pt : other, tag === '起' ? other : pt).km) + ' km'
+      : (pt.lat == null ? '未匹配到坐标 · 不参与里程' : '没有可对算的站点');
+    return '<div class="stop" style="padding:8px 10px;border-radius:10px;background:var(--color-primary-soft);border:1px solid var(--color-line-strong)">' +
+      '<div class="stop-name"><span class="n" style="background:var(--color-primary);color:var(--bg)">' + tag + '</span>' +
+      '<span class="lbl">' + esc(pt.name) + (tag === '终' ? (looped ? '（回到起点 · 环线）' : '（抵达地）') : '') + '</span></div>' +
+      '<div class="stop-meta"><span class="meta">' + esc(txt) + '</span></div></div>';
+  }
   function renderDaysBody() {
     var trip = state.trip; if (!trip) return;
     var days = trip.days;
@@ -1105,12 +1146,21 @@
       Math.round(days.reduce(function (s, d) { return s + d.driveKm; }, 0)) + ' km';
     var lk = $id('lkSlot'); if (lk) lk.innerHTML = lockedHint();
     var ed = $id('expDriftSlot'); if (ed) ed.innerHTML = expDriftHint();
+    /* 头部那行改成"部件表 + 一次 join"：出发地缺失时以前会留下一个孤零零的「；；」，
+       看着像少了字；现在缺什么就说什么（未填出发地那句同时把首日里程的口径讲清楚）。 */
+    var epParts = [rulerNote(trip), '按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）'];
+    if (trip.start && trip.start.name) epParts.push('出发地 ' + trip.start.name);
+    else epParts.push('未填出发地：首日里程只含站与站之间的路');
+    if (trip.startDate) epParts.push(trip.startDate);
     var h = '<div style="font-size:var(--fs-3);color:var(--color-muted);margin-bottom:4px">' +
-      rulerNote(trip) + '；按地理邻近自动分日，耗时含路程+游玩+休息+用餐（±2h 误差）；' + (trip.start && trip.start.name ? '出发地 ' + esc(trip.start.name) : '') + (trip.startDate ? ' · ' + esc(trip.startDate) : '') +
+      esc(epParts.join('；')) +
       (trip.startDate || !weatherOn() ? '' : '；填上出发日期，日卡会显示当天天气') + '</div>' +
       travelByRow(trip);
     /* 日卡是一串没有边界的 div：读屏念到第 3 张就不知道「还有几天」。包成 list，
        报得出「列表，共 8 项」也能按项跳（批次 22-B，只加属性不动版式） */
+    var firstPlay = null, lastPlay = null;
+    days.forEach(function (d) { if (d.stops.length) { if (!firstPlay) firstPlay = d.stops[0]; lastPlay = d.stops[d.stops.length - 1]; } });
+    h += endpointRow(leg, '起', trip.start, firstPlay, false);
     h += '<div class="day-list" role="list" aria-label="' + esc(trip.name || '行程安排') + '，共 ' + days.length + ' 天">';
     days.forEach(function (d, di) {
       var over = d.totalH > 12;
@@ -1156,16 +1206,8 @@
       h += '</div>'; /* 闭合 day-card（2026-08-15） */
     });
     h += '</div>'; /* 闭合 day-list（批次 22-B） */
-    /* 终到地行：有名称即显示（环线标注；里程与日卡同一把尺子，含真实矩阵） */
-    if (trip.end && trip.end.name) {
-      var lastDay = days[days.length - 1];
-      var lastStop = lastDay && lastDay.stops && lastDay.stops.length ? lastDay.stops[lastDay.stops.length - 1] : null;
-      var endKm = lastStop ? leg(lastStop, trip.end).km : 0;
-      h += '<div class="stop" style="padding:8px 10px;border-radius:10px;background:var(--color-primary-soft);border:1px solid var(--color-line-strong)">' +
-        '<div class="stop-name"><span class="n" style="background:var(--color-primary);color:var(--bg)">终</span>' +
-        '<span class="lbl">' + esc(trip.end.name) + (trip.end.isLoop ? '（回到起点 · 环线）' : '（抵达地）') + '</span></div>' +
-        '<div class="stop-meta"><span class="meta">' + Math.round(endKm) + ' km</span></div></div>';
-    }
+    /* 终到地行：与「起」同一出口（有名称即显示，环线标注；里程与日卡同一把尺子，含真实矩阵） */
+    h += endpointRow(leg, '终', trip.end, lastPlay, !!(trip.end && trip.end.isLoop));
     $id('resultBody').innerHTML = h;
     wxHydrate(trip);   /* 缓存没命中的日子在这一步发请求；拿不到就永远不出现 .wx */
     renderPretrip();
@@ -1454,21 +1496,38 @@
       UI.toast('已清空 ' + snap.length + ' 个选择', 5000, { text: '撤销', fn: function () { state.selected = snap; renderCandidates(); renderSumm(); } });
     });
   };
+  /* 定位只有一个入口：拿到坐标交给 cb，拿不到由 fail 把原因说清楚。
+     改前这条腿只服务「已选景点加当前位置」，出发地那句「缺省=当前位置」没有实现（零调用者）。 */
+  function locate(cb, fail) {
+    if (!navigator.geolocation) { fail('当前环境不支持定位'); return; }
+    navigator.geolocation.getCurrentPosition(function (p) { cb(p.coords.latitude, p.coords.longitude); },
+      function () { fail('定位失败：请检查定位权限是否授予「行迹」，或在地图收藏点后手动添加'); }, { timeout: 8000 });
+  }
   window.plannerAddCurLoc = function (btn) {
     var restore = function () { if (btn) { btn.disabled = false; btn.innerHTML = TI('locate') + '当前位置'; } };
     if (btn) { btn.disabled = true; btn.textContent = '定位中…'; }
-    var add = function (lat, lng) {
-      var dup = state.selected.some(function (x) { return x.__cur; });
-      if (dup) { toast('当前位置已在列表中'); return; }
+    locate(function (lat, lng) {
+      restore();
+      if (state.selected.some(function (x) { return x.__cur; })) { toast('当前位置已在列表中'); return; }
       state.selected.push({ name: '当前位置', label: '当前位置', region: '', city: '', theme: '', flag: '', lat: lat, lng: lng, __cur: true });
       state.amapSorted = false;
       renderCandidates(); renderSumm();
       window.plannerOpenBrowse();
       toast('已加入当前位置');
-    };
-    if (!navigator.geolocation) { restore(); toast('当前环境不支持定位'); return; }
-    navigator.geolocation.getCurrentPosition(function (p) { restore(); add(p.coords.latitude, p.coords.longitude); },
-      function () { restore(); toast('定位失败：请检查定位权限是否授予「行迹」，或在地图收藏点后手动添加'); }, { timeout: 8000 });
+    }, function (m) { restore(); toast(m); });
+  };
+  /* 出发地那颗「当前位置」：坐标真进 state.start，于是首日里程含"从你站的地方到第一站"，
+     结果页的「起」行也报得出 km——而不是像改前那样把这句话写在标签里却什么都不做。 */
+  window.plannerStartFromHere = function (btn) {
+    var restore = function () { if (btn) { btn.disabled = false; btn.innerHTML = TI('locate') + '当前位置'; } };
+    if (btn) { btn.disabled = true; btn.textContent = '定位中…'; }
+    locate(function (lat, lng) {
+      restore();
+      state.start = { name: '当前位置', lat: lat, lng: lng };
+      syncLoopEnd();
+      renderWizard();
+      toast('出发地已设为当前位置');
+    }, function (m) { restore(); toast(m); });
   };
 
   /* ---------- 高德真实导航路线（按段拉取，缓存，失败降级直线） ---------- */
@@ -2305,11 +2364,10 @@
   /* ---------- 排期向导（4 步：起终点 → 环线 → 排序 → 排期） ---------- */
   function wizardOpen() {
     if (state.selected.length < 2) { toast('至少选 2 个景点才能排期'); return; }
-    if (state.isLoop && state.start && state.start.name) state.end = state.start;
-    /* 向导起终点兜底（输入框未失焦也能读到值） */
-    var wsEl2 = $id('wStart'), weEl2 = $id('wEnd');
-    if (wsEl2 && wsEl2.value) state.start = matchStart(wsEl2.value);
-    if (weEl2 && weEl2.value) state.end = matchStart(weEl2.value);
+    /* 向导起终点兜底（输入框未失焦也能读到值），兜底完必须同步一次环线：
+       只读输入框不碰 end，就是「环线=是、终点却是空、排期里没有返程」的来路 */
+    readEndpointInputs();
+    syncLoopEnd();
     state.wiz = state.wiz || wizNew();
     $id('wizardBox').style.display = 'block';
     var cards = $id('stagePick').querySelectorAll('.card');
@@ -2320,6 +2378,7 @@
   window.plannerOpenWizard = wizardOpen;
   function renderWizard() {
     var w = state.wiz || (state.wiz = wizNew());
+    syncLoopEnd();   /* 每一步渲染前都对齐一次：末步那行「是 · 回到起点」不许在 end 为空时出现 */
     var names = ['起终点', '环线', '排序', '排期'];
     var bar = names.map(function (nm, i) {
       var st = i + 1 === w.step ? 'background:var(--color-primary);color:var(--bg)' : (i + 1 < w.step ? 'background:var(--color-primary-soft);color:var(--color-primary-dark)' : 'background:var(--color-bg-soft);color:var(--color-muted)');
@@ -2327,8 +2386,13 @@
     }).join('');
     var body = '';
     if (w.step === 1) {
-      body = '<div class="fld"><label>出发地（可不填，缺省=当前位置）</label><input type="text" id="wStart" placeholder="如：成都" value="' + esc(state.start ? state.start.name : '') + '"></div>' +
-        '<div class="fld"><label>终到地（可不填，留空=单程）</label><input type="text" id="wEnd" placeholder="如：成都" value="' + esc(state.end ? state.end.name : '') + '"></div>';
+      /* 出发地这一栏原先写着「可不填，缺省=当前位置」，可全站没有一处把定位接到出发地
+         （唯一的 geolocation 入口是往已选景点里加「当前位置」）。承诺兑现不了就得改口：
+         留空＝首日只算站与站之间的路；要用定位就按这颗钮，它把坐标真填进输入框。 */
+      body = '<div class="fld"><label>出发地（留空＝首日只算站与站之间的路）</label><div class="row">' +
+        '<input type="text" id="wStart" placeholder="如：大同" value="' + esc(state.start ? state.start.name : '') + '">' +
+        '<button class="btn" id="wStartLoc" style="flex:0 0 auto" onclick="window.plannerStartFromHere(this)">'+TI('locate')+'当前位置</button></div></div>' +
+        '<div class="fld"><label>终到地（可不填，留空＝单程；要回到出发地用下一步的环线）</label><input type="text" id="wEnd" placeholder="如：成都" value="' + esc(state.end ? state.end.name : '') + '"></div>';
     } else if (w.step === 2) {
       body = '<div class="fld"><label>是否环线</label><div class="row row-opt" style="gap:10px">' +
         '<button class="btn' + (state.isLoop ? ' primary' : '') + '" id="wLoopY" style="flex:1"><span>是</span><span>回到起点</span></button>' +
@@ -2356,8 +2420,8 @@
         '</div></div>';
     } else {
       body = '<div style="font-size:var(--fs-4);line-height:2.1;padding:4px 2px">' +
-        '<div>出发地：<b>' + (state.start && state.start.name ? esc(state.start.name) : '当前位置') + '</b></div>' +
-        '<div>终到地：<b>' + (state.end && state.end.name ? esc(state.end.name) : '单程（不设终点）') + '</b></div>' +
+        '<div>出发地：<b>' + (state.start && state.start.name ? esc(state.start.name) + (state.start.lat == null ? '（未匹配到坐标 · 不参与里程）' : '') : '未填（首日只算站与站之间的路）') + '</b></div>' +
+        '<div>终到地：<b>' + (state.end && state.end.name ? esc(state.end.name) + (state.end.lat == null ? '（未匹配到坐标 · 不参与里程）' : '') : '单程（不设终点）') + '</b></div>' +
         '<div>环线：<b>' + (state.isLoop ? '是 · 回到起点' : '否 · 单程') + '</b></div>' +
         '<div>排序：<b>' + (w.sortMode === 'amap' ? '高德路线' : '地理最近邻') + ' · ' + (w.sortOrder === 'desc' ? '倒序' : '正序') + '</b></div>' +
         '<div>出行方式：<b>' + MODE[modeOf(w.travelBy)].label + '</b></div></div>';
@@ -2372,10 +2436,24 @@
     for (var ci = 0; ci < chips.length; ci++) (function (el) { el.onclick = function () { if (parseInt(el.getAttribute('data-s'), 10) <= w.step) { w.step = parseInt(el.getAttribute('data-s'), 10); renderWizard(); } }; })(chips[ci]);
     if (w.step === 1) {
       var wsEl = $id('wStart'), weEl = $id('wEnd');
-      wsEl.onchange = function () { state.start = matchStart(this.value); };
-      weEl.onchange = function () { state.end = matchStart(this.value); };
+      wsEl.onchange = function () { state.start = matchKeep(state.start, this.value); syncLoopEnd(); };
+      weEl.onchange = function () {
+        state.end = matchKeep(state.end, this.value);
+        /* 手动改过终到地之后，环线只在「终点确实就是出发地」时成立 */
+        if (state.isLoop && !(state.start && state.end && state.start.name && state.start.name === state.end.name)) state.isLoop = false;
+      };
     } else if (w.step === 2) {
-      $id('wLoopY').onclick = function () { state.isLoop = true; if (state.start && state.start.name) state.end = { name: state.start.name, lat: state.start.lat, lng: state.start.lng }; renderWizard(); };
+      $id('wLoopY').onclick = function () {
+        /* 没有出发地就没有"回到起点"这回事：把人带回第 1 步去填，而不是只翻个高亮 */
+        if (!state.start || !state.start.name) {
+          state.isLoop = false;
+          w.step = 1; renderWizard();
+          var f = $id('wStart'); if (f) f.focus();
+          toast('环线要先填出发地（终点＝回到它）；不知道城市就按旁边那颗「当前位置」');
+          return;
+        }
+        state.isLoop = true; syncLoopEnd(); renderWizard();
+      };
       $id('wLoopN').onclick = function () { state.isLoop = false; renderWizard(); };
     } else if (w.step === 3) {
       $id('wSortGeo').onclick = function () { w.sortMode = 'geo'; renderWizard(); };
@@ -2389,11 +2467,7 @@
     var nxt = $id('wNext'), bak = $id('wBack'), can = $id('wCancel'), don = $id('wDone');
     if (nxt) nxt.onclick = function () {
       /* 第 1 步：保存起终点（输入框将离开 DOM） */
-      if (w.step === 1) {
-        var s1 = $id('wStart'), e1 = $id('wEnd');
-        if (s1 && s1.value) state.start = matchStart(s1.value);
-        if (e1 && e1.value) state.end = matchStart(e1.value);
-      }
+      if (w.step === 1) readEndpointInputs();
       if (w.step < 4) { w.step++; renderWizard(); }
     };
     if (bak) bak.onclick = function () { if (w.step > 1) { w.step--; renderWizard(); } };
@@ -2409,7 +2483,7 @@
      现在这条路真的取矩阵，并把矩阵交给分日与日卡（同一把尺子），选点弹层取过的直接复用。 */
   function doSchedule() {
     if (state.selected.length < 2) { toast('至少选 2 个景点才能排期'); return; }
-    state.days = parseInt(($id('intentDays') && $id('intentDays').value) || state.days || 0, 10) || 0;
+    state.days = daysInput();
     state.startDate = $id('intentDate') ? $id('intentDate').value : '';
     var w = state.wiz || wizNew();
     if (w.sortMode !== 'amap') { commitSchedule(null, w); return; }

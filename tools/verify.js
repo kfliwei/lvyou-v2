@@ -5521,5 +5521,217 @@ function stripBlockComments(s) {
   fail += bad42;
 }
 
+/* ============ §43 排期读数单点闸门（批次 28） ============
+   用户报（2026-10-07 逐字）：「我就在大同，在行程规划选择应县木塔和悬空寺，起始点按默认当前位置
+   为空没填，终点填的当前位置（或是选还线），得出的都不对，本来一天的行程，规划结果的是两天，
+   一天一个景点，而且没有起始地和终到地。」四条成因都在"同一个量有两本账"这一族里：
+     1) 天数框预填了一个没人说过的 5，而分日把 5 当硬约束：ceil(2 站 / 5 天)＝每天 1 站 → 两站两天。
+        同一屏的汇总条却写着「预计 1 天」——估算读 state.days、排期读 DOM，先印 1 再排 2。
+     2) 出发地留空时首日 0 km，结果页又只在头部小字露一次名字、没有「起」这一行 →「没有起始地」；
+        而标签写着「可不填，缺省=当前位置」，全站没有一处把定位接到出发地（零调用者的承诺）。
+     3) 环线＋空出发地是死控件：isLoop=true 而 end=null，末步印着「是 · 回到起点」，86 km 返程没排。
+        另一手：向导里 state.end = state.start 是共享引用，排期把 end.isLoop 写回时会顺着改到出发地。
+     4) 终到地名认不出坐标时照印「0 km」，看着像"终点就在隔壁"，其实是没匹配到。
+   外加本轮自己改出来的一条：定位成功后，文本框回读只按名字查字典，会把刚拿到的坐标洗成 null
+        （toast 说「出发地已设为当前位置」而落盘 lat=null）——所以起终点的写入口必须只有一个形状。
+   这一节钉的就是：天数一个读法、起终点一个出口、环线一个落点、定位一条有调用者的腿。 */
+{
+  let bad43 = 0;
+  const F43 = m => { bad43++; console.log('FAIL §43 排期读数单点闸门: ' + m); };
+  const ws43 = s => s.replace(/\s+/g, ' ').trim();
+  const flat43 = s => ws43(stripBlockComments(s));
+  const cnt43 = (s, n) => s.split(n).length - 1;
+  const rd43 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view43 = f => /\.html$|\.md$/.test(f) ? ws43(rd43(f)) : flat43(rd43(f));
+  const Q43 = String.fromCharCode(39);
+
+  const FILES43 = ['planner.js', 'tools/smoke-sched.js', 'README.md'];
+  const V43 = {};
+  FILES43.forEach(f => {
+    if (!fs.existsSync(f)) { F43('缺 ' + f); V43[f] = ''; return; }
+    V43[f] = view43(f);
+  });
+
+  /* ⓪ 自指纪律与 §42 同一条：flat43 必须走那把共享剥刀，而且只钉定义行
+        （钉「整串在文件里出现」的话，比较串自己就是那一处命中，永远为真）。
+        这一节有九族"改前形状"要读 0，还有三十多条正向锚要读非 0，两边都靠这把刀活着。
+        现场实测（tools/out/probe43-anchor-comment.js：逐串比"未剥"与"剥后"的命中数）：
+        A43 的 33 条 planner.js 锚与注释文本重叠 0 条，那四串改前形状在含注释的原文里也各 0 处
+        ——也就是说这一节**今天不靠**注释喂任何一条判据，剥刀退化成 naive 不会被现状掩盖。
+        但危险方向是现成的：本批的注释天然要抄改前的原文（850–852、1125–1127 两段就在抄），
+        哪天原样抄进注释，「注释当代码」那一支会让某条正向锚靠注释里的引用假绿；
+        反过来「真代码当注释吞掉」（§42 记的 travel-notes.js 两处盲窗 655→704、1843→1891）
+        会让住在这一带的期望 0 静默满足——那种 0 不是证据，是闸门在替人撒谎。 */
+  {
+    const DEF43 = (rd43('tools/verify.js').match(/^[ \t]*const flat43 = [^\n]*/m) || [''])[0];
+    if (DEF43.indexOf('stripBlockComments') < 0) F43('§43 的 flat43 定义行没走这把共享剥刀（现场读到的那一行：' +
+      (DEF43.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里写的改前形状会被当成代码在场');
+    const L43 = (rd43('tools/verify.js').match(/^[ \t]*const view43 = [^\n]*/m) || [''])[0];
+    if (L43.indexOf('.md$') < 0) F43('view43 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L43.slice(0, 60) || '整行没数到') + '）：README 的登记串里天生要写 glob 形状，文档侧的锚会当场读 0');
+    /* 现场哨兵：这两处新代码各自贴着一段解释改前形状的注释，注释一旦盖住代码就什么都读不到 */
+    ['function endpointRow(leg', 'function matchKeep(cur'].forEach(function (mk) {
+      if (V43['planner.js'].indexOf(mk) < 0) F43('盲区哨兵：「' + mk + '」在 flat 里读不到了（这两处各自贴着一段解释改前形状的注释；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：一个读法／一个出口／一个落点／一条有调用者的腿 */
+  const A43 = [
+    ['planner.js', 'function daysInput() {', 1, '天数只有一个读法。改前输入框预填 5 而 state.days 是 0，估算读 state、排期读 DOM：同一屏先印「预计 1 天」再排出 2 天'],
+    ['planner.js', 'daysInput()', 3, '定义 + estimateDays + doSchedule 三个落点；掉到 2＝有一处又回去自己解析 DOM，两本账原地复活'],
+    ['planner.js', "if (!el) return state.days || 0;", 1, '没有输入框时的退路也只能是 0（不限），不许再兜回任何"好用的默认值"'],
+    ['planner.js', 'state.days = daysInput();', 1, '排期第一步先把口径归一，再往下算——估算与排期必须读同一个数'],
+    ['planner.js', "return splitIntoDays(ordered, state.start, daysInput(), state.end, mkLeg(matrix, travelByNow())).length;", 1, '汇总条那句「预计 N 天」与真正排期用的是同一次分日调用（同函数、同入参），不是第二次估'],
+    ['planner.js', '<label>天数（留空＝按里程与时长自动分日）</label>', 1, '留空的后果写在标签里；改前这里只有「天数」两个字，没人知道空着会被当成 5'],
+    ['planner.js', 'placeholder="不限"', 1, '空值的口径要有个名字：placeholder 就是它'],
+    ['planner.js', "' + (state.days || '') + '", 1, '预填只回填用户说过的数（0 就留空）；这一串一旦变回 || 5，两站就又会被排成两天'],
+    ['planner.js', 'function endpointRow(leg, tag, pt, other, looped) {', 1, '起／终两行的唯一出口：同一套版式，同一条「有坐标才报里程，没坐标就明说不参与」'],
+    ['planner.js', 'endpointRow(leg, ', 3, '定义 + 起 + 终：改前只有终行，出发地只在头部小字里露一次名字 → 用户读到的就是「没有起始地」'],
+    ['planner.js', "h += endpointRow(leg, " + Q43 + "起" + Q43 + ", trip.start, firstPlay, false);", 1, '「起」行挂在首站之前，里程与日卡同一把尺子（含真实矩阵）'],
+    ['planner.js', "h += endpointRow(leg, " + Q43 + "终" + Q43 + ", trip.end, lastPlay", 1, '「终」行与「起」行同一出口，环线标注由 end.isLoop 决定'],
+    ['planner.js', '未匹配到坐标 · 不参与里程', 3, '起行／终行／向导末步两行共用同一句真话；改前这些地方印的是「0 km」，看着像终点就在隔壁'],
+    ['planner.js', '没有可对算的站点', 1, '有名字、有对端没坐标的那一支也要说得出口，不许静默留白'],
+    ['planner.js', '（抵达地）', 1, '单程终点的标注（环线走另一支「回到起点 · 环线」）'],
+    ['planner.js', 'var epParts = [rulerNote(trip),', 1, '头部那行改成部件表 + 一次 join：改前出发地缺失时会留下孤零零的「；；」'],
+    ['planner.js', "else epParts.push(" + Q43 + "未填出发地：首日里程只含站与站之间的路" + Q43 + ");", 1, '没填就直说没填，并顺带把首日里程的口径讲清楚'],
+    ['planner.js', 'esc(epParts.join(', 1, 'join 只在部件之间插分隔符，缺项不会留疤'],
+    ['planner.js', 'function syncLoopEnd() {', 1, '环线只有一个落点：终点＝出发地的副本。改前向导里是 state.end = state.start（共享引用），排期把 end.isLoop 写回时顺着改到出发地头上'],
+    ['planner.js', 'syncLoopEnd();', 5, 'renderWizard / wizardOpen / 出发地 onchange / 环线=是 / 定位成功 五个入口全走它；掉到 4＝有一处又自己拼终点'],
+    ['planner.js', "else { state.isLoop = false; state.end = null; }", 1, '出发地被清空时环线自己退成单程——不许出现「末步印着 是 · 回到起点，而 end=null、排期里没有那段返程」'],
+    ['planner.js', '环线要先填出发地', 1, '缺出发地点环线要被带回第 1 步并给原因；改前这枚是死控件（只翻个高亮，把人留在原地）'],
+    ['planner.js', 'function locate(cb, fail) {', 1, '定位一条腿一个出口（改前同样的 getCurrentPosition 回调在两个函数里各写一遍，改一漏一）'],
+    ['planner.js', 'navigator.geolocation.getCurrentPosition', 1, '全站这一处调用；出现第二处＝又有人绕过 locate 自己拼'],
+    ['planner.js', 'window.plannerStartFromHere', 2, '定义 + 出发地那一行的按钮：这条承诺的腿有调用者（改前它零调用者，标签却写着「缺省=当前位置」）'],
+    ['planner.js', 'id="wStartLoc"', 1, '出发地的定位入口就钉在这一枚钮上'],
+    ['planner.js', 'function matchKeep(cur, val) {', 1, '文本框回读只认名字：名字没改过就沿用现值。缺这一手时定位成功后下一步会把坐标洗成 null'],
+    ['planner.js', 'matchKeep(', 5, '定义 + readEndpointInputs 两处 + 两个 onchange；掉到 4＝有一处退回裸 matchStart'],
+    ['planner.js', 'function readEndpointInputs() {', 1, '向导读 DOM 的单点（wizardOpen 兜底与第 1 步下一步共用它）'],
+    ['planner.js', 'readEndpointInputs();', 2, '两个读 DOM 的入口，一个都不许多'],
+    ['planner.js', "state.start = { name: " + Q43 + "当前位置" + Q43 + ", lat: lat, lng: lng };", 1, '定位成功的落点：坐标真进 state.start，于是首日里程含"从你站的地方到第一站"'],
+    ['planner.js', '留空＝首日只算站与站之间的路', 1, '第 1 步的标签口径（末步那句是「未填（首日…）」，两串不同，各钉各的）'],
+    ['planner.js', '留空＝单程；要回到出发地用下一步的环线', 1, '终到地的标签把"要回到出发地"指向环线，而不是让人在两个入口里猜'],
+    ['tools/smoke-sched.js', 'const VW = 328, VH = 723;', 1, '真机档取一加 Ace 6T 的 CSS 视口（批次 23-D 口径）'],
+    ['tools/smoke-sched.js', 'deviceScaleFactor: 2', 1, '真机档要带 dpr，否则量到的是桌面那套字号'],
+    ['tools/smoke-sched.js', 'localStorage.clear(); sessionStorage.clear()', 1, 'file:// 同源共享两套存储：逐档清场，否则上一档的状态快照直接恢复，读数就不是这一档的'],
+    ['tools/smoke-sched.js', 'navigator.geolocation.getCurrentPosition = function (cb)', 1, '定位桩：headless 下 file:// 拿不到位权，不桩就没有第二条腿能证明这颗钮真接上了（只验接线，不代表真 GPS）'],
+    ['tools/smoke-sched.js', 'function advanceToEnd(', 1, '向导会被守卫改回上一步，所以"点到末步"必须按按钮在不在走，不能按次数走（按次数的那版在 D 档直接走不到 #wDone）'],
+    ['tools/smoke-sched.js', 'advanceToEnd', 2, '定义 + 调用；调用那一处掉了＝这条腿不再真正走到排期'],
+    ['tools/smoke-sched.js', 'ok(' + Q43 + 'S', 36, '字面判据条数（S00 那一处是档级异常，实跑 35 条）：少一条要说话'],
+  ];
+  A43.forEach(a => {
+    if (a.length !== 4) {
+      F43('A43 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V43)) { F43('A43 登记了 §43 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt43(V43[f], needle);
+    if (n !== exp) F43(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：四族改前写法 + 本轮改出来那一族，每条配正向对照 */
+  const ZERO43 = [
+    ['planner.js', 'state.days || 5', Q43 + ' value=" + (state.days || 5) + " + Q43', '天数框又预填一个没人说过的 5：两站会被 ceil(2/5) 排成每天 1 站，正是用户点名的「本来一天的行程排成两天」'],
+    ['planner.js', "parseInt((" + Q43 + "$id(" + Q43 + "intentDays" + Q43 + ")", "parseInt((" + Q43 + "$id(" + Q43 + "intentDays" + Q43 + ") && $id(" + Q43 + "intentDays" + Q43 + ").value) || state.days || 0, 10) || 0", '排期自己解析 DOM：估算读 state、排期读 DOM 就是同一屏两本账的来路（先印「预计 1 天」再排出 2 天）'],
+    ['planner.js', 'state.start = matchStart(', 'if (s1 && s1.value) state.start = matchStart(s1.value);', '文本框回读裸查字典：定位成功后再点下一步会按名字「当前位置」重查，把刚拿到的坐标洗成 null（toast 说已设为当前位置而落盘 lat=null，实测就红在这一手）'],
+    ['planner.js', 'state.end = matchStart(', 'if (weEl2 && weEl2.value) state.end = matchStart(weEl2.value);', '同上，终到地那一侧'],
+    ['planner.js', 'state.end = state.start;', 'state.end = state.start;', '共享引用：排期会把 end.isLoop 写回终点对象，顺着就改到出发地头上（环线那一支的终点必须是副本）'],
+    ['planner.js', '（可不填，缺省=当前位置）', '（可不填，缺省=当前位置）', '这句承诺零调用者：全站没有一处把定位接到出发地。要么把腿接上（wStartLoc），要么改口——不许只留文案'],
+    ['planner.js', 'state.isLoop = true; if (state.start && state.start.name) state.end = { name: state.start.name, lat: state.start.lat, lng: state.start.lng }; renderWizard();', 'state.isLoop = true; if (state.start && state.start.name) state.end = { name: state.start.name, lat: state.start.lat, lng: state.start.lng }; renderWizard();', '环线那枚死控件的原文：缺出发地时只翻高亮、把人留在第 2 步，于是 isLoop=true 而 end=null，末步印着「是 · 回到起点」而排期里根本没有那段返程'],
+    ['planner.js', 'var lastStop', 'var lastStop = lastDay.stops[lastDay.stops.length - 1];', '终行自己算里程那一手退回局部拼串：它读的是"最后一个景点"而不是"终点"，坐标没匹配时照样拼出 0 km'],
+    ['tools/smoke-sched.js', 'window.__', 'window.__ss = SNAP;', '浏览器腿不许再把读样函数挂到页面上：页内脚手架一旦被产品自己的同名变量盖住，读数就是假的（批次 27 立的口径，这一节沿用）'],
+  ];
+  ZERO43.forEach(a => {
+    if (a.length !== 4) {
+      F43('ZERO43 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V43)) { F43('ZERO43 登记了 §43 没读的文件「' + f + '」：' + why); return; }
+    if (cnt43(V43[f], needle) !== 0) F43(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt43(flat43(ctrl), needle) < 1) F43('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置动态对账一：分日入口。凡调用 splitIntoDays 的行必须显式交代天数口径
+        （daysInput()／state.days／字面 0＝不限），出现任何非零字面天数就是"没说出口的默认值"复活。
+        先自校准：三种合成形状各判一次，判据本身错了下面整段就只是数行数。 */
+  let split43 = { calls: 0, lit: [] };
+  {
+    const LIT43 = /,\s*[1-9]\d*\s*,/;
+    const ZERO43ARG = /,\s*0\s*,/;
+    const ok43 = ln => !LIT43.test(ln) && (ln.indexOf('daysInput()') >= 0 || ln.indexOf('state.days') >= 0 || ZERO43ARG.test(ln));
+    if (!LIT43.test('var x = splitIntoDays(ordered, state.start, 5, state.end, leg);')) F43('分日判据自校准失效：合成坏形状（字面 5 天）没被非零字面那条抓到，这一节当场是空的');
+    if (ok43('var x = splitIntoDays(ordered, state.start, 5, state.end, leg);')) F43('分日判据自校准失效：合成坏形状（字面 5 天）被判成合法口径');
+    if (!ok43('var y = splitIntoDays(flat, start, 0, null, leg, forced);')) F43('分日判据自校准失效：合法的显式 0（不限天数、按预算自动分日）被误判成越界');
+    if (!ok43('var z = splitIntoDays(o, s, daysInput(), e, leg);')) F43('分日判据自校准失效：走 daysInput() 那一支被误判成越界（正向对照失效，下面的 0 就不是证据）');
+    rd43('planner.js').split('\n').forEach(function (ln, i) {
+      if (ln.indexOf('splitIntoDays(') < 0 || ln.indexOf('function splitIntoDays') >= 0) return;
+      split43.calls++;
+      if (LIT43.test(ln)) split43.lit.push('planner.js:' + (i + 1) + '  ' + ws43(ln).slice(0, 96));
+      else if (!ok43(ln)) split43.lit.push('planner.js:' + (i + 1) + '（既没读 daysInput()/state.days，也不是显式 0＝不限——口径没人交代）');
+    });
+    if (split43.calls !== 5) F43('splitIntoDays 的调用点从 5 处变成 ' + split43.calls + ' 处：新增一处分日入口要现场看过（它传的天数从哪来、估算会不会跟着改）再登记，否则"排期只有一个入口"这句话不成立');
+    if (split43.lit.length) F43('分日调用里出现没人交代的口径：' + split43.lit.join(' ｜ ') + '——字面天数就是"没说出口的默认值"这一族的原件（改前 2 站排 2 天是它的产物）');
+  }
+
+  /* ④ 内置动态对账二：起终点的写入口。state.start / state.end 的每一处赋值必须落在四种形状里
+        （matchKeep／syncLoopEnd 的副本与退单程／locate 的坐标对象）。
+        新增一处＝先现场看过再登记，不能被"锚点全绿"顺手放过。 */
+  let ep43 = { sites: 0, out: [] };
+  {
+    const OK43 = [
+      'state.start = matchKeep(', 'state.end = matchKeep(',
+      'state.end = { name: state.start.name', 'state.end = null;',
+      'state.start = { name: ' + Q43 + '当前位置' + Q43,
+    ];
+    rd43('planner.js').split('\n').forEach(function (ln, i) {
+      const mm = /state\.(start|end)\s*=[^=]/.exec(ln);
+      if (!mm) return;
+      if (/^\s*(\/\/|\*)/.test(ln) || ln.trim().indexOf('/*') === 0) return;
+      ep43.sites++;
+      if (!OK43.some(function (k) { return ln.indexOf(k) >= 0; })) ep43.out.push('planner.js:' + (i + 1) + '  ' + ws43(ln).slice(0, 96));
+    });
+    if (ep43.sites !== 7) F43('state.start／state.end 的赋值点从 7 处变成 ' + ep43.sites + ' 处：写入单点这句话的分母变了（新增要看过形状再登记，删掉要确认那条腿真没了）');
+    if (ep43.out.length) F43('起终点出现没登记过的写法：' + ep43.out.join(' ｜ ') + '——本轮的两条实错都出在这一族（裸 matchStart 把定位坐标洗成 null、state.end = state.start 让 end.isLoop 反写出发地）');
+  }
+
+  /* ⑤ 内置动态对账三：天数这一个量只有三个落点（渲染／绑定／读取） */
+  let days43 = { sites: 0, out: [] };
+  {
+    rd43('planner.js').split('\n').forEach(function (ln, i) {
+      if (ln.indexOf(Q43 + 'intentDays' + Q43) < 0 && ln.indexOf('id="intentDays"') < 0) return;
+      days43.sites++;
+      const shape = ln.indexOf('id="intentDays"') >= 0 || ln.indexOf('$id(' + Q43 + 'intentDays' + Q43 + ').onchange') >= 0 ||
+        ln.trim() === 'var el = $id(' + Q43 + 'intentDays' + Q43 + ');';
+      if (!shape) days43.out.push('planner.js:' + (i + 1) + '  ' + ws43(ln).slice(0, 96));
+    });
+    if (days43.sites !== 3) F43('intentDays 的落点从 3 处变成 ' + days43.sites + ' 处：又多了一处直接读输入框？那正是"估算与排期两本账"的形状');
+    if (days43.out.length) F43('intentDays 出现没登记的读法：' + days43.out.join(' ｜ ') + '（渲染那一行、绑定那一行、daysInput 里读那一行之外都不该有）');
+  }
+
+  /* ⑥ 内置动态对账四：承诺要有调用者（"文档承诺的能力要 grep 调用者"常驻化）。
+        planner.js 里只要还在讲「当前位置」，出发地这条腿就必须真的有定位入口在数得清的调用者上。 */
+  {
+    const n = cnt43(V43['planner.js'], '当前位置');
+    if (n < 8) F43('planner.js 里「当前位置」只剩 ' + n + ' 处（实测 12）：这一族的文案被整体改掉时，下面三条调用者对账会一起变成空断言');
+    if (cnt43(V43['planner.js'], 'navigator.geolocation.getCurrentPosition') !== 1) F43('定位调用点不是 1 处：要么这条腿又断了（承诺重新变成零调用者），要么有人绕过 locate 自己拼');
+    if (cnt43(V43['planner.js'], 'id="wStartLoc"') < 1) F43('出发地那颗「当前位置」钮不在了，而全站还在 12 处讲「当前位置」：零调用者的承诺原地复活');
+    if (cnt43(V43['planner.js'], 'function locate(') !== 1) F43('locate 的定义不是 1 处：定位一条腿一个出口这条纪律断了（改前同样的回调在两个函数里各写一遍，改一漏一）');
+  }
+
+  /* ⑦ 浏览器腿的形状标签逐条在场：这八条是四个症状各自的那一半证据 */
+  ['S04 A 档：2 站排成 1 张日卡', 'S07 A 档：排期前「预计 1 天」与排期后 1 张日卡是同一本账',
+   'S13 B2 档：显式 2 天就排成 2 张', 'S14 C 档：出发地填「大同」后结果页有「起」这一行',
+   'S19 D 档：空出发地点「环线=是」被带回第 1 步', 'S23 E 档：出发地+环线 → 终点自动等于出发地，且是副本不是同一个对象',
+   'S26 F 档：终到地认不出坐标时印「未匹配到坐标 · 不参与里程」', 'S29 G 档：出发地这枚「当前位置」按钮把坐标真落进了 state'].forEach(function (lab) {
+    if (V43['tools/smoke-sched.js'].indexOf(lab) < 0)
+      F43('tools/smoke-sched.js 缺「' + lab + '」这条判据（这一节的立论是"断日卡张数、落盘形状、屏上那几行字"，不是"按钮在不在"，少一条就少一个证据）');
+  });
+
+  if (V43['README.md'].indexOf('§43') < 0) F43('README.md 的 verify 清单没提 §43（新闸门不写进 README 就等于没装）');
+
+  console.log('排期读数单点闸门: ' + A43.length + ' 条代码锚点（天数一个读法 3 落点 + 起终两行一个出口（endpointRow 定义 + 起 + 终）+ 坐标缺失的同一句真话 3 处 + 头部部件表 3 点 + 环线一个落点（定义 + 5 个入口 + 退单程那一手）+ 定位一条腿（locate 1／调用 1／钮 1／plannerStartFromHere 2）+ 文本框回读 matchKeep 5 处 + 向导读 DOM 单点 2 处 + 第 1 步两条标签口径 + 浏览器腿 6 条脚手架纪律）+ 九族期望 0（预填 5／排期自己解析 DOM／裸 matchStart ×2 侧／state.end = state.start 共享引用／缺省=当前位置那句零调用者的承诺／环线死控件原文／终行局部拼串 lastStop／页内脚手架 window.__）各配正向对照 + 四项内置动态对账（splitIntoDays 调用点 ' + split43.calls + ' 处逐一交代天数口径、非零字面 0 处，判据先自校准；起终点赋值点 ' + ep43.sites + ' 处四种形状、越界 0 处；intentDays 落点 ' + days43.sites + ' 处、越界 0 处；「当前位置」' + cnt43(V43['planner.js'], '当前位置') + ' 处对着 4 条调用者对账）+ 一条自指纪律（flat43/view43 定义行必须走共享剥刀与不剥文档那一支，两处新代码旁各钉一枚现场哨兵）+ 八条浏览器腿形状标签逐条在场；A43 表长 ' + A43.length + ' 条、ZERO43 表长 ' + ZERO43.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify43.js');
+  fail += bad43;
+}
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);
