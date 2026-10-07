@@ -1,0 +1,11 @@
+PASS index.320x640.png  diff 0.00%
+FAIL index.328x723.png — 基线文件不存在（闸门失效，非视觉问题）。跑 node tools/visual-check.js --update 重建并人审 diff 后提交清单
+PASS index.390x844.png  diff 0.00%
+PASS index.452x995.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1428ms(<2500，3 次中位；样本 1776/1208/1428) 元素=A | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 916ms(<2500，3 次中位；样本 948/604/916) 元素=? | CLS 0.0009(<0.05，取最大)
+---
+耗时 64.2s（6 张，报告 tools/out/visual-report.json）
+比对 6 张: 5 PASS, 1 FAIL

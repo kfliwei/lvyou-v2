@@ -1,18 +1,23 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-06T22:42:15.235Z",
+  "generatedAt": "2026-10-07T04:21:41.003Z",
   "viewports": [
     "320x640",
+    "328x723",
     "390x844",
     "452x995",
     "768x1024",
     "1440x900"
   ],
-  "count": 92,
+  "count": 109,
   "files": {
     "index.320x640.png": {
       "sha": "3efd3f8356970c9e",
       "bytes": 646925
+    },
+    "index.328x723.png": {
+      "sha": "2595722f26cdbd1f",
+      "bytes": 749271
     },
     "index.390x844.png": {
       "sha": "539f3e1066769dc1",
@@ -34,9 +39,13 @@
       "sha": "c9e46ab9169629da",
       "bytes": 226183
     },
+    "topic.328x723.png": {
+      "sha": "daf4ef417f63dad8",
+      "bytes": 235268
+    },
     "topic.390x844.png": {
-      "sha": "d57827abfad5622d",
-      "bytes": 268418
+      "sha": "a082e1ac5fb7176d",
+      "bytes": 268506
     },
     "topic.452x995.png": {
       "sha": "3fefb6982485c48f",
@@ -53,6 +62,10 @@
     "search.320x640.png": {
       "sha": "7158f61a008c434f",
       "bytes": 403253
+    },
+    "search.328x723.png": {
+      "sha": "c7ebf55333120e82",
+      "bytes": 453444
     },
     "search.390x844.png": {
       "sha": "a77adc9ea7d2d211",
@@ -74,6 +87,10 @@
       "sha": "32b10db8c6da414d",
       "bytes": 443125
     },
+    "wishlist.328x723.png": {
+      "sha": "9117ac2ed69e7eec",
+      "bytes": 454296
+    },
     "wishlist.390x844.png": {
       "sha": "c0a598e30a1b0b05",
       "bytes": 472699
@@ -93,6 +110,10 @@
     "review.320x640.png": {
       "sha": "47a9eccdac319b42",
       "bytes": 379638
+    },
+    "review.328x723.png": {
+      "sha": "3805b0c12bda4765",
+      "bytes": 419682
     },
     "review.390x844.png": {
       "sha": "a97050e1c50710d6",
@@ -114,6 +135,10 @@
       "sha": "89c86ea4c35f1b46",
       "bytes": 263233
     },
+    "settings.328x723.png": {
+      "sha": "8ccb4eda58488266",
+      "bytes": 287299
+    },
     "settings.390x844.png": {
       "sha": "c42f5803f612a32d",
       "bytes": 370872
@@ -134,6 +159,10 @@
       "sha": "58cb7939c9e763ed",
       "bytes": 384410
     },
+    "me.328x723.png": {
+      "sha": "a83cee9443135763",
+      "bytes": 428272
+    },
     "me.390x844.png": {
       "sha": "de811f5d97656fe0",
       "bytes": 504626
@@ -147,12 +176,16 @@
       "bytes": 1174822
     },
     "me.1440x900.png": {
-      "sha": "a3d6e9b0398bccd0",
+      "sha": "88f263dbaff5023f",
       "bytes": 1145687
     },
     "trip.320x640.png": {
       "sha": "2c275a85d4e930da",
       "bytes": 403034
+    },
+    "trip.328x723.png": {
+      "sha": "48f738e06870eafb",
+      "bytes": 451888
     },
     "trip.390x844.png": {
       "sha": "a0d490623ed68003",
@@ -174,6 +207,10 @@
       "sha": "a014529ef04737ec",
       "bytes": 271000
     },
+    "expense.328x723.png": {
+      "sha": "6da6d5e90be041ec",
+      "bytes": 326269
+    },
     "expense.390x844.png": {
       "sha": "d78681ff8c5661f1",
       "bytes": 404921
@@ -193,6 +230,10 @@
     "node-manager.320x640.png": {
       "sha": "552f52dabfd67244",
       "bytes": 67107
+    },
+    "node-manager.328x723.png": {
+      "sha": "06b049ef42f197e2",
+      "bytes": 68625
     },
     "node-manager.390x844.png": {
       "sha": "960678cd682b911a",
@@ -214,6 +255,10 @@
       "sha": "025ad2c4ec6bdd8a",
       "bytes": 436386
     },
+    "album.328x723.png": {
+      "sha": "1527a5cca9987ae7",
+      "bytes": 486408
+    },
     "album.390x844.png": {
       "sha": "480677ba48645337",
       "bytes": 573551
@@ -233,6 +278,10 @@
     "album-edit.320x640.png": {
       "sha": "a05e45b0e7370faa",
       "bytes": 261731
+    },
+    "album-edit.328x723.png": {
+      "sha": "074c5e4a6603408b",
+      "bytes": 288701
     },
     "album-edit.390x844.png": {
       "sha": "c83734b26c693b7b",
@@ -254,6 +303,10 @@
       "sha": "1c4bbcb0040c3d0b",
       "bytes": 103865
     },
+    "story.328x723.png": {
+      "sha": "29e5e8bfe69c6954",
+      "bytes": 102470
+    },
     "story.390x844.png": {
       "sha": "35485277e2b2b89d",
       "bytes": 119473
@@ -273,6 +326,10 @@
     "planner.320x640.png": {
       "sha": "2605486861ed4e4a",
       "bytes": 307180
+    },
+    "planner.328x723.png": {
+      "sha": "69a8f8e183997512",
+      "bytes": 342050
     },
     "planner.390x844.png": {
       "sha": "745fefe1ddfc1aa7",
@@ -294,12 +351,16 @@
       "sha": "2d839ce4f2de77cf",
       "bytes": 350624
     },
+    "md-manager.328x723.png": {
+      "sha": "dfbf3a0a5b562f6c",
+      "bytes": 402431
+    },
     "md-manager.390x844.png": {
       "sha": "9b68500a7d39fad2",
       "bytes": 516288
     },
     "md-manager.452x995.png": {
-      "sha": "211c9b9449afe4ca",
+      "sha": "911f5a77f415ac64",
       "bytes": 636014
     },
     "md-manager.768x1024.png": {
@@ -313,6 +374,10 @@
     "explore-map.320x640.png": {
       "sha": "c9fa7b38d814a9b0",
       "bytes": 500167
+    },
+    "explore-map.328x723.png": {
+      "sha": "572e2d49ff244270",
+      "bytes": 573261
     },
     "explore-map.390x844.png": {
       "sha": "2a1b8327fd964e9a",
@@ -333,6 +398,10 @@
     "travel-map.320x640.png": {
       "sha": "d3b18d5368d9c72f",
       "bytes": 137456
+    },
+    "travel-map.328x723.png": {
+      "sha": "49679dd962ed97cf",
+      "bytes": 139340
     },
     "travel-map.390x844.png": {
       "sha": "d4c1226832182e83",

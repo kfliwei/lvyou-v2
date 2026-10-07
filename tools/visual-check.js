@@ -3,7 +3,7 @@
  *   node tools/visual-check.js              # 全量状态 × 视口，与基线比对
  *   node tools/visual-check.js --update     # 有意改版时更新基线（diff 图保留供人审）
  *   node tools/visual-check.js --seed       # 只跑数据态（游记种子 4 页 + 有账 3 页，都在 390 一档）
- * 注意: --seed 单独跑与全量跑的后半程**不是同一前置态**（全量跑先访问 85 个空库态，
+ * 注意: --seed 单独跑与全量跑的后半程**不是同一前置态**（全量跑先访问 102 个空库态，
  *   页面加载会写 localStorage），两种数据态基线一律用全量 --update 拍，别用 --seed --update。
  *   有账态的数据来自 tools/visual-ledger.js（闸门专用夹具，不进离线壳），载入前会先
  *   clearTestData + 清掉 travelNotes，所以它不依赖前面跑过什么。
@@ -67,13 +67,13 @@ const PAGES = ['index.html', 'topic.html', 'search.html', 'wishlist.html', 'revi
 /* 种子态只跑"内容随游记数据变化"的页。选页判据（实测，不是猜的）：与同页空库态做像素差，
  * 差异可见才算有覆盖增量；wishlist / node-manager 曾入列但差 0.00%（示例数据只写游记库），已剔除。
  * index 也已剔除：它的有数据区（RECENT JOURNEY）在折叠线以下，视口内与空库态差 0.02%，等于白拍。
- * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 四视口覆盖）。 */
+ * 放在 390 一档：种子态要的是"内容对不对"，不是"布局对不对"（布局由空库态 × 六视口覆盖）。 */
 const SEED_PAGES = ['review.html', 'album.html', 'story.html', 'travel-map.html'];
 /* 种子态页必须同时在 PAGES 里——否则它的种子基线没有同页空库基线可比，"这态有没有增量"就无从量。 */
 /* 「有账态」＝灌 tn_trips / tn_expense / tn_budget（夹具 tools/visual-ledger.js，只给闸门用）。
    批次 24 的三页是**读数页**：空库里它们只剩空态文案，像素腿等于白拍——24-E 的人审要点
    （两张卡的金额/笔数/打卡/清单、今年合计不含去年那笔）全在有数据时才画得出来。
-   和种子态同一口径：只在 390 一档拍，要的是"数据对不对"，布局由空库态 × 五视口覆盖。 */
+   和种子态同一口径：只在 390 一档拍，要的是"数据对不对"，布局由空库态 × 六视口覆盖。 */
 const LEDGER_PAGES = ['expense.html', 'trip.html', 'me.html'];
 /* 有账态各页带不带 query：不带 query 落的是「哪一趟」选择器，而 24-D/24-B 两页的主角是
    **选定一趟之后**的读数（计划/实际两套口径、今天是第几天、按天分组的账单）。
@@ -86,8 +86,12 @@ const LEDGER_Q = { 'trip.html': '?trip=vc-cx', 'expense.html': '?trip=vc-cx', 'm
    CSS 视口宽度取决于 ColorOS 落在哪一档密度——450dpi→452×995、480dpi→424×933。
    选 452 拍基线：它是更宽的那一档，字号阶梯的根字号上浮到 112%（424 档是 108%），
    所以 452 过得了、424 只会更松；两档的字号/行宽实测都在 tools/out/vp-type-probe.js 的日志里。
-   真机到底是 424 还是 452 要等 #73 装机量 innerWidth 才定得下来，两档都不动别的视口基线。 */
-const VIEWPORTS = [[320, 640], [390, 844], [452, 995], [768, 1024], [1440, 900]];
+   真机到底是 424 还是 452 要等 #73 装机量 innerWidth 才定得下来，两档都不动别的视口基线。
+ * 328×723 是批次 23-D 实测到的**这台机现在那一屏**：ColorOS「显示大小」拉到最大 →
+   dumpsys 里 Override density 620 → 1272/(620/160)≈328，高 723。它落的是
+   `@media (max-width:360px)` 那档 `.9375`，比 320 宽、比 390 窄，且比 452 更窄更高不矮——
+   此前它只在 smoke-usable 的几何腿里，像素侧零覆盖：「真机档已验证」说的是一台不存在的手机。 */
+const VIEWPORTS = [[320, 640], [328, 723], [390, 844], [452, 995], [768, 1024], [1440, 900]];
 const SEED_VIEWPORTS = [[390, 844]];
 /* 阈值按实测噪声定，不是拍脑袋：时间/随机/CSS 动画钉死 + 所有 http(s) 请求拦掉 + 基线在
  * prefers-reduced-motion 下拍之后，64 个状态连跑两遍**每一态都是 0.00%**（批次 7-D 复跑 293.6s + 282.5s，
@@ -206,7 +210,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
    * 代价：动效路径不进像素基线（它本质不可复现），由静帧墨量断言 + 真机/人审覆盖。 */
   await pg.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
 
-  /* 状态矩阵：空库态全量 × 五视口，两种数据态（游记种子 / 有账）只跑内容页 × 390；
+  /* 状态矩阵：空库态全量 × 六视口，两种数据态（游记种子 / 有账）只跑内容页 × 390；
      带页名参数只跑该页空库态，--seed 只跑数据态（分开跑，--update 时清单是合并写入不会丢登记） */
   const states = [];
   if (onlyPages.length) {
