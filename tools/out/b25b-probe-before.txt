@@ -1,0 +1,23 @@
+A travel-map.html title: {"text":"我的游记地图","clientW":62,"scrollW":98,"truncated":true,"fontSize":"15px","ellipsis":"ellipsis","small":{"text":"","w":0},"vw":328}
+A travel-map.html row: {"sel":".t-row","w":300,"kids":[{"cls":"back","tag":"button","txt":"←","w":40,"h":40,"right":54,"lines":1},{"cls":"title","tag":"div","txt":"我的游记地图","w":62,"h":21,"right":124,"lines":1},{"cls":"act","tag":"button","txt":"随手记","w":93,"h":44,"right":225,"lines":1},{"cls":"act sec","tag":"button","txt":"游记","w":81,"h":38,"right":314,"lines":1}]}
+A expense.html title: {"text":"开销记账 还没选定行程","clientW":204,"scrollW":204,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A trip.html title: {"text":"这趟行程 还没选定行程","clientW":204,"scrollW":204,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A checklist.html title: {"text":"行前清单 还没选定行程","clientW":204,"scrollW":204,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A md-manager.html title: {"text":"MD 库","clientW":252,"scrollW":252,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":{"text":"","w":0},"vw":328}
+A me.html title: {"text":"我的 My Journey","clientW":252,"scrollW":252,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A planner.html title: {"text":"行程规划 把想去的地方串成一场旅行","clientW":204,"scrollW":204,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A settings.html title: {"text":"设置","clientW":252,"scrollW":252,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":{"text":"","w":0},"vw":328}
+A wishlist.html title: {"text":"想去清单","clientW":2,"scrollW":64,"truncated":true,"fontSize":"14.0625px","ellipsis":"ellipsis","small":null,"vw":328}
+A wishlist.html row: {"sel":".t-row","w":304,"kids":[{"cls":"back","tag":"button","txt":"←","w":36,"h":36,"right":48,"lines":1},{"cls":"title","tag":"div","txt":"想去清单","w":2,"h":20,"right":58,"lines":1},{"cls":"wl-btn","tag":"button","txt":"地图","w":47,"h":40,"right":112,"lines":1},{"cls":"wl-btn primary","tag":"a","txt":"规划行程","w":69,"h":40,"right":195,"lines":1},{"cls":"wl-btn","tag":"button","txt":"复制","w":47,"h":40,"right":256,"lines":1},{"cls":"wl-btn","tag":"button","txt":"探索","w":47,"h":40,"right":316,"lines":1}]}
+A explore-map.html title: {"text":"探索地图 Pick a Map","clientW":252,"scrollW":252,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A review.html title: {"text":"旅程回顾","clientW":252,"scrollW":252,"truncated":false,"fontSize":"15px","ellipsis":"ellipsis","small":null,"vw":328}
+A3 travel-map 横向溢出: {"docScrollW":328,"off":[]}
+B1 nm-topbar: {"sel":".nm-topbar","w":328,"kids":[{"cls":"back","tag":"button","txt":"←","w":40,"h":40,"right":54,"lines":1},{"cls":"title","tag":"div","txt":"我的地点 My Places","w":122,"h":21,"right":184,"lines":2}]}
+B2 infoSheet is-acts: {"sel":"#infoSheet .is-acts","w":274,"kids":[{"cls":"is-btn","tag":"button","txt":"想去","w":61,"h":44,"right":88,"lines":2},{"cls":"is-btn","tag":"button","txt":"语音记录","w":61,"h":44,"right":159,"lines":3},{"cls":"is-btn","tag":"button","txt":"在地图查看","w":61,"h":44,"right":230,"lines":2},{"cls":"is-btn primary","tag":"button","txt":"关闭","w":61,"h":44,"right":301,"lines":1}]}
+B3 infoSheet 容器宽: {"sheetW":312,"padL":"18px","padR":"18px","display":"flex","flexWrap":"wrap"}
+C1 wl-remove: {"w":40,"h":40,"rowW":296,"aria":"移除"}
+C2 wl 条目行: {"sel":".wl-item","w":296,"kids":[{"cls":"wl-dot","tag":"span","txt":"","w":10,"h":10,"right":41,"lines":0},{"cls":"wl-main","tag":"div","txt":"平遥古城山西 · 晋中 · 古城古城","w":89,"h":81,"right":142,"lines":4},{"cls":"wl-acts","tag":"div","txt":"打卡并记录","w":91,"h":40,"right":245,"lines":2},{"cls":"wl-remove","tag":"button","txt":"","w":40,"h":40,"right":297,"lines":1}]}
+D1 search mic: {"w":40,"h":40}
+D2 search sbar: {"sel":".sbar","w":252,"kids":[{"cls":"INPUT","tag":"input","txt":"","w":182,"h":36,"right":259,"lines":0},{"cls":"mic","tag":"button","txt":"","w":40,"h":40,"right":307,"lines":1}]}
+E1 tripbar mv/x（把真实类名的探针塞进 #tripRow，吃的是同一套级联）: {"barDisplay":"none","probe":[{"cls":"mv","w":0,"h":0,"minW":"40px","minH":"40px"},{"cls":"x","w":0,"h":0,"minW":"40px","minH":"40px"}]}
+页面报错: 无

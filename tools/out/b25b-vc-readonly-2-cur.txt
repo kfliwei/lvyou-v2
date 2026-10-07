@@ -1,0 +1,134 @@
+PASS index.320x640.png  diff 0.00%
+PASS index.328x723.png  diff 0.00%
+PASS index.390x844.png  diff 0.00%
+PASS index.452x995.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+NOTE topic.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.320x640.png  diff 32.05% > 0.1%  → tools/out/visual-diff/topic.320x640.png
+NOTE topic.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.328x723.png  diff 29.18% > 0.1%  → tools/out/visual-diff/topic.328x723.png
+NOTE topic.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.390x844.png  diff 5.94% > 0.1%  → tools/out/visual-diff/topic.390x844.png
+NOTE topic.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.452x995.png  diff 5.05% > 0.1%  → tools/out/visual-diff/topic.452x995.png
+NOTE topic.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.768x1024.png  diff 3.31% > 0.1%  → tools/out/visual-diff/topic.768x1024.png
+NOTE topic.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL topic.1440x900.png  diff 4.03% > 0.1%  → tools/out/visual-diff/topic.1440x900.png
+FAIL search.320x640.png  diff 5.95% > 0.1%  → tools/out/visual-diff/search.320x640.png
+FAIL search.328x723.png  diff 5.23% > 0.1%  → tools/out/visual-diff/search.328x723.png
+FAIL search.390x844.png  diff 4.36% > 0.1%  → tools/out/visual-diff/search.390x844.png
+FAIL search.452x995.png  diff 3.75% > 0.1%  → tools/out/visual-diff/search.452x995.png
+FAIL search.768x1024.png  diff 2.46% > 0.1%  → tools/out/visual-diff/search.768x1024.png
+FAIL search.1440x900.png  diff 1.49% > 0.1%  → tools/out/visual-diff/search.1440x900.png
+FAIL wishlist.320x640.png  diff 20.51% > 0.1%  → tools/out/visual-diff/wishlist.320x640.png
+FAIL wishlist.328x723.png  diff 18.57% > 0.1%  → tools/out/visual-diff/wishlist.328x723.png
+FAIL wishlist.390x844.png  diff 14.97% > 0.1%  → tools/out/visual-diff/wishlist.390x844.png
+FAIL wishlist.452x995.png  diff 12.45% > 0.1%  → tools/out/visual-diff/wishlist.452x995.png
+FAIL wishlist.768x1024.png  diff 2.04% > 0.1%  → tools/out/visual-diff/wishlist.768x1024.png
+FAIL wishlist.1440x900.png  diff 1.45% > 0.1%  → tools/out/visual-diff/wishlist.1440x900.png
+FAIL review.320x640.png  diff 12.18% > 0.1%  → tools/out/visual-diff/review.320x640.png
+FAIL review.328x723.png  diff 12.33% > 0.1%  → tools/out/visual-diff/review.328x723.png
+FAIL review.390x844.png  diff 13.38% > 0.1%  → tools/out/visual-diff/review.390x844.png
+FAIL review.452x995.png  diff 13.00% > 0.1%  → tools/out/visual-diff/review.452x995.png
+FAIL review.768x1024.png  diff 9.29% > 0.1%  → tools/out/visual-diff/review.768x1024.png
+FAIL review.1440x900.png  diff 5.25% > 0.1%  → tools/out/visual-diff/review.1440x900.png
+FAIL settings.320x640.png  diff 8.49% > 0.1%  → tools/out/visual-diff/settings.320x640.png
+FAIL settings.328x723.png  diff 8.49% > 0.1%  → tools/out/visual-diff/settings.328x723.png
+FAIL settings.390x844.png  diff 8.59% > 0.1%  → tools/out/visual-diff/settings.390x844.png
+FAIL settings.452x995.png  diff 8.69% > 0.1%  → tools/out/visual-diff/settings.452x995.png
+FAIL settings.768x1024.png  diff 5.78% > 0.1%  → tools/out/visual-diff/settings.768x1024.png
+FAIL settings.1440x900.png  diff 2.82% > 0.1%  → tools/out/visual-diff/settings.1440x900.png
+FAIL me.320x640.png  diff 11.91% > 0.1%  → tools/out/visual-diff/me.320x640.png
+FAIL me.328x723.png  diff 12.91% > 0.1%  → tools/out/visual-diff/me.328x723.png
+FAIL me.390x844.png  diff 13.09% > 0.1%  → tools/out/visual-diff/me.390x844.png
+FAIL me.452x995.png  diff 12.53% > 0.1%  → tools/out/visual-diff/me.452x995.png
+FAIL me.768x1024.png  diff 9.34% > 0.1%  → tools/out/visual-diff/me.768x1024.png
+FAIL me.1440x900.png  diff 5.18% > 0.1%  → tools/out/visual-diff/me.1440x900.png
+FAIL trip.320x640.png  diff 4.33% > 0.1%  → tools/out/visual-diff/trip.320x640.png
+FAIL trip.328x723.png  diff 3.76% > 0.1%  → tools/out/visual-diff/trip.328x723.png
+FAIL trip.390x844.png  diff 3.03% > 0.1%  → tools/out/visual-diff/trip.390x844.png
+FAIL trip.452x995.png  diff 2.56% > 0.1%  → tools/out/visual-diff/trip.452x995.png
+FAIL trip.768x1024.png  diff 1.47% > 0.1%  → tools/out/visual-diff/trip.768x1024.png
+FAIL trip.1440x900.png  diff 1.11% > 0.1%  → tools/out/visual-diff/trip.1440x900.png
+FAIL expense.320x640.png  diff 5.12% > 0.1%  → tools/out/visual-diff/expense.320x640.png
+FAIL expense.328x723.png  diff 4.48% > 0.1%  → tools/out/visual-diff/expense.328x723.png
+FAIL expense.390x844.png  diff 3.72% > 0.1%  → tools/out/visual-diff/expense.390x844.png
+FAIL expense.452x995.png  diff 3.10% > 0.1%  → tools/out/visual-diff/expense.452x995.png
+FAIL expense.768x1024.png  diff 2.05% > 0.1%  → tools/out/visual-diff/expense.768x1024.png
+FAIL expense.1440x900.png  diff 1.46% > 0.1%  → tools/out/visual-diff/expense.1440x900.png
+NOTE node-manager.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.320x640.png  diff 1.24% > 0.1%  → tools/out/visual-diff/node-manager.320x640.png
+NOTE node-manager.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.328x723.png  diff 1.09% > 0.1%  → tools/out/visual-diff/node-manager.328x723.png
+NOTE node-manager.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.390x844.png  diff 0.91% > 0.1%  → tools/out/visual-diff/node-manager.390x844.png
+NOTE node-manager.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.452x995.png  diff 0.76% > 0.1%  → tools/out/visual-diff/node-manager.452x995.png
+NOTE node-manager.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.768x1024.png  diff 0.62% > 0.1%  → tools/out/visual-diff/node-manager.768x1024.png
+NOTE node-manager.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL node-manager.1440x900.png  diff 0.64% > 0.1%  → tools/out/visual-diff/node-manager.1440x900.png
+PASS album.320x640.png  diff 0.00%
+PASS album.328x723.png  diff 0.00%
+PASS album.390x844.png  diff 0.00%
+PASS album.452x995.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS album-edit.320x640.png  diff 0.00%
+FAIL album-edit.328x723.png  diff 0.45% > 0.1%  → tools/out/visual-diff/album-edit.328x723.png
+FAIL album-edit.390x844.png  diff 0.10% > 0.1%  → tools/out/visual-diff/album-edit.390x844.png
+PASS album-edit.452x995.png  diff 0.07%
+PASS album-edit.768x1024.png  diff 0.04%
+PASS album-edit.1440x900.png  diff 0.01%
+FAIL story.320x640.png  diff 1.75% > 0.1%  → tools/out/visual-diff/story.320x640.png
+FAIL story.328x723.png  diff 1.44% > 0.1%  → tools/out/visual-diff/story.328x723.png
+FAIL story.390x844.png  diff 1.35% > 0.1%  → tools/out/visual-diff/story.390x844.png
+FAIL story.452x995.png  diff 1.27% > 0.1%  → tools/out/visual-diff/story.452x995.png
+FAIL story.768x1024.png  diff 0.75% > 0.1%  → tools/out/visual-diff/story.768x1024.png
+FAIL story.1440x900.png  diff 0.56% > 0.1%  → tools/out/visual-diff/story.1440x900.png
+FAIL planner.320x640.png  diff 10.05% > 0.1%  → tools/out/visual-diff/planner.320x640.png
+FAIL planner.328x723.png  diff 9.73% > 0.1%  → tools/out/visual-diff/planner.328x723.png
+FAIL planner.390x844.png  diff 11.00% > 0.1%  → tools/out/visual-diff/planner.390x844.png
+FAIL planner.452x995.png  diff 10.29% > 0.1%  → tools/out/visual-diff/planner.452x995.png
+FAIL planner.768x1024.png  diff 7.23% > 0.1%  → tools/out/visual-diff/planner.768x1024.png
+FAIL planner.1440x900.png  diff 3.79% > 0.1%  → tools/out/visual-diff/planner.1440x900.png
+FAIL md-manager.320x640.png  diff 7.44% > 0.1%  → tools/out/visual-diff/md-manager.320x640.png
+FAIL md-manager.328x723.png  diff 6.51% > 0.1%  → tools/out/visual-diff/md-manager.328x723.png
+FAIL md-manager.390x844.png  diff 5.31% > 0.1%  → tools/out/visual-diff/md-manager.390x844.png
+FAIL md-manager.452x995.png  diff 4.39% > 0.1%  → tools/out/visual-diff/md-manager.452x995.png
+FAIL md-manager.768x1024.png  diff 2.75% > 0.1%  → tools/out/visual-diff/md-manager.768x1024.png
+FAIL md-manager.1440x900.png  diff 1.67% > 0.1%  → tools/out/visual-diff/md-manager.1440x900.png
+FAIL explore-map.320x640.png  diff 10.65% > 0.1%  → tools/out/visual-diff/explore-map.320x640.png
+FAIL explore-map.328x723.png  diff 10.47% > 0.1%  → tools/out/visual-diff/explore-map.328x723.png
+FAIL explore-map.390x844.png  diff 9.91% > 0.1%  → tools/out/visual-diff/explore-map.390x844.png
+FAIL explore-map.452x995.png  diff 10.09% > 0.1%  → tools/out/visual-diff/explore-map.452x995.png
+FAIL explore-map.768x1024.png  diff 7.86% > 0.1%  → tools/out/visual-diff/explore-map.768x1024.png
+FAIL explore-map.1440x900.png  diff 5.40% > 0.1%  → tools/out/visual-diff/explore-map.1440x900.png
+NOTE travel-map.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.320x640.png  diff 4.31% > 0.1%  → tools/out/visual-diff/travel-map.320x640.png
+NOTE travel-map.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.328x723.png  diff 3.77% > 0.1%  → tools/out/visual-diff/travel-map.328x723.png
+NOTE travel-map.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.390x844.png  diff 1.58% > 0.1%  → tools/out/visual-diff/travel-map.390x844.png
+NOTE travel-map.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.452x995.png  diff 1.24% > 0.1%  → tools/out/visual-diff/travel-map.452x995.png
+NOTE travel-map.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.768x1024.png  diff 0.80% > 0.1%  → tools/out/visual-diff/travel-map.768x1024.png
+NOTE travel-map.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.1440x900.png  diff 0.64% > 0.1%  → tools/out/visual-diff/travel-map.1440x900.png
+FAIL review.seed.390x844.png  diff 13.51% > 0.05%  → tools/out/visual-diff/review.seed.390x844.png
+NOTE album.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS album.seed.390x844.png  diff 0.00%
+FAIL story.seed.390x844.png  diff 2.33% > 0.05%  → tools/out/visual-diff/story.seed.390x844.png
+NOTE travel-map.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+FAIL travel-map.seed.390x844.png  diff 1.58% > 0.05%  → tools/out/visual-diff/travel-map.seed.390x844.png
+FAIL expense.ledger.390x844.png  diff 9.89% > 0.05%  → tools/out/visual-diff/expense.ledger.390x844.png
+FAIL trip.ledger.390x844.png  diff 8.92% > 0.05%  → tools/out/visual-diff/trip.ledger.390x844.png
+FAIL me.ledger.390x844.png  diff 10.91% > 0.05%  → tools/out/visual-diff/me.ledger.390x844.png
+PASS 性能预算 index.html — LCP 1184ms(<2500，3 次中位；样本 1900/1184/1084) 元素=H1 | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 1608ms(<2500，3 次中位；样本 2336/972/1608) 元素=? | CLS 0.0009(<0.05，取最大)
+---
+耗时 520.3s（109 张，报告 tools/out/visual-report.json）
+比对 109 张: 17 PASS, 92 FAIL

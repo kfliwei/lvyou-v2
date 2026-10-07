@@ -1,0 +1,88 @@
+===== smoke-aria =====
+PASS  D07 role=list 没把版式顶宽（.day-list 是中性 wrapper，手机档不许出现横向溢出）  [溢出 0px]
+PASS  D08 快照口径：AX 树里真有 list + listitem，且每个 listitem 的 name 非空  [list 1 / listitem 3]
+PASS  D09 键盘聚焦有可见焦点环（outline ≥2px；本批不新增 CSS，靠既有 :focus-visible 一档）  [2px solid rgb(174, 87, 56)]
+PASS  S01 分享页同样是恰一个 role=list 且条目数与卡片数相等  [list 1 / item 3 / card 3]
+PASS  S02 分享页每卡有非空可访问名（分享出去的是别人，读屏更不能给个空串）  [第 1 天 | 第 2 天 | 第 3 天]
+PASS  S03 分享页列表名带「共 N 天」  [无障碍验证线，共 3 天]
+PASS  S04 分享页地图针脚也念得出站名（分享页引 ui.js，可达名同一条腿）  [3/3]
+PASS  E01 全程零页面未捕获异常（可达属性不许把任何一页改崩）
+smoke-aria: 45 项，失败 0
+EXIT_aria=0
+===== smoke-node-mgr =====
+PASS  A.编辑改名不误报自身重复
+PASS  A.保存生效（含海拔）  [elev=120]
+PASS  A.删除持久化
+PASS  A.无脚本错误
+PASS  B.专题页无 FAB
+PASS  B.专题页无节点管理 API
+PASS  B.节点详情无编辑删除菜单
+PASS  B.无脚本错误
+=== NODE-MGR SMOKE ALL PASSED ===
+EXIT_node-mgr=0
+===== smoke-trip =====
+PASS  T49 零行程时不留白板：一句人话 + 两条 ≥44px 的指路（排一趟 / 不排行程直接记一笔）  [[{"href":"planner.html","t":"去排一趟行程","h":44},{"href":"expense.html?trip=free","t":"不排行程，直接记一笔","h":44}]]
+PASS  T50 行程删光了账还在：free 桶与孤儿旧账照样进「今年已花」，合计与分类前二同口径（不许合计认账、分类看不见）  [["496.17","496.17","主要是 住宿 200.00 元 · 交通 120.50 元"]]
+PASS  T51 me.html 在真机主档（328×723）不横向溢出，行程行与空态按钮触控高度都 ≥44px  [{"cw":328,"sw":328,"low":[]}]
+PASS  T52 三处主角数字都 ≥20px：trip 双读数 / trip 开销合计 / expense 今年合计（--fs-11 未定义令牌的回归网）  [["26.88px","26.88px","26.88px"]]
+PASS  T53 me.html / trip.html / expense.html 三页全程零真实报错
+PASS  T54 这三页全程零原生 confirm/alert，零系统通知调用  [0]
+FAIL  T37 trip.html 全程零真实报错  [pageerror: InvalidStateError: Transition was aborted because of invalid state. ViewTransition opt-in disabled]
+PASS  T38 全程零原生 confirm/alert，零系统通知调用  [0]
+=== 1 条 FAIL ===
+EXIT_trip=1
+===== smoke-expense =====
+PASS  A113 「记到」那一行摊开就是全部桶：每一趟 + 「未编排行程」常驻在最后（没排行程的人这一档照样能用）  [["进行中趟出发 2026-10-06 · 3 天 · 已花 66.60 元","以后的趟出发 2026-10-27 · 2 天 · 已花 0.00 元","未编排行程没有行程也能记 · 已花 0.00 元"]]
+PASS  A114 换桶把说明行与读数一起改口：free 桶不说「这趟」，第二笔落进 free 且带着同一天的真实日期  [["记到：未编排行程","这一笔进「未编排行程」桶：没有行程也能记，预算与 CSV 单独算这一桶。","今天 已花 20.00 元 · 1 笔 · 这一桶共 20.00 元 · 看这一桶的账",["zz-live/6660/2026-10-07","free/2000/2026-10-07"]]]
+PASS  A115 切回「记此刻」立刻恢复录音屏；关掉再重开回到默认档，桶也重新按进行中推断（上一次手选的「未编排行程」不接走这一趟的钱）  [{"back":{"expCls":false,"body":"flex"},"reopened":{"expCls":false,"notePressed":"true","listDisp":"none"},"pick":"记到：进行中趟"}]
+PASS  A116 门控：这一页没载 expense.js 时 has-exp 不打上、分段控件整条不出现（宁可少一个入口，也不留一个点了没反应的按钮）  [{"noExpense":true,"hasExp":false,"segDisp":"none","noteOk":true}]
+PASS  A117 真机主档 328×723：这一档自己的控件没有一个矮于 44px，行程列表摊开也不横向溢出  [{"sw":328,"cw":328,"low":[],"over":[],"panelTop":0,"panelBottom":723,"vh":723,"saveVisible":true}]
+PASS  A118 窄屏下「记上」那一钮仍在视口内（面板顶满到屏外＝记不上这笔）  [[0,723,723,true]]
+PASS  A62 全程零页面报错
+PASS  A63 全程零原生 confirm/alert（所有破坏性操作都走 UI.confirm）  [0]
+=== SMOKE EXPENSE ALL PASS ===
+EXIT_expense=0
+===== smoke-checklist =====
+PASS  C38 prune 默认开：规则不再命中的 auto 随站点变化一起消失（不是永久攒在库里）  [{"added":0,"removed":4} auto=7]
+PASS  C39 剪枝只拥有 auto 那一半：用户两条原样在，勾过的那条仍算已勾  [user=2 done=1]
+PASS  C40 剪完剩的正好是通识四件 + 出行日期决定的冬季三件（月份驱动的规则不受站点清空影响）  [身份证、羽绒/厚外套、防滑鞋、常用药、暖手宝、少量现金、充电宝]
+PASS  C41 clearTrip 只清本趟并回报条数（行程删除时不留孤儿桶，也不顺手清别人的）  [{"before":20,"n":9,"left":11,"only":true,"p901":11}]
+PASS  C42 空 id / 认不出的 id：返回 0 且一条不动（clearTrip 不许把整库当本趟清掉）  [{"none":0,"ghost":0,"total":11}]
+PASS  C43 规则矩阵跑满 42 条断言（下限 20；条数掉了就是有分支被删却没说）  [42 条]
+PASS  Z 全程零页面报错
+
+=== SMOKE ALL PASS ===
+EXIT_checklist=0
+===== smoke-texture =====
+PASS E5 暗档 grain-page 不翻（影和模糊是物理量，纸翻深了不会自己变浅）  [实际 "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.14'/%3E%3C/svg%3E\")"]
+PASS F1 空白纸面上 body 仍铺 grain 且 140px 平铺（这条排除了「页面内容挡住了」的解释）  [{"img":"url(\"data:image/svg+xml,%3Csvg","size":"140px 140px"}]
+     （grain 开 σ=1.397 / 关 σ=0.000 / 纸面均值 244.9）
+PASS F2 grain 真的落到像素上（Δσ ≥ 0.4：低于这个值等于白铺一层看不见的图）  [Δσ=1.397]
+PASS F3 grain 没铺成脏斑（Δσ ≤ 2.0：超过这个值纸面开始出现斑团，商用纸感就没了）  [Δσ=1.397]
+PASS G1 15 个质感 token 在 393dp 与 452dp 上同值（字号随机型变是刻意的，纸和影不是）  [两档一致]
+PASS G2 393dp 上 body 仍铺 grain 且尺寸不变  []
+
+=== smoke-texture: 48 项通过 / 0 项失败 ===
+EXIT_texture=0
+===== smoke-motion =====
+PASS D2 file:// 下 UI.vt 不抛（异常数组为空）  [无异常]
+PASS D3 file:// 下跨文档导航到达（@view-transition 在 opaque origin 不许拦路）  [file:///F:/MyAi/trace/lvyou-v2/topic.html]
+PASS E1 地图标签确实渲染出来了（0 个标签会让 E2 假绿）  [标签=28]
+PASS E2 避让真的动过手：至少隐藏 1 个重叠标签（正向对照）  [隐藏=8]
+PASS E3 动画全部结束后，可见标签两两不重叠  [0 对]
+PASS E4 缩小视野后补测真的又跑过、且可见标签仍不重叠  [避让被调 3 次 / 重叠 0 对 / 隐藏 12（等动画跑完用了 900ms）]
+PASS D4 全程无页面未捕获异常  [0 条]
+
+smoke-motion: 35 项，失败 0
+EXIT_motion=0
+===== smoke-states =====
+  PASS search.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS topic.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS wishlist.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS travel-map.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS album.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS review.html :: {"onlineInit":true,"offlineShows":true,"onlineHides":true,"errorBoxRenders":true,"errorBoxRetryFires":true,"errorBoxRetryCount":true}
+  PASS planner.html#ai :: {"errorBoxOnFail":true}
+smoke-states: 9 项，失败 0
+EXIT_states=0

@@ -1,0 +1,110 @@
+批次 25-B 收工账 · 顶栏一族与触控口径（rect 量化：改前必红、改后绿）
+====================================================================
+原始日志都在本目录，这份只当索引与结论。所有数字取自下列文件实测，不是回忆。
+
+一、症状与量化对照
+--------------------------------------------------------------------
+1) 顶栏标题被压成「看不见」（.t-row .title 的 min-width:0 那族）
+   探针：tools/out/b25b-probe-before.txt / b25b-probe-after.txt（328×723 档，逐页读 title 的 clientW/scrollW/truncated）
+   改前 travel-map.html「我的游记地图」  clientW 62 / scrollW 98 / truncated true   ← 四个字一个没露全
+   改后 travel-map.html「我的游记地图」  clientW 144 / scrollW 144 / truncated false
+   同批其他页：开销记账/这趟行程/行前清单 204→196（本来就没截，只是顶栏变高把可用宽吃掉 8px）；
+   planner「行程规划 把想去的地方串成一场旅行」改后 196/203 truncated true ＝ 省略号按设计吃到，
+   不是回归（K04 判的就是「截断必须是省略号而不是硬裁」）。
+
+2) .is-btn 断字（本批原始症状：四枚等宽 61px 的钮把内容排成 2/3/2/1 行）
+   改前（tools/out/b25b-probe-before.txt 第 16 行 B2 段）：想去 w61 h44 lines=2 /
+     语音记录 w61 h44 lines=3 / 在地图查看 w61 h44 lines=2 / 关闭 w61 h44 lines=1
+   改后（tools/out/b25b-probe-isbtn.txt，逐 childNode 量 rect.top 而不是数行——inline svg 会被
+     Range 数行读成假阳性，所以口径换掉了）：w 51/73/68/51、h 全 44、scrollH 42；
+     每枚内部 svg 与 #text 的 top 相差 ≤3px（同一排），「语音记录」= svg top677 h14 / text top675 h19
+   修法出处：design.css `.is-btn{min-height:44px}`（地板单点）＋ node-manager 页内 `.is-btn` 只剩皮肤
+   ＋ `white-space:nowrap`（页内）＋ `.is-acts{flex-wrap:wrap}`（容器）
+
+3) 40px 圆钮一族（改前 13 页里 11 页命中 40×40）
+   design.css 单点：`.t-row .back,.t-row .t-ic{width:44px;height:44px}`；
+   内容区三枚：tools/out/b25b-probe-content44.txt
+     album-edit .ech-del  40×40（行高 42）→ 44×44（行高 44），328/320 两档同形
+     checklist / trip 那两枚不在该探针宿主里（#ckBody 空态读 0），由 K32 的 computed 腿覆盖（见下）
+   普查补出来的第四颗：story.html 换故事 select 34 → 44（K27）
+   想去清单条目右侧那枚（探针 C1/C2，328×723）：.wl-remove 40×40 → 44×44，行宽 296 不变，aria「移除」在案
+   搜索页录音钮（探针 D1/D2，328×723）：改前 .sbar .mic 40×40（.sbar 252 宽＝input 182×36 + mic 40×40）
+     → 改后 44×44（.sbar 248 宽＝input 174×36 + mic 44×44）＝钮抬 4px、输入框让 8px，一行不折；
+     K28 的 computed 腿与这条 rect 腿各量一次，两把尺子都指着 44
+
+4) 像素基线捞出来的第四个症状：专题页顶栏被顶成两行（topic.html 不在 smoke-topbar 的 13 页分母里）
+   探针：tools/out/b25b-bar-pages.txt（改前）/ b25b-bar-pages-after.txt（改后），18 页 × 328/320/390
+   328 档改前 barH=189 行组=5：t-row 304x96、back 44x44、act 91x44 ‖ 第二行 act sec 81x44
+   328 档改后 barH=137 行组=4：t-row 304x44、back 44x44、act 44x44、act sec 44x44（一颗都不掉第二行）
+   320 档同形（189→137）；390 档 barH 137 不变、act 90x44 + act sec 79x44（标签回来）
+   代价：专题地图少 52 CSS px 可用高的那条回归消失（96→44 那一行还给地图）。
+
+二、闸门腿（改后全绿）
+--------------------------------------------------------------------
+· tools/verify.js：ALL CHECKS PASSED，§39 现 64 条代码锚点（本批 +4：map.css 退档 1 / topic.html 2 / smoke-topbar K33 1）
+  日志：b25b-verify-after.txt、b25b-verify-after-mut39src.txt（变异网还原后复跑，证明确实逐字节还原）
+· tools/smoke-topbar.js：全部通过（34 条，K00–K33）
+  日志：b25b-smoke-topbar.txt（31 条时）→ -k31-after.txt（32）→ -final.txt / -final2.txt（33）→ -k33.txt（34）
+  「改前红」的直接证据：b25b-smoke-topbar-k31-before.txt = 1 条 FAIL，红的正是 K31
+  （地图浮控件在玻璃柱里左右留白 0/8 与 0/4 → 加 margin:0 auto 后 4/4）
+· K33 落地读数：b25b-smoke-topbar-k33.txt 第 32 行 PASS（328/320 一行 + 两颗 44 圆钮 + aria 保住；390 档标签可见且 w>44）
+· 其余 smoke（b25b-smoke-battery.txt，八套串行，EXIT 全 0）：aria 45 项失败 0／node-mgr 0／trip 0／expense 0（121 条，
+  A104 的期望串已由「40,40」逐字改成「44,44」——判据名同步写明「让某页偷偷改回 40 必须变红」）／checklist 0／texture 0／
+  motion 0／states 9 项失败 0。另 b25b-smoke-usable.txt = 29/29 PASS。
+  「改前必红」在 expense 这条腿上有直接样本：b25b-smoke-expense-alone.txt 第 105 行
+  FAIL A104 …[[],[40,40]]（改前顶栏那两枚是 40），改后同一判据在 battery 里 exit 0。
+· 像素基线：改前只读两跑一致 **17 PASS / 92 FAIL**（b25b-vc-readonly-1.txt／-2-cur.txt）→ 全量 --update
+  **109 张 / 467.3s / exit 0**（b25b-vc-update.txt，性能预算两条 PASS：index LCP 1224ms、topic 528ms，3 次中位）。
+  92 张为什么一起红、以及「红＝整页平移 4 CSS px 而不是 92 次改版」的三层范围证明，写在
+  **b25b-visual-diff-before-update/人审清单.md**（逐态 diff 表 + shift-proof 109 态分类：75 态中段 ≤0.01%；
+  index 六档与 album 六档 + album.seed + album-edit.320 逐条 0.00%＝没有外溢）。改前 109 张 diff 图已归档在同目录。
+· 重拍后连跑两遍只读（b25b-vc-run1.txt 536.2s／b25b-vc-run2.txt 525.5s，各 exit 0）：
+  **各 109 PASS / 0 FAIL，且逐态 diff 全是 0.00%**（两条日志各 109 态读数，uniq 计数只有「109 × 0.00」一档，
+  含 328×723 手机档 17 张）＝新基线自洽；「与 24-F/25-A 逐字节相同」不成立也不该成立（顶栏本就改了）。
+
+三、变异自测两层（独占同一把锁 tools/out/.mut39.lock，串行，未与像素基线并跑）
+--------------------------------------------------------------------
+· 源码腿 tools/out/mut-verify39.js → b25b-mut-verify39.txt
+  共 62 条 / 按预期红 60 / 设计内静默 2 / 异常 0
+  本批新增 M57–M60（专题页退档 44→40、摘 .act-label、摘 aria-label、K33 改名）全部按预期红；
+  G02 是新的设计内静默：把 map.css 退档的媒体条件 360→700，锚按整串字面量命中、计数照旧 → 源码腿全绿。
+· 浏览器腿 tools/out/mut-smoke39.js → b25b-mut-smoke39.txt
+  基准 34 条全绿后开打，14/14 按预期红，异常 0
+  B12/B13/B14 三条打在 K33 上（媒体条件 360→700 / 退档 44→40 / 摘 aria-label）——正好是 G02 的对面；
+  B1–B11 的连带红一并记在日志里（如 B3 同时红 K01,K02,K09）
+  这一腿还顺手补了两个洞：原先它没有锁、没有启动指纹，现在与源码腿共用 .mut39.lock 并校验 4 条本批指纹。
+
+四、M51 那一坑（条数守卫的阈值是会过期的常量）
+--------------------------------------------------------------------
+锚点表 25-B 从 60 长到 64，原变异「把阈值从 58 抬到 61，必须红」就此失效（61<64 恒不红）。
+已抬到 65 并把因果写进变异名字；连带三处同批改写：verify.js 摘要行「64 条代码锚点」、
+浏览器腿条数守卫 33→34（M53 的期望串「判据条数不是 33」→34）、README 的「60 条代码锚点」→64。
+README 那处闸门不读，永远不会自己红——这正是「文档抄的数」那一类，只能靠这条账。
+
+五、本批踩到 / 登记的坑
+--------------------------------------------------------------------
+· K08 的分母（BAR_PAGES 13 页）不含 topic.html：顶栏被顶成两行这件事，smoke-topbar 全程看不见，
+  只有像素基线 + 页外探针（b25b-bar-pages.js）有视野。修法不是给 K08 加页，而是新增 K33 专钉它，
+  并把「topic.html 不在分母里」写进 K33 的判据文案，免得下批以为 K08 覆盖它。
+· map.css 内部也有加载顺序雷：`.t-row .act` 在该文件有 30/751/1140 三处，1140 的 `padding:0 15px`
+  会盖掉写在它前面的同特异度规则 → 退档必须写在最后一条之后（已在注释里写明，插错一次就白改）。
+· 探针 dy 符号：diffAt(a,b,…,dy) 比 a[y] 与 b[y-dy]，所以 dy<0 ＝ 当前内容比基线更低。
+  本批多数内容页极值 dy=-8 设备 px（DSF=2）＝顶栏长高 4 CSS px。只搜 dy≥0 会把「整页平移」读成
+  「整页改版」——第一次跑就被这条骗了一次（tools/out/probe25b-shift-proof.js 注释已钉死口径）。
+· 单一 dy 模型解释不动 story 系：改为逐带独立搜 dy（probe25b-band-dy.js，40 CSS px 一带），
+  顶栏带真改了 + 其下 0.00% @dy=-8；跨 fixed 浮层的带必然留残差＝模型边界，不是改版。
+· 上下堆叠的 crop 探针（probe25b-crop.js）：第一版左右并排把宽度翻倍，预览缩放后字糊到没法读。
+· 修 topic 顶栏时顺手把两颗钮的 svg 内联 style（vertical-align/margin-right）摘掉，与 travel-map 同形；
+  裸文本改 `<span class="act-label">` 是为了让退档「有可收的标签」——同族两页此前是两种形状。
+· 误删 .fab 那条已核对：`git diff -U0 design.css` 里 .fab 相关行零出现＝删掉又原样补回，净零。
+· 三处「同值双写／自相矛盾」本轮归位（值本来就对，坏的是出处留了两个）：
+  ① design.css 自己文件内 `.nm-item-btn{min-height:36px…}` 与同文件下面那句 44 打架 → 剥 36；
+  ② search.html 的 `.sbar .mic{…width:44px;height:44px…}` → 尺寸归 design.css，页内只剩皮肤；
+  ③ node-manager.html 的 `#infoSheet .is-btn{min-height:44px}` → 同上。
+  三条各配一条期望 0 的正向对照（ZERO39），打回来的形态是 M35/M43/M15，不是靠人眼复查。
+· 40/36 一族的本批范围＝顶栏 + 点名豁免的地图浮控件 + 内容区那四枚（.wl-remove/.ck-remove/.ech-del/.tb-open）。
+  尾巴按页点单，一次全改会连带重拍整页像素基线：travel-map `.statClose`/`.emClose`、story `.sn-btn`
+  （规则体含几何=1，本批有意不进白名单）、review 月历翻页与 `.moodrow .mk`、
+  travel-notes.js `tnQuoteClear`/`tnZoomX`（那两枚还是内联 style，不在类选择器里）、
+  design.css 自己的 `.ui-btn`/`.rs-chip`/`.tg button`。`.hero__seal` 是装饰章非控件，不算。
+  这条已写进 design.css 那段口径注释与 README §39，smoke-topbar 抓不到（它们不在顶栏里）。

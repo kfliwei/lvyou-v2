@@ -1353,7 +1353,7 @@ html.font-lg{--fs-stage:1.0625}     /* 设置页大字档：17/16（原 17.5px�
 .nm-item-main{flex:1;min-width:0}
 .nm-item-main b{display:block;font-size:var(--fs-5);color:var(--color-ink,#26241f);font-weight:600}
 .nm-item-main small{font-size:var(--fs-3);color:var(--color-muted,#8c877d)}
-.nm-item-btn{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--color-line-strong,#cfc9ba);background:var(--color-surface,#fffdf8);color:var(--color-ink-soft,#55514a);font-size:var(--fs-3);cursor:pointer}
+.nm-item-btn{padding:0 12px;border-radius:999px;border:1px solid var(--color-line-strong,#cfc9ba);background:var(--color-surface,#fffdf8);color:var(--color-ink-soft,#55514a);font-size:var(--fs-3);cursor:pointer}
 .nm-item-btn.danger{color:var(--color-danger,#b34a3f);border-color:rgba(179,74,63,.4)}
 .theme-dark .nm-menu-item{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
 .theme-dark .nm-in,.theme-dark .nm-ta{background:var(--color-surface,#23211d);border-color:var(--color-line-strong,#4a473f);color:var(--color-ink,#e9e4d8)}
@@ -1395,30 +1395,69 @@ html.font-lg{--fs-stage:1.0625}     /* 设置页大字档：17/16（原 17.5px�
 .theme-ic{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;background:var(--color-bg-soft,#efe9da);font-size:var(--fs-4);line-height:1}
 
 /* ============================================================
-   触控目标平衡 2026-08-16：视觉紧凑 + 仍可点（原 44px 过大，挤占内容区）
-   顶栏/地图控件 34–38px（最省垂直空间），内容区按钮 40px
+   触控目标口径（批次 25-B 收口）——**只有这一条**，别再在页面里各说一套
+     · 高频或破坏性 → **44px**：各处返回键、录音钮、弹层主操作、条目右侧的「移除／删除」
+       （想去清单、清单页、票据「打开附件」、相册章节编辑）、行程条在驾驶场景里的上下移/删除
+     · 低频或有手势替代 → **36px，点名允许**：地图上的缩放 +/− 与图层钮
+       （缩放有双指替代，且这两族浮在地图上，放大到 44 会挤掉瓦片可读区）
+   旧注释写的是「原 44px 过大，挤占内容区／顶栏 34–38px、内容区 40px」，与设计标准
+   自相矛盾，结果同一族圆钮在 design.css / map.css / 页面内联三处长成 36/40/44 三种尺寸，
+   谁后加载谁说了算。下面按口径逐族归位。
+   实测代价（tools/out/b25b-probe-content44.js）：内容区那几枚从 40 抬到 44，
+   行高 42→44（+2px）、两档零横向溢出、页高不变——换得起。
+   **尚未归位的尾巴**（批次 25-B 没点单，登记给下一批；它们不在顶栏里，smoke-topbar 抓不到）：
+   travel-map.html:136 `.statClose`／:157 `.emClose`（浮层右上角 X）、story.html:37 `.sn-btn`（翻卡前后）、
+   review.html:23 月历翻页／:37 `.moodrow .mk` 心情章、travel-notes.js:649 `tnQuoteClear`／:2071 `tnZoomX`
+   （这两枚还是内联 style，不在类选择器里）、design.css:1269 `.ui-btn`／:1337 `.rs-chip`／:1017 `.tg button`
+   （本文件内的 36/40 残留，抬它们要连别的页一起看，因为 `.ui-btn` 是全站通用钮）、
+   design.css:1528 `.hero__seal`（装饰章，非控件，**不算**）。抬一枚就得重拍那一页的像素基线，
+   所以按页点单、别一次全改。
    ============================================================ */
-.story-bar .back,.nm-topbar .back{width:40px!important;height:40px!important;min-width:40px;min-height:40px;border-radius:50%}
-button.act,button.act.sec,button.mine,button.go{min-height:38px}
-.sbar .mic{width:40px!important;height:40px!important}
-.wl-btn{min-height:40px!important}
-.wl-remove{width:40px!important;height:40px!important}
-.nm-item-btn{min-height:40px}
-.is-btn{min-height:40px}
-.ctl button{width:36px!important;height:36px!important}
+.story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important;min-width:44px;min-height:44px;border-radius:50%}
+button.act,button.act.sec,button.mine,button.go{min-height:44px}
+.sbar .mic{width:44px!important;height:44px!important}
+.wl-btn{min-height:44px!important}
+/* 列表/卡片右端那枚「移除·删除·打开」：形状各异（圆、圆角方、缩略图框），触控档同一档 */
+.wl-remove,.ck-remove,.ech-del,.tb-open{width:44px!important;height:44px!important}
+.nm-item-btn{min-height:44px}
+.is-btn{min-height:44px}
+/* 36px 一族：地图上浮控件，允许低于 44，理由见上面的口径 */
+/* `margin:0 auto` 不是装饰：玻璃柱的**宽**是各页自己写的（travel-map 44／map.css 40），
+   钮的尺寸在这里点名成 36，两边没人对账时钮贴左、柱子右侧空一条（实测留白 0/8 与 0/4）。
+   用居中而不是把盒宽改成 36：盒宽那 4px 内衬是有意的（active 底色别贴住描边），
+   而 `.laymenu{right:60px}` 是按 44 的盒算的，改盒宽要连它一起改，反而多两处耦合。 */
+.ctl button{width:36px!important;height:36px!important;margin:0 auto}
 .leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important}
 /* 行程条操作（驾驶场景高频） */
-.tripbar .mv,.tripbar .x{min-width:40px;min-height:40px;display:inline-grid;place-items:center}
+.tripbar .mv,.tripbar .x{min-width:44px;min-height:44px;display:inline-grid;place-items:center}
 
 /* ============================================================
    通用顶栏 / 返回键 / 底栏（topbar 收口 2026-08-16：各页内联重复 → 公共类）
+   批次 25-B 补第二条：**行内几何也只许这一处**。
+   窄屏（真机 328×723）顶栏的实测症状：标题被压到 clientW 2px（wishlist）／62px
+   （travel-map），因为标题 `min-width:0` 允许缩到 0，而四枚按钮全是 `flex:0 0 auto`。
+   修法不是继续缩标题，而是**让动作组整组换到第二行**：
+     · 标题给一个可读下限（7em ≈ 7 个汉字），低于它宁可换行
+     · 动作组包进 `.trow-acts`，`margin-left:auto` 让它贴右；换行时整组下去，
+       不留「一枚孤钮掉第二行」的贪心装箱残局（flex-wrap 按假想主轴宽逐条装箱）
+     · `.t-ic` = 顶栏那枚「跳转钮」（`<a>` 装的圆钮，与 `.back` 同一尺寸同一皮肤）。
+       批次 25-B 之前它没有类名，四页各抄了一整条 inline style（含 `width:40px;height:40px`），
+       于是它既是「40px 圆钮一族」的最后一处，又是 CSS 永远管不到的那一处。
+     · 标题的 `flex-basis` 取 7em 而不是 auto：装箱看的是**假想主轴宽**（= clamp 后的 basis），
+       basis:auto 时它等于整条 nowrap 文案的宽度，于是「back + 长标题 + 一枚 44 的钮」在 328 上
+       怎么都装不进一行，那枚钮被单独挤到第二行（planner 实测顶栏 63→115px）。
+       basis 收到 7em 后先按 105 装箱、再靠 grow 拿回剩余空间，标题该长的还是长的（expense 196／
+       travel-map 144 一条没变），只有真装不下的那条（planner 的副标题）改成省略号，省回 52px。
    ============================================================ */
 .topbar{position:sticky;top:0;z-index:100;background:var(--paper-bar);border-bottom:1px solid var(--edge-hair-soft);padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px}
-.t-row{display:flex;align-items:center;gap:8px}
-.t-row .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;text-decoration:none}
-.t-row .back:active{transform:scale(.92)}
-.t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.t-row .back,.t-row .t-ic{width:44px;height:44px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;text-decoration:none}
+.t-row .t-ic{margin-left:auto}
+.t-row .t-ic .ti{margin-right:0}
+.t-row .back:active,.t-row .t-ic:active{transform:scale(.92)}
+.t-row .title{flex:1 1 7em;min-width:7em;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:var(--fs-2);color:var(--color-muted);margin-left:6px;letter-spacing:.06em}
+.trow-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto}
 
 /* ============================================================
    SPA 体验层 2026-08-15：全局页面进入过渡（file:// 多页架构的轻量替代）

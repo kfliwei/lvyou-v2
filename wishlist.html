@@ -29,7 +29,7 @@
   .wl-btn:active{transform:scale(.95)}
   .wl-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:600}
   .wl-btn.done{background:#ECEFEA;border-color:transparent;color:var(--color-green)}
-  .wl-remove{width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;flex:0 0 auto}
+  .wl-remove{border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;flex:0 0 auto}
   .wl-remove:active{background:var(--color-bg-soft)}
   /* 省分组 */
   .wl-group-head{display:flex;align-items:center;gap:8px;padding:11px 4px 7px;cursor:pointer;user-select:none;-webkit-user-select:none}
@@ -44,11 +44,11 @@
   /* 覆盖 map.css 的全屏地图页 body 锁定（本页为普通滚动页，body 不可被 overflow:hidden 裁剪） */
   html,body{height:auto;min-height:100%}
   body{display:block;overflow:auto}
-  /* 顶栏按钮防挤压：固定宽度不收缩，标题区自适应；单一主操作=规划行程 */
-  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 11px;min-height:34px;font-size:var(--fs-3);border-radius:999px;font-weight:500}
-  .t-row .wl-btn+.wl-btn{margin-left:6px}
+  /* 顶栏四枚动作钮：整组进 .trow-acts，窄屏装不下时由 design.css 的 .t-row 换行；
+     标题的下限也在 design.css 那一处（本页曾给顶栏标题写死 min-width:0，
+     328 档实测标题被压到 clientW 2px——四个字的页名一个字都看不见）。 */
+  .t-row .wl-btn{flex:0 0 auto;white-space:nowrap;padding:0 11px;font-size:var(--fs-3);border-radius:999px;font-weight:500}
   .t-row .wl-btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(172,78,45,.28)}
-  .t-row .title{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .wl-empty p{color:var(--color-ink-soft)}
   .wl-item{background:var(--color-surface);border:1px solid var(--color-line);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow-soft);transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out)}
   .wl-item:active{transform:scale(.985)}
@@ -82,10 +82,12 @@
   <div class="t-row">
     <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="返回">←</button>
     <div class="title">想去清单 <small id="cntLabel"></small></div>
-    <button class="wl-btn" id="wlMapBtn">地图</button>
-    <a class="wl-btn primary" href="planner.html?from=wish" style="display:inline-flex;align-items:center;text-decoration:none">规划行程</a>
-    <button class="wl-btn" onclick="window.copyWishlist()">复制</button>
-    <button class="wl-btn" onclick="location.href='explore-map.html'">探索</button>
+    <div class="trow-acts">
+      <button class="wl-btn" id="wlMapBtn">地图</button>
+      <a class="wl-btn primary" href="planner.html?from=wish" style="display:inline-flex;align-items:center;text-decoration:none">规划行程</a>
+      <button class="wl-btn" onclick="window.copyWishlist()">复制</button>
+      <button class="wl-btn" onclick="location.href='explore-map.html'">探索</button>
+    </div>
   </div>
 </header>
 <div class="wrap">

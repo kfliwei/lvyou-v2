@@ -12,7 +12,7 @@
   html,body{height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink);overflow:hidden}
   #mapEl{position:absolute;inset:0;z-index:1}
   .nm-topbar{position:fixed;left:0;right:0;top:0;z-index:9500;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px;background:var(--paper-bar);border-bottom:1px solid var(--edge-hair-soft)}
-  .nm-topbar .back{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+  .nm-topbar .back{border:1px solid var(--color-line);background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
   .nm-topbar .title{font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
   .nm-topbar .title small{font-family:var(--font-sans);font-size:var(--fs-2);color:var(--color-muted);margin-left:4px;letter-spacing:.06em}
   .sbar{flex:1;display:flex;align-items:center;gap:6px;background:var(--color-surface);border:1.5px solid var(--color-line);border-radius:999px;padding:3px 6px 3px 10px;min-width:110px}
@@ -57,15 +57,25 @@
   #infoSheet .is-coord{font-size:var(--fs-3);color:var(--color-muted);font-family:ui-monospace,Consolas,monospace;margin-bottom:12px}
   #infoSheet .is-tags{margin-bottom:12px}
   #infoSheet .is-tags span{display:inline-block;font-size:var(--fs-2);background:var(--color-primary-soft);color:var(--color-primary-dark);border-radius:999px;padding:2px 9px;margin:0 5px 5px 0}
-  #infoSheet .is-acts{display:flex;gap:10px}
-  #infoSheet .is-btn{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-5);cursor:pointer;font-family:var(--font-sans)}
+  /* 底部动作组：整组可换行（批次 25-B）。此前 flex-wrap 是 JS 里逐处内联写的，
+     而 .is-btn 没有 white-space:nowrap → 328 档四枚各分到 61px，「语音记录」断成 3 行、
+     「在地图查看」断成 2 行。nowrap 把地板抬回整条标签宽，装不下就由 wrap 换到第二行。
+     高度这一项不写在本页：触控档由 design.css 的 .is-btn 单点点名，两处各写一遍就是本批的根因。 */
+  #infoSheet .is-acts{display:flex;gap:10px;flex-wrap:wrap}
+  #infoSheet .is-btn{flex:1;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-5);cursor:pointer;font-family:var(--font-sans);white-space:nowrap}
+  /* 带图标的按钮一律挂 .ic：design.css 的 .ti 是按 flex 父容器写的（flex:0 0 auto + vertical-align:-.2em），
+     放进普通 block 按钮时图标会掉到文字下方 5px（328 档实测 svg top680 / 文字 top675）。 */
+  #infoSheet .is-btn.ic{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+  #infoSheet .is-btn.ic .ti{margin-right:0}
   #infoSheet .is-btn.primary{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600}
   #infoSheet .is-btn.danger{color:var(--color-danger,#b34a3f);border-color:rgba(179,74,63,.4)}
   .theme-dark .nm-topbar{background:rgba(29,28,25,.92)}
-  /* 缩放按钮：右上（顶栏下方避让）+ 毛玻璃圆角风格 */
-  .leaflet-top.leaflet-right{margin-top:64px;margin-right:10px}
+  /* 缩放钮：右上（顶栏下方避让）+ 毛玻璃圆角风格。
+     让位值 = 顶栏高（safe-area + 8 上垫 + 44 返回钮 + 10 下垫）+ 4px 间隙；
+     钮的几何 36px 由 design.css「地图浮控件」一族单点持有，这里只留皮肤。 */
+  .leaflet-top.leaflet-right{margin-top:calc(env(safe-area-inset-top,0px) + 66px);margin-right:10px}
   .leaflet-control-zoom{border:0 !important;border-radius:14px !important;box-shadow:var(--shadow-medium) !important;overflow:hidden}
-  .leaflet-control-zoom a{width:40px !important;height:40px !important;line-height:40px !important;background:var(--color-surface) !important;color:var(--color-ink) !important;border:0 !important;font-size:var(--fs-8) !important}
+  .leaflet-control-zoom a{background:var(--color-surface) !important;color:var(--color-ink) !important;border:0 !important;font-size:var(--fs-8) !important}
   .leaflet-control-zoom a:active{background:var(--color-bg-soft) !important}
   .leaflet-control-zoom a.leaflet-control-zoom-in{border-bottom:1px solid var(--edge-hair-soft) !important}
   .theme-dark #rsSheet,.theme-dark #infoSheet{background:var(--color-surface);border-color:var(--color-line)}
@@ -731,9 +741,9 @@
       '<div class="is-loc">' + esc(s.theme + ' · ' + [s.region, s.city].filter(Boolean).join(' · ')) + '</div>' +
       (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
       '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
-      '<div class="is-acts" style="flex-wrap:wrap">' +
-      '<button class="is-btn" onclick="window.NM.sysWish(' + s.__i + ')">' + (window.Wish && Wish.isWished(s) ? TI('check', 12) + ' 已想去' : TI('plus', 12) + ' 想去') + '</button>' +
-      '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.sysRecord(' + s.__i + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-2px"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
+      '<div class="is-acts">' +
+      '<button class="is-btn ic" onclick="window.NM.sysWish(' + s.__i + ')">' + (window.Wish && Wish.isWished(s) ? TI('check', 12) + '已想去' : TI('plus', 12) + '想去') + '</button>' +
+      '<button class="is-btn ic" onclick="window.NM.sysRecord(' + s.__i + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
       '<button class="is-btn" onclick="window.NM.flyToSys(' + s.__i + ')">在地图查看</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
     UI.sheet($('infoSheet')).open((s.label || s.name || '系统地点') + '，系统地点详情');
@@ -755,11 +765,11 @@
       (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
       (u.tags && u.tags.length ? '<div class="is-tags">' + u.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
       '<div class="is-coord">' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
-      '<div class="is-acts" style="flex-wrap:wrap">' +
+      '<div class="is-acts">' +
       '<button class="is-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
-      '<button class="is-btn" onclick="window.NM.toggleWish(\'' + u.id + '\')">' + (wished ? TI('check', 12) + ' 已想去' : TI('plus', 12) + ' 想去') + '</button>' +
-      '<button class="is-btn" style="display:inline-flex;align-items:center;gap:5px;justify-content:center" onclick="window.NM.record(\'' + u.id + '\')">'+TI('mic', 13)+'语音记录</button>' +
-      (notesN ? '<button class="is-btn" onclick="location.href=\'travel-map.html\'">'+TI('book')+'记录 ' + notesN + ' 篇</button>' : '') +
+      '<button class="is-btn ic" onclick="window.NM.toggleWish(\'' + u.id + '\')">' + (wished ? TI('check', 12) + '已想去' : TI('plus', 12) + '想去') + '</button>' +
+      '<button class="is-btn ic" onclick="window.NM.record(\'' + u.id + '\')">'+TI('mic', 13)+'语音记录</button>' +
+      (notesN ? '<button class="is-btn ic" onclick="location.href=\'travel-map.html\'">'+TI('book')+'记录 ' + notesN + ' 篇</button>' : '') +
       '<button class="is-btn danger" onclick="window.NM.remove(\'' + u.id + '\')">删除</button>' +
       '<button class="is-btn primary" onclick="window.NM.closeInfo()">关闭</button></div>';
     UI.sheet($('infoSheet')).open((u.name || '我的地点') + '，我的地点详情');

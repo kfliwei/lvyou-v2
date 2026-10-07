@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-07T04:21:41.003Z",
+  "generatedAt": "2026-10-07T08:53:29.698Z",
   "viewports": [
     "320x640",
     "328x723",
@@ -36,220 +36,220 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "c9e46ab9169629da",
-      "bytes": 226183
+      "sha": "498e678e5ad4be2e",
+      "bytes": 225595
     },
     "topic.328x723.png": {
-      "sha": "daf4ef417f63dad8",
-      "bytes": 235268
+      "sha": "ba85423b61c32538",
+      "bytes": 235140
     },
     "topic.390x844.png": {
-      "sha": "a082e1ac5fb7176d",
-      "bytes": 268506
+      "sha": "3702b34fc9ebfec1",
+      "bytes": 270064
     },
     "topic.452x995.png": {
-      "sha": "3fefb6982485c48f",
-      "bytes": 307272
+      "sha": "37638e32317e8e43",
+      "bytes": 309303
     },
     "topic.768x1024.png": {
-      "sha": "80a823ecd9b2f043",
-      "bytes": 330164
+      "sha": "99d0dd00972ad0f3",
+      "bytes": 332163
     },
     "topic.1440x900.png": {
-      "sha": "62ccf2c584b18d3a",
-      "bytes": 722109
+      "sha": "adab0e1ae1ab02cc",
+      "bytes": 722987
     },
     "search.320x640.png": {
-      "sha": "7158f61a008c434f",
-      "bytes": 403253
+      "sha": "3a14409f450cf7fb",
+      "bytes": 402124
     },
     "search.328x723.png": {
-      "sha": "c7ebf55333120e82",
-      "bytes": 453444
+      "sha": "f1e90aa89e5ac1ca",
+      "bytes": 452711
     },
     "search.390x844.png": {
-      "sha": "a77adc9ea7d2d211",
-      "bytes": 538827
+      "sha": "3c42a7b5e38999a0",
+      "bytes": 538274
     },
     "search.452x995.png": {
-      "sha": "52ea0bb3fc078a1b",
-      "bytes": 645083
+      "sha": "1d709636eadda887",
+      "bytes": 644167
     },
     "search.768x1024.png": {
-      "sha": "d9b66db94d9fd1fc",
-      "bytes": 806256
+      "sha": "b9343457c8415da1",
+      "bytes": 807796
     },
     "search.1440x900.png": {
-      "sha": "95891737fd921984",
-      "bytes": 791673
+      "sha": "7b4ecbfa518590dd",
+      "bytes": 793939
     },
     "wishlist.320x640.png": {
-      "sha": "32b10db8c6da414d",
-      "bytes": 443125
+      "sha": "c8b721c5d7e74479",
+      "bytes": 434525
     },
     "wishlist.328x723.png": {
-      "sha": "9117ac2ed69e7eec",
-      "bytes": 454296
+      "sha": "7a776b1da4b42687",
+      "bytes": 463434
     },
     "wishlist.390x844.png": {
-      "sha": "c0a598e30a1b0b05",
-      "bytes": 472699
+      "sha": "2f7d0ef6bd52437c",
+      "bytes": 475901
     },
     "wishlist.452x995.png": {
-      "sha": "278de9a703ac9ca4",
-      "bytes": 500414
+      "sha": "510444de84233ac4",
+      "bytes": 503706
     },
     "wishlist.768x1024.png": {
-      "sha": "dd1126c421cc92c7",
-      "bytes": 506211
+      "sha": "189d77b0baaea33b",
+      "bytes": 506874
     },
     "wishlist.1440x900.png": {
-      "sha": "63a9efd6ef5b7323",
-      "bytes": 540999
+      "sha": "d1c99a8df7c5fbb2",
+      "bytes": 542044
     },
     "review.320x640.png": {
-      "sha": "47a9eccdac319b42",
-      "bytes": 379638
+      "sha": "182b1e5095e9c05c",
+      "bytes": 376968
     },
     "review.328x723.png": {
-      "sha": "3805b0c12bda4765",
-      "bytes": 419682
+      "sha": "3d81b8fca47644cb",
+      "bytes": 415723
     },
     "review.390x844.png": {
-      "sha": "a97050e1c50710d6",
-      "bytes": 501370
+      "sha": "0ad79bcb0020076e",
+      "bytes": 505044
     },
     "review.452x995.png": {
-      "sha": "81de5a6439787cf3",
-      "bytes": 596717
+      "sha": "3f4de245e50a4c2f",
+      "bytes": 596632
     },
     "review.768x1024.png": {
-      "sha": "03b910b33ba18ec4",
-      "bytes": 1080227
+      "sha": "f8120243dacaf36a",
+      "bytes": 1078374
     },
     "review.1440x900.png": {
-      "sha": "46b1e0b567a07ec9",
-      "bytes": 1042647
+      "sha": "46ff857fb01695f6",
+      "bytes": 1043330
     },
     "settings.320x640.png": {
-      "sha": "89c86ea4c35f1b46",
-      "bytes": 263233
+      "sha": "060d04fc209d268e",
+      "bytes": 262837
     },
     "settings.328x723.png": {
-      "sha": "8ccb4eda58488266",
-      "bytes": 287299
+      "sha": "38b3f52879cf19c9",
+      "bytes": 289472
     },
     "settings.390x844.png": {
-      "sha": "c42f5803f612a32d",
-      "bytes": 370872
+      "sha": "e39bf7547db4bade",
+      "bytes": 370675
     },
     "settings.452x995.png": {
-      "sha": "4880851e805f9c0d",
-      "bytes": 465261
+      "sha": "739158d8ec66eb46",
+      "bytes": 459013
     },
     "settings.768x1024.png": {
-      "sha": "058b2a1f371639d0",
-      "bytes": 1002389
+      "sha": "277ebf68242027e6",
+      "bytes": 1004491
     },
     "settings.1440x900.png": {
-      "sha": "d1b0c757d6f3a48b",
-      "bytes": 963284
+      "sha": "f51f780e7c578125",
+      "bytes": 963711
     },
     "me.320x640.png": {
-      "sha": "58cb7939c9e763ed",
-      "bytes": 384410
+      "sha": "badc0d75a8f8cbe6",
+      "bytes": 384369
     },
     "me.328x723.png": {
-      "sha": "a83cee9443135763",
-      "bytes": 428272
+      "sha": "3eeee36fcf77cd5d",
+      "bytes": 425474
     },
     "me.390x844.png": {
-      "sha": "de811f5d97656fe0",
-      "bytes": 504626
+      "sha": "c2562533074f42de",
+      "bytes": 506645
     },
     "me.452x995.png": {
-      "sha": "219e4e97dc09f602",
-      "bytes": 616465
+      "sha": "c7db7d7d16c00bfc",
+      "bytes": 616502
     },
     "me.768x1024.png": {
-      "sha": "4aab0bbab8c0d981",
-      "bytes": 1174822
+      "sha": "5de9afa76c29ed74",
+      "bytes": 1180372
     },
     "me.1440x900.png": {
-      "sha": "88f263dbaff5023f",
-      "bytes": 1145687
+      "sha": "cd5e1a141eaa676c",
+      "bytes": 1145641
     },
     "trip.320x640.png": {
-      "sha": "2c275a85d4e930da",
-      "bytes": 403034
+      "sha": "2606b5c3a419a499",
+      "bytes": 400767
     },
     "trip.328x723.png": {
-      "sha": "48f738e06870eafb",
-      "bytes": 451888
+      "sha": "780c3611157c7f01",
+      "bytes": 449348
     },
     "trip.390x844.png": {
-      "sha": "a0d490623ed68003",
-      "bytes": 530468
+      "sha": "6de24bba6142c1f5",
+      "bytes": 528176
     },
     "trip.452x995.png": {
-      "sha": "da9aa4c40d34274f",
-      "bytes": 631321
+      "sha": "02e4be6ea6cf4e8c",
+      "bytes": 629053
     },
     "trip.768x1024.png": {
-      "sha": "bcd9a04d932254b0",
-      "bytes": 655889
+      "sha": "3fbe1a1c600e8855",
+      "bytes": 653849
     },
     "trip.1440x900.png": {
-      "sha": "2a1add92bcfb0d24",
-      "bytes": 626932
+      "sha": "176c8f9f0d3ae1e1",
+      "bytes": 624952
     },
     "expense.320x640.png": {
-      "sha": "a014529ef04737ec",
-      "bytes": 271000
+      "sha": "d195ba704d3ebbfc",
+      "bytes": 268763
     },
     "expense.328x723.png": {
-      "sha": "6da6d5e90be041ec",
-      "bytes": 326269
+      "sha": "6873aa4004b89ed0",
+      "bytes": 324277
     },
     "expense.390x844.png": {
-      "sha": "d78681ff8c5661f1",
-      "bytes": 404921
+      "sha": "2c63b2b795eb6902",
+      "bytes": 402535
     },
     "expense.452x995.png": {
-      "sha": "bfc3d01128ecd172",
-      "bytes": 490837
+      "sha": "5ebcccf31eb4b6c9",
+      "bytes": 488762
     },
     "expense.768x1024.png": {
-      "sha": "a24776bb83e9cf9f",
-      "bytes": 639001
+      "sha": "09908699dd301338",
+      "bytes": 636912
     },
     "expense.1440x900.png": {
-      "sha": "6b43a8fcd0c0c0eb",
-      "bytes": 608401
+      "sha": "f012f66a527f325b",
+      "bytes": 606626
     },
     "node-manager.320x640.png": {
-      "sha": "552f52dabfd67244",
-      "bytes": 67107
+      "sha": "ad39015b3d32a2da",
+      "bytes": 67306
     },
     "node-manager.328x723.png": {
-      "sha": "06b049ef42f197e2",
-      "bytes": 68625
+      "sha": "e38adee06dd14836",
+      "bytes": 68822
     },
     "node-manager.390x844.png": {
-      "sha": "960678cd682b911a",
-      "bytes": 73125
+      "sha": "549689a3e5369253",
+      "bytes": 73358
     },
     "node-manager.452x995.png": {
-      "sha": "028244098d1f4c87",
-      "bytes": 78310
+      "sha": "666f732d72847ce6",
+      "bytes": 78591
     },
     "node-manager.768x1024.png": {
-      "sha": "ae600e940c057d67",
-      "bytes": 83278
+      "sha": "0246ea5a1318e3f5",
+      "bytes": 83562
     },
     "node-manager.1440x900.png": {
-      "sha": "ff2bd52aaf347de7",
-      "bytes": 92840
+      "sha": "4606178bed8a86ec",
+      "bytes": 93099
     },
     "album.320x640.png": {
       "sha": "025ad2c4ec6bdd8a",
@@ -280,172 +280,172 @@
       "bytes": 261731
     },
     "album-edit.328x723.png": {
-      "sha": "074c5e4a6603408b",
-      "bytes": 288701
+      "sha": "66689c39625e8035",
+      "bytes": 288626
     },
     "album-edit.390x844.png": {
-      "sha": "c83734b26c693b7b",
-      "bytes": 349054
+      "sha": "21c26d12fd4d88c9",
+      "bytes": 349050
     },
     "album-edit.452x995.png": {
-      "sha": "ae32d9f7938bf51f",
-      "bytes": 422209
+      "sha": "9b9644aac5290e72",
+      "bytes": 422192
     },
     "album-edit.768x1024.png": {
-      "sha": "ccfb88b882538990",
-      "bytes": 775725
+      "sha": "938f2a919b24e34d",
+      "bytes": 775756
     },
     "album-edit.1440x900.png": {
-      "sha": "9433c914ccbc519f",
-      "bytes": 1058174
+      "sha": "2a6b3bbe4a72355e",
+      "bytes": 1058200
     },
     "story.320x640.png": {
-      "sha": "1c4bbcb0040c3d0b",
-      "bytes": 103865
+      "sha": "89373d0b98cb7bf1",
+      "bytes": 102967
     },
     "story.328x723.png": {
-      "sha": "29e5e8bfe69c6954",
-      "bytes": 102470
+      "sha": "98fe90162879b727",
+      "bytes": 103069
     },
     "story.390x844.png": {
-      "sha": "35485277e2b2b89d",
-      "bytes": 119473
+      "sha": "14e284a089e3be8e",
+      "bytes": 119819
     },
     "story.452x995.png": {
-      "sha": "02be7f44149fac68",
-      "bytes": 135009
+      "sha": "8213194b9af9b1bf",
+      "bytes": 135616
     },
     "story.768x1024.png": {
-      "sha": "49faacd5f7c0972f",
-      "bytes": 142012
+      "sha": "6fdc3dcb2295817d",
+      "bytes": 142577
     },
     "story.1440x900.png": {
-      "sha": "e559ec7e37f7a392",
-      "bytes": 153423
+      "sha": "1af54aba75c5cadc",
+      "bytes": 154009
     },
     "planner.320x640.png": {
-      "sha": "2605486861ed4e4a",
-      "bytes": 307180
+      "sha": "9b9ad0957ce63d8f",
+      "bytes": 302346
     },
     "planner.328x723.png": {
-      "sha": "69a8f8e183997512",
-      "bytes": 342050
+      "sha": "ec9d1b55a57f3f6c",
+      "bytes": 339600
     },
     "planner.390x844.png": {
-      "sha": "745fefe1ddfc1aa7",
-      "bytes": 456151
+      "sha": "28def1a9fe89f5c4",
+      "bytes": 455022
     },
     "planner.452x995.png": {
-      "sha": "81974c653ab16521",
-      "bytes": 534757
+      "sha": "181b4522e33b9532",
+      "bytes": 533266
     },
     "planner.768x1024.png": {
-      "sha": "4844c48d80ceffc3",
-      "bytes": 976263
+      "sha": "242a24905c652342",
+      "bytes": 973339
     },
     "planner.1440x900.png": {
-      "sha": "ac47355639f84acc",
-      "bytes": 946917
+      "sha": "23d394c20f0f3ddc",
+      "bytes": 947112
     },
     "md-manager.320x640.png": {
-      "sha": "2d839ce4f2de77cf",
-      "bytes": 350624
+      "sha": "92eeeae892f06d89",
+      "bytes": 348809
     },
     "md-manager.328x723.png": {
-      "sha": "dfbf3a0a5b562f6c",
-      "bytes": 402431
+      "sha": "de75d1d0584aea34",
+      "bytes": 400106
     },
     "md-manager.390x844.png": {
-      "sha": "9b68500a7d39fad2",
-      "bytes": 516288
+      "sha": "1b4e76458b27e886",
+      "bytes": 513866
     },
     "md-manager.452x995.png": {
-      "sha": "911f5a77f415ac64",
-      "bytes": 636014
+      "sha": "ed009ba0b59f6b8e",
+      "bytes": 634116
     },
     "md-manager.768x1024.png": {
-      "sha": "5567594656e0888c",
-      "bytes": 797726
+      "sha": "47ae726369916f18",
+      "bytes": 796300
     },
     "md-manager.1440x900.png": {
-      "sha": "7a753fa4d98caf69",
-      "bytes": 777771
+      "sha": "ccdac5b846611665",
+      "bytes": 778395
     },
     "explore-map.320x640.png": {
-      "sha": "c9fa7b38d814a9b0",
-      "bytes": 500167
+      "sha": "98b15d23eb8f2793",
+      "bytes": 496285
     },
     "explore-map.328x723.png": {
-      "sha": "572e2d49ff244270",
-      "bytes": 573261
+      "sha": "ccd7082497654c7a",
+      "bytes": 568830
     },
     "explore-map.390x844.png": {
-      "sha": "2a1b8327fd964e9a",
-      "bytes": 709599
+      "sha": "84b5957cd8c95c78",
+      "bytes": 705436
     },
     "explore-map.452x995.png": {
-      "sha": "40c6807ea3e78449",
-      "bytes": 902045
+      "sha": "808a3b0c31bf1baf",
+      "bytes": 893673
     },
     "explore-map.768x1024.png": {
-      "sha": "06c8882d46324137",
-      "bytes": 1064020
+      "sha": "c65c4770fc1f68a6",
+      "bytes": 1056162
     },
     "explore-map.1440x900.png": {
-      "sha": "4c35f1febdc090c3",
-      "bytes": 992006
+      "sha": "00237f3baad78fcb",
+      "bytes": 984216
     },
     "travel-map.320x640.png": {
-      "sha": "d3b18d5368d9c72f",
-      "bytes": 137456
+      "sha": "e672091acf7549b1",
+      "bytes": 134161
     },
     "travel-map.328x723.png": {
-      "sha": "49679dd962ed97cf",
-      "bytes": 139340
+      "sha": "0776deda14819c22",
+      "bytes": 134764
     },
     "travel-map.390x844.png": {
-      "sha": "d4c1226832182e83",
-      "bytes": 150967
+      "sha": "9ce1c013a0b8b321",
+      "bytes": 151554
     },
     "travel-map.452x995.png": {
-      "sha": "5b8637c5e7cc7531",
-      "bytes": 163105
+      "sha": "8eaf7dc54ae8a76b",
+      "bytes": 163664
     },
     "travel-map.768x1024.png": {
-      "sha": "3cdd0d9321862158",
-      "bytes": 171186
+      "sha": "b89bb597081104b5",
+      "bytes": 172030
     },
     "travel-map.1440x900.png": {
-      "sha": "b82a2d9e8eb482d9",
-      "bytes": 186628
+      "sha": "0146d91175ab44c5",
+      "bytes": 187799
     },
     "review.seed.390x844.png": {
-      "sha": "a308808f052313aa",
-      "bytes": 507125
+      "sha": "05bc0f6059d2556d",
+      "bytes": 510772
     },
     "album.seed.390x844.png": {
       "sha": "23a617a588142f2b",
       "bytes": 130416
     },
     "story.seed.390x844.png": {
-      "sha": "97b4f313ead5c8cc",
-      "bytes": 158331
+      "sha": "c2bbff49100b7ddf",
+      "bytes": 160132
     },
     "travel-map.seed.390x844.png": {
-      "sha": "98e7930b30d04389",
-      "bytes": 143523
+      "sha": "8ecd03aa5879f91e",
+      "bytes": 144171
     },
     "expense.ledger.390x844.png": {
-      "sha": "477f226f23b11b7a",
-      "bytes": 302041
+      "sha": "fda1f3e32e04c4ed",
+      "bytes": 301172
     },
     "trip.ledger.390x844.png": {
-      "sha": "dcd10675ce9e860e",
-      "bytes": 299362
+      "sha": "c36b66d7dffe61ac",
+      "bytes": 296847
     },
     "me.ledger.390x844.png": {
-      "sha": "f1cd77fe6fa40740",
-      "bytes": 502600
+      "sha": "275374983db5e163",
+      "bytes": 499857
     }
   }
 }

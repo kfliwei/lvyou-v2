@@ -9,21 +9,32 @@
 <script src="theme.js"></script>
 <style>
   html,body{height:100%;margin:0;font-family:var(--font-sans);background-color:var(--color-bg);color:var(--color-ink)}
+  /* 顶栏高度单点：8 上垫 + 44 触控档 + 10 下垫 + 1 描边 = 63。挂在 body 上是因为 .ctl/.laymenu
+     是顶栏的**兄弟**，自定义属性只往下继承；从前这两个各写死 top:56px（40px 圆钮时代
+     的数），触控档抬到 44 之后控件会压在顶栏下缘上（smoke-topbar K22 实测差 1px 也会红）。 */
+  body{--tb-h:calc(env(safe-area-inset-top,0px) + 63px)}
   /* 硬保险：任何子元素超宽也不允许扩张布局视口（否则 fixed 面板会跟着变宽） */
   html,body{overflow-x:clip}
   /* 顶栏：薄黛青 + 鎏金底边 */
 
-  /* 顶栏按钮：与专题页同款（.t-row 体系） */
-  .t-row{display:flex;align-items:center;gap:8px;height:42px;flex:1;min-width:0}
-  .t-row .back{width:40px;height:40px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);border:1px solid var(--color-line);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
-  .t-row .back:active{transform:scale(.92)}
-  .t-row .title{flex:1;min-width:0;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
-  .t-row .act{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform var(--motion-tap) var(--ease-standard);cursor:pointer;letter-spacing:.02em}
+  /* 顶栏按钮：与专题页同款（.t-row 体系）。
+     批次 25-B 收口：本页曾把 .t-row/.back/.title 的几何各抄了一份，其中
+     `.t-row{height:42px}` 会把窄屏换行动作组的第二行直接裁掉，`.title{min-width:0}`
+     则是标题被压到 62px 的出处。行内几何现在只有 design.css 一处，这里只留本页皮肤。 */
+  .t-row{flex:1;min-width:0}
+  .t-row .act{flex:0 0 auto;padding:0 16px;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-4);font-weight:600;display:flex;align-items:center;gap:5px;font-family:var(--font-sans);box-shadow:0 4px 14px rgba(200,109,75,.25);transition:transform var(--motion-tap) var(--ease-standard);cursor:pointer;letter-spacing:.02em}
   .t-row .act:active{transform:scale(.94)}
   .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
   .theme-dark .t-row .act.sec{background:var(--color-surface);color:var(--color-ink-soft);box-shadow:inset 0 0 0 1px var(--color-line-strong)}
 
-  .t-row .title small{font-family:var(--font-sans);font-weight:400;font-size:var(--fs-2);color:var(--color-muted);margin-left:6px;letter-spacing:.08em}
+  .t-row .title small{letter-spacing:.08em}
+  /* 真机档（≤360，含 328×723）：两颗动作钮退成纯图标圆钮，标题独占可读宽度。
+     地图页顶栏下面就是地图，宁可收掉两个字，也不让动作组换到第二行压住瓦片。
+     名字靠 aria-label + title 保住（读屏与长按提示都还在）。 */
+  @media(max-width:360px){
+    .t-row .act{padding:0;width:44px;height:44px;border-radius:50%;justify-content:center}
+    .t-row .act .act-label{display:none}
+  }
   .topbar{
     position:absolute;left:0;right:0;top:0;z-index:1000;
     display:flex;align-items:center;gap:8px;
@@ -43,12 +54,12 @@
   .leaflet-tile-pane .leaflet-tile{filter:sepia(.32) saturate(.52) brightness(1.07) contrast(.93)}
   /* 右上控制组：图层 + 缩放（毛玻璃） */
   .ctl{
-    position:absolute;right:12px;top:56px;width:44px;
+    position:absolute;right:12px;top:var(--tb-h);width:44px;
     background:var(--paper-bar);
     border-radius:12px;box-shadow:var(--shadow-medium);overflow:hidden;z-index:1001;
   }
   .ctl button{
-    width:44px;height:44px;border:0;background:none;
+    border:0;background:none;
     display:flex;align-items:center;justify-content:center;
     color:var(--ink-700);transition:background var(--motion-fast);
   }
@@ -60,7 +71,7 @@
   .zoomplus{font-size:var(--fs-9);font-weight:700;line-height:1}
   .zoomminus{width:14px;height:2px;background:currentColor;border-radius:1px;display:block}
   .laymenu{
-    position:absolute;right:60px;top:56px;width:158px;
+    position:absolute;right:60px;top:var(--tb-h);width:158px;
     background:var(--paper-bar);
     border-radius:14px;box-shadow:var(--shadow-float);padding:7px;z-index:1002;
     display:none;
@@ -265,8 +276,10 @@
     <div class="t-row">
       <button class="back" onclick="history.length>1?history.back():location.href='index.html'" title="返回卷首" aria-label="返回首页">←</button>
       <div class="title">我的游记地图 <small id="statLabel"></small></div>
-      <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:-2px;margin-right:4px"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>随手记</button>
-      <button class="act sec" onclick="TravelNotes.openList()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:-2px;margin-right:4px"><path d="M9 6 H20 M9 12 H20 M9 18 H20"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>游记</button>
+      <div class="trow-acts">
+        <button class="act" onclick="__tnAnywhere()" title="用当前 GPS 位置随手语音记录" aria-label="随手记"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg><span class="act-label">随手记</span></button>
+        <button class="act sec" onclick="TravelNotes.openList()" title="查看游记列表" aria-label="游记"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6 H20 M9 12 H20 M9 18 H20"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg><span class="act-label">游记</span></button>
+      </div>
     </div>
   </header>
   <div id="map"></div>

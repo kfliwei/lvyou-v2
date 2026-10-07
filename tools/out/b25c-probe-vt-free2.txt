@@ -1,0 +1,17 @@
+### 空机腿（无争用页，播种形状已对齐 smoke-trip 的 SEED）
+轮数 15，争用页 0
+A 腿（真页，free 入口会重定向）: VT 报错 6 次 / 15 轮；非 VT 真实报错 0；落到 expense.html?trip=free 15 轮
+   样本: pageerror: InvalidStateError: Transition was aborted because of invalid state. ViewTransition opt-in disabled
+B 腿（副本，同一 free 入口但不重定向）: VT 报错 0 次 / 15 轮；非 VT 真实报错 0；落到 expense.html?trip=free 0 轮
+判读: VT 报错跟着重定向走 ⇒ 假设成立（载入即跳转打断自己的转场）
+副本已删除: true
+EXIT_noLoad=0
+
+### 争用腿（6 个后台重页）
+轮数 15，争用页 6
+A 腿（真页，free 入口会重定向）: VT 报错 4 次 / 15 轮；非 VT 真实报错 0；落到 expense.html?trip=free 15 轮
+   样本: pageerror: InvalidStateError: Transition was aborted because of invalid state. ViewTransition opt-in disabled
+B 腿（副本，同一 free 入口但不重定向）: VT 报错 0 次 / 15 轮；非 VT 真实报错 0；落到 expense.html?trip=free 0 轮
+判读: VT 报错跟着重定向走 ⇒ 假设成立（载入即跳转打断自己的转场）
+副本已删除: true
+EXIT_load=0

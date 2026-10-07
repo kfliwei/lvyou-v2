@@ -1,0 +1,4 @@
+328 checklist.html?trip=p111 host=#ckBody :: 40→{"btn":[0,0],"rowH":0,"pageH":723,"over":false}  44→{"btn":[0,0],"rowH":0,"pageH":723,"over":false}
+320 checklist.html?trip=p111 host=#ckBody :: 40→{"btn":[0,0],"rowH":0,"pageH":723,"over":false}  44→{"btn":[0,0],"rowH":0,"pageH":723,"over":false}
+328 album-edit.html host=.ed-chapter :: 40→{"btn":[40,40],"rowH":42,"pageH":723,"over":false}  44→{"btn":[44,44],"rowH":44,"pageH":723,"over":false}
+320 album-edit.html host=.ed-chapter :: 40→{"btn":[40,40],"rowH":42,"pageH":723,"over":false}  44→{"btn":[44,44],"rowH":44,"pageH":723,"over":false}

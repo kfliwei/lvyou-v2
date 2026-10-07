@@ -14,6 +14,17 @@ const ROOT = path.join(__dirname, '..');
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const U = f => 'file:///' + path.join(ROOT, f).replace(/\\/g, '/');
 const NOISE = /Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch|favicon/;
+/* 批次 25-C：trip.html?trip=free 那句「载入即转送」（trip.html:432 的 location.replace）会把
+   「进入本页」那次跨文档转场打断，浏览器自己抛 InvalidStateError——design.css 开着
+   @view-transition{navigation:auto}，而 ui.js 的 UI.vt 那三条 catch 只管我们自己起的转场，
+   管不到浏览器内部那一次（JS 里没有任何 promise 可以挂 catch）。
+   探针 tools/out/probe25c-vt-free.js 的 A/B（同一 free 入口，B 腿把重定向换成空块；各 15 轮）：
+   空机 A 6/15、争用（6 个后台重页）A 4/15，B 腿两档都 0/15；两档除这一条外零其它真实报错，
+   落点 30/30 都到 expense.html?trip=free ⇒ 争用不是成因、放大也不是它做的，且用户那半是对的。
+   所以这条按「已定性的浏览器噪声」精确放行：放行只认下面这一整串（等串匹配，不用正则前缀），
+   扩成 /Error/ 等于把这节的报错判据拆掉——T55 的对照专防这一步。 */
+const VT_ABORT = 'InvalidStateError: Transition was aborted because of invalid state. ViewTransition opt-in disabled';
+const isReal = e => !NOISE.test(e) && e.indexOf(VT_ABORT) < 0;
 
 let fails = 0;
 function ok(name, cond, extra) {
@@ -188,8 +199,21 @@ const setField = (p, id, val) => p.evaluate((i, v) => {
     JSON.stringify(g));
 
   await go(page, U('trip.html?trip=free')); await sleep(300);
-  ok('T09 free 桶没有主页可言：直接送到记账页，不在这里造一个空壳 trip',
-    page.url().indexOf('expense.html?trip=free') >= 0, page.url());
+  /* 25-C 把这条从「URL 对」抬成「URL 对 + 那一页真画出来了」。摘掉转场中断那条噪声时，
+     必须同时给「重定向后白屏」这个真实风险一个正身判据，否则放行一条噪声就等于瞎一双眼睛。 */
+  const land = await page.evaluate(() => {
+    const b = document.getElementById('yearSum');
+    const r = b ? b.getBoundingClientRect() : null;
+    return {
+      href: location.href, has: !!b,
+      h: r ? Math.round(r.height) : 0,
+      txt: b ? b.textContent : '',
+      bodyH: Math.round(document.body.getBoundingClientRect().height)
+    };
+  });
+  ok('T09 free 桶没有主页可言：直接送到记账页、而且那一页真画出来了（落点 + #yearSum 有高度 + 文档有内容），不在这里造一个空壳 trip',
+    land.href.indexOf('expense.html?trip=free') >= 0 && land.has && land.h > 0 && /\d/.test(land.txt) && land.bodyH > 300,
+    JSON.stringify(land));
 
   /* ============ 3. 单趟态：双读数与实际口径落盘 ============ */
   await seed(page); await go(page, U('trip.html?trip=t-live')); await sleep(300);
@@ -396,7 +420,7 @@ const setField = (p, id, val) => p.evaluate((i, v) => {
   const missing = MUST.filter(m => !g.acts.some(a => a.indexOf(m) >= 0));
   ok('T35 原有 12 颗按钮一颗不少（新入口是加出来的，不是替换）',
     g.acts.length >= 12 && missing.length === 0, JSON.stringify([g.acts.length, missing]));
-  const noise = errs2.filter(e => !NOISE.test(e));
+  const noise = errs2.filter(isReal);
   ok('T36 planner 结果页全程零真实报错（瓦片离线噪声已滤）', noise.length === 0, noise.slice(0, 2).join(' | '));
   await p3.close();
 
@@ -524,7 +548,7 @@ const setField = (p, id, val) => p.evaluate((i, v) => {
   });
   ok('T52 三处主角数字都 ≥20px：trip 双读数 / trip 开销合计 / expense 今年合计（--fs-11 未定义令牌的回归网）',
     fsT.concat(fsX).every(v => parseFloat(v) >= 20), JSON.stringify(fsT.concat(fsX)));
-  const noise3 = errs3.filter(e => !NOISE.test(e));
+  const noise3 = errs3.filter(isReal);
   ok('T53 me.html / trip.html / expense.html 三页全程零真实报错', noise3.length === 0, noise3.slice(0, 3).join(' | '));
   ok('T54 这三页全程零原生 confirm/alert，零系统通知调用',
     (await p4.evaluate(() => window.__native + window.__notif)) === 0,
@@ -535,8 +559,17 @@ const setField = (p, id, val) => p.evaluate((i, v) => {
   await page.evaluate(() => {
     ['tn_trips', 'tn_expense', 'tn_budget', 'tn_checklist'].forEach(k => localStorage.removeItem(k));
   });
-  const realErrs = errs.filter(e => !NOISE.test(e));
+  const realErrs = errs.filter(isReal);
   ok('T37 trip.html 全程零真实报错', realErrs.length === 0, realErrs.slice(0, 3).join(' | '));
+  /* 这条不测页面，测的是那把筛子本身：放行表一旦被人扩成 /Error/ 一类，上面三条「零真实报错」
+     就全成了恒真。正向对照四路——真 TypeError 要红、同一条但后缀换了也要红、瓦片噪声不红、
+     那一整串放行串不红。 */
+  ok('T55 报错筛子口径：真报错与「同一句换了后缀」都还算真实报错，只有放行表里那一整串被放行（正向对照）',
+    isReal('pageerror: TypeError: x is not a function') === true &&
+    isReal('pageerror: InvalidStateError: Transition was aborted because of invalid state. 换了个后缀') === true &&
+    isReal('console: Failed to load resource: net::ERR_FILE_NOT_FOUND') === false &&
+    isReal('pageerror: ' + VT_ABORT) === false,
+    '四路对照：真报错算红／近亲串算红／瓦片噪声不算红／放行串不算红');
   ok('T38 全程零原生 confirm/alert，零系统通知调用',
     (await page.evaluate(() => window.__native + window.__notif)) === 0,
     String(await page.evaluate(() => window.__native + window.__notif)));

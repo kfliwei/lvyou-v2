@@ -1,0 +1,106 @@
+批次 25-C 收工账 · 链跑可信度（闸门自己会不会说谎）
+====================================================================
+本节不改产品，改的是两条会「说谎」的闸门腿。所有数字取自本目录下列文件实测，不是回忆。
+本批范围＝① smoke-motion 的导航时机口径（上一段已落地）＋ ② 链跑新出现的 trip T37 红定性 ＋
+③ §40 常驻闸门与 README 登记。产品文件零改动（git status 里 product 侧的 M 全属 25-B）。
+
+一、症状与量化对照
+--------------------------------------------------------------------
+1) 链跑假红·等错时机（smoke-motion）
+   改前原始读数：**tools/out/b24f-smoke-motion.txt 第 31 行**
+     `smoke-motion 崩了: TimeoutError: Navigation timeout of 30000 ms exceeded`
+     崩在 `at main (F:\MyAi\trace\lvyou-v2\tools\smoke-motion.js:311:12)`＝七处导航的最后一处，
+     前一条 D3 刚 PASS（说明前两处导航没事，是负载累积到第 7 次时 30s 预算先耗尽），exit 2。
+   同批单跑复现：**tools/out/b24f-smoke-motion-r2.txt**＝35 项 0 失败、exit 0。
+   这条不是本批新观察：批次 24-F 已在 `b24f-gates.txt` 第 57–58 行把它记成「闸门自身的负载坑」。
+   25-C 做的就是把那条登记变成常驻事实：导航收成单点（`.goto(` 恰 1、`await nav(` 7 处），
+   一律 `domcontentloaded` + 60s，再等 `READY.page/planner/topic` 三个就绪谓词，
+   就绪超时只打一行「按现状继续读」不改成红。判据本身一条没动（35 条，K 族一条没删）。
+   改后正证：**tools/out/b25c-smoke-battery.txt 第 77 行 `EXIT_motion=0`**（同串里 motion 段末行
+   `smoke-motion: 35 项，失败 0`）；单跑 **tools/out/b25c-smoke-motion-alone.txt** 同读数＝35 项 0 失败。
+
+2) 链跑假红·放行表无人守（smoke-trip T37）——这条与争用无关
+   同一条八套链里唯一的红：**tools/out/b25c-smoke-battery.txt 第 30 行**
+     `FAIL  T37 trip.html 全程零真实报错  [pageerror: InvalidStateError: Transition was aborted
+      because of invalid state. ViewTransition opt-in disabled]`，第 32 行 `=== 1 条 FAIL ===`，
+     同串 `EXIT_trip=1`；其余七套 EXIT 全 0（aria 45／node-mgr／expense 121／checklist／texture／
+     motion 35／states 9 项各在原位）。
+   单跑复现（放行之前）：**tools/out/b25c-smoke-trip-alone.txt**＝54 条全 PASS、`EXIT_trip_alone=0`，
+   里面 `PASS T37`、`PASS T53`——**单跑绿、链跑红**这一形状与 1) 一样，但成因完全不同（见下探针）。
+   成因链：`trip.html:432` 全站唯一的「载入即转送」（free 桶 → `expense.html?trip=free`）会打断
+   「进入本页」那次跨文档转场；`design.css:363` 的 `@view-transition{navigation:auto}` 是开着的，
+   而 `ui.js:493-508` 的 `UI.vt` 只给**我们自己起的**三条 promise 挂 catch——浏览器自己起的那条，
+   JS 里没有 promise 可挂。产品侧无 `window.onerror`／`unhandledrejection` ⇒ 用户界面上看不见这件事。
+   A/B 探针 **tools/out/probe25c-vt-free.js** → 读数 **tools/out/b25c-probe-vt-free2.txt**（各 15 轮）：
+     空机（争用页 0）：A 腿（真页，会转送）VT 报错 **6/15**；B 腿（副本，转送换成空块）**0/15**；
+       两腿非 VT 真实报错 **0**；A 腿落点 `expense.html?trip=free` **15/15**。
+     争用（6 个后台重页）：A 腿 **4/15**；B 腿 **0/15**；非 VT 真实报错 **0**；落点 **15/15**。
+   ⇒ 报错跟着转送走；**争用既不是成因也没放大**（空机反而更多），就是约 1/3 的随机。
+     用户那一半是对的：那一页每次都真画出来了。
+   第一版探针的读数留在 **tools/out/b25c-probe-vt-free.txt**（含探针自己的三个坑，见第五节）。
+
+二、修的方式：放行一条噪声，同时把它替掉的信号还成判据
+--------------------------------------------------------------------
+· `tools/smoke-trip.js:26` `const VT_ABORT = '<整串>';`——**等串匹配**（`indexOf` 整串，不是正则前缀），
+  连后缀都在案：改一个字这条就红（M11 实测：缩成 `'Transition was aborted'` 当场被 §40 抓住）。
+· `tools/smoke-trip.js:27` `const isReal = e => !NOISE.test(e) && e.indexOf(VT_ABORT) < 0;`＝筛子单点，
+  三处判据共用（T36／T37／T53 各 `.filter(isReal)`，恰 3 处）。
+· **T09 抬成画布判据**（改前只判 URL）：落点 + `#yearSum` 真有高度 + 文档有内容。
+  改后实测读数（`b25c-smoke-trip-after-noiselit.txt` 第 9 行）：
+  `{"href":"…/expense.html?trip=free","has":true,"h":30,"txt":"446.17","bodyH":995}`
+· **新增 T55** 测这把筛子本身（四路对照）：真 `TypeError` 算红／同一句换个后缀仍算红／
+  瓦片噪声不算红／放行整串不算红。smoke-trip 54 → **55 条**，`node tools/smoke-trip.js`
+  → **tools/out/b25c-smoke-trip-after-noiselit.txt**＝55 条全 PASS、`=== SMOKE TRIP ALL PASS ===`、EXIT 0。
+· §38 的浏览器腿条数守卫同步 54 → 55（齐备检 `for (let i = 1; i <= 55; i++)`、`nT38 !== 55`）。
+
+三、闸门腿（改后全绿）
+--------------------------------------------------------------------
+· `node tools/verify.js` → **=== ALL CHECKS PASSED ===**
+  §40 新节＝**18 条代码锚点**（smoke-motion 9 + smoke-trip 8 + README 1）+ smoke-motion 判据条数下界 35
+  + 三族期望 0（`waitUntil: 'load'`／自搭筛子 `filter(e => !NOISE.test(e))`／把放行扩成 `/Error/`）
+  各配正向对照 + **放行表前提对账**（trip.html 那句转送没了就必须一起摘放行）+ README §40 在场检。
+· README 三处登记：§ 清单加 `/§40 链跑可信度…`（并补上 §39 那句缺的收尾括号）；smoke-motion 行
+  给旧口径补一条限定（trip 那条与争用无关，空机 6/15 > 争用 4/15）；smoke-trip 行补 T55／T09 抬升／
+  放行边界；§38 那句活口径 54 → 55（历史行「24-E 又加了 T39–T54 十六条」原样不动）。
+
+四、变异自测 tools/out/mut-verify40.js → tools/out/b25c-mut-verify40.txt
+--------------------------------------------------------------------
+共 **27 条＝按预期红 25 / 设计内静默 2 / 异常 0**，exit 0；跑完逐字节还原，还原后复跑 verify 全绿，
+锁 `tools/out/.mut40.lock` 无残留（与别的变异网/像素基线串行，未并跑）。
+本批三条最该在的：
+· **M20** 条数阈值 35 → 36 必须红——「阈值取自早先计数就会自己变摆设」那一课（§39 的 M51）的落地自检。
+· **M12** 把 `isReal` 扩成 `/Error/` → §40 两条一起红（单点锚 + 期望 0 那族）。这条就是本节要防的形状：
+  筛子一宽，三条「零真实报错」当场恒真而**一个字都不说**。
+· **M23** 把期望 0 的 needle 写坏一个字符 → 「这条 0 不是证据」当场喊（正向对照是活的）。
+连带红登记：M17/M18（把 `ok('T09 `／`ok('T55 ` 改名）§40 红 1 条但闸门总红 2 条——红的那另一条来自
+§38 的齐备检，两节同时盯这两条判据正是想要的形状，不是误报。
+两条设计内静默：G01 把 T09 的 `bodyH > 300` 抬松成 `> 1`、G02 把 page 谓词第一道条件换成
+`readyState === 'interactive'`——源码腿钉的是「判据/谓词在场」，数值与形状只有浏览器真跑才看得见。
+（首跑有一条网络级异常：`greenCase` 我传了数组而签名要两个字符串，`s.replace is not a function` 当场崩；
+`process.on('exit')` 的还原与解锁照样执行，树未残留，修完复跑得到上面这份 27 条读数。）
+
+五、本批踩到 / 登记的坑
+--------------------------------------------------------------------
+· 探针的对照腿必须**只变一件事**：第一版把整句 `if(...){location.replace}` 删掉，后面的 `else if`
+  当场悬成语法错误，A/B 两条腿都读到了一堆假噪声。改成换成**空块**才是干净的 B 腿。
+· 探针的导航目标要带查询：第一版 A 腿 goto 的是不带 `?trip=free` 的 `trip.html`，
+  于是「停在 trip.html」被读成「转送没发生」——测的根本不是那条腿。
+· 播种形状要与被测页的真数据同形：第一版写 `{start, days:3, stops:[]}`，`(t&&t.days||[]).forEach`
+  那类报错全是探针自己的坑，不是产品缺陷（第二版照 `smoke-trip` 的 SEED 重写：`startDate/logStart/
+  realDays/travelBy/dist/days:[{stops:[…]}]`）。
+· 「非目标报错」要用同一把筛子分别计数：两腿各自统计「非 VT 真实报错」，才敢写「除这一条外零其它」。
+· **归因要先测再写**：这条红我先按 24-F 的旧账判成「争用放大」，实测推翻（空机 6/15 > 争用 4/15）。
+  README 里那句旧口径因此补了限定，而不是原样抄进 §40。
+· 放行表带**前提**：它成立的条件是 trip.html 真在载入即转送。哪天入口改了，放行必须一起摘——
+  这条不写进代码就没人记得，所以进成了 §40 的对账腿（M19 打的就是它）。
+· 条数下界 35 是从当前实测取的常量，锚点/判据表每加长一次，抬阈值类变异就要重取 `当前 + 1`。
+
+六、状态与下一步（不在本批默认动作内）
+--------------------------------------------------------------------
+· 25-C 只动 `tools/` 与 `README.md`／`tools/out/`：**无产品文件变更 ⇒ 不需要抬离线壳**
+  （`sw.js` 现为 `trace-v81`，那一版是 25-B 改 design.css/map.css/13 页时抬的；§29 的
+  磁盘页面↔SHELL↔依赖三向对账此刻绿，SHELL 名单没有漂移）。`tools/sync-assets.js` 留到打包那条腿
+  一起做——打包／推送／装机需逐条明示授权。
+· 像素基线本批未动：产品 CSS/DOM 一根没改，109 张基线仍指同一屏（25-B 的重拍账在 b25b-gates.txt）。
+· 待点单的旧欠账：批次 17 的 29/30 变异网与基线重拍（#126/#127）、21-E Commons 补图（#153/#155，
+  网络阻塞）、批次 24 与 23 的真机腿（#173/#181，需人工解锁补拍）。

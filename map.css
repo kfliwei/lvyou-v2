@@ -18,19 +18,14 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
   border-bottom:1px solid var(--gold-300);
 }
 
-/* 第 1 层：标题行 44px */
-.t-row{display:flex;align-items:center;gap:8px;height:42px}
+/* 第 1 层：标题行（行内几何在 design.css 的 .t-row 一族，这里只补本文件的皮肤） */
 .t-row .back{
-  width:40px;height:40px;border:0;border-radius:10px;
+  border:0;border-radius:10px;
   background:rgba(255,255,255,.10);color:var(--paper-50);
-  font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;
   transition:transform var(--motion-tap);
 }
 .t-row .back:active{transform:scale(.92)}
-.t-row .title{
-  flex:1;min-width:0;font-family:var(--font-display);
-  font-size:var(--fs-7);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
+.t-row .title{font-family:var(--font-display);font-size:var(--fs-7);font-weight:700}
 .t-row .title small{font-family:var(--font-body);font-weight:400;font-size:var(--fs-2);opacity:.75;margin-left:5px}
 .t-row .act{
   flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:999px;
@@ -97,7 +92,7 @@ main{flex:1 1 auto;position:relative;overflow:hidden}
   border-radius:12px;overflow:hidden;z-index:520;
 }
 .ctl button{
-  width:40px;height:40px;border:0;background:none;
+  border:0;background:none;
   display:flex;align-items:center;justify-content:center;
   color:var(--ink-700);transition:background var(--motion-fast);
 }
@@ -1139,16 +1134,26 @@ header.topbar{
 .t-row .title small{color:var(--color-muted)}
 .t-row .back{
   background:rgba(255,255,255,.75);color:var(--color-ink-soft);
-  border:1px solid var(--edge-hair-soft);width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--edge-hair-soft);border-radius:50%;
   box-shadow:var(--shadow-soft);
 }
 .t-row .act{
-  background:var(--grad-primary);border:0;color:#fff;min-height:36px;padding:0 15px;
+  background:var(--grad-primary);border:0;color:#fff;padding:0 15px;
   box-shadow:var(--glow-ember);font-weight:600;
 }
 .t-row .act.sec{
   background:rgba(255,255,255,.78);color:var(--color-ink-soft);
   box-shadow:inset 0 0 0 1px var(--edge-hair-soft);
+}
+/* 真机档（≤360，含 328×723）：两颗动作钮退成纯图标圆钮，标题独占可读宽度。
+   批次 25-B 把标题下限收到 7em 之后，专题页在 328/320 放不下「返回+标题+随手记+游记」，
+   「游记」被顶到第二行，顶栏从 44 涨到 96，专题地图凭空少 42 CSS px 可用高。这条红是像素闸门
+   抓出来的——smoke-topbar 的 K08 抓不到，因为 topic.html 不在它那 13 页分母里。
+   意图与 travel-map.html 页内那条一致；那份留在页内是因为该页按设计不加载 map.css（见其 237 行）。
+   必须写在上面那条 .t-row .act 之后：同特异度下后写的赢，写在第 1 层里会被这里的 padding 盖掉。 */
+@media (max-width:360px){
+  .t-row .act{padding:0;width:44px;height:44px;border-radius:50%;justify-content:center}
+  .t-row .act .act-label{display:none}
 }
 .s-row .search{
   height:38px;border-radius:999px;background:rgba(255,255,255,.72);
@@ -1272,7 +1277,9 @@ header.topbar{
 }
 .tabbar button.on .ic{transform:scale(1.08) translateY(-1px)}
 
-/* ---------- 地图悬浮控件 ---------- */
+/* ---- 地图悬浮控件 ---- */
+/* 盒宽是本文件的皮肤；按钮尺寸由 design.css「36px 一族」点名，这里不再写第二套
+   （写了也只是在一场永远输掉的层叠竞赛里多加一份）。 */
 .fab{
   width:46px;height:46px;border-radius:15px;
   background:var(--paper-bar);border:1px solid var(--edge-hair-soft);
@@ -1282,7 +1289,6 @@ header.topbar{
   border-radius:16px;background:var(--paper-bar);
   border:1px solid var(--edge-hair-soft);box-shadow:var(--shadow-medium);overflow:hidden;
 }
-.ctl button{width:40px;height:40px}
 #legOpen,.legOpen{
   top:12px;border-radius:999px;padding:8px 15px;
   background:var(--color-night);color:var(--color-paper-warm,#F4EDDF);

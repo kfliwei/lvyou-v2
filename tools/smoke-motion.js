@@ -107,6 +107,26 @@ async function newPage(browser, opts) {
   return page;
 }
 
+/* 导航口径与本仓其余 smoke 对齐：domcontentloaded + 60s，然后等「这一节真正要读的东西已经就位」。
+   改前写的是 waitUntil:'load' + 30s：load 要等齐页面所有图/字体/瓦片，链跑（多个重闸门串一条 for 链、
+   机器上同时有多份 Chrome 抢 IO）时往往是 30s 先到，goto 抛错被记成断言 FAIL——
+   同一份代码一次绿一次红，症状长得像产品坏了，其实是取样时机不可靠。所以等「就绪谓词」而不是等事件。
+   谓词一律传函数：puppeteer 的 waitForFunction 收到**多语句字符串**会当场 eval 抛错，
+   被外层 catch 吞掉之后「等待」退化成 0ms（§34 踩过，读的是上一帧旧 DOM）。 */
+const READY = {
+  page: function () { return document.readyState !== 'loading' && typeof UI !== 'undefined'; },
+  planner: function () { return document.readyState !== 'loading' && typeof window.plannerOpenTrip === 'function'; },
+  topic: function () { return document.readyState !== 'loading' && typeof UI !== 'undefined' && typeof TravelNotes !== 'undefined'; },
+};
+async function waitReady(page, ready) {
+  try { await page.waitForFunction(ready, { timeout: 30000, polling: 150 }); }
+  catch (e) { console.log('  (就绪等待超时，按现状继续读：' + String(e.message).split('\n')[0].slice(0, 90) + ')'); }
+}
+async function nav(page, url, ready) {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await waitReady(page, ready);
+}
+
 (async function main() {
   await new Promise(function (r) { server.listen(PORT, '127.0.0.1', r); });
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -114,7 +134,7 @@ async function newPage(browser, opts) {
 
   /* ================= A · token 在浏览器里解析 ================= */
   const pa = await newPage(browser, { errors: errs });
-  await pa.goto(BASE + '/index.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pa, BASE + '/index.html', READY.page);
   await sleep(900);
   const a = await pa.evaluate(function () {
     const g = getComputedStyle(document.documentElement);
@@ -195,7 +215,7 @@ async function newPage(browser, opts) {
     /* 天气开关关掉：这个 smoke 不测天气，别让日卡往 open-meteo 发真请求 */
     localStorage.setItem('tn_planner_weather', '0');
   }, TRIP);
-  await pp.goto(BASE + '/planner.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pp, BASE + '/planner.html', READY.planner);
   await sleep(1200);
   await pp.evaluate(PATCH_VT);
   await pp.evaluate(function () { window.plannerOpenTrip(0); });
@@ -214,7 +234,7 @@ async function newPage(browser, opts) {
   check('C11 返回键回输入页同样走转场且真的切回去了', plBack.vt > pl.vt && plBack.input === 'block', '__vt=' + plBack.vt + ' display=' + plBack.input);
 
   const tp = await newPage(browser, { errors: errs });
-  await tp.goto(BASE + '/topic.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(tp, BASE + '/topic.html', READY.topic);
   await sleep(1400);
   await tp.evaluate(PATCH_VT);
   const tnOpen = await tp.evaluate(async function () {
@@ -238,7 +258,7 @@ async function newPage(browser, opts) {
   /* ================= B · 系统「减弱动态效果」 ================= */
   const pr = await newPage(browser, { errors: errs });
   await pr.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-  await pr.goto(BASE + '/index.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pr, BASE + '/index.html', READY.page);
   await sleep(900);
   const b = await pr.evaluate(function () {
     const __o = Document.prototype.startViewTransition; window.__vt = 0; Document.prototype.startViewTransition = function (f) { window.__vt++; return __o.call(this, f); };
@@ -277,7 +297,7 @@ async function newPage(browser, opts) {
       localStorage.setItem('tn_planner_weather', '0');
     } catch (e) { window.__lsErr = '' + e.message; }
   }, TRIP);
-  await pf.goto(FILE + 'planner.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pf, FILE + 'planner.html', READY.planner);
   await sleep(1400);
   const dcatch = await pf.evaluate(function () {
     try { UI.vt(function () { document.getElementById('stageResult').style.display = 'block'; }); return []; }
@@ -291,7 +311,7 @@ async function newPage(browser, opts) {
   });
   check('D1 file:// 下 planner 阶段切换照常生效（转场不支持也不能影响功能）', d.stage === 'block' && d.days >= 1, 'display=' + d.stage + ' 日卡=' + d.days + (d.ls ? ' 存储=' + d.ls : ''));
   check('D2 file:// 下 UI.vt 不抛（异常数组为空）', dcatch.length === 0, dcatch.join(' | ') || '无异常');
-  await pf.goto(FILE + 'index.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pf, FILE + 'index.html', READY.page);
   await sleep(900);
   await pf.evaluate(function () { location.href = 'topic.html'; });
   await sleep(1200);
@@ -308,7 +328,7 @@ async function newPage(browser, opts) {
   /* 390 档 LOD 只到聚合胶囊，一个 .node-label 都没有 → E1/E2 会因"没东西可测"假绿。
      桌面宽才落到节点层（实测 452 档标签 0 个、768 档 24 个）。 */
   await pe.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  await pe.goto(BASE + '/topic.html', { waitUntil: 'load', timeout: 30000 });
+  await nav(pe, BASE + '/topic.html', READY.topic);
   await sleep(2600);
   const e1 = await pe.evaluate(function () {
     const vis = [].slice.call(document.querySelectorAll('.node-label')).filter(function (x) { return !x.classList.contains('hidden'); });

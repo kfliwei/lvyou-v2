@@ -4686,15 +4686,15 @@ const EMOJI_MARK = 'emoji-ok:';
   });
   if (cnt38(flat38("var C = ['交通', '住宿'];"), "'交通', '住宿'") < 1) F38('分类名单唯一出处那条期望 0 的正向对照失效了');
 
-  /* ⑲ 浏览器腿齐备检：T01–T54 一条不许少（编号连续，少一条就是有个症状没人管） */
+  /* ⑲ 浏览器腿齐备检：T01–T55 一条不许少（编号连续，少一条就是有个症状没人管） */
   {
     const pad38 = i => 'T' + (i < 10 ? '0' + i : '' + i);
-    for (let i = 1; i <= 54; i++) {
+    for (let i = 1; i <= 55; i++) {
       if (V38['tools/smoke-trip.js'].indexOf("ok('" + pad38(i) + ' ') < 0)
         F38('tools/smoke-trip.js 缺 ' + pad38(i) + ' 这条判据（行程主页两态／实际口径落盘／四分支「今天走了哪」／planner 12 颗按钮／me.html 两张卡是一整组）');
     }
     const nT38 = cnt38(V38['tools/smoke-trip.js'], "ok('T");
-    if (nT38 !== 54) F38('tools/smoke-trip.js 的判据条数不是 54：' + nT38 + ' 条（24-D 落地 38 条＋24-E 扩到 54 条＝T01–T54；整组削减等于把这节拆了，编号有空洞上面那条会先红）');
+    if (nT38 !== 55) F38('tools/smoke-trip.js 的判据条数不是 55：' + nT38 + ' 条（24-D 落地 38 条＋24-E 扩到 54 条＋25-C 补 T55＝T01–T55；整组削减等于把这节拆了，编号有空洞上面那条会先红）');
     const nE38 = cnt38(V38['tools/smoke-expense.js'], "ok('");
     if (nE38 < 121) F38('tools/smoke-expense.js 的判据条数掉到 ' + nE38 + '（24-B／24-C 落地时实测 121 条；只设下界不设等号：这一套还会继续长，但一条都不许悄悄消失）');
     if (V38['tools/smoke-trip.js'].indexOf('indexedDB.deleteDatabase') < 0 && V38['tools/smoke-trip.js'].indexOf('freshPage') < 0)
@@ -4702,9 +4702,394 @@ const EMOJI_MARK = 'emoji-ok:';
   }
 
   if (V38['README.md'].indexOf('§38') < 0) F38('README.md 的 verify 清单没提 §38（新闸门不写进 README 就等于没装）');
-
-  console.log('记账与行程入口解耦闸门: ' + A38.length + ' 条代码锚点（按文件：expense.js 11 条数据层＝CATS／FREE_ID／FREE_NAME／「没有 tripId 就不落账」／tripIds 与导出／yearCents 的实际口径与筛年／activeTripOf 两条／migrate 只改副本；expense-form.js 5 条＝render 单点、分类只从 CATS 现取、free 那一档说真话、两枚 44px；三个宿主各恰 1（expense.html／trip.html／travel-notes.js）＋面板门控与选桶口径；trip.html 27 条＝实际口径写入口 10（patchTrip 单点、按 id 找那一条、找不到就说真话、清空＝删键两处、编辑中不回写两处、两个口径分开取、留空回落计划）＋四分支 8（两态枢纽、空选择器与空态共用 list.length 互斥、两条豁免口、showUnknown、open 的闸、free 桶转送）＋票卡与红线 4（id 快照、比快照的守卫、先置空再异步填、只走页内横幅）＋aria-live 豁免 3（整串空标签、恰一枚、写字一处）＋表单宿主与 script 2；planner.html 2＋planner.js 5＝入口只加不减；me.html 16 条两张常驻卡；design.css 2 条字号顶档与 ≤360 档；smoke-trip 3 条判据在场）+ 12 颗按钮白名单**反查缺失**与数量对账（renderResult 体内 window.planner* 恰 12、#actRow 赋值恰 1、trip.html?trip= 恰 1——只数数量抓不到「删一颗加一颗」，只查白名单抓不到「同一颗写两遍」）+ 写入口唯一（logStart／realDays 四个写形各恰 1，其余产品文件四种等号形一律 0，配正向对照）+ 五组灵魂顺序断言（patchTrip 判定→改字段→回写、open 的守卫早于赋值、票卡快照早于守卫、renderYear 的桶并集早于 byDate 且分组按年过滤、#tToday 空着进 DOM）各配反向与正向合成源 + §36 FILES36 名单互斥对账（trip.html 不许被扫进「aria-live 全站唯一出处」族，否则两节彼此打红）+ 十一族期望 0（catTotals 不分年／恒等式守卫／把计划日期写进实际口径／migrate 落盘／ts 冒充日期／读数卡写行程库两处／系统通知三处／design.css 新增 --fs-11）与两族唯一出处（var(--fs-11) 全站 0、分类名单只出 expense.js）；每条期望 0 都配正向对照；浏览器腿 T01–T54 齐备检 + 条数守卫（54；smoke-expense 只设下界 121）；变异自测见 tools/out/mut-verify38.js');
+  console.log('记账与行程入口解耦闸门: ' + A38.length + ' 条代码锚点（按文件：expense.js 11 条数据层＝CATS／FREE_ID／FREE_NAME／「没有 tripId 就不落账」／tripIds 与导出／yearCents 的实际口径与筛年／activeTripOf 两条／migrate 只改副本；expense-form.js 5 条＝render 单点、分类只从 CATS 现取、free 那一档说真话、两枚 44px；三个宿主各恰 1（expense.html／trip.html／travel-notes.js）＋面板门控与选桶口径；trip.html 27 条＝实际口径写入口 10（patchTrip 单点、按 id 找那一条、找不到就说真话、清空＝删键两处、编辑中不回写两处、两个口径分开取、留空回落计划）＋四分支 8（两态枢纽、空选择器与空态共用 list.length 互斥、两条豁免口、showUnknown、open 的闸、free 桶转送）＋票卡与红线 4（id 快照、比快照的守卫、先置空再异步填、只走页内横幅）＋aria-live 豁免 3（整串空标签、恰一枚、写字一处）＋表单宿主与 script 2；planner.html 2＋planner.js 5＝入口只加不减；me.html 16 条两张常驻卡；design.css 2 条字号顶档与 ≤360 档；smoke-trip 3 条判据在场）+ 12 颗按钮白名单**反查缺失**与数量对账（renderResult 体内 window.planner* 恰 12、#actRow 赋值恰 1、trip.html?trip= 恰 1——只数数量抓不到「删一颗加一颗」，只查白名单抓不到「同一颗写两遍」）+ 写入口唯一（logStart／realDays 四个写形各恰 1，其余产品文件四种等号形一律 0，配正向对照）+ 五组灵魂顺序断言（patchTrip 判定→改字段→回写、open 的守卫早于赋值、票卡快照早于守卫、renderYear 的桶并集早于 byDate 且分组按年过滤、#tToday 空着进 DOM）各配反向与正向合成源 + §36 FILES36 名单互斥对账（trip.html 不许被扫进「aria-live 全站唯一出处」族，否则两节彼此打红）+ 十一族期望 0（catTotals 不分年／恒等式守卫／把计划日期写进实际口径／migrate 落盘／ts 冒充日期／读数卡写行程库两处／系统通知三处／design.css 新增 --fs-11）与两族唯一出处（var(--fs-11) 全站 0、分类名单只出 expense.js）；每条期望 0 都配正向对照；浏览器腿 T01–T55 齐备检 + 条数守卫（55；smoke-expense 只设下界 121）；变异自测见 tools/out/mut-verify38.js');
   fail += bad38;
+}
+
+
+/* ============ §39 顶栏一族与触控口径闸门（批次 25-B） ============
+   这批的根因不在任何一个症状里，而在**同一族几何被写了四遍**：design.css、map.css、页面内联
+   <style>、内联 style 属性。页内 <style> 最后加载，同为 !important 且同特异度时后加载者赢，
+   于是「谁后加载谁说了算」——40×40 一族在 13 页顶栏里漂着（design.css 已点名 44），同一族圆钮
+   在三个文件里长成 36/40/44 三种尺寸，标题被 min-width:0 压到 clientW 2px，61px 的钮把
+   「语音记录」排成 3 行。三个症状都只有浏览器 rect 量得到，源码扫描全绿过一次（那 38 条绿灯
+   就是本批要补的洞），所以本节两条腿：
+     ① 源码侧钉「尺寸只在 design.css 单点点名，各页只留皮肤」——不钉值，钉**出处唯一**：
+        各页那族的规则体里出现 width:/height:（含 min-*）就是红，无论写的是 40 还是 44；
+     ② 浏览器腿 34 条 rect/computed 判据住在 tools/smoke-topbar.js（K00–K33），本节只钉它们
+        在场、编号连续、两档取样（328×723 真机主档 + 320×640 装箱最紧档）都跑。
+   收口过程中普查另捞出三处同族，一并量化进浏览器腿：地图浮控件在玻璃柱里贴左（留白 0/8 与
+   0/4 → K31）、内容区三枚 40px（.ck-remove／.ech-del／.tb-open → K32）、story 那颗 34px 下拉（K27）。
+   口径与 §21/§31/§36/§37/§38 一致：四元组守卫、期望 0 一律配「改前那段源码形状」的正向对照、
+   .js/.css 视图剥块注释、.html 视图**只归一空白不剥注释**（所以 .html 的期望 0 一律避开注释里
+   会出现的字面量，几何族改走规则体抽取；锚点串一律写成归一后的真实形状，多行 CSS 归一后 `{` 后
+   带一个空格，写成紧凑形就是永远打不红的哑锚——口径表预跑见 tools/out/pre39-counts.js）。
+   ============================================================ */
+{
+  let bad39 = 0;
+  const F39 = m => { bad39++; console.log('FAIL §39 顶栏一族与触控口径闸门: ' + m); };
+  const ws39 = s => s.replace(/\s+/g, ' ').trim();
+  const flat39 = s => ws39(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt39 = (s, n) => s.split(n).length - 1;
+  const rd39 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view39 = f => /\.html$/.test(f) ? ws39(rd39(f)) : flat39(rd39(f));
+  /* 规则体抽取：选择器出现处 → 从它到下一个 } 为止（含选择器本身，好让反向对照看得见是谁的规则） */
+  const bodies39 = (src, sel) => {
+    const out = [];
+    for (let i = src.indexOf(sel); i >= 0; i = src.indexOf(sel, i + 1)) {
+      const a = src.indexOf('{', i), b = src.indexOf('}', a);
+      if (a < 0 || b < 0) break;
+      out.push(src.slice(i, b + 1));
+    }
+    return out;
+  };
+  const GEO39 = /width\s*:|height\s*:/;
+
+  const FILES39 = ['design.css', 'map.css', 'travel-map.html', 'node-manager.html', 'wishlist.html',
+    'story.html', 'search.html', 'checklist.html', 'album-edit.html', 'expense.html', 'trip.html',
+    'planner.html', 'topic.html', 'tools/smoke-topbar.js', 'README.md'];
+  const V39 = {};
+  FILES39.forEach(f => {
+    if (!fs.existsSync(f)) { F39('缺 ' + f); V39[f] = ''; return; }
+    V39[f] = view39(f);
+  });
+
+  /* ① 单点持有：顶栏一族与触控族的每一寸尺寸都只在 design.css 点名一次 */
+  const A39 = [
+    ['design.css', '.t-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}', 1, 'flex-wrap 必须在 .t-row 上（动作组整组换行的前置；盒高交给内容撑开，别再回来钉死行高）'],
+    ['design.css', '.t-row .back,.t-row .t-ic{width:44px;height:44px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-ink);font-size:var(--fs-6);display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;text-decoration:none}', 1, '返回键与 .t-ic 同一条规则（改前 .t-ic 不存在，四页各抄一遍 inline style 的 40×40）；text-decoration:none 是 <a> 化之后才需要的'],
+    ['design.css', '.t-row .t-ic{margin-left:auto}', 1, '右上角那枚动作钮自己贴右（此前靠页内 flex 布局各写一套）'],
+    ['design.css', '.t-row .t-ic .ti{margin-right:0}', 1, '.ti 的默认右距是给「图标+文字」用的，纯图标钮要归零，否则图标在 44 的圆里偏左'],
+    ['design.css', '.t-row .back:active,.t-row .t-ic:active{transform:scale(.92)}', 1, '同一族共用按压反馈：钮改成 <a> 之后 :active 不会自动跟过来，漏了就是「点了没反应」'],
+    ['design.css', '.t-row .title{flex:1 1 7em;min-width:7em;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-8);color:var(--color-ink);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}', 1, '本批两条腿都在这一行：basis 写 7em 而不是 auto（贪心装箱按假想主轴宽排，auto 会把 44 的钮单独掉第二行），下限 7em 而不是 0（改前 min-width:0 让标题在 328 档被压到 clientW 2px）；截断必须是省略号'],
+    ['design.css', '.trow-acts{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto}', 1, '动作组的容器（原名 .t-acts 与 .t-ic 只差一个字母，撞名那次差点被同一条 CSS 一起改掉，故改名）：flex:0 0 auto 让它整体装箱、整组换行'],
+    ['design.css', '.topbar{position:sticky;top:0;z-index:100;', 1, '顶栏盒没有写 height（本批把盒高交回内容）；这一行是分母自检——改名或整页换顶栏结构，上面那族会全部 0 命中'],
+    ['design.css', '.story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important;min-width:44px;min-height:44px;border-radius:50%}', 1, '两个非 .topbar 的顶栏宿主（故事页、地点管理页）在同一处收口，不各页写一份'],
+    ['design.css', 'button.act,button.act.sec,button.mine,button.go{min-height:44px}', 1, '顶栏动作钮的地板（travel-map 的 ≤360 退档把宽高点名成 44，其余页靠这条地板）'],
+    ['design.css', '.sbar .mic{width:44px!important;height:44px!important}', 1, '录音钮＝高频，尺寸出处只此一处（search.html 那份 40 已剥，页内只留皮肤）'],
+    ['design.css', '.wl-btn{min-height:44px!important}', 1, '想去清单顶栏四枚动作钮'],
+    ['design.css', '.wl-remove,.ck-remove,.ech-del,.tb-open{width:44px!important;height:44px!important}', 1, '列表/卡片右端那枚「移除·删除·打开附件」：形状各异（圆、圆角方、缩略图框）但触控档同一档——四条并一条就是「一族只写一遍」的字面证据'],
+    ['design.css', '.nm-item-btn{min-height:44px}', 1, '地点清单条目钮（同文件内此前有一条 .nm-item-btn{min-height:36px}，两条自相矛盾、靠先后顺序取胜，那条已剥）'],
+    ['design.css', '.is-btn{min-height:44px}', 1, '弹层主操作（node-manager 详情卡）的地板单点持有：页内那条 min-height 已剥'],
+    ['design.css', '.ctl button{width:36px!important;height:36px!important;margin:0 auto}', 1, '36px 一族（点名允许低于 44：缩放有双指替代、浮在地图上）；margin:0 auto 不是装饰——玻璃柱的**盒宽**是各页自己写的（travel-map 44／map.css 40），钮收到 36 之后两边没人对账，图标贴左、柱子右侧空一条（实测留白 0/8 与 0/4）'],
+    ['design.css', '.leaflet-control-zoom a,.leaflet-touch .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important}', 1, '同一族第二处：node-manager 的页内联从前写 40px，靠后加载盖掉 design.css'],
+    ['design.css', '.tripbar .mv,.tripbar .x{min-width:44px;min-height:44px;display:inline-grid;place-items:center}', 1, '行程条的上下移/删除（驾驶场景高频）；条形默认收起没有真 rect，所以浏览器腿 K28 量 computed min-*'],
+    /* travel-map：唯一「退纯图标」那一页（地图页顶栏不能长第二行压瓦片） */
+    ['travel-map.html', 'body{--tb-h:calc(env(safe-area-inset-top,0px) + 63px)}', 1, '顶栏高度单点：8 上垫 + 44 触控档 + 10 下垫 + 1 描边 = 63；挂在 body 是因为 .ctl/.laymenu 是顶栏的兄弟，自定义属性只往下继承'],
+    ['travel-map.html', 'top:var(--tb-h)', 2, '控件组与图层菜单都读同一个变量（写死 56px 会压在 44 的顶栏上，K22 抓过）'],
+    ['travel-map.html', '.ctl{ position:absolute;right:12px;top:var(--tb-h);width:44px;', 1, '盒宽留在这里（皮肤）：那 4px 内衬是有意的，改盒宽要连 .laymenu{right:60px} 一起改，反而多两处耦合'],
+    ['travel-map.html', '.laymenu{ position:absolute;right:60px;top:var(--tb-h);width:158px;', 1, '图层菜单的 right 是按 44 的盒算的：与上一条是一对，动一个就得动另一个'],
+    ['travel-map.html', '@media(max-width:360px){', 1, '退档阈值 360 定向（真机 328 命中、452 不命中＝K18 与 K21 一红一绿才叫阈值写对）'],
+    ['travel-map.html', '.t-row .act{padding:0;width:44px;height:44px;border-radius:50%;justify-content:center}', 1, '退成 44×44 圆钮：抬到 44 不是变大，是「文字换成图标后仍然够点」'],
+    ['travel-map.html', '.t-row .act .act-label{display:none}', 1, '收掉文字才有标题的可读宽度（K19）；名字改由 aria-label + title 承担（K20）'],
+    ['travel-map.html', 'class="trow-acts"', 1, '本页动作组也进同一个容器（改前三页各写一份 flex）'],
+    ['travel-map.html', 'aria-label="随手记"', 1, '退档后钮的可访问名（§36 那套口径不许被这批改坏）'],
+    ['travel-map.html', 'aria-label="游记"', 1, '同上第二枚'],
+    /* node-manager：.is-btn 断字那一族 */
+    ['node-manager.html', '#infoSheet .is-acts{display:flex;gap:10px;flex-wrap:wrap}', 1, '动作组整组可换行（此前 flex-wrap 是 JS 里逐处内联写的，两处一套口径）'],
+    ['node-manager.html', '#infoSheet .is-btn{flex:1;border-radius:999px;border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-5);cursor:pointer;font-family:var(--font-sans);white-space:nowrap}', 1, 'nowrap 把地板抬回整条标签宽（改前 328 档四枚各分 61px，「语音记录」断成 3 行）；这一行里**没有** min-height——高度归 design.css 的 .is-btn 单点点名'],
+    ['node-manager.html', '#infoSheet .is-btn.ic{display:inline-flex;align-items:center;justify-content:center;gap:5px}', 1, '带图标的钮一律 .ic：design.css 的 .ti 按 flex 父容器写，放进 block 按钮图标会掉到文字下方 5px（K15 量 rect 而不是数行，就是为了不把这 5px 读成断字假阳性）'],
+    ['node-manager.html', '#infoSheet .is-btn.ic .ti{margin-right:0}', 1, '同 travel-map 那条右距归零，一族两处'],
+    ['node-manager.html', 'class="is-btn ic"', 5, '带图标那族恰 5 枚（两张详情卡各若干）：枚数变了说明有人在 block 钮里塞图标，K15 会当场读成两排'],
+    ['node-manager.html', 'id="infoSheet"', 1, '详情卡容器恰一枚（分母自检：期望 0 那族与规则体抽取都要有存在的宿主，否则「0 条违规」不是证据；注意用带 id= 的整串，裸 #infoSheet 在 JS 选择器里有 17 处）'],
+    ['node-manager.html', '.leaflet-top.leaflet-right{margin-top:calc(env(safe-area-inset-top,0px) + 66px);margin-right:10px}', 1, '缩放控件给顶栏让位：66 = 44 触控 + 8 上垫 + 1 描边 + 13 余量（与 travel-map 的 63 同族不同值，因为本页顶栏更矮）'],
+    /* wishlist：整组换行那一页（唯一付垂直空间的白名单页） */
+    ['wishlist.html', '<div class="trow-acts">', 1, '四枚动作钮整组进容器：窄屏由 .t-row 的 wrap 把**整组**换到第二行，barH 63→107（K08 白名单只放行本页）'],
+    ['wishlist.html', 'class="wl-remove" aria-label="移除"', 1, '破坏性操作在设计标准的豁免之外，且它不在顶栏里（K01 抓不到，必须 K25 单列）'],
+    ['wishlist.html', '.wl-remove{border:0;border-radius:50%;background:transparent;color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;flex:0 0 auto}', 1, '本页这一行只剩皮肤：没有 width/height（尺寸由 design.css 那一条并族点名）'],
+    /* 内容区与另两处宿主 */
+    ['story.html', '.story-bar select{flex:0 0 auto;max-width:140px;height:44px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-3);padding:0 12px}', 1, '批次 25-B 普查补出来的第四颗：select 从前不在触控口径的选择器里（34px 既不在高频档也不在 36 的点名豁免里）'],
+    ['search.html', '.sbar .mic{flex:0 0 auto;border:0;border-radius:50%;background:var(--color-primary-soft);color:var(--color-primary-dark);font-size:var(--fs-6);cursor:pointer}', 1, '只剩皮肤：改前这一行写 width:40px;height:40px，与 design.css 的 !important 同特异度、后加载者赢'],
+    ['checklist.html', '.ck-remove{border:0;border-radius:50%;background:transparent;color:var(--color-muted);cursor:pointer;flex:0 0 auto;padding:0;display:grid;place-items:center}', 1, '行前清单条目「移除」钮只剩皮肤（改前 40×40）'],
+    ['checklist.html', '.tb-open{flex:0 0 auto;border-radius:10px;overflow:hidden;border:1px solid var(--color-line);background:var(--color-bg-soft);display:grid;place-items:center;cursor:pointer;padding:0;color:var(--color-muted);font-size:var(--fs-1);text-decoration:none}', 1, '票据「打开附件」的缩略图框同一档（它是框不是圆钮，但破坏性/主操作口径不分形状）'],
+    ['album-edit.html', '.ech-del{display:grid;place-items:center;border-radius:12px;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6);cursor:pointer;flex:0 0 auto}', 1, '相册章节删除钮只剩皮肤（实测代价：行高 42→44、页高不变、两档零溢出）'],
+    ['expense.html', '<a class="t-ic" href="planner.html" aria-label="行程规划">', 1, '内联 style 那一族换成类：四页各抄一遍 style="flex:0 0 auto;width:40px;height:40px…" 是本批第二个根因'],
+    ['trip.html', '<a class="t-ic" href="planner.html" aria-label="行程规划">', 1, '同上第二页'],
+    ['checklist.html', '<a class="t-ic" href="planner.html" aria-label="行程规划">', 1, '同上第三页'],
+    ['planner.html', '<a class="t-ic" href="wishlist.html" aria-label="想去清单">', 1, '同上第四页（href 不同，所以四页不可能是一份复制粘贴的公共模板，只能靠类名单对账）'],
+    /* 浏览器腿在场 */
+    ['tools/smoke-topbar.js', "ok('K01 ", 1, '顶栏内可点控件零矮于 44：这条的选择器含 select/input/button/a 四类（只写 button,a 就漏掉 story 那颗 34px 下拉）'],
+    ['tools/smoke-topbar.js', "ok('K11 ", 1, '.is-btn 计算样式 white-space:nowrap（断字那条腿）'],
+    ['tools/smoke-topbar.js', "ok('K15 ", 1, '带图标钮逐 childNode 同排（量 rect.top 而不是 Range 数行——inline svg 会被数行读成假阳性）'],
+    ['tools/smoke-topbar.js', "ok('K18 ", 1, '328 档 travel-map 退成 44×44 圆钮'],
+    ['tools/smoke-topbar.js', "ok('K22 ", 1, '控件组 top ≥ 顶栏下缘（--tb-h 那条的浏览器腿）'],
+    ['tools/smoke-topbar.js', "ok('K23 ", 1, '.ctl 缩放钮恰 36×36：尺寸漂回 40 也要红（点名允许的豁免要有闸门，否则豁免就是无人看管的低值）'],
+    ['tools/smoke-topbar.js', "ok('K27 ", 1, 'story 换故事下拉 44 高'],
+    ['tools/smoke-topbar.js', "ok('K31 ", 1, '地图浮控件在玻璃柱里左右留白相等（margin:0 auto 的浏览器腿）'],
+    ['tools/smoke-topbar.js', "ok('K32 ", 1, '内容区三枚 computed 44×44（不在顶栏，K01 抓不到）'],
+    ['tools/smoke-topbar.js', "ok('K33 ", 1, '专题页顶栏一行 + 两颗动作钮退成 44 圆钮：topic.html 不在 BAR_PAGES 那 13 页里，K08 的 barH 检对它失明，这条是它唯一的闸门腿'],
+    ['map.css', '.t-row .act{padding:0;width:44px;height:44px;border-radius:50%;justify-content:center}', 1, '专题页那两枚动作钮的 ≤360 退档（批次 25-B：标题下限收到 7em 后「游记」被顶到第二行，顶栏 137→189，地图少 52 CSS px）'],
+    ['topic.html', '<span class="act-label">随手记</span>', 1, '退档要收字就得有可收的标签：专题页这两枚从前是裸文本，收不掉（travel-map 那两枚早有 .act-label，同族却两种形状）'],
+    ['topic.html', 'aria-label="游记"', 1, '收掉文字不等于收掉可访问名（§36 口径）'],
+    ['tools/smoke-topbar.js', '{ width: 328, height: 723 }', 1, '真机主档（一加 Ace 6T 实测 CSS 视口）：不带它，「真机档已验证」验的是一台不存在的手机'],
+    ['tools/smoke-topbar.js', '{ width: 320, height: 640 }', 1, '装箱最紧档：只跑 328 就漏掉「再窄一档整组装箱怎么排」'],
+    ['tools/smoke-topbar.js', 'isMobile: true, hasTouch: true', 1, '触控视口（不带动点仿真，:active 一族与 44 档的口径就不成立）'],
+    ['tools/smoke-topbar.js', "const WRAPPED_OK = ['wishlist.html'];", 1, '付垂直空间的页白名单只有一页：某页退档失效被挤成两行，K08 会红；白名单被人加长也要红'],
+  ];
+  A39.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
+      F39('A39 有锚点不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90));
+      return;
+    }
+    const [file, needle, want, why] = a;
+    if (!(file in V39)) { F39('A39 登记了 §39 没读的文件「' + file + '」，这条锚一次都没跑过：' + why); return; }
+    const got = cnt39(V39[file], needle);
+    if (got !== want) F39(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
+  });
+  if (A39.length < 58) F39('锚点表被削减：' + A39.length + ' 条（批次 25-B 落地时实测 60 条，阈值取 58——整组删掉就等于这节没了）');
+
+  /* ② 各页只留皮肤：这一族规则体内**不许出现任何尺寸声明**（含 min-*）。
+     这里钉的是出处唯一，不是值：写 44 也一样红——尺寸有第二处写点，就说明下一次漂移不需要任何人同意。 */
+  const SKIN39 = [
+    ['map.css', '.t-row .back{', 4, 'map.css 有主题覆写，四处都是皮肤'],
+    ['map.css', '.t-row .title{', 4, '标题的字号/字体族覆写不许带 min-width 或 flex（改前正是这里一处 min-width:0 把标题压成 2px）'],
+    ['map.css', '.ctl button{', 3, '玻璃柱里的钮：改前 94 行写 40×40，design.css 点名 36 之后没人对齐，图标贴左'],
+    ['travel-map.html', '.ctl button{', 2, '本页两处（基样式 + 暗色）同样只留皮肤'],
+    ['node-manager.html', '.nm-topbar .back{', 1, '尺寸由 design.css 那条 !important 持有'],
+    ['node-manager.html', '#infoSheet .is-btn{', 1, 'min-height 已归 design.css；这一族曾经在此处写 44（值对、出处错）'],
+    ['wishlist.html', '.wl-remove{', 2, '改前 40×40；本页两处含暗色覆写'],
+    ['checklist.html', '.ck-remove{', 1, '改前 40×40'],
+    ['checklist.html', '.tb-open{', 1, '改前 40×40（缩略图框，flex:0 0 auto 是布局不是尺寸，允许保留）'],
+    ['album-edit.html', '.ech-del{', 1, '改前 40×40'],
+    ['story.html', '.story-bar .back{', 1, '尺寸只走 design.css 那条 .story-bar .back,.nm-topbar .back'],
+    ['search.html', '.sbar .mic{', 2, '改前 44（与 design.css 同值但两处各写，仍是根因形状）＋暗色覆写一处'],
+  ];
+  SKIN39.forEach(([f, sel, want, why]) => {
+    if (!(f in V39)) { F39('SKIN39 登记了 §39 没读的文件「' + f + '」：' + why); return; }
+    const bs = bodies39(V39[f], sel);
+    if (bs.length !== want) F39(f + ' 里选择器「' + sel + '」抽到 ' + bs.length + ' 条规则体（要 ' + want + '）：分母失守——要么被改名要么被拆成更多处，下面那条「零尺寸」判据已经看不见全部了（' + why + '）');
+    bs.forEach(b => { if (GEO39.test(b)) F39(f + ' 的「' + b.slice(0, 58) + '」里出现尺寸声明：' + why); });
+  });
+  /* 反向对照：合成的「页内又写回 40」必须被抽取抓到；正向对照：正确皮肤形状不许误伤 */
+  {
+    const BADSKIN = flat39('.wl-remove{border:0;border-radius:50%;width:40px;height:40px;cursor:pointer}');
+    if (bodies39(BADSKIN, '.wl-remove{').filter(b => GEO39.test(b)).length !== 1)
+      F39('规则体零尺寸判据的反向对照失效（合成的「页内又写回 40×40」源码没被抓到，上面那些绿不是证据）');
+    const GOODSKIN = flat39('.wl-remove{border:0;border-radius:50%;color:var(--color-muted);cursor:pointer;flex:0 0 auto}');
+    if (bodies39(GOODSKIN, '.wl-remove{').filter(b => GEO39.test(b)).length !== 0)
+      F39('规则体零尺寸判据的正向对照失效：连 flex/圆角这种皮肤都被打红，这条锚会不分对错一直红');
+  }
+
+  /* ③ design.css 触控族段区段检：这一段里 40 一族必须清零、36 只许点名那两条款 */
+  {
+    const S = V39['design.css'];
+    const i1 = S.indexOf('.story-bar .back,.nm-topbar .back{'), i2 = S.indexOf('.tripbar .mv,.tripbar .x{');
+    if (i1 < 0 || i2 < 0 || i2 <= i1) F39('抽不出 design.css 的触控族段（两端锚点之一没了或被改名，本节的区段判据失去依据）');
+    else {
+      const seg = S.slice(i1, i2);
+      if (cnt39(seg, '40px') !== 0) F39('design.css 触控族段里还有 ' + cnt39(seg, '40px') + ' 处 40px：口径只有 44（高频/破坏性）与 36（点名豁免）两档，40 是改前那一族的值，留在段里就是给下一次漂移留门（K01/K02 会在浏览器侧同时红）');
+      if (cnt39(seg, '36px') !== 5) F39('design.css 触控族段里的 36px 不是恰 5 处（实测＝.ctl button 两处 + Leaflet 缩放三处）：豁免族只许「地图上浮控件」那两条款，多一处就是有人给别的控件开了低值后门，而闸门只认这两条');
+      if (cnt39(seg, '44px') < 10) F39('design.css 触控族段里的 44px 掉到 ' + cnt39(seg, '44px') + ' 处（改前实测 12）：段还在但内容被掏空，上面那两个 0 就成了恒真判据');
+      const BADSEG = flat39('.story-bar .back,.nm-topbar .back{width:44px!important} .ctl button{width:40px;height:40px;margin:0 auto} .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important} .tripbar .mv,.tripbar .x{min-width:44px}');
+      if (cnt39(BADSEG, '40px') < 1 || cnt39(BADSEG, '36px') !== 3) F39('触控族段区段检的反向对照失效（合成的「40 回潮 + 豁免族多开一条」源码没被同一段读数抓到）');
+      const GOODSEG = flat39('.story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important} .wl-remove,.ck-remove,.ech-del,.tb-open{width:44px!important;height:44px!important} .ctl button{width:36px!important;height:36px!important;margin:0 auto} .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important} .tripbar .mv,.tripbar .x{min-width:44px;min-height:44px}');
+      if (cnt39(GOODSEG, '40px') !== 0) F39('触控族段区段检的正向对照失效：合成正确源也被打红');
+    }
+  }
+
+  /* ④ 全站 html 扫描：内联 style 那一族（改前四页各抄一遍 40×40）不许回潮，类名族数量对账 */
+  {
+    const htmls39 = fs.readdirSync('.').filter(x => /\.html$/.test(x));
+    if (htmls39.length < 18) F39('全站 html 只扫到 ' + htmls39.length + ' 份：分母可疑（本批实测 21 份；扫描口径漂了就等于没扫）');
+    let tic = 0, inline40 = 0;
+    const hits = [];
+    htmls39.forEach(x => {
+      const v = view39(x);
+      const n = cnt39(v, 'class="t-ic"');
+      if (n) hits.push(x + '=' + n);
+      tic += n;
+      inline40 += cnt39(v, 'style="flex:0 0 auto;width:40px;height:40px');
+    });
+    if (tic !== 4) F39('全站 .t-ic 不是恰 4 枚（实测：' + hits.join(' ') + '）——这一族只该有 expense/trip/checklist/planner 四页的右上角动作钮，多一枚说明某页又私写了一份顶栏钮');
+    if (inline40 !== 0) F39('全站 html 里出现 ' + inline40 + ' 处内联 40×40 圆钮 style：那正是「谁后加载谁说了算」的第三种写法（比页内 <style> 更靠后，CSS 全管不住它）');
+    const CTRL40 = ws39('<a class="t-ic" style="flex:0 0 auto;width:40px;height:40px;border:0"></a>');
+    if (cnt39(CTRL40, 'style="flex:0 0 auto;width:40px;height:40px') < 1) F39('内联 40×40 那条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  }
+
+  /* ⑤ 期望 0：改前形态与已推翻的写法不许回潮。ctrl 一律写成**改前的那段源码形状**。
+     .html 视图不剥注释，所以这些 needle 都避开了注释里会出现的字面量（travel-map 的注释里有
+     「top:56px」但没有「top:56px;width:」；wishlist 的注释已改写掉 `.t-row .title{`）。 */
+  const ZERO39 = [
+    ['map.css', '.t-row{height:42px',
+      '.t-row{height:42px;align-items:center;display:flex}',
+      '行高钉死 42px 会把换行的第二行直接裁掉（界面看不出问题、点也点不到）：盒高必须由内容撑开'],
+    ['map.css', '.ctl button{width:',
+      '.ctl button{width:40px;height:40px;border:0;background:none}',
+      '玻璃柱里的钮尺寸：design.css 已点名 36，这里再写一遍就是「谁后加载谁说了算」的老形状'],
+    ['travel-map.html', 'top:56px;width:',
+      '.ctl{ position:absolute;right:12px;top:56px;width:44px;',
+      '写死 56px 的顶栏高度：顶栏钮抬到 44 之后 56 会压在钮上（现在读 --tb-h=63）'],
+    ['travel-map.html', '.ctl button{ width:44px',
+      '.ctl button{ width:44px;height:44px;border:0;background:none;',
+      '本页的缩放钮从前 44：浮在地图上的低频控件按口径归 36，且尺寸不在页内持有'],
+    ['node-manager.html', '.leaflet-control-zoom a{width:',
+      '.leaflet-control-zoom a{width:40px;height:40px;line-height:40px}',
+      '页内联的 40px 靠后加载盖掉 design.css 的 36：同一族在两处长成两种尺寸'],
+    ['node-manager.html', '#infoSheet .is-btn{flex:1;min-height:',
+      '#infoSheet .is-btn{flex:1;min-height:44px;white-space:nowrap}',
+      '值对、出处错：min-height 有第二处写点，下一次漂到 40 不需要任何人同意'],
+    ['node-manager.html', '.is-btn{min-height:40px',
+      '.is-btn{min-height:40px;border-radius:999px}',
+      'design.css 自己那一条也不能退到 40（弹层主操作＝口径里的高频）'],
+    ['wishlist.html', '.t-row .title{',
+      '.t-row .title{min-width:0}',
+      '标题下限的写点只许 design.css 一处：本页这一句在 328 档把四个字的页名压成 clientW 2px'],
+    ['wishlist.html', '.wl-remove{width:',
+      '.wl-remove{width:40px;height:40px;border:0;border-radius:50%}',
+      '「移除」钮的尺寸归 design.css 的并族那条'],
+    ['story.html', 'height:34px',
+      '.story-bar select{flex:0 0 auto;height:34px;border-radius:999px}',
+      'select 不在口径的选择器族里就会被整体漏过（批次 25-B 把 select/input 加进普查才捞出它）'],
+    ['search.html', '.sbar .mic{flex:0 0 auto;width:',
+      '.sbar .mic{flex:0 0 auto;width:44px;height:44px;border:0;border-radius:50%;}',
+      '连「同值双写」都算回潮：两处各写一遍正是这批的根因，值一致只是暂时没漂'],
+    ['checklist.html', '.ck-remove{width:',
+      '.ck-remove{width:40px;height:40px;border:0;border-radius:50%}',
+      '同上'],
+    ['album-edit.html', '.ech-del{width:',
+      '.ech-del{width:40px;height:40px;border-radius:12px}',
+      '同上'],
+    ['design.css', '.nm-item-btn{min-height:36px',
+      '.nm-item-btn{min-height:36px;padding:0 12px;border-radius:999px}',
+      '同一文件内两条同族自相矛盾（36 在前、44 在后，靠顺序取胜）——这就是本批根因在 design.css 里的那一份'],
+  ];
+  ZERO39.forEach(a => {
+    if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string') {
+      F39('ZERO39 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V39)) { F39('ZERO39 登记了 §39 没读的文件「' + f + '」：' + why); return; }
+    if (cnt39(V39[f], needle) !== 0) F39(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt39(flat39(ctrl), needle) < 1 && cnt39(ws39(ctrl), needle) < 1) F39('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ⑥ 浏览器腿齐备检：K00–K33 一条不许少，条数守卫（少一条就是有个症状没人管） */
+  {
+    const src39 = V39['tools/smoke-topbar.js'];
+    for (let i = 0; i <= 33; i++) {
+      const id = 'K' + (i < 10 ? '0' + i : '' + i);
+      if (src39.indexOf("ok('" + id + ' ') < 0) F39('tools/smoke-topbar.js 缺 ' + id + ' 这条判据（顶栏一族／.is-btn 断字／标题省略号／退档与 36 豁免是 K00–K33 一整组）');
+    }
+    const nK39 = cnt39(src39, "ok('K");
+    if (nK39 !== 34) F39('tools/smoke-topbar.js 的判据条数不是 34：' + nK39 + ' 条（25-B 落地时实测 K00–K33 共 34 条；整组削减等于把这节拆了）');
+    if (cnt39(src39, 'const BAR_PAGES') !== 1) F39('抽不出 smoke-topbar.js 的 BAR_PAGES 名单：K00 的分母自检没有宿主');
+    /* 与 §38 的互斥对账：本批改过 design.css 的触控族，别和 24 那批的字号族判据互相打红 */
+    const SELF39 = flat39(rd39(__filename));
+    if (SELF39.indexOf('const FILES38 = [') < 0) F39('抽不出 §38 的 FILES38 名单：本节改的是 design.css 与 13 页顶栏，§38 也钉了 design.css 的字号档，两节不许对同一条规则各说一套');
+    else {
+      const m38 = SELF39.match(/const FILES38 = \[[\s\S]*?\]/);
+      if (m38 && /\.html'/.test(m38[0]) === false) F39('§38 的 FILES38 里没有 html 页：那节的产品文件名单被削减，本节的互斥对账失去依据');
+    }
+  }
+
+  if (V39['README.md'].indexOf('§39') < 0) F39('README.md 的 verify 清单没提 §39（新闸门不写进 README 就等于没装）');
+
+  console.log('顶栏一族与触控口径闸门: ' + A39.length + ' 条代码锚点（design.css 18＝顶栏一族 8（.t-row wrap／back+t-ic 同条／.t-ic 右贴与 .ti 归零／:active／.title flex:1 1 7em+min-width:7em+省略号／.trow-acts／.topbar 分母）+ 触控族 10（两个非 .topbar 宿主／act 地板／mic／wl-btn／移除·删除·打开四族并一条／nm-item-btn／is-btn／36 两条款含 margin:0 auto／行程条）；travel-map 10＝--tb-h 挂 body 的 63 推导／top:var(--tb-h) 两处／盒宽与 .laymenu 的 right 成对／≤360 阈值／退成 44 圆钮／收 .act-label／.trow-acts／两枚 aria-label；node-manager 7＝.is-acts wrap／.is-btn 只剩皮肤（无 min-height）／.ic 两处／is-btn ic 恰 5／infoSheet 分母／缩放让位 66；wishlist 3＝trow-acts／aria-label 移除／.wl-remove 皮肤；story＋search 各 1；checklist 3＋album-edit 1＝内容区那三枚；四页 .t-ic 各 1；map.css 1＝专题页那两枚动作钮的 ≤360 退档；topic.html 2＝.act-label 与 aria-label（退档要收字先得有可收的标签）；smoke-topbar 14＝九条判据在场 + K33 专题页那一行 + 两档取样 + 触控视口 + 白名单）+ 十二族规则体零尺寸抽取（每族先按分母数规则条数，再逐体断无 width:/height:——钉的是出处唯一不是值，页内写 44 也红；配反向「写回 40 要抓到」与正向「皮肤不误伤」）+ design.css 触控族段区段检（40px 期望 0／36px 恰 5＝豁免族只那两条款／44px ≥10 防空段，配改前合成段反向对照）+ 全站 html 扫描（.t-ic 恰 4 且逐页点名、内联 40×40 圆钮期望 0，分母 <18 份即红）+ 十四族期望 0（钉死行高 42／两处 .ctl button 尺寸／写死 56px／页内联 Leaflet 40／is-btn 的 min-height 双写／标题 min-width:0／三枚内容区 40／select 34／同值双写的 mic 44／design.css 自相矛盾的 36）每条配「改前那段源码形状」的正向对照；浏览器腿 K00–K33 齐备检 + 条数守卫 34；口径表预跑见 tools/out/pre39-counts.js，变异自测见 tools/out/mut-verify39.js');
+  fail += bad39;
+}
+
+
+/* ============ §40 链跑可信度闸门（批次 25-C） ============
+   这一节不管产品，只管「闸门自己会不会说谎」。本批实测到两种说谎方式：
+   ① 等错时机。smoke-motion 原先 7 处导航全写 waitUntil:'load' + 30s；load 要等齐页面所有
+      图/字体/瓦片，链跑（多条重闸门串一条 for 链、机器上同时几份 Chrome 抢 IO）时往往是 30s
+      先到，goto 抛错被记成断言 FAIL——同一份代码一次绿一次红，症状长得像产品坏了，其实是取样
+      时机不可靠。改后一律 domcontentloaded + 60s，再等「这一节真正要读的东西已经就位」
+      （READY 三个谓词），就绪超时只打一行「按现状继续读」，不改成红。
+      实测：改前链跑 exit 2（单跑绿）；改后链跑 EXIT_motion=0、单跑 35 项失败 0
+      （tools/out/b25c-smoke-battery.txt／b25c-smoke-motion-alone.txt）。
+   ② 放行表没人守。trip.html?trip=free 那句载入即转送会打断「进入本页」那次跨文档转场，
+      浏览器自己抛 InvalidStateError（@view-transition{navigation:auto} 开着，而 ui.js 的
+      UI.vt 三条 catch 只管我们自己起的转场，JS 里没有 promise 可以挂 catch）。
+      探针 tools/out/probe25c-vt-free.js 的 A/B（同一 free 入口，B 腿把转送换成空块；各 15 轮）：
+      空机 A 6/15、争用（6 个后台重页）A 4/15，B 腿两档都 0/15；两档除这一条外零其它真实报错，
+      落点 30/30 都到 expense.html?trip=free ⇒ 争用既不是成因也没放大（就是约 1/3 的随机），
+      且用户那一半是对的。放行它是对的；但「放行只认那一整串」必须写成源码事实，
+      否则下一批有人把筛子扩成 /Error/，三条「零真实报错」判据同时变恒真——那才是本节要防的。
+   配套：T09 从「URL 对」抬成「URL 对 + 那一页真画出来了」，替被摘掉的噪声信号还一个正身判据。
+   条数守卫是 §31 那一课：阈值随锚点表长，抬阈值类变异必须取「当前长度 + 1」（M51 的教训）。
+   ============================================================ */
+{
+  let bad40 = 0;
+  const F40 = m => { bad40++; console.log('FAIL §40 链跑可信度闸门: ' + m); };
+  const ws40 = s => s.replace(/\s+/g, ' ').trim();
+  const flat40 = s => ws40(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt40 = (s, n) => s.split(n).length - 1;
+  const rd40 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view40 = f => /\.html$/.test(f) ? ws40(rd40(f)) : flat40(rd40(f));
+
+  const FILES40 = ['tools/smoke-motion.js', 'tools/smoke-trip.js', 'trip.html', 'README.md'];
+  const V40 = {};
+  FILES40.forEach(f => {
+    if (!fs.existsSync(f)) { F40('缺 ' + f); V40[f] = ''; return; }
+    V40[f] = view40(f);
+  });
+
+  /* ① 导航只有一个出口，且那个出口等的是「就绪」不是「load」 */
+  const A40 = [
+    ['tools/smoke-motion.js', '.goto(', 1, '全站这个文件只剩一处 goto＝导航出口唯一（七处各写一遍＝七处会各自漂回 waitUntil:\'load\'）'],
+    ['tools/smoke-motion.js', "waitUntil: 'domcontentloaded', timeout: 60000", 1, 'domcontentloaded + 60s：等齐资源那条腿就是链跑假红的成因'],
+    ['tools/smoke-motion.js', "waitForFunction(ready, { timeout: 30000, polling: 150 })", 1, '就绪等待**必须传函数**：waitForFunction 收到多语句字符串会当场 eval 抛错、被 catch 吞掉，等待退化成 0ms（§34 踩过同一坑，那时读的是上一帧旧 DOM）'],
+    ['tools/smoke-motion.js', 'const READY = {', 1, '三个就绪谓词集中在一个表里（「这一节真正要读的东西」写在一起才数得清）'],
+    ['tools/smoke-motion.js', 'typeof UI !== \'undefined\'', 2, 'page/topic 两个谓词各自等 UI：UI 没到货就读动效类，量到的是空壳'],
+    ['tools/smoke-motion.js', 'typeof window.plannerOpenTrip ===', 1, 'planner 那节等自己的入口函数在场，不是等通用 readyState'],
+    ['tools/smoke-motion.js', 'typeof TravelNotes !==', 1, 'topic 那节等 TravelNotes（该节的读数全在它渲染完之后）'],
+    ['tools/smoke-motion.js', 'await nav(', 7, '七处导航全走单点（改前这七处各写 waitUntil:\'load\' + 30s）'],
+    ['tools/smoke-motion.js', '(就绪等待超时，按现状继续读', 1, '就绪超时打一行、不改判红：超时说明这一屏比预期慢，不等于判据失败——把它变红就是再造一个假红'],
+    /* ② 放行表：窄到只认那一整串，且有正身判据替它守着「白屏」那半 */
+    ['tools/smoke-trip.js', "const VT_ABORT = 'InvalidStateError: Transition was aborted because of invalid state. ViewTransition opt-in disabled';", 1, '放行的是**一整串**（等串匹配，不是正则前缀）：串里连后缀都在，改一个字这条就红'],
+    ['tools/smoke-trip.js', 'const isReal = e => !NOISE.test(e) && e.indexOf(VT_ABORT) < 0;', 1, '报错筛子单点持有：瓦片噪声族 + 这一整串，两个来源写在一行，谁扩筛子都看得见'],
+    ['tools/smoke-trip.js', '.filter(isReal)', 3, '三处判据（T36/T37/T53）共用同一把筛子；各写一份筛子＝改一处漏两处'],
+    ["tools/smoke-trip.js", "isReal('pageerror: InvalidStateError: Transition was aborted because of invalid state. 换了个后缀') === true", 1, '正向对照：同一句换个后缀仍算真实报错。没有它，「只认那一整串」只是口头承诺'],
+    ["tools/smoke-trip.js", "isReal('pageerror: TypeError: x is not a function') === true", 1, '正向对照：真报错仍算红（放行表不能把产品缺陷一起放掉）'],
+    ['tools/smoke-trip.js', "document.getElementById('yearSum')", 1, 'T09 抬成「落点 + 那一页真画出来了」：摘掉一条噪声信号，就得给它在界面上的风险一个正身判据'],
+    ['tools/smoke-trip.js', "ok('T09 ", 1, 'free 桶转送那条判据在场（两态枢纽那组的一条都不许悄悄消失）'],
+    ['tools/smoke-trip.js', "ok('T55 ", 1, '筛子口径那条判据在场：它不测页面，测的是这把筛子本身'],
+    ['README.md', '链跑红了先单跑复现', 1, '这条口径必须留在 README：链跑红≠产品回归，历史上被当成回归追过一整晚'],
+  ];
+  A40.forEach(a => {
+    if (a.length !== 4) {
+      F40('A40 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V40)) { F40('A40 登记了 §40 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt40(V40[f], needle);
+    if (n !== exp) F40(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+  /* 判据条数只设下界：这一套还会继续长，但一条都不许悄悄消失 */
+  const nChk40 = cnt40(V40['tools/smoke-motion.js'], "check('");
+  if (nChk40 < 35) F40('tools/smoke-motion.js 的判据条数掉到 ' + nChk40 + '（25-C 实测 35 条；减一条要说话，别让它静默消失）');
+
+  /* ③ 期望 0：改前那两种形状不许回来，每条配正向对照 */
+  const ZERO40 = [
+    ['tools/smoke-motion.js', "waitUntil: 'load'", "await page.goto(url, { waitUntil: 'load', timeout: 30000 });", '又等齐资源才走＝链跑那份 30s 假红的成因回来了'],
+    ['tools/smoke-trip.js', "filter(e => !NOISE.test(e))", "const realErrs = errs.filter(e => !NOISE.test(e));", '绕过 isReal 自搭一把筛子＝三处判据各漂各的，放行表扩没扩没人知道'],
+    ['tools/smoke-trip.js', '/Error/', "const VT = /Error/;", '放行表被扩成整类正则：那三条「零真实报错」当场变恒真'],
+  ];
+  ZERO40.forEach(a => {
+    if (a.length !== 4) {
+      F40('ZERO40 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V40)) { F40('ZERO40 登记了 §40 没读的文件「' + f + '」：' + why); return; }
+    if (cnt40(V40[f], needle) !== 0) F40(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt40(flat40(ctrl), needle) < 1) F40('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ④ 放行表的前提对账：它钉的是「trip.html 载入即转送」这件事。
+        哪天转送没了（改成页内两态、或入口不再产 free 链接），这条噪声就结构性不存在，
+        放行表必须一起摘——留着就是拿一个不会再发生的症状当永久豁免。 */
+  if (cnt40(V40['trip.html'], "location.replace('expense.html?trip='") === 0
+    && V40['tools/smoke-trip.js'].indexOf('VT_ABORT') >= 0)
+    F40('trip.html 里那句 free 桶转送已经不在了，但 smoke-trip 还留着 VT_ABORT 放行串：转送没了这条噪声就不会再发生，放行表要一起摘掉（别把已定性的历史噪声当永久豁免）');
+
+  if (V40['README.md'].indexOf('§40') < 0) F40('README.md 的 verify 清单没提 §40（新闸门不写进 README 就等于没装）');
+
+  console.log('链跑可信度闸门: ' + A40.length + ' 条代码锚点（smoke-motion 9＝导航出口唯一 .goto 恰 1／domcontentloaded+60s／就绪谓词必须传函数／READY 表 + 三个谓词各自等的那一样东西／nav 单点 7 处调用／就绪超时只打一行不改红；smoke-trip 8＝放行整串字面量／isReal 单点／三处共用／两路正向对照（近亲串与真 TypeError 都还算红）／T09 画布判据在场／T55 在场；README 1＝链跑红了先单跑复现）+ smoke-motion 判据条数下界 35 + 三族期望 0（waitUntil:\'load\'／自搭筛子／把放行扩成 /Error/）各配正向对照 + 放行表前提对账（trip.html 那句转送没了就必须一起摘放行）；A40 表长 ' + A40.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify40.js');
+  fail += bad40;
 }
 
 

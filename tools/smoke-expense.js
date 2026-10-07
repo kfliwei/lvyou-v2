@@ -1032,8 +1032,9 @@ const setBudget = async (p, v) => {
       if (!r.width && !r.height) return;
       if (r.right > de.clientWidth + 1 || r.left < -1) over.push((el.id || el.className) + '@' + Math.round(r.right));
     });
-    /* 44px 只审这一页自己的控件：顶栏那枚 40px 返回键与圆钮是全站同一个 .topbar，
-       要改是全站一起改（不在这批顺手改一个页面造成两种顶栏），这里单独读数、单独断言。 */
+    /* 44px 只审这一页自己的控件：顶栏那两枚（.back 返回键 + .t-ic 跳转圆钮）是全站同一个
+       .topbar 几何，这里单独读数、单独断言成 44,44——批次 25-B 之前它是 40，改法是 design.css
+       单点持有而不是这页私改，所以断言留在本套件：换页就换不到这枚钮。 */
     const own = [];
     document.querySelectorAll('.wrap button, .wrap input, #xFoot button, #addSheet button, #addSheet input, #addSheet .chip').forEach(el => {
       const r = el.getBoundingClientRect();
@@ -1051,8 +1052,8 @@ const setBudget = async (p, v) => {
   ok('A103 真机主档 328×723：记一笔弹层升起后横向零溢出、弹层不越出视口（顶满到屏外＝按不到「记上」）',
     GEOP.sw === GEOP.cw && GEOP.over.length === 0 && GEOP.sheetTop >= 0 && GEOP.sheetBottom <= GEOP.vh + 1,
     JSON.stringify(GEOP));
-  ok('A104 这一页自己的控件在 328 档没有一个矮于 44px（金额框 56 / chip 与钮 44 是设计口径；顶栏仍是全站同一个 40 圆钮，不在这页私改）',
-    GEOP.own.length === 0 && GEOP.tb.join(',') === '40,40', JSON.stringify([GEOP.own, GEOP.tb]));
+  ok('A104 这一页自己的控件在 328 档没有一个矮于 44px（金额框 56 / chip 与钮 44 是设计口径；顶栏一族——返回键与跳转圆钮——在批次 25-B 已全站收到 44，这里逐字钉死 44,44 而不是「≥44」，就是要让「某页偷偷改回 40」变红）',
+    GEOP.own.length === 0 && GEOP.tb.join(',') === '44,44', JSON.stringify([GEOP.own, GEOP.tb]));
 
   /* ================= 批次 24-C：随手记面板顶部的「记开销」档（行中入口） =================
      这一档新不新不重要，重要的是两件事：默认档一点没被动过（A105/A107/A112），
