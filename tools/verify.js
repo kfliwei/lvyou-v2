@@ -5094,6 +5094,46 @@ const EMOJI_MARK = 'emoji-ok:';
 
 
 
+/* ============ 共享：剥块注释，但**认得字符串**（批次 27 现场发现，§41／§42 共用） ============
+   这两节原来是 s.replace(/\/\*[\s\S]*?\*\//g, '')。travel-notes.js 的面板模板里有一行
+   `<input type="file" id="tnFile" accept="image/*" multiple style="display:none">`，那个「斜杠星」
+   在字符串字面量里、根本不是注释开头，naive 正则却当它是开头，一路吃到下一个「星斜杠」才停——
+   实测吃掉 655→704 共 50 行真源码（含整个面板骨架那段），同一文件里还有一处 1843→1891（编辑卡）。
+   后果不是「少读一段文本」而是**盲窗**：住在那一段里的正向锚永远读 0（早就该红而没人看见），
+   而**期望 0 的那一族在那一段里永远满足**——变异网把批次 27 删掉的 tn-confirm 插回那一带
+   （M21），闸门一个字没喊，就是这么露出来的。所以剥注释必须先跳过字符串再判注释开头。
+   只处理块注释，不碰行注释：认行注释要顺手把正则字面量里的转义斜杠也分清楚，收益不抵风险。
+   反过来也不许让「认字符串」这件事造出第二个盲窗：单/双引号里遇到没被反斜杠转义的换行就当它
+   没闭合、立刻退出字符串态（JS 里那本来就是语法错，而 travel-notes.js 的续行写的是「反斜杠+换行」，
+   那一对是被当成转义整体吃掉的，不受这条影响）。不这么收一手的话，正文字符串外随便一枚游离
+   撇号都会一路吃到文件末尾——那比原 bug 更瞎。 */
+function stripBlockComments(s) {
+  var out = '', i = 0, n = s.length;
+  while (i < n) {
+    var ch = s.charAt(i);
+    if (ch === '/' && s.charAt(i + 1) === '*') {
+      i += 2;
+      while (i < n && !(s.charAt(i) === '*' && s.charAt(i + 1) === '/')) i++;
+      i += 2; out += ' ';
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      var q = ch;
+      out += ch; i++;
+      while (i < n) {
+        var c = s.charAt(i);
+        if (c === '\\') { out += c + (s.charAt(i + 1) || ''); i += 2; continue; }
+        if (c === q) { out += c; i++; break; }
+        if (c === '\n' && q !== '`') { break; }
+        out += c; i++;
+      }
+      continue;
+    }
+    out += ch; i++;
+  }
+  return out;
+}
+
 /* ============ §41 游记按日期分组闸门（批次 26） ============
    用户报的是「我的游记—日期 tab 没有内容显示，只有 1234567……」。定性腿 tools/out/probe26-cal2.js
    （七条腿各注一份真 IndexedDB，逐形状读数）给的是三条成因，全都跟「渲染」无关：
@@ -5113,12 +5153,15 @@ const EMOJI_MARK = 'emoji-ok:';
   let bad41 = 0;
   const F41 = m => { bad41++; console.log('FAIL §41 游记按日期分组闸门: ' + m); };
   const ws41 = s => s.replace(/\s+/g, ' ').trim();
-  const flat41 = s => ws41(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const flat41 = s => ws41(stripBlockComments(s));
   const cnt41 = (s, n) => s.split(n).length - 1;
   const rd41 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
-  const view41 = f => /\.html$/.test(f) ? ws41(rd41(f)) : flat41(rd41(f));
+  /* html 与 md 只归一空白、不剥注释：markdown 没有块注释，而 README 的登记串里天生要写
+     glob（`shots/` 斜杠星 `.png` 这种），走剥注释那一支就等于给文档开盲窗（批次 27 现场踩过
+     一次：把那串属性值原样抄进 §42 的登记文字，§40 的一条 README 锚被吃成 0）。 */
+  const view41 = f => /\.html$|\.md$/.test(f) ? ws41(rd41(f)) : flat41(rd41(f));
 
-  const FILES41 = ['travel-notes.js', 'review.html', 'index.html', 'travel-map.html', 'map.css', 'tools/smoke-cal.js', 'README.md'];
+  const FILES41 = ['travel-notes.js', 'review.html', 'index.html', 'travel-map.html', 'map.css', 'design.css', 'tools/smoke-cal.js', 'README.md'];
   const V41 = {};
   FILES41.forEach(f => {
     if (!fs.existsSync(f)) { F41('缺 ' + f); V41[f] = ''; return; }
@@ -5148,7 +5191,8 @@ const EMOJI_MARK = 'emoji-ok:';
     ['index.html', 'TravelNotes.noteDay(n)', 1, '首页「历 N 日」按归一键数天'],
     ['index.html', 'TravelNotes.noteDay(last)', 1, '首页那行起始日走同一个键（原来照抄 last.date 会把 2026年10月8日 直接印到界面上）'],
     ['travel-map.html', 'TravelNotes.noteDay(n)', 1, '足迹画布上的天数同一个键（这里也是裸 slice 的崩点之一）'],
-    ['map.css', '.tn-cal-day-tip{', 1, '提示行有自己的类（不靠 inline style 魔法数，暗色与字号阶梯才跟得上）'],
+    ['design.css', '.tn-cal-day-tip{', 1, '提示行有自己的类（不靠 inline style 魔法数，暗色与字号阶梯才跟得上），而且必须住在所有宿主页都加载的那张表里'],
+    ['map.css', '.tn-cal-day-tip{', 0, '正向对照就是上一条：这一族 2026-10-07 前写在 map.css，而 map.css 只被 node-manager/topic/wishlist 三页加载，手机上（index/travel-map）读到的是空类；留在两处＝同族两份、谁后加载谁赢'],
     ['tools/smoke-cal.js', 'const SHAPES = [', 1, '六条畸形形状是一张表（写成一串 if 就没人数得清漏了哪条）'],
     ['tools/smoke-cal.js', "VW = 328, VH = 723", 1, '真机档取自批次 23-D 的改判口径，不是 452 那一档'],
     ['tools/smoke-cal.js', "ok('C", 21, '字面判据条数（六形状那两条在 for 里由 name 拼出，不占字面计数；少一条字面判据要说话）'],
@@ -5199,20 +5243,283 @@ const EMOJI_MARK = 'emoji-ok:';
     if (cnt41(flat41(ctrl), needle) < 1) F41('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
   });
 
-  /* ③ 跨文件前提对账：产品发的那个类名，样式表里得真的存在 */
-  if (V41['travel-notes.js'].indexOf('tn-cal-day-tip') >= 0 && V41['map.css'].indexOf('.tn-cal-day-tip{') < 0)
-    F41('travel-notes.js 发的是 tn-cal-day-tip，而 map.css 没有这条样式：提示行会退化成无排版的一坨（类名改一边不改另一边＝读了个空类）');
+  /* ③ 跨文件前提对账：产品发的那个类名，得在「宿主页真加载的那张表」里存在。
+     原来这条对的是 map.css——而 map.css 只被 3 页加载，于是「样式存在」为真、
+     「那一屏读得到」为假，闸门绿着把批次 26 的修复盖住了一半。改指 design.css，
+     全站加载表对账在 §42（每一个挂 travel-notes.js 的页面都必须引 design.css）。 */
+  if (V41['travel-notes.js'].indexOf('tn-cal-day-tip') >= 0 && V41['design.css'].indexOf('.tn-cal-day-tip{') < 0)
+    F41('travel-notes.js 发的是 tn-cal-day-tip，而 design.css 没有这条样式：提示行会退化成无排版的一坨（类名改一边不改另一边＝读了个空类）');
   /* ④ noteDay 的键形状本身要有对账：它必须与产品写盘用的 fmtDay 同形，否则 persist 的 by_day 索引与 UI 键两套口径 */
   if (V41['travel-notes.js'].indexOf("day: fmtDay(_now),") < 0)
     F41('travel-notes.js 里 saveNote 写盘的 `day: fmtDay(_now),` 不在了：by_day 索引的键形状与 noteDay 的口径必须由同一个 fmtDay 保证，两处分开写＝索引查得到、界面认不出');
 
   if (V41['README.md'].indexOf('§41') < 0) F41('README.md 的 verify 清单没提 §41（新闸门不写进 README 就等于没装）');
 
-  console.log('游记按日期分组闸门: ' + A41.length + ' 条代码锚点（travel-notes 17＝归一单点/任意分隔符正则/ts 兜底/四处读取点同键/sortDays 单点 + 三处调用 + 兜底档压到最后/落最近有记录的月/点开与高亮同键/空月说明+跳过去两处/有记录月的读法/对外出口；review 1＝dayOf 并到单点；index 2；travel-map 1；map.css 1；smoke-cal 3＝形状表/真机档/字面判据条数 21）+ 六条畸形形状逐条在场 + 两条顺序判据逐条在场（倒序与兜底档落位是源码腿看不见的那一类） + 八族期望 0（原始串 indexOf／三处裸 slice／默认落回当前月／review 第二份解析／index 与 travel-map 自数天）各配正向对照 + 两条跨文件对账（发的类名要在样式表里、写盘 day 与 noteDay 同出 fmtDay）；A41 表长 ' + A41.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify41.js');
+  console.log('游记按日期分组闸门: ' + A41.length + ' 条代码锚点（travel-notes 17＝归一单点/任意分隔符正则/ts 兜底/四处读取点同键/sortDays 单点 + 三处调用 + 兜底档压到最后/落最近有记录的月/点开与高亮同键/空月说明+跳过去两处/有记录月的读法/对外出口；review 1＝dayOf 并到单点；index 2；travel-map 1；design.css 1 与 map.css 0＝同一族只许住在所有宿主页都加载的那张表里；smoke-cal 3＝形状表/真机档/字面判据条数 21）+ 六条畸形形状逐条在场 + 两条顺序判据逐条在场（倒序与兜底档落位是源码腿看不见的那一类） + 八族期望 0（原始串 indexOf／三处裸 slice／默认落回当前月／review 第二份解析／index 与 travel-map 自数天）各配正向对照 + 两条跨文件对账（发的类名要在所有宿主页都加载的 design.css 里、写盘 day 与 noteDay 同出 fmtDay）；A41 表长 ' + A41.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify41.js');
   fail += bad41;
 }
 
 
+
+/* ============ §42 拼串闭合 · 样式表归属 · 面板出口唯一（批次 27） ============
+   用户点名的两条：「点按导入、导出弹出的窗口关闭按钮没 x」「游记内容有照片的点击照片不能放大」。
+   定性腿（tools/out/probe27-*.js，全只读）给出的是两个形状完全不同的成因，外加一条没人报的：
+   ① 拼串漏收尾 >。JS 里那句是 `<button … aria-label="关闭"` 直接接 `'+TI('close',14)`：tag 没闭合
+      就交给字符串拼接，HTML 解析器把紧随的整串 `<svg class="ti" …>` 当成 button 的属性吞掉，
+      DOM 里只剩一枚裸 `<use>`（不 paint），`class="ti"` 反而泄漏到 BUTTON 上。看不见＝「没 x」。
+      全库 92 个 `+TI()` 站点里扫出 4 处（导出/导入/选点/定制路书），顺带揪出没人点名的第五枚。
+   ② 样式表归属错置。`.tn-viewer*` 与 `.tn-cal-*` 共 24 行住在 map.css，而 map.css 只被 15 个
+      travel-notes.js 宿主页里的 3 页（node-manager / topic / wishlist）加载。手机上（index / travel-map）
+      读到的是空类：.tn-viewer 退化成文档流里一个裸 DIV（实测 328×63、position:static、z-index:auto），
+      点照片「没反应」；.tn-cal-d 是 <span>，没有 grid 就排成一行裸日号——那正是批次 26 截图里
+      「只有 1234567」的另一半成因。@keyframes tnPickFade 由面板运行时注入，所以挪表不伤动画。
+   ③ 日历点开的日卡自己拼过一版窄卡（tn-item tn-cal-item：只有标题+正文+编辑/删除），照片、标签、
+      录音和另外四个出口全不在屏上——「日历里点照片放大」根本无从下手。
+   ④ 这条是这一节自己身上的：§41／§42 原来用 naive 正则剥块注释，把面板字符串里的「image/星斜杠」
+      当成注释开头，实测在 travel-notes.js 上开出两处盲窗（655→704 面板骨架、1843→1891 编辑卡）。
+      盲窗里正向锚永远读 0、期望 0 那一族永远满足——变异网 M21 把批次 27 删掉的 tn-confirm 插回去、
+      闸门一个字没喊，就是这么露出来的。所以剥注释先跳字符串再判注释开头（文件顶共享函数），
+      下面 ⓪ 那一屏用四段合成串 + 两枚现场哨兵自证这把刀今天还锋利。
+   ⑤ 同一族漏口的第二次现场发作，这次在文档侧：把一串属性值原样抄进 §42 的登记文字，README 里
+      就多出一对字面「斜杠星」，而 view41／view42 当时对 .md 也走剥注释那一支——§40 的一条 README
+      锚当场被吃成 0（红在别节头上，找过来要走一圈）。markdown 根本没有块注释，README 的登记串里
+      天生要写 glob，所以文档那一支改成只归一空白；definition-line 形状的锚钉在 ⓪ 里，改回去就喊。
+   所以这一节钉三件事：坏形状全库 0（扫描器内置，不依赖外部探针跑过）、面板发的每个 tn-* 类必须在
+   「宿主页真加载的那张表」里（design.css ∪ 面板自注入表，且宿主名单是现场 readdirSync 枚举的）、
+   放大出口只有一条（口径限定在面板内：travel-map.html:593 与 md-manager.html:311/727 各有一版可用的
+   页内 zoomPhoto，用内联样式，只是不是同一张皮——登记在 README 的漏口清单里，本批不动）。
+   批次 26 的方法学失手就记在这儿：跨文件对账当时只断「某张表里有这条样式」，选错了表，
+   于是闸门绿着把修复盖住了一半。这一节的宿主页码数不许抄任何文档，一律现场数。
+   浏览器腿 tools/smoke-viewer.js 36 项（真机档 328×723；查看器、日历、五枚弹层 X 全读计算样式与
+   真 DOM 命中，不是「节点在不在」；实测读数见 tools/out/b27-smoke-viewer.txt）。
+   ============================================================ */
+{
+  let bad42 = 0;
+  const F42 = m => { bad42++; console.log('FAIL §42 拼串闭合与样式表归属闸门: ' + m); };
+  const ws42 = s => s.replace(/\s+/g, ' ').trim();
+  const flat42 = s => ws42(stripBlockComments(s));
+  const cnt42 = (s, n) => s.split(n).length - 1;
+  const rd42 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view42 = f => /\.html$|\.md$/.test(f) ? ws42(rd42(f)) : flat42(rd42(f));
+  const Q42 = String.fromCharCode(39);
+
+  const FILES42 = ['travel-notes.js', 'results.js', 'design.css', 'map.css', 'ui.js', 'tools/smoke-viewer.js', 'README.md'];
+  const V42 = {};
+  FILES42.forEach(f => {
+    if (!fs.existsSync(f)) { F42('缺 ' + f); V42[f] = ''; return; }
+    V42[f] = view42(f);
+  });
+
+  /* ⓪ 读源码这件事自己先自校准（批次 27 现场发现，见文件顶 stripBlockComments 的说明）：
+        naive 剥块注释会在 travel-notes.js 上开出两处盲窗（实测 655→704、1843→1891，全是面板骨架
+        与编辑卡两段真代码）。盲窗里正向锚永远读 0，而**期望 0 那一族永远满足**——M21 把批次 27
+        删掉的 tn-confirm 插回去、闸门一个字没喊，就是这么露出来的。
+        两半都要：合成串管「正则/扫描器退化」，现场哨兵管「今天这一段的落点还在不在」——
+        只留合成那一半，扫描器一旦漂到别处，现场那段照样瞎而没人喊。 */
+  {
+    const cal42 = flat42('x = \'<input accept="image/*" multiple>\'; /* tn-hidden-marker */ y = 1;');
+    if (cal42.indexOf('image/*') < 0) F42('剥注释自校准失效：字符串字面量里的「image/*」被当成注释开头吃了（盲窗就是这么开出来的，这一串必须原样留在 flat 里）');
+    if (cal42.indexOf('multiple') < 0) F42('剥注释自校准失效：字符串被截断，后半截「multiple」没留下（同一族的锚点从此读不到，且不会喊）');
+    if (cal42.indexOf('tn-hidden-marker') >= 0) F42('剥注释自校准失效：真块注释没被剥掉（A42/ZERO42 会把注释里写的「改前长什么样」当成代码在场）');
+    /* 第四半：字符串态必须被裸换行收住。这一条不是防御性修辞——去掉那一手，上面三段合成串
+          全都照样绿（它们的引号都闭合了），只有这一整段「引号没闭合」的形状能抓到它。 */
+    const cal42b = flat42('z = \'q;\n/* tn-loose-quote */ k = 1;');
+    if (cal42b.indexOf('tn-loose-quote') >= 0) F42('剥注释自校准失效：一枚没闭合的引号把后面的真注释一路保护下来了（字符串态没在裸换行处收口）——正文字符串外随便一枚游离撇号都会让整份文件变成盲窗，那比原 bug 更瞎');
+    /* §41 与 §42 共用同一把剥刀；flat41 一退回 naive，§41 那八族期望 0 就又住回盲窗里。
+          §41 的名单里没有 verify.js，只能自指——而自指这条**只能钉定义行**：钉「整串在文件里出现」
+          的话，比较串自己就是那一处命中，永远为真（首轮 M44 就是这么假过去的）。 */
+    const DEF41 = (rd42('tools/verify.js').match(/^[ \t]*const flat41 = [^\n]*/m) || [''])[0];
+    if (DEF41.indexOf('stripBlockComments') < 0) F42('§41 的 flat41 定义行没走这把共享剥刀（现场读到的那一行：' +
+      (DEF41.slice(0, 56) || '整行没数到，连定义都漂了') + '）：两节又各剥各的，批次 27 那处盲窗会在 §41 一侧原地重开，而这一节照样全绿');
+    /* 文档那一支必须走「不剥注释」：README 的登记串里天生要写 glob，剥注释＝给文档开盲窗。
+          与 DEF41 同一条自指纪律——只钉定义行，钉整串的话比较串自己就是那一处命中。 */
+    ['view41', 'view42'].forEach(function (fn) {
+      const L = (rd42('tools/verify.js').match(new RegExp('^[ \\t]*const ' + fn + ' = [^\\n]*', 'm')) || [''])[0];
+      if (L.indexOf('.md$') < 0) F42(fn + ' 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' +
+        (L.slice(0, 60) || '整行没数到') + '）：markdown 没有块注释，README 里那几处 glob 形状会被当成注释开头吃掉，' +
+        '文档侧的锚当场读 0——批次 27 就是把一串属性值抄进登记文字后，§40 的一条 README 锚红成了这样');
+    });
+    ['id="tnQuotes"', 'id="tnEditSave"'].forEach(function (mk) {
+      if (V42['travel-notes.js'].indexOf(mk) < 0) F42('盲区哨兵：面板骨架里「' + mk + '」这一段在 flat 里读不到了（这两枚各在一处历史盲窗的正中央；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 五枚弹层关闭钮 + 查看器那枚：类名、id、aria 三件齐，逐枚点名；
+        尺寸与皮肤只在 design.css 一处；两族样式住在所有宿主页都加载的那张表里；放大出口只有一条。 */
+  const A42 = [
+    ['travel-notes.js', '<button class="ui-modal-x" id="tnExpX" aria-label="关闭">', 1, '导出备份那枚：改前是 <button id="tnExpX" style="…34px…" aria-label="关闭" 后面直接拼 TI()，图标整串被解析器吞进属性表'],
+    ['travel-notes.js', '<button class="ui-modal-x" id="tnImpX" aria-label="关闭">', 1, '导入备份那枚＝用户点名的这一处（同一形状的第二份拷贝）'],
+    ['travel-notes.js', '<button class="ui-modal-x" id="placePickerClose" aria-label="关闭">', 1, '选点弹层那枚：同一形状，只是没人报'],
+    ['results.js', '<button class="ui-modal-x" id="rzX" aria-label="关闭">', 1, '纪念册预览那枚：扫描时一并揪出来的，形状与前四枚一模一样'],
+    ['results.js', '<button class="ui-modal-x" id="ix" aria-label="关闭">', 1, '定制路书那枚（第五处）'],
+    ['travel-notes.js', 'class="ui-modal-x"', 3, '面板三枚共用同一个类名：掉到 2＝有一枚又退回页内拼尺寸'],
+    ['results.js', 'class="ui-modal-x"', 2, 'results.js 两枚同理'],
+    ['travel-notes.js', 'class="tn-viewer-x" id="tvX" aria-label="关闭">', 1, '查看器那枚此前连 aria-label 都没有：图标不 paint 时读屏也只剩一个无名字按钮'],
+    ['design.css', '.ui-modal-x{flex:0 0 auto;width:44px;height:44px', 1, '尺寸只在 design.css 这一处定义（改前四枚各拼各的：34/34/34/36，手机上按不到）；flex:0 0 auto 是不许少的——标题行是 flex，被挤到 0 宽就又看不见了'],
+    ['design.css', '.ui-modal-x:active{transform:scale(.92)', 1, '按下要有反馈：这一族与 .ui-sheet-x 同一套手感'],
+    ['design.css', '.theme-dark .ui-modal-x{', 1, '暗色档补回：皮肤不住在类里，页内 inline 那版就没有暗色态'],
+    ['design.css', '.tn-viewer-x{position:absolute', 1, '查看器那枚的定位也在 design.css（原来住 map.css 时，index 上它是文档流里第一个子节点，图标画出来也贴错地方）'],
+    ['design.css', '.ui-modal-mask.show .ui-modal{transform:scale(1)}', 1, '弹层入场那一手要留着：浏览器腿量的就是它的终态（过渡中实测 41×41，见 settle 那条锚）'],
+    ['design.css', '.tn-viewer{position:fixed', 1, '全屏查看器：改前这一屏读到空类，退化成一个 328×63 的裸 DIV，点照片「没反应」就是这个'],
+    ['design.css', 'z-index:9900', 1, '盖在面板与底导航之上（面板那一层是 9400 一族；死码那版用的 9600 压不住查看器）'],
+    ['design.css', 'animation:tnPickFade var(--motion-fast) ease', 1, '引用面板运行时注入的关键帧：挪表时这条腿一断就没有淡入，而 V07 读的正是 animationName 的解析值'],
+    ['travel-notes.js', '@keyframes tnPickFade', 1, '关键帧的真身在 travel-notes.js 注入的表里（design.css 只引用它）：两条锚是一对，删一边另一边就静默失效'],
+    ['design.css', '.tn-cal-grid{display:grid;grid-template-columns:repeat(7,1fr)', 1, '没有这一条，那 31 个 <span> 就排成一行裸日号——正是用户截图里「只有 1234567」的另一半成因'],
+    ['design.css', '.tn-cal-nav{width:44px;height:44px', 1, '月份导航钮：改前 36×36 且住在 map.css（这一屏从没加载过那条规则）'],
+    ['design.css', '.tn-cal-today{min-height:44px', 1, '「本月」胶囊：改前 min-height:34px'],
+    ['design.css', 'body .tn-item h4 .tn-site{', 1, '裸类普查扫出来的同形状漏口：这条此前全库无定义，卡片里的「· 站点名」照抄 h4 的衬线大号，与标题糊成一句'],
+    ['travel-notes.js', 'function zoomPhoto(src) {', 1, '放大出口在面板内只有一份：这里曾有两个同名 function（后一份静默盖掉前一份，而被盖那份的调用者是 0 个——JS 提升不报错）'],
+    ['travel-notes.js', 'function zoomPhotoIdx(id, idx) {', 1, '按笔记 id 放大那一支'],
+    ['travel-notes.js', 'zoomPhotoIdx: zoomPhotoIdx,', 1, '对外出口：卡片上的 <img onclick> 只能走它，不许在页内自己拼全屏层'],
+    ['travel-notes.js', "onclick=\"TravelNotes.zoomPhotoIdx", 1, '照片上的点：这里曾直调裸名字 zoomPhoto，两份同名函数分家时读到的就是被盖的那份'],
+    ['travel-notes.js', 'function openViewer(photos, idx) {', 1, '查看器唯一构造点'],
+    ['travel-notes.js', 'openViewer(ph,', 2, '两个入口（按 id / 按 src）收在同一个查看器上：谁再拼一层全屏层就是第二套皮'],
+    ['travel-notes.js', 'function renderItem(body, n) {', 1, '共用单篇卡：照片、标签、录音与六个出口都在这一张卡上'],
+    ['travel-notes.js', 'renderItem(box, x);', 1, '日历点开那天的卡回到共用卡（成因③）：V23 断的 .tg 出口恰 6 枚就是这一手的结果'],
+    ['ui.js', "xBtn.className = 'ui-sheet-x';", 1, '.ui-sheet-x 是 ui.js 挂的那枚（带 float 与重画补回那条腿）；面板自己拼的这几枚走 .ui-modal-x，两族不许互相蹭（§37 明令 ui-sheet-x 只出现在 ui.js+design.css）'],
+    ['tools/smoke-viewer.js', 'const VW = 328, VH = 723;', 1, '真机档取一加 Ace 6T 的 CSS 视口（批次 23-D 的改判口径）'],
+    ['tools/smoke-viewer.js', "ok('V", 36, '字面判据条数（实跑 36/36 绿）：少一条要说话'],
+    ['tools/smoke-viewer.js', 'naturalWidth', 1, '假图夹具先证明自己解得开：解不开 UI.imgFail 会把 <img> 换成占位块，下面整节腿静默变空——这是假闸的形状'],
+    ['tools/smoke-viewer.js', 'function settle(', 1, '量几何之前等入场动画收尾：直接读 rect 拿到的是过渡中的 41×41'],
+    ['tools/smoke-viewer.js', 'setTimeout(step, 40)', 1, 'settle 的心跳必须是定时器：headless 里 rAF 冻在过渡首帧，用 rAF 轮询等于把 41 当稳定值，判据永远红在「改对了」的那一边'],
+    ['tools/smoke-viewer.js', 'elementFromPoint', 2, '「看不见」与「点不动」是两件事：命中检用真坐标，且要允许命中钮内置的那张 svg'],
+    ['tools/smoke-viewer.js', 'function openAndRead(', 1, '五枚弹层 X 走同一条取样路径：只有各自的 id 不同；取样时机一不同，读数就不可比'],
+  ];
+  A42.forEach(a => {
+    if (a.length !== 4) {
+      F42('A42 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V42)) { F42('A42 登记了 §42 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt42(V42[f], needle);
+    if (n !== exp) F42(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：改前那四族写法不许回来，每条配正向对照（改前原文或合成源串） */
+  const ZERO42 = [
+    ['travel-notes.js', "aria-label=\"关闭\"" + Q42 + "+TI(", "aria-label=\"关闭\"" + Q42 + "+TI('close', 14)", 'tag 没闭合就交给字符串拼接：紧随的整串 <svg> 被解析器当成 button 的属性吞掉，DOM 里只剩一枚不 paint 的裸 <use>，用户读到的就是「关闭按钮没 x」'],
+    ['results.js', "aria-label=\"关闭\"" + Q42 + "+TI(", "aria-label=\"关闭\"" + Q42 + "+TI('close', 14)", '同一份形状的第二宿主：只修 travel-notes.js 的话 results.js 那两枚还是没图标，而这一节钉的是形状不是文件名'],
+    ['travel-notes.js', 'id="tnExpX" style=', 'id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px', '尺寸又回到页内 inline：四枚各拼各的（34/34/34/36 实测），design.css 那条 .ui-modal-x 就成了摆设，暗色态与 :active 也一并丢掉'],
+    ['travel-notes.js', 'class="ui-modal-x" style=', 'class="ui-modal-x" style="width:34px;height:34px" id="tnExpX"', '合成对照：这一条钉「尺寸只许在 design.css 一处」——挂了类又把宽高写回内联，类就只剩个名字，§39 的「值对、出处错」原地复发'],
+    ['results.js', 'class="ui-modal-x" style=', 'class="ui-modal-x" style="width:34px;height:34px" id="ix"', '同上，results.js 那一侧'],
+    ['travel-notes.js', "item.className = 'tn-item tn-cal-item';", "item.className = 'tn-item tn-cal-item';", '日历日卡又自己拼窄卡：那一版 .tg 只有编辑/删除两枚（共用卡是 6 枚），照片、标签、录音全不在屏上，「日历里点照片放大」无从下手'],
+    ['design.css', '.tn-cal-item', '.tn-cal-item{border:1px solid var(--color-line);border-radius:14px;padding:12px 14px;margin-bottom:10px}', '给「日历专用小卡」发通行证＝V23 那条 acts===6 会被重新绕开：窄卡那版样式（连同上面那条拼串）一起退场'],
+    ['map.css', '.tn-cal-item', '.tn-cal-item{border:1px solid var(--color-line);border-radius:14px;padding:12px 14px;margin-bottom:10px}', '同一条也不许留在 map.css：那张表只被 3 页加载，而发这个类的面板挂在 15 页上'],
+    ['map.css', '.tn-viewer', '.tn-viewer{position:fixed;inset:0;z-index:9900', '查看器一族只许有一份，而且必须在所有宿主页都加载的 design.css 里：写回 map.css＝index/travel-map 读到空类，点照片「没反应」（实测退化成文档流里 328×63 的裸 DIV）'],
+    ['map.css', '.tn-cal-', '.tn-cal-grid{display:grid;grid-template-columns:repeat(7,1fr)', '日历一族同上：没有 grid 那 31 个 <span> 就是排成一行裸日号——批次 26 那张截图的另一半成因'],
+    ['travel-notes.js', 'z-index:9600', "d.style.cssText='position:fixed;inset:0;z-index:9600", '死码那版自己拼的全屏层（9600 那一档，调用者 0 个）不许回来：它是第二套皮，而且压不住 9900 的查看器'],
+    ['design.css', '.rz-x', '.rz-x{width:38px;height:38px;border:1px solid var(--color-line);border-radius:50%', 'results.js 那两枚改挂 .ui-modal-x 之后这条就是孤儿样式（全库零调用者）：孤儿规则留着＝下一轮「值对、出处错」的候选，而且它正是 §39 那份 38px 名单里的一条'],
+    ['travel-notes.js', 'id="tnConfirm"', '<div class="tn-confirm" id="tnConfirm" style="display:none"></div>', '那枚空挂载点是裸类普查里唯一的例外（无样式、全库零引用）：删掉它这一节才不需要白名单；它回来＝普查要开后门'],
+    ['tools/smoke-viewer.js', 'window.__rd', "window.__rd = READX;", '浏览器腿不许再把读样函数挂到页面上：页内脚手架一旦被产品自己的同名变量盖住，读数就是假的（这一版把函数直接传进 evaluate）'],
+  ];
+  ZERO42.forEach(a => {
+    if (a.length !== 4) {
+      F42('ZERO42 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V42)) { F42('ZERO42 登记了 §42 没读的文件「' + f + '」：' + why); return; }
+    if (cnt42(V42[f], needle) !== 0) F42(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt42(flat42(ctrl), needle) < 1) F42('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置坏形状扫描器（口径来自 tools/out/probe27-scan-tagclose.js，但这一节自己跑，
+        不依赖谁手工跑过探针）。先自校准：合成坏形状必须命中 1、合成好形状必须命中 0——
+        没有这一步，正则一旦退化（比如被改掉一个字符），全库 0 就毫无意义。 */
+  let scan42 = { files: 0, any: 0, bad: 0, good: 0, un: 0 };
+  {
+    const BAD42 = /<[a-zA-Z][^<>]*?["']\s*\+\s*TI\(/g;
+    const GOOD42 = /<[a-zA-Z][^<>]*?>\s*['"]\s*\+\s*TI\(/g;
+    const ANY42 = /\+\s*TI\(/g;
+    const CAL_BAD42 = '<button id="tnExpX" style="width:34px" aria-label="关闭"' + Q42 + '+TI(' + Q42 + 'close' + Q42 + ', 14)';
+    const CAL_GOOD42 = '<button class="ui-modal-x" id="tnExpX" aria-label="关闭">' + Q42 + ' + TI(' + Q42 + 'close' + Q42 + ', 14)';
+    const m = (re, s) => (s.match(re) || []).length;
+    if (m(BAD42, CAL_BAD42) !== 1) F42('扫描器自校准失效：合成坏形状串命中 ' + m(BAD42, CAL_BAD42) + '（期望 1）。正则一退化，下面那个「全库 0」就是空的');
+    if (m(GOOD42, CAL_BAD42) !== 0) F42('扫描器自校准失效：合成坏形状串被好形状正则认领（' + m(GOOD42, CAL_BAD42) + '）＝两族不再互斥，坏的那一半会被算成好的');
+    if (m(BAD42, CAL_GOOD42) !== 0 || m(GOOD42, CAL_GOOD42) !== 1) F42('扫描器自校准失效：合成好形状串应 BAD 0／GOOD 1，实得 ' + m(BAD42, CAL_GOOD42) + '／' + m(GOOD42, CAL_GOOD42));
+    /* 现场逐条看过、两族正则都不认的合法第三形状（闭合符在拼接段里）：新增一处要看过再登记 */
+    const UNCAL42 = ['node-manager.html', 'planner.js'];
+    const list42 = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && !/-data\.js$/.test(f) && f !== 'sw.js');
+    const hits42 = [], un42 = [];
+    list42.forEach(f => {
+      rd42(f).split('\n').forEach((line, i) => {
+        const b = m(BAD42, line), g = m(GOOD42, line), a = m(ANY42, line);
+        scan42.any += a; scan42.bad += b; scan42.good += g;
+        if (b) hits42.push(f + ':' + (i + 1) + '  ' + ws42(line).slice(0, 90));
+        if (a > Math.max(b, g)) un42.push(f);
+      });
+    });
+    scan42.files = list42.length;
+    scan42.un = un42.length;
+    /* 站点清单必须打在**同一行**：F42 的行前缀是判据，变异网按行取红，换行列出的文件名在它眼里不存在
+          （首轮 M02 三条红里没一条带 results.js，就是这么误判成「异常」的）。 */
+    if (hits42.length) F42('拼串漏收尾 > 的站点 ' + hits42.length + ' 处（图标整串被吞进属性表，界面上就是「关闭按钮没 x」）：' + hits42.join(' ｜ '));
+    if (scan42.any < 90) F42('全库 +TI() 站点分母只剩 ' + scan42.any + '（实测 92）：拼接写法一被整体改掉，这个扫描器就退化成什么都不查，分母要跟着口径一起改');
+    if (scan42.un !== UNCAL42.length) F42('两族正则都没认领的站点从 ' + UNCAL42.length + ' 变成 ' + scan42.un + '：新增的那一处必须现场看过（是真坏形状还是第三种合法写法）再登记，不能被「坏 0」顺手放过');
+    un42.forEach(function (f) { if (UNCAL42.indexOf(f) < 0) F42('未认领站点出现在没登记过的文件「' + f + '」：现场看过再决定是修法还是登记为合法第三形状'); });
+  }
+
+  /* ④ 内置裸类普查（口径来自 tools/out/probe27-class-coverage.js）：面板发出的每一个 tn-* 类，
+        必须在「所有宿主页都加载的 design.css」或「面板自己注入的那份表」里。只在 map.css、
+        或只在某页内联 <style> 里，都算没定义——批次 26 把样式加错表就是这么绿过去的。 */
+  let cls42 = { total: 0, design: 0, own: 0 };
+  {
+    const raw = rd42('travel-notes.js');
+    const CTX42 = [
+      /\bel\(\s*'[a-z]+'\s*,\s*'([^']+)'/g,
+      /className\s*=\s*'([^']+)'/g,
+      /class="([^"]+)"/g,
+      /class='([^']+)'/g,
+      /\$\(body,\s*'\.([a-z0-9_-]+)'\)/g,
+      /querySelector(?:All)?\('\.([a-z0-9_-]+)'\)/g,
+    ];
+    const seen42 = new Set();
+    CTX42.forEach(function (re) {
+      let mm; while ((mm = re.exec(raw))) ws42(mm[1]).split(/\s+/).forEach(function (t) { if (/^tn-[a-z0-9-]+$/.test(t)) seen42.add(t); });
+    });
+    const inline42 = rd42('index.html') + rd42('travel-map.html') + rd42('map.css');
+    const naked42 = [], wrong42 = [];
+    [...seen42].sort().forEach(function (c) {
+      if (V42['design.css'].indexOf('.' + c) >= 0) { cls42.design++; return; }
+      if (new RegExp('\\.' + c + '[\\s,{:.\\[>]').test(raw)) { cls42.own++; return; }
+      if (inline42.indexOf('.' + c) >= 0) { wrong42.push(c); return; }
+      naked42.push(c);
+    });
+    cls42.total = seen42.size;
+    if (cls42.total < 70) F42('裸类普查的分母只剩 ' + cls42.total + ' 个（实测 78）：六个提取上下文被改掉／面板模板换了写法，这一节就退化成什么都不查');
+    if (naked42.length) F42('面板发了裸类（design.css、面板自注入表、map.css、页内联四处都没有定义，界面读到的是空类）：' + naked42.join(' '));
+    if (wrong42.length) F42('面板发的类只住在 map.css 或 index/travel-map 的页内联 <style> 里（map.css 只被 3 页加载、页内联只在那一页）：' + wrong42.join(' ') + '——批次 26 的 .tn-cal-* 就是这个形状');
+  }
+
+  /* ⑤ 动态宿主对账：凡挂了 travel-notes.js 的页面必须引 design.css。
+        页码现场数，不抄文档（批次 26 的失真记录里「16 个页面」实为 15）。 */
+  let hosts42 = [];
+  {
+    hosts42 = fs.readdirSync('.').filter(f => f.endsWith('.html') && rd42(f).indexOf('travel-notes.js') >= 0);
+    if (hosts42.length < 15) F42('挂 travel-notes.js 的宿主页现场只数到 ' + hosts42.length + ' 页（实测 15）：分母掉下去说明枚举口径被改，这一节就不再覆盖全站');
+    const noDesign = hosts42.filter(function (f) {
+      const sheets = [...rd42(f).matchAll(/<link[^>]*stylesheet[^>]*href="([^"]+)"/g)].map(mm => mm[1]);
+      return sheets.indexOf('design.css') < 0;
+    });
+    if (noDesign.length) F42('这些页面挂了 travel-notes.js 却没引 design.css：' + noDesign.join(' ') + '——面板发的那 78 个类在这一屏全是空类（点照片没反应、日历排成一行裸日号就是这个形状）');
+  }
+
+  /* ⑥ 浏览器腿的形状标签逐条在场：锚点只钉「脚手架在不在」，这六类判据是产品行为本身，
+        摘掉一条就是那个症状重新没人管。 */
+  ['V00 测试假图自己能解码', 'V03 查看器 position 是 fixed', 'V15 日历网格是 display:grid',
+   'V19 有记录的那一格底色', 'V23 点开那天的卡是「那一张卡」', 'V24 日历里点开那天看得到照片',
+   'V26 导出备份弹层的关闭钮', 'V28 导入备份弹层的关闭钮同上（用户点名的那一枚）',
+   'V29 点这枚 X 真的收掉了弹层', 'V33 首页（第二个宿主页）'].forEach(function (lab) {
+    if (V42['tools/smoke-viewer.js'].indexOf(lab) < 0)
+      F42('tools/smoke-viewer.js 缺「' + lab + '」这条判据（这一节的立论是「读计算样式与真 DOM 命中，不是读节点在不在」，少一条就少一个证据）');
+  });
+
+  if (V42['README.md'].indexOf('§42') < 0) F42('README.md 的 verify 清单没提 §42（新闸门不写进 README 就等于没装）');
+
+  console.log('拼串闭合与样式表归属闸门: ' + A42.length + ' 条代码锚点（关闭钮五枚逐一点名 + 面板类名计数 3/2 + design.css 尺寸/皮肤/暗色/关键帧引用 + 查看器与日历两族在 design.css 的几何单点 + 放大出口（同名函数恰 1／对外出口 1／构造点 1／两入口收口 2）+ 共用卡两点 + ui-sheet-x 分家 + 浏览器腿 7 条脚手架纪律）+ 十四族期望 0（漏收尾 > 的拼串 ×2 宿主／页内 inline 尺寸／窄卡拼串与它的样式 ×2 表／两族样式留在 map.css／9600 那版死码全屏层／孤儿 .rz-x／空挂载点 tn-confirm／页内脚手架 window.__rd）各配正向对照 + 五项读源码纪律（剥注释先跳字符串再判注释开头，四段合成串正反向自校准；没闭合的引号不许把后面的真注释保护下来；§41 的 flat41 必须走同一把共享剥刀；文档那一支不剥注释（markdown 没有块注释，而 README 的登记串里天生要写 glob）；两处历史盲窗的正中央各钉一枚现场哨兵）+ 三项内置动态对账（坏形状扫描 ' + scan42.files + ' 个文件／' + scan42.any + ' 站点／坏 ' + scan42.bad + '／好 ' + scan42.good + '／未认领 ' + scan42.un + ' 处逐处登记，扫描器先自校准；裸类普查 ' + cls42.total + ' 类＝design.css ' + cls42.design + '＋面板自注入 ' + cls42.own + '／裸 0／错表 0；宿主对账 ' + hosts42.length + ' 页真引 design.css／违规 0）+ 十条浏览器腿形状标签逐条在场；A42 表长 ' + A42.length + ' 条、ZERO42 表长 ' + ZERO42.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify42.js');
+  fail += bad42;
+}
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

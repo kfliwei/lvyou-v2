@@ -1,0 +1,37 @@
+PASS  V00 测试假图自己能解码成 1×1（解码失败会被 UI.imgFail 换成占位块，下面整节腿就空了）  [1x1,1x1]
+PASS  V01 时间线里有照片（.tn-item .pics img ≥3 枚）  [imgs=3]
+PASS  V02 点照片后 .tn-viewer 进了 DOM（这条改前也过，所以它下面全是计算样式）
+PASS  V03 查看器 position 是 fixed（改前读到 static：样式表压根没被这一页加载）  [fixed]
+PASS  V04 查看器 z-index 9900（盖在面板与底导航之上）  [9900]
+PASS  V05 查看器铺满真机视口 328×723  [328x723]
+PASS  V06 底是压深的那一层而不是透明  [rgba(12, 12, 10, 0.95)]
+PASS  V07 入场动画名解析到 tnPickFade（关键帧由面板注入，顺序错了就没有淡入）  [tnPickFade]
+PASS  V08 查看器里那张图＝点的那张
+PASS  V09 多图计数从「1 / 2」起  [1 / 2]
+PASS  V10 两张图时左右翻页钮在场（.tn-viewer-nav 恰 2 枚）  [navs=2]
+PASS  V11 查看器关闭钮：图标真画出来 + ≥44×44 + 类名单点  [{"w":44,"h":44,"box":"268,14,312,58","cls":"tn-viewer-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V12 点右箭头真的换 src（切到第二张那张图）  [IMG AAADyM]
+PASS  V13 计数跟到「2 / 2」  [2 / 2]
+PASS  V14 Escape 能收掉查看器（键盘出口在样式表之外那条腿上）
+PASS  V15 日历网格是 display:grid（改前这一页读不到 map.css，那格是默认 inline）  [grid]
+PASS  V16 网格恰好 7 列  [cols=7]
+PASS  V17 日格有高度（aspect-ratio 生效，不再是行高 17px 的裸 span）  [cellH=62]
+PASS  V18 日格真的分了多行（≥3 行才算铺成月历）  [rows=3]
+FAIL  V19 有记录的那一格底色与空格子不同且不是全透明  [rgba(0, 0, 0, 0) vs rgba(0, 0, 0, 0)]
+PASS  V20 月份导航钮 ≥44×44（改前 36×36，且这一屏从没加载过那条规则）  [44x44]
+PASS  V21 「本月」胶囊 ≥44 高（改前 min-height:34px）  [h=44]
+PASS  V22 说明行落在 .tn-cal-day-tip 上且 display:flex（批次 26 那条样式此前住在错的表里）  [flex 本月 2 篇，分布在 2 天 · 点上面带色的日期看当天]
+PASS  V23 点开那天的卡是「那一张卡」：.tg 的出口恰 6 枚（时间线同款，日历不再自己拼窄卡）  [acts=6]
+PASS  V24 日历里点开那天看得到照片（#calDay 的 .pics img ≥1）  [pic=2]
+PASS  V25 日历里点照片同样开全屏查看器（fixed/9900/铺满）  [fixed/9900/328x723]
+PASS  V26 导出备份弹层的关闭钮：图标真画出来 + ≥44 + 挂 .ui-modal-x  [{"w":44,"h":44,"box":"239,226,283,270","cls":"ui-modal-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V27 这枚钮完整落在 328×723 视口内（右上角不被 safe-area / 圆角挤出屏）  [239,226,283,270]
+PASS  V28 导入备份弹层的关闭钮同上（用户点名的那一枚）  [{"w":44,"h":44,"box":"239,202,283,246","cls":"ui-modal-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V29 点这枚 X 真的收掉了弹层（看不见≠点不动，这条分开验）
+PASS  V30 选点弹层的关闭钮也在同一族里（第三处同形状漏口）  [{"w":44,"h":44,"box":"264,439,308,483","cls":"ui-modal-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V31 results.js 定制路书的关闭钮（第四处，同一次扫描里揪出来的）  [{"w":44,"h":44,"box":"244,206,288,250","cls":"ui-modal-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V32 results.js 纪念册预览的关闭钮（第五处）  [{"w":44,"h":44,"box":"267,19,311,63","cls":"ui-modal-x","aria":"关闭","svg":true,"svgDisp":"block","use":"#ti-close","sym":true,"kids":1,"text":"","hit":true,"hitTag":"svg"}]
+PASS  V33 首页（第二个宿主页）点照片也是全屏 fixed 查看器（map.css 不在这一页的名单里）  [{"imgs":3,"viewer":true,"pos":"fixed","rect":"328x723"}]
+PASS  V34 全程零未捕获报错
+PASS  V35 判据条数 ≥ 30（这一节自己也是会被删的）  [checks=35]
+=== smoke-viewer: 36 项，失败 1 ===

@@ -664,7 +664,6 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     <button class="tn-repolish" id="tnQuote" >追加名言</button>\
     <button class="tn-save" id="tnSave" disabled>保存游记</button>\
   </div>\
-  <div class="tn-confirm" id="tnConfirm" style="display:none"></div>\
   <div class="tn-quotes" id="tnQuotes">\
     <div class="bar"><button class="tn-x" id="tnQuoteBack">←</button><b>名言检索</b></div>\
     <div class="sr"><input id="tnQuoteSearch" placeholder="搜索关键词（如：云冈 / 山水 / 苍山）"><button class="tn-x" id="tnQuoteClear" style="width:40px;height:40px;background:var(--sf2);color:var(--i5)">'+TI('close', 14)+'</button></div>\
@@ -1722,20 +1721,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         var box = $X(body, '#calDay');
         if (!dayList.length) { box.innerHTML = '<div class="tn-empty" style="padding:16px"><span>当天没有游记</span></div>'; return; }
         box.innerHTML = '<div class="tn-cal-day-t">' + k + ' · ' + dayList.length + ' 篇</div>';
-        dayList.sort(function (a, b) { return b.ts - a.ts; }).forEach(function (x) {
-          var item = document.createElement('div');
-          item.className = 'tn-item tn-cal-item';
-          item.innerHTML = '<h4>' + esc(x.title || x.siteName) + '</h4><div class="tm">' + esc(x.date || '') + '</div><div class="tx">' + esc((x.text || x.raw || '').slice(0, 120)) + '</div><div class="tg"><button data-a="edit">编辑</button><button data-a="del" class="danger">删除</button></div>';
-          item.querySelector('[data-a=edit]').onclick = function () { openEdit(x.id); };
-          item.querySelector('[data-a=del]').onclick = function () {
-            confirmDialog('删除这篇游记？此操作不可恢复。', function () {
-              notes = notes.filter(function (y) { return y.id !== x.id; });
-              persist(); renderTNLayer(); renderList(); renderTagBar(); renderStats();
-              if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
-            });
-          };
-          box.appendChild(item);
-        });
+        /* 单篇一律走 renderItem：这里曾自己拼过一版窄卡（只有标题+正文+编辑/删除），
+           照片、标签、录音和另外四个出口全丢了——手机上「日历里点开那天看不到照片」就是它。 */
+        dayList.sort(function (a, b) { return b.ts - a.ts; }).forEach(function (x) { renderItem(box, x); });
       };
     });
   }
@@ -2010,7 +1998,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     function build(json) {
       var m = el('div', 'ui-modal-mask');
       m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
-        + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button id="tnExpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:var(--fs-6);cursor:pointer;flex:0 0 auto" aria-label="关闭"'+TI('close', 14)+'</button></div>'
+        + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导出备份 <button class="ui-modal-x" id="tnExpX" aria-label="关闭">' + TI('close', 14) + '</button></div>'
         + '<div class="ui-modal-text" style="margin-bottom:12px">共 ' + notes.length + ' 篇' + (tasks.length ? ' · 含 ' + tasks.length + ' 个录音/照片文件（已内嵌，可完整恢复）' : '') + ' · 建议用「保存为文件」导出 .json。</div>'
         + '<textarea id="tnExpTxt" class="nm-ta" readonly style="min-height:120px">' + esc(json) + '</textarea>'
         + '<div class="ui-modal-acts" style="gap:8px">'
@@ -2062,7 +2050,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   function importNotes() {
     var m = el('div', 'ui-modal-mask');
     m.innerHTML = '<div class="ui-modal" role="dialog" aria-modal="true">'
-      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导入备份 <button id="tnImpX" style="border:0;background:var(--color-bg-soft);border-radius:8px;width:34px;height:34px;color:var(--color-muted);font-size:var(--fs-6);cursor:pointer;flex:0 0 auto" aria-label="关闭"'+TI('close', 14)+'</button></div>'
+      + '<div class="ui-modal-title" style="display:flex;justify-content:space-between;align-items:center">导入备份 <button class="ui-modal-x" id="tnImpX" aria-label="关闭">' + TI('close', 14) + '</button></div>'
       + '<div class="ui-modal-text" style="margin-bottom:12px">支持粘贴 JSON 或从文件导入（.json），按 id 去重合并。</div>'
       + '<input type="file" id="tnImpFile" accept=".json,application/json" style="display:none">'
       + '<button id="tnImpPick" class="ui-btn" style="width:100%;margin-bottom:8px">选择文件导入</button>'
@@ -2099,16 +2087,6 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         flash('导入完成，新增 ' + added + ' 篇');
       } catch (e) { flash('JSON 格式不正确'); }
     };
-  }
-  function zoomPhoto(src) {
-    /* 全屏图片查看器：避开 WebView 对 backdrop-filter/底部浮层的渲染问题 */
-    var d = el('div', 'tn-dlg');
-    d.style.cssText = 'position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center;background:rgba(6,17,16,.96);text-align:center;padding:20px';
-    d.innerHTML = '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + src + '" style="max-width:92vw;max-height:86vh;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)">'
-      + '<button id="tnZoomX" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:var(--fs-8);cursor:pointer;line-height:1">'+TI('close', 16)+'</button>';
-    document.body.appendChild(d);
-    d.onclick = function (e) { if (e.target === d) d.remove(); };
-    $X(d, '#tnZoomX').onclick = function (e) { e.stopPropagation(); d.remove(); };
   }
 
   /* ---------- 数据管理：清除 / 容量 / 照片墙 ---------- */
@@ -2169,7 +2147,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     if (viewer) viewer.remove();
     viewer = document.createElement('div');
     viewer.className = 'tn-viewer';
-    viewer.innerHTML = '<button class="tn-viewer-x" id="tvX">'+TI('close', 16)+'</button>' +
+    viewer.innerHTML = '<button class="tn-viewer-x" id="tvX" aria-label="关闭">'+TI('close', 16)+'</button>' +
       '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="tvImg" src="' + esc(photos[idx]) + '" alt="">' +
       (photos.length > 1 ? '<button class="tn-viewer-nav l" id="tvL">‹</button><button class="tn-viewer-nav r" id="tvR">›</button>' : '') +
       '<div class="tn-viewer-i" id="tvI">' + (idx + 1) + ' / ' + photos.length + '</div>';
@@ -2469,7 +2447,7 @@ window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {
   head.innerHTML = '<span style="display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--color-primary);border-radius:8px;color:var(--color-primary);font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-5);transform:rotate(-4deg);flex:0 0 auto">记</span>' +
     '<div style="flex:1;min-width:0"><b style="display:block;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);font-weight:600;color:var(--color-ink);letter-spacing:.03em">记录地点</b>' +
     '<small style="color:var(--color-muted);font-size:var(--fs-2);letter-spacing:.05em;display:block;margin-top:1px">选当前位置，或从附近地点中选择</small></div>' +
-    '<button id="placePickerClose" style="width:34px;height:34px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center" aria-label="关闭">'+TI('close', 14)+'</button>';
+    '<button class="ui-modal-x" id="placePickerClose" aria-label="关闭">' + TI('close', 14) + '</button>';
   /* ---- 当前位置卡片 ---- */
   var cur = document.createElement('div');
   cur.style.cssText = 'display:flex;align-items:center;gap:12px;margin:2px 0 12px;padding:13px 14px;border-radius:16px;background:var(--color-bg-soft);border:1px solid rgba(200,109,75,.18);box-shadow:var(--shadow-soft);cursor:pointer';

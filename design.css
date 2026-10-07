@@ -1005,6 +1005,9 @@ body .tn-tl-date small{font-family:var(--font-sans);color:var(--color-muted)}
 /* ---- 游记卡片：杂志式 ---- */
 body .tn-item{background:var(--color-surface);border:1px solid var(--color-line);border-radius:16px;box-shadow:var(--shadow-soft);padding:0.875rem 16px}
 body .tn-item h4{font-family:var(--font-serif);font-weight:400;font-size:var(--fs-7);color:var(--color-ink);letter-spacing:.01em}
+/* 标题后的「· 站点名」：卡片里发的是 <span class="tn-site">，此前全库没有这条规则，
+   于是它照抄 h4 的衬线大号，与标题糊成一句（批次 27 的裸类普查扫出来的同形状漏口）。 */
+body .tn-item h4 .tn-site{font-family:var(--font-sans);font-weight:400;font-size:var(--fs-3);color:var(--color-muted);letter-spacing:0}
 body .tn-item .tm{font-family:var(--font-sans);color:var(--color-muted)}
 body .tn-item .tx{font-family:var(--font-serif);color:var(--color-ink-soft)}
 body .tn-item .tx:not(.open)::after{background:linear-gradient(90deg,transparent,var(--color-surface) 40%);color:var(--color-primary-dark)}
@@ -1063,12 +1066,41 @@ body .tn-dlg .statgrid div{background:var(--color-bg-soft);border:1px solid var(
 body .tn-dlg .statgrid b{font-family:var(--font-serif);font-weight:400;color:var(--color-primary-dark)}
 
 /* ============================================================
+   游记面板：多图查看器 + 日历视图
+   —— 这两族必须住在 design.css：travel-notes.js 挂在 15 个页面上，而 map.css
+   只有 node-manager / topic / wishlist 三页加载。写在 map.css 里，手机上那两屏
+   （index / travel-map）读到的是空类：.tn-viewer 退化成文档流里一个裸 DIV
+   （实测 328×63、z-index:auto），点照片「没反应」；.tn-cal-d 是 <span>，
+   没有 grid 就排成一行裸日号。闸门对账钉的是「宿主页真加载那张表」，不是「某张表里有」。
+   ============================================================ */
+.tn-viewer{position:fixed;inset:0;z-index:9900;background:rgba(12,12,10,.95);display:flex;align-items:center;justify-content:center;animation:tnPickFade var(--motion-fast) ease}
+.tn-viewer img{max-width:100%;max-height:84vh;object-fit:contain;border-radius:8px}
+.tn-viewer-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:var(--fs-8);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tn-viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;cursor:pointer}
+.tn-viewer-nav.l{left:12px}.tn-viewer-nav.r{right:12px}
+.tn-viewer-i{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);left:50%;transform:translateX(-50%);color:#fff;font-size:var(--fs-4);background:rgba(255,255,255,.14);border-radius:999px;padding:5px 14px}
+.tn-cal-head{display:flex;align-items:center;gap:8px;padding:10px 4px}
+.tn-cal-head b{flex:1;font-family:var(--font-serif);font-weight:400;font-size:var(--fs-6);color:var(--color-ink)}
+.tn-cal-nav{width:44px;height:44px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-8);cursor:pointer;flex:0 0 auto}
+.tn-cal-today{min-height:44px;padding:0 12px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-surface);color:var(--color-ink-soft);font-size:var(--fs-3);cursor:pointer;flex:0 0 auto}
+.tn-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px 0}
+.tn-cal-w{text-align:center;font-size:var(--fs-2);color:var(--color-muted);padding:4px 0}
+.tn-cal-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:var(--fs-4);color:var(--color-ink);border-radius:10px;position:relative;cursor:pointer;border:1px solid transparent}
+.tn-cal-d.empty{visibility:hidden}
+.tn-cal-d.has{background:var(--color-primary-soft);color:var(--color-primary-dark);font-weight:600;border-color:rgba(200,109,75,.25)}
+.tn-cal-d.has i{position:absolute;bottom:3px;font-style:normal;font-size:var(--fs-1);background:var(--color-primary);color:var(--bg);border-radius:999px;min-width:14px;height:14px;line-height:14px;text-align:center;padding:0 3px}
+.tn-cal-d.today{outline:2px solid rgba(200,109,75,.4)}
+.tn-cal-day{border-top:1px solid var(--color-line);margin-top:8px;padding-top:8px}
+.tn-cal-day-t{font-family:var(--font-serif);font-size:var(--fs-5);color:var(--color-ink);margin-bottom:6px}
+.tn-cal-day-tip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:var(--fs-4);color:var(--color-ink-soft);padding:2px 0 6px}
+.theme-dark .tn-cal-nav,.theme-dark .tn-cal-today{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink)}
+.theme-dark .tn-cal-d{color:var(--color-ink)}
+
+/* ============================================================
    TRACE v2 成果工坊（results.js）— 组件化重构
    ============================================================ */
 .rz-dlg{position:fixed;inset:0;z-index:9450;background:var(--color-bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .rz-title{font-family:var(--font-serif);font-size:var(--fs-10);color:var(--color-ink);font-weight:400;letter-spacing:.02em}
-.rz-x{width:38px;height:38px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-6);cursor:pointer;display:grid;place-items:center}
-.rz-x:active{transform:scale(.94)}
 /* 成果入口卡片：杂志式（无 emoji，衬线标题+右箭头） */
 .rz-row{display:flex;align-items:center;width:100%;text-align:left;background:var(--color-surface);border:1px solid var(--color-line);border-left:3px solid var(--color-primary);border-radius:14px;padding:1rem 16px;margin-bottom:0.625rem;cursor:pointer;box-shadow:var(--shadow-soft);transition:transform var(--motion-fast) var(--ease-standard),box-shadow var(--motion-fast) var(--ease-standard)}
 @media (hover:hover){.rz-row:hover{box-shadow:var(--shadow-medium)}}
@@ -1264,6 +1296,12 @@ html.font-lg{--fs-stage:1.0625}     /* 设置页大字档：17/16（原 17.5px�
 .ui-modal{width:min(calc(100% - 48px),340px);margin:auto;background:var(--color-surface,#fffdf8);border:1px solid var(--color-line,#e3ded2);border-radius:20px;box-shadow:var(--shadow-float);padding:22px 20px 16px;transform:scale(.94);transition:transform var(--motion-mid) var(--ease-standard, ease)}
 .ui-modal-mask.show .ui-modal{transform:scale(1)}
 .ui-modal-title{font-family:var(--font-serif,serif);font-size:var(--fs-8);color:var(--color-ink,#26241f);margin-bottom:8px}
+/* 弹层标题行右侧的关闭钮（results.js 预览/定制路书 · travel-notes 导出/导入/选点）。
+   与 .ui-sheet-x 分家：那一枚由 ui.js 挂、有 float 与重画补回那条腿，这几枚是各面板自己拼的。
+   尺寸只在 design.css 这一处，JS 里一律不许再内联 width/height（§39 的「值对、出处错」）。 */
+.ui-modal-x{flex:0 0 auto;width:44px;height:44px;padding:0;border:0;border-radius:999px;background:var(--color-bg-soft);color:var(--color-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform var(--motion-tap) var(--ease-pop),background var(--motion-fast)}
+.ui-modal-x:active{transform:scale(.92);background:var(--color-line)}
+.theme-dark .ui-modal-x{background:rgba(239,233,220,.12);color:var(--color-ink)}
 .ui-modal-text{font-size:var(--fs-5);color:var(--color-ink-soft,#55514a);line-height:1.7;white-space:pre-line;margin-bottom:18px}
 .ui-modal-acts{display:flex;gap:10px;justify-content:flex-end}
 .ui-btn{min-height:40px;padding:0 20px;border-radius:999px;font-size:var(--fs-5);border:1px solid var(--color-line-strong,#cfc9ba);background:var(--color-surface,#fffdf8);color:var(--color-ink-soft,#55514a);cursor:pointer;font-family:var(--font-sans,sans-serif)}

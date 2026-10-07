@@ -11,9 +11,11 @@
  *   ② 单点被拆（M07–M12）：三处分组里任何一处退回 .sort().reverse()，或任何一处退回裸
  *      n.date.slice——M08 与 M12 特意分成两条：前者由 A41 的读取点锚抓，后者**只有期望 0 那族
  *      抓得到**（TNStats 那一处本来就没有正向锚，别以为条数锚能替它说话）；
- *   ③ 界面上那两句话与那颗钮（M13–M16、M21–M22）：空月文案整串、有记录月的读法整串、
+ *   ③ 界面上那两句话与那颗钮（M13–M16、M21–M22、M41）：空月文案整串、有记录月的读法整串、
  *      #calGoto 的绑定（calGoto 从 2 掉到 1＝只有 HTML 没有手）、整块空月出口被摘、
- *      map.css 类名漂移（跨文件对账那条才算数）、写盘 day 不再与 noteDay 同出一个 fmtDay；
+ *      design.css 类名漂移（跨文件对账那条才算数）、这一族写回 map.css（M41：批次 27 把这条锚
+ *      从 map.css 改指所有宿主页都加载的 design.css，并把 map.css 那一处改成期望 0——
+ *      批次 26 当时选的表就是这批的失手点）、写盘 day 不再与 noteDay 同出一个 fmtDay；
  *   ④ 守卫自己（M23–M32）：条数阈值（当前实测 21 颗字面判据，取 21+1=22 必须红——M51 那一课）、
  *      A41／ZERO41 的四元组形状、needle 写坏一个字符（正向对照当场失效、那个 0 不再是证据）、
  *      A41 登记了 §41 没读的文件、smoke-cal 摘一条形状／摘一条字面判据／摘一条顺序判据、
@@ -55,7 +57,7 @@ console.log = function () {
 };
 
 const FILES = ['travel-notes.js', 'review.html', 'index.html', 'travel-map.html', 'map.css',
-  'README.md', 'tools/verify.js', 'tools/smoke-cal.js'];
+  'design.css', 'README.md', 'tools/verify.js', 'tools/smoke-cal.js'];
 const ORIG = {};
 FILES.forEach(f => { ORIG[f] = fs.readFileSync(path.join(ROOT, f), 'utf8'); });
 function restore() {
@@ -75,7 +77,7 @@ const FP = [
   ['review.html', 'function dayOf(n){return TravelNotes.noteDay(n);}'],
   ['index.html', 'TravelNotes.noteDay(last)'],
   ['travel-map.html', 'TravelNotes.noteDay(n)'],
-  ['map.css', '.tn-cal-day-tip{'],
+  ['design.css', '.tn-cal-day-tip{'],   /* 批次 27 把这条锚从 map.css 改指 design.css：样式住在所有宿主页都加载的那张表里才算数 */
   ['tools/smoke-cal.js', 'const SHAPES = ['],
   ['tools/smoke-cal.js', "ok('C26 "],
   ['tools/verify.js', '§41 游记按日期分组闸门'],
@@ -160,9 +162,13 @@ t('M16 整块空月出口被摘成一句日期（说明与那颗钮一起没了�
   [["      dayBox.innerHTML = '<div class=\"tn-cal-day-tip\">这个月还没有游记。最近有记录的一天是 <b>' + newest + '</b>' +\n        '<button class=\"tn-cal-today\" id=\"calGoto\">跳过去</button></div>';\n      $X(dayBox, '#calGoto').onclick = function () { calState.ym = (+newest.slice(0, 4)) * 100 + (+newest.slice(5, 7)); renderCalView(body, list); };",
     "      dayBox.innerHTML = '<div class=\"tn-cal-day-tip\">' + newest + '</div>';"]],
   '实得 0，期望 2');
-t('M21 map.css 那条样式改了名（产品发的类名没人接，提示行退化成无排版的一坨）', 'map.css',
+t('M21 design.css 那条样式改了名（产品发的类名没人接，提示行退化成无排版的一坨）', 'design.css',
   [['.tn-cal-day-tip{', '.tn-cal-tip{']],
   '没有这条样式');
+t('M41 这一族又写回 map.css（批次 26 的失手点：那张表只被 3 页加载，期望 0 那族就是为它立的）', 'map.css',
+  [['/* 多图查看器 + 日历视图的样式在 design.css（2026-10-07 挪出）：\n',
+    '.tn-cal-day-tip{display:flex;align-items:center;gap:10px;padding:2px 0 6px}\n/* 多图查看器 + 日历视图的样式在 design.css（2026-10-07 挪出）：\n']],
+  '正向对照就是上一条');
 t('M22 写盘 day 不再走 fmtDay（by_day 索引的键与 UI 的键两套出处，看着等价而已漂）', 'travel-notes.js',
   [['day: fmtDay(_now),', 'day: fmtTime(_now).slice(0, 10),']],
   '不在了');
@@ -190,8 +196,8 @@ t('M23 字面判据阈值从 21 抬到 22（当前实测 21，必须红——阈
   [["\"ok('C\", 21,", "\"ok('C\", 22,"]],
   '实得 21，期望 22');
 t('M24 A41 有一条少写「原因」字段（解构错位，那条锚等于没跑）', 'tools/verify.js',
-  [["['map.css', '.tn-cal-day-tip{', 1, '提示行有自己的类（不靠 inline style 魔法数，暗色与字号阶梯才跟得上）'],",
-    "['map.css', '.tn-cal-day-tip{', 1],"]],
+  [["['design.css', '.tn-cal-day-tip{', 1, '提示行有自己的类（不靠 inline style 魔法数，暗色与字号阶梯才跟得上），而且必须住在所有宿主页都加载的那张表里'],",
+    "['design.css', '.tn-cal-day-tip{', 1],"]],
   '不是「[文件, 串, 期望次数, 原因]」四元组');
 t('M25 ZERO41 有一条少写「正向对照源码」字段（那族期望 0 失去自证也不会有人喊）', 'tools/verify.js',
   [["['review.html', \"(n.day||(n.date||'').slice(0,10)||'').slice(0,10)\", \"function dayOf(n){return (n.day||(n.date||'').slice(0,10)||'').slice(0,10);}\", '第二份日期解析又立起来了：它不认点号/中文，也没有 ts 兜底，两页同一篇会一边亮一边不亮'],",
@@ -201,7 +207,7 @@ t('M26 期望 0 的 needle 少打一个空格（正向对照当场失效——�
   [["['travel-notes.js', 'n.date.slice(0, 10)',", "['travel-notes.js', 'n.date.slice(0,10)',"]],
   '正向对照失效了');
 t('M27 A41 登记了 §41 根本没读的文件（锚钉在没人读的字符串上＝永久绿灯）', 'tools/verify.js',
-  [["['map.css', '.tn-cal-day-tip{', 1,", "['design.css', '.tn-cal-day-tip{', 1,"]],
+  [["['tools/smoke-cal.js', \"ok('C\", 21,", "['tools/smoke-cal-x.js', \"ok('C\", 21,"]],
   '没读的文件');
 t('M28 smoke-cal 摘掉一条畸形形状（表还在、腿空了一条，那个症状重新没人管）', 'tools/smoke-cal.js',
   [["    ['C03 点号 2026.10.08', note(ts(M, 8), Y + '.' + pad(M + 1) + '.08 15:30', '点号', ''), dayKey(8)],\n", '']],
@@ -354,7 +360,7 @@ CASES.forEach(judge);
 
 console.log('====================================================================');
 console.log('§41 变异自测 共 ' + total + ' 条：按预期红 ' + red + ' / 设计内静默（源码腿绿 + 浏览器腿红）' + silent + ' / 异常 ' + anomalies);
-console.log('A41 表长 25（M23 打的 21→22 就是「阈值类变异要取当前长度 + 1」这条规矩的落地）');
+console.log('A41 表长 26（M23 打的 21→22 就是「阈值类变异要取当前长度 + 1」这条规矩的落地；批次 27 把 .tn-cal-day-tip 那条锚从 map.css 改指 design.css，并新增 map.css 期望 0 那一族，表长从 25 抬到 26，M41 打的就是新立的这一族）');
 console.log('判读：M12 与 M23 是这张网最该在的两条——前者证明「读取点正向锚」之外还有期望 0 那一族在守，' +
   '后者证明条数阈值不是抄来的死数；G01/G02 证明「源码锚只钉在场」这件事由浏览器腿补上形状与顺序，' +
   '而不是无人认领。');
