@@ -344,10 +344,11 @@
     document.getElementById('tripEmpty').style.display = 'none';
     document.getElementById('tripFull').style.display = 'block';
     var sites = new Set(all.filter(function (n) { return n.lat != null; }).map(function (n) { return n.lat.toFixed(4) + ',' + n.lng.toFixed(4); }));
-    var days = new Set(all.map(function (n) { return n.date.slice(0, 10); }));
+    var days = new Set(all.map(function (n) { return TravelNotes.noteDay(n); }).filter(Boolean));
     var first = all[all.length - 1], last = all[0];  // first=最早一条, last=最近一条
     document.getElementById('tripTitle').textContent = '我的旅程 · ' + all.length + ' 篇 · ' + sites.size + ' 地';
-    document.getElementById('tripDates').textContent = (last && last.date) ? last.date.slice(0,10) + ' 起 · 历 ' + days.size + ' 日' : '';
+    var lastDay = last ? TravelNotes.noteDay(last) : '';
+    document.getElementById('tripDates').textContent = lastDay ? lastDay + ' 起 · 历 ' + days.size + ' 日' : '';
     document.getElementById('tripSub').textContent = (all.length >= 2 ? '自 ' + (first.title || first.siteName) + ' 至 ' + (last.title || last.siteName) + '，' : '') + '历 ' + days.size + ' 日';
     // 大图：取最近一条游记的照片（无则渐变占位）
     var ph = document.getElementById('tripPhoto');

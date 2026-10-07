@@ -5094,5 +5094,125 @@ const EMOJI_MARK = 'emoji-ok:';
 
 
 
+/* ============ §41 游记按日期分组闸门（批次 26） ============
+   用户报的是「我的游记—日期 tab 没有内容显示，只有 1234567……」。定性腿 tools/out/probe26-cal2.js
+   （七条腿各注一份真 IndexedDB，逐形状读数）给的是三条成因，全都跟「渲染」无关：
+   ① calState.ym 硬默认当前月。笔记都在往月时，那一栏画出来就是 1..31 一串裸日号，
+      #calDay 是一块纯空白——既不说「这个月没有」，也没有一条去别处的路。症状与截图完全对上。
+   ② 「格子亮不亮」用正则补零后的键，「点开有没有内容」却用原始 date 字符串 indexOf：两套口径。
+      于是 2026-10-8（未补零）会「亮着却打不开」，2026.10.08 / 2026年10月8日 干脆不亮。
+   ③ n.date.slice(...) 在 5 处裸用（统计/日档/年档/月档/TNStats）。date 字段整个缺失时
+      openList 抛 Cannot read properties of undefined (reading 'slice')，列表一栏都出不来。
+   修法是一个归一单点 TravelNotes.noteDay(n)（day → date 里任意非数字分隔符的年月日 → ts 反推，
+   一律出补零键）＋日历默认落在「最近有记录的那个月」＋空月给「最近有记录的一天是 X｜跳过去」。
+   所以这一节钉的是**形状纪律**：坏形状与好形状必须得到同一个读数，且不许有人再拼第二份解析。
+   浏览器腿 tools/smoke-cal.js 33 项（六条畸形形状 ×2 + 落月/空白说明/空月出口 + 时间线与统计同键
+   + 回顾页与首页同口径 + 分组顺序两条 + 全程零未捕获报错；实测读数见 tools/out/b26-smoke-cal.txt）。
+   ============================================================ */
+{
+  let bad41 = 0;
+  const F41 = m => { bad41++; console.log('FAIL §41 游记按日期分组闸门: ' + m); };
+  const ws41 = s => s.replace(/\s+/g, ' ').trim();
+  const flat41 = s => ws41(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const cnt41 = (s, n) => s.split(n).length - 1;
+  const rd41 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view41 = f => /\.html$/.test(f) ? ws41(rd41(f)) : flat41(rd41(f));
+
+  const FILES41 = ['travel-notes.js', 'review.html', 'index.html', 'travel-map.html', 'map.css', 'tools/smoke-cal.js', 'README.md'];
+  const V41 = {};
+  FILES41.forEach(f => {
+    if (!fs.existsSync(f)) { F41('缺 ' + f); V41[f] = ''; return; }
+    V41[f] = view41(f);
+  });
+
+  /* ① 归一单点在场，且所有按日期分组的读取点都只走它 */
+  const A41 = [
+    ['travel-notes.js', 'function noteDay(n) {', 1, '全库唯一的日期归一出口（两处各拼一份解析＝两套口径再次分家，就是本批的成因②）'],
+    ['travel-notes.js', 's.match(/(\\d{4})\\D(\\d{1,2})\\D(\\d{1,2})/)', 1, '认**任意非数字分隔符**（- 与 . 与 年月日）且允许未补零：只认连字符就是点号/中文日期不亮的那一半成因'],
+    ['travel-notes.js', "return (typeof ts === 'number' && isFinite(ts)) ? fmtDay(ts) : '';", 1, 'date 坏/缺时由 ts 反推，最后出空串而不是抛错（成因③：undefined.slice 把整栏带走）'],
+    ['travel-notes.js', 'var dd = noteDay(n); if (dd) days[dd] = 1;', 1, '顶栏「天数」走归一键：这里曾是 n.date.slice(0,10)，date 缺失时 openList 直接抛'],
+    ['travel-notes.js', 'var dd = noteDay(n); if (dd) { days[dd] = 1; months[dd.slice(0, 7)]', 1, '统计面板的天数与月份分布同一个键（两处各读各的 date 会出现天数与月分布对不上）'],
+    ['travel-notes.js', 'var d = noteDay(n) || UNDATED;', 1, '旅程展开/月内日档共用的分组键（这一档同时是日历点开后那个标题的来源）'],
+    ['travel-notes.js', 'var y = noteYear(n);', 1, '时间线年档走 noteYear（noteYear 内部就是 noteDay，键形状只有一处定义）'],
+    ['travel-notes.js', 'var m = noteMonth(n);', 1, '时间线月档同上：坏形状时这里曾直接照抄出「2026.10」这种档'],
+    ['travel-notes.js', 'function sortDays(ks) {', 1, '倒序 + 兜底档压到最后的单点（三处分组各写 .sort().reverse()＝「未填日期」会排到最新那一头，用户以为那是最近一趟）'],
+    ['travel-notes.js', 'sortDays(Object.keys', 3, '三处分组（日档/年档/月档）全走同一个倒序单点：这一处退回 .sort().reverse()，锚点还在、调用者已经少了一个，兜底档就在一处排到了最前'],
+    ['travel-notes.js', 'if (a === UNDATED) return 1;', 1, '「未填日期」压在最后的那一手：摘掉它 sortDays 还是那个名字、还是那个函数，界面会把「未填日期」当成最近一趟摆在第一个'],
+    ['travel-notes.js', 'if (!calState.ym) calState.ym = newest ?', 1, '首次进日历落「最近有记录的那个月」：成因①的修复点，落回当前月就是那串裸日号回来'],
+    ['travel-notes.js', 'return noteDay(x) === k;', 1, '点开过滤与格子高亮共用同一个键（改回 indexOf 原文＝亮着却打不开）'],
+    ['travel-notes.js', '这个月还没有游记', 1, '空月要说话：#calDay 从前是纯空白，用户只能读出「坏了」'],
+    ['travel-notes.js', 'calGoto', 2, '空月出口两处（写出这颗钮 + 绑上事件）：只有 HTML 一次＝点了没反应'],
+    ['travel-notes.js', '点上面带色的日期看当天', 1, '有记录的月也要给一句读法（否则 31 个格子里那两个带色的是什么，没人知道）'],
+    ['travel-notes.js', 'noteDay: noteDay,', 1, '对外出口：外部页面（回顾/首页/足迹）必须复用这一份，不许自己再解析'],
+    ['review.html', 'function dayOf(n){return TravelNotes.noteDay(n);}', 1, '回顾页那第二份解析（不认点号/中文、也没有 ts 兜底）已并到单点'],
+    ['index.html', 'TravelNotes.noteDay(n)', 1, '首页「历 N 日」按归一键数天'],
+    ['index.html', 'TravelNotes.noteDay(last)', 1, '首页那行起始日走同一个键（原来照抄 last.date 会把 2026年10月8日 直接印到界面上）'],
+    ['travel-map.html', 'TravelNotes.noteDay(n)', 1, '足迹画布上的天数同一个键（这里也是裸 slice 的崩点之一）'],
+    ['map.css', '.tn-cal-day-tip{', 1, '提示行有自己的类（不靠 inline style 魔法数，暗色与字号阶梯才跟得上）'],
+    ['tools/smoke-cal.js', 'const SHAPES = [', 1, '六条畸形形状是一张表（写成一串 if 就没人数得清漏了哪条）'],
+    ['tools/smoke-cal.js', "VW = 328, VH = 723", 1, '真机档取自批次 23-D 的改判口径，不是 452 那一档'],
+    ['tools/smoke-cal.js', "ok('C", 21, '字面判据条数（六形状那两条在 for 里由 name 拼出，不占字面计数；少一条字面判据要说话）'],
+  ];
+  A41.forEach(a => {
+    if (a.length !== 4) {
+      F41('A41 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V41)) { F41('A41 登记了 §41 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt41(V41[f], needle);
+    if (n !== exp) F41(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* 六条形状各自必须在 smoke-cal 里出现（摘掉一条＝那个症状重新没人管，表还在但腿空了） */
+  ['C01 对照', 'C02 未补零', 'C03 点号', 'C04 中文', 'C05 date 是空串', 'C06 date 字段整个不存在'].forEach(function (lab) {
+    if (V41['tools/smoke-cal.js'].indexOf(lab) < 0)
+      F41('tools/smoke-cal.js 缺「' + lab + '」这条形状（本批的立论是坏形状与好形状同读数，少一条就是少一个证据）');
+  });
+
+  /* 两条顺序判据逐条在场：sortDays 的锚只认「函数与调用点在」，倒序方向和兜底档落位是
+     源码腿结构性看不见的那一类（变异自测 G02 就拿「比较器反向」证明这点），只有真渲染一次才知道。 */
+  ['C26 时间线日档按新→旧排', 'C27 既没日期也没 ts 的那条压在最后'].forEach(function (lab) {
+    if (V41['tools/smoke-cal.js'].indexOf(lab) < 0)
+      F41('tools/smoke-cal.js 缺「' + lab + '」这条顺序判据（分组顺序没有别的腿守着，摘掉就再没人知道它翻了）');
+  });
+
+  /* ② 期望 0：改前三套写法不许回来，每条配正向对照 */
+  const ZERO41 = [
+    ['travel-notes.js', "String(x.date || '').indexOf(k)", "var dayList = list.filter(function (x) { return String(x.date || '').indexOf(k) >= 0; });", '点开又改用原始串子串匹配：格子亮的是一套键、点开是另一套，未补零日期永远「当天没有游记」'],
+    ['travel-notes.js', 'n.date.slice(0, 10)', "days[n.date.slice(0, 10)] = 1;", '裸 slice 回来了：date 缺失即抛，整栏（含日历 tab）出不来'],
+    ['travel-notes.js', 'n.date.slice(0, 4)', "var y = n.date.slice(0, 4);", '时间线年档又照抄原文：点号/中文日期会分出自己的档，跨年浏览全乱'],
+    ['travel-notes.js', 'n.date.slice(0, 7)', "var m = n.date.slice(0, 7);", '同上，月档形状必须与日历键同形（否则月历与时间线对不上同一条笔记）'],
+    ['travel-notes.js', 'if (!calState.ym) calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1);', "if (!calState.ym) calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1);", '默认又落回当前月：笔记都在往月时满屏只剩裸日号，而这块空白看起来就是「页面坏了」'],
+    ['review.html', "(n.day||(n.date||'').slice(0,10)||'').slice(0,10)", "function dayOf(n){return (n.day||(n.date||'').slice(0,10)||'').slice(0,10);}", '第二份日期解析又立起来了：它不认点号/中文，也没有 ts 兜底，两页同一篇会一边亮一边不亮'],
+    ['index.html', 'n.date.slice(0, 10)', "var days = new Set(all.map(function (n) { return n.date.slice(0, 10); }));", '首页自己数天：坏形状时「历 N 日」会按原始字符串数出重复天'],
+    ['travel-map.html', 'n.date.slice(0,10)', "new Set(notes.map(n=>n.date.slice(0,10))).size", '足迹画布自己数天（这里同样是裸 slice，date 缺失整张导出图抛错）'],
+  ];
+  ZERO41.forEach(a => {
+    if (a.length !== 4) {
+      F41('ZERO41 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V41)) { F41('ZERO41 登记了 §41 没读的文件「' + f + '」：' + why); return; }
+    if (cnt41(V41[f], needle) !== 0) F41(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt41(flat41(ctrl), needle) < 1) F41('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 跨文件前提对账：产品发的那个类名，样式表里得真的存在 */
+  if (V41['travel-notes.js'].indexOf('tn-cal-day-tip') >= 0 && V41['map.css'].indexOf('.tn-cal-day-tip{') < 0)
+    F41('travel-notes.js 发的是 tn-cal-day-tip，而 map.css 没有这条样式：提示行会退化成无排版的一坨（类名改一边不改另一边＝读了个空类）');
+  /* ④ noteDay 的键形状本身要有对账：它必须与产品写盘用的 fmtDay 同形，否则 persist 的 by_day 索引与 UI 键两套口径 */
+  if (V41['travel-notes.js'].indexOf("day: fmtDay(_now),") < 0)
+    F41('travel-notes.js 里 saveNote 写盘的 `day: fmtDay(_now),` 不在了：by_day 索引的键形状与 noteDay 的口径必须由同一个 fmtDay 保证，两处分开写＝索引查得到、界面认不出');
+
+  if (V41['README.md'].indexOf('§41') < 0) F41('README.md 的 verify 清单没提 §41（新闸门不写进 README 就等于没装）');
+
+  console.log('游记按日期分组闸门: ' + A41.length + ' 条代码锚点（travel-notes 17＝归一单点/任意分隔符正则/ts 兜底/四处读取点同键/sortDays 单点 + 三处调用 + 兜底档压到最后/落最近有记录的月/点开与高亮同键/空月说明+跳过去两处/有记录月的读法/对外出口；review 1＝dayOf 并到单点；index 2；travel-map 1；map.css 1；smoke-cal 3＝形状表/真机档/字面判据条数 21）+ 六条畸形形状逐条在场 + 两条顺序判据逐条在场（倒序与兜底档落位是源码腿看不见的那一类） + 八族期望 0（原始串 indexOf／三处裸 slice／默认落回当前月／review 第二份解析／index 与 travel-map 自数天）各配正向对照 + 两条跨文件对账（发的类名要在样式表里、写盘 day 与 noteDay 同出 fmtDay）；A41 表长 ' + A41.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify41.js');
+  fail += bad41;
+}
+
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

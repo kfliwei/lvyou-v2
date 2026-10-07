@@ -1112,6 +1112,7 @@ a.ol{color:var(--cinnabar-600);text-decoration:none;font-size:var(--fs-3);font-f
 .tn-cal-d.today{outline:2px solid rgba(200,109,75,.4)}
 .tn-cal-day{border-top:1px solid var(--color-line);margin-top:8px;padding-top:8px}
 .tn-cal-day-t{font-family:var(--font-serif);font-size:var(--fs-5);color:var(--color-ink);margin-bottom:6px}
+.tn-cal-day-tip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:var(--fs-4);color:var(--color-ink-soft);padding:2px 0 6px}
 .tn-cal-item{border:1px solid var(--color-line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
 .tn-cal-item h4{font-family:var(--font-serif);font-size:var(--fs-6);color:var(--color-ink);margin:0 0 4px}
 .theme-dark .tn-cal-nav,.theme-dark .tn-cal-today{background:var(--color-surface);border-color:var(--color-line);color:var(--color-ink)}

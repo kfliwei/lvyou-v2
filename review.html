@@ -295,7 +295,7 @@ var dayMoods={};
 var MOOD_ICON={'😀':'smile','😐':'meh','😭':'sad','⛰️':'mountain','🍜':'food','🧭':'compass'};   /* emoji-ok: 同上，仅作映射键 */
 try{ dayMoods=JSON.parse(localStorage.getItem('tn_dayMoods')||'{}'); }catch(e){ dayMoods={}; }
 function saveMoods(){ try{ localStorage.setItem('tn_dayMoods',JSON.stringify(dayMoods)); }catch(e){} }
-function dayOf(n){return (n.day||(n.date||'').slice(0,10)||'').slice(0,10);}
+function dayOf(n){return TravelNotes.noteDay(n);}
 function render(){
   notes=(window.TravelNotes?TravelNotes.list():[]);
   dayMap={};

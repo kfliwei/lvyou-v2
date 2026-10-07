@@ -278,6 +278,27 @@ window.Ai = (function () {
   function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function uid() { return 'tn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
   function fmtDay(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  /* 日期归一单点：day 字段 → date 里的年月日 → ts 反推，一律出补零的 YYYY-MM-DD。
+     历史数据/导入/备份恢复的 date 形状五花八门（2026-10-8、2026.10.08、2026年10月8日、没有），
+     而日历「亮哪格」与「点开有内容」必须共用同一个键，否则格子亮了却永远打不开。 */
+  function noteDay(n) {
+    var s = String((n && (n.day || n.date)) || '');
+    var m = s.match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/);
+    if (m) return m[1] + '-' + pad2(+m[2]) + '-' + pad2(+m[3]);
+    var ts = n && n.ts;
+    return (typeof ts === 'number' && isFinite(ts)) ? fmtDay(ts) : '';
+  }
+  function noteMonth(n) { var d = noteDay(n); return d ? d.slice(0, 7) : UNDATED; }
+  function noteYear(n) { var d = noteDay(n); return d ? d.slice(0, 4) : UNDATED; }
+  var UNDATED = '未填日期';   /* 兜底分组名：整条既没有日期也没有 ts 时不至于渲染成空白档 */
+  /* 日期档倒序，兜底档永远压在最后 */
+  function sortDays(ks) {
+    return ks.sort(function (a, b) {
+      if (a === UNDATED) return 1;
+      if (b === UNDATED) return -1;
+      return a < b ? 1 : a > b ? -1 : 0;
+    });
+  }
   /* 从景点对象推导省/市/县（供保存游记归档；途终点无匹配则留空） */
   var CITY_PROV = {
     '大同市':'山西省','朔州市':'山西省','忻州市':'山西省','太原市':'山西省','阳泉市':'山西省','晋中市':'山西省','吕梁市':'山西省','长治市':'山西省','晋城市':'山西省','临汾市':'山西省','运城市':'山西省',
@@ -1594,7 +1615,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var sites = {}, days = {}, photos = 0;
     notes.forEach(function (n) {
       if (n.lat != null) sites[n.lat.toFixed(4) + ',' + n.lng.toFixed(4)] = 1;
-      days[n.date.slice(0, 10)] = 1;
+      var dd = noteDay(n); if (dd) days[dd] = 1;
       photos += (n.photos || []).length;
     });
     box.innerHTML = '<div class="tn-statbox"><b>' + notes.length + '</b><span>游记</span></div><div class="tn-statbox"><b>' + Object.keys(sites).length + '</b><span>地点</span></div><div class="tn-statbox"><b>' + photos + '</b><span>照片</span></div><div class="tn-statbox"><b>' + Object.keys(days).length + '</b><span>天数</span></div>';
@@ -1652,14 +1673,20 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   function pad2(x) { return x < 10 ? '0' + x : '' + x; }
   function renderCalView(body, list) {
     var now = new Date();
-    if (!calState.ym) calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1);
-    var y = Math.floor(calState.ym / 100), mo = calState.ym % 100;
-    /* 当天有游记的集合 */
+    /* 当天有游记的集合（键与点开共用 noteDay） */
     var days = {};
     list.forEach(function (x) {
-      var m = String(x.date || '').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-      if (m) days[m[1] + '-' + pad2(+m[2]) + '-' + pad2(+m[3])] = (days[m[1] + '-' + pad2(+m[2]) + '-' + pad2(+m[3])] || 0) + 1;
+      var k = noteDay(x);
+      if (k) days[k] = (days[k] || 0) + 1;
     });
+    var dayKeys = Object.keys(days).sort();
+    var newest = dayKeys[dayKeys.length - 1] || '';
+    /* 默认落在「最近有游记的那个月」而不是当前月：本月一篇都没有时，停在当前月就只剩一串裸日号 */
+    if (!calState.ym) calState.ym = newest ? (+newest.slice(0, 4)) * 100 + (+newest.slice(5, 7)) : now.getFullYear() * 100 + (now.getMonth() + 1);
+    var y = Math.floor(calState.ym / 100), mo = calState.ym % 100;
+    var curPrefix = y + '-' + pad2(mo);
+    var monthDays = dayKeys.filter(function (k) { return k.slice(0, 7) === curPrefix; });
+    var monthTotal = monthDays.reduce(function (s, k) { return s + days[k]; }, 0);
     var first = new Date(y, mo - 1, 1);
     var startDow = first.getDay(); /* 0=日 */
     var dim = new Date(y, mo, 0).getDate();
@@ -1667,7 +1694,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     html += '<div class="tn-cal-grid">' + ['日', '一', '二', '三', '四', '五', '六'].map(function (w) { return '<span class="tn-cal-w">' + w + '</span>'; }).join('');
     for (var i = 0; i < startDow; i++) html += '<span class="tn-cal-d empty"></span>';
     for (var d = 1; d <= dim; d++) {
-      var key = y + '-' + pad2(mo) + '-' + pad2(d);
+      var key = curPrefix + '-' + pad2(d);
       var cnt = days[key] || 0;
       var isToday = (y === now.getFullYear() && mo === now.getMonth() + 1 && d === now.getDate());
       html += '<span class="tn-cal-d' + (cnt ? ' has' : '') + (isToday ? ' today' : '') + '" data-day="' + key + '">' + d + (cnt ? '<i>' + cnt + '</i>' : '') + '</span>';
@@ -1677,10 +1704,21 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     $X(body, '#calPrev').onclick = function () { calState.ym = (mo === 1 ? (y - 1) * 100 + 12 : calState.ym - 1); renderCalView(body, list); };
     $X(body, '#calNext').onclick = function () { calState.ym = (mo === 12 ? (y + 1) * 100 + 1 : calState.ym + 1); renderCalView(body, list); };
     $X(body, '#calToday').onclick = function () { calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1); renderCalView(body, list); };
+    /* 月份本身有没有货，先在这里说清楚——否则这一栏永远是一块空白，看上去像坏了 */
+    var dayBox = $X(body, '#calDay');
+    if (monthTotal) {
+      dayBox.innerHTML = '<div class="tn-cal-day-tip">本月 ' + monthTotal + ' 篇，分布在 ' + monthDays.length + ' 天 · 点上面带色的日期看当天</div>';
+    } else if (newest) {
+      dayBox.innerHTML = '<div class="tn-cal-day-tip">这个月还没有游记。最近有记录的一天是 <b>' + newest + '</b>' +
+        '<button class="tn-cal-today" id="calGoto">跳过去</button></div>';
+      $X(dayBox, '#calGoto').onclick = function () { calState.ym = (+newest.slice(0, 4)) * 100 + (+newest.slice(5, 7)); renderCalView(body, list); };
+    } else {
+      dayBox.innerHTML = '<div class="tn-cal-day-tip">' + (list.length ? '这些游记还没填过日期，去「时间线」里看' : '没有符合条件的游记') + '</div>';
+    }
     body.querySelectorAll('.tn-cal-d[data-day]').forEach(function (el) {
       el.onclick = function () {
         var k = el.dataset.day;
-        var dayList = list.filter(function (x) { return String(x.date || '').indexOf(k) >= 0; });
+        var dayList = list.filter(function (x) { return noteDay(x) === k; });
         var box = $X(body, '#calDay');
         if (!dayList.length) { box.innerHTML = '<div class="tn-empty" style="padding:16px"><span>当天没有游记</span></div>'; return; }
         box.innerHTML = '<div class="tn-cal-day-t">' + k + ' · ' + dayList.length + ' 篇</div>';
@@ -1729,8 +1767,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   /* 按日期分组渲染单篇（旅程展开 / 时间线月内共用） */
   function renderItems(body, list) {
     var groups = {};
-    list.forEach(function (n) { var d = n.date.slice(0, 10); (groups[d] = groups[d] || []).push(n); });
-    Object.keys(groups).sort().reverse().forEach(function (d) {
+    list.forEach(function (n) { var d = noteDay(n) || UNDATED; (groups[d] = groups[d] || []).push(n); });
+    sortDays(Object.keys(groups)).forEach(function (d) {
       var dateEl = el('div', 'tn-tl-date', d + ' <small>' + groups[d].length + ' 篇</small>');
       body.appendChild(dateEl);
       groups[d].forEach(function (n) { renderItem(body, n); });
@@ -1778,8 +1816,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   /* ---------- 视图二：年 → 月 折叠时间线 ---------- */
   function renderTimeView(body, list) {
     var byYear = {};
-    list.forEach(function (n) { var y = n.date.slice(0, 4); (byYear[y] = byYear[y] || []).push(n); });
-    var years = Object.keys(byYear).sort().reverse();
+    list.forEach(function (n) { var y = noteYear(n); (byYear[y] = byYear[y] || []).push(n); });
+    var years = sortDays(Object.keys(byYear));
     var newestY = years[0];
     years.forEach(function (y) {
       var open = (timeOpen[y] === true) || (timeOpen[y] === undefined && y === newestY);
@@ -1788,8 +1826,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       body.appendChild(yEl);
       if (!open) return;
       var byMonth = {};
-      byYear[y].forEach(function (n) { var m = n.date.slice(0, 7); (byMonth[m] = byMonth[m] || []).push(n); });
-      Object.keys(byMonth).sort().reverse().forEach(function (m) {
+      byYear[y].forEach(function (n) { var m = noteMonth(n); (byMonth[m] = byMonth[m] || []).push(n); });
+      sortDays(Object.keys(byMonth)).forEach(function (m) {
         var mOpen = timeOpen[m] !== false;
         var mEl = el('div', 'tn-tl-month' + (mOpen ? '' : ' collapsed'), m + ' <small>' + byMonth[m].length + ' 篇</small><span class="ar">▾</span>');
         mEl.onclick = function () { timeOpen[m] = !mOpen; renderList(); };
@@ -1868,9 +1906,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var sites = {}, days = {}, photos = 0, months = {};
     notes.forEach(function (n) {
       if (n.lat != null) sites[n.lat.toFixed(4) + ',' + n.lng.toFixed(4)] = 1;
-      days[n.date.slice(0, 10)] = 1;
+      var dd = noteDay(n); if (dd) { days[dd] = 1; months[dd.slice(0, 7)] = (months[dd.slice(0, 7)] || 0) + 1; }
       photos += (n.photos || []).length;
-      months[n.date.slice(0, 7)] = (months[n.date.slice(0, 7)] || 0) + 1;
     });
     var monthHtml = Object.keys(months).sort().reverse().slice(0, 6).map(function (m) { return '<div class="monthline"><span>' + m + '</span><b>' + months[m] + ' 篇</b></div>'; }).join('');
     var d = el('div', 'tn-dlg');
@@ -2300,6 +2337,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     explain: function (iOrSite) { buildUI(); if (startGuideRef) startGuideRef(iOrSite); else flash('讲解暂不可用'); },
     count: function () { return notes.length; },
     list: function () { return notes.slice(); },
+    /* 日期归一口径（YYYY-MM-DD，坏形状/缺字段一律由 ts 兜底）：外部页面按日期分组必须走这里 */
+    noteDay: noteDay,
     storageMB: storageMB,
     /* 按索引查询（city/day/ts），IDB 不可用时回退内存 filter；cb(noteArray) */
     queryIndex: function (idx, value, cb) {
@@ -2352,7 +2391,7 @@ window.TNStats = function () {
     if (n.province) provs[n.province] = 1;
     if (n.city) cities[n.city] = 1;
     if (n.dist) km += n.dist;
-    if (n.date) days[n.date.slice(0, 10)] = 1;
+    var d = TravelNotes.noteDay(n); if (d) days[d] = 1;
   });
   var dts = Object.keys(days).sort(), streak = 0;
   if (dts.length) {

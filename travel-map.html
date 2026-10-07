@@ -643,7 +643,7 @@ function renderTrack(themeId){
   ctx.fillStyle=th.fg;ctx.font='bold 66px "LXGW WenKai",serif';ctx.textAlign='center';
   ctx.fillText('我的旅程轨迹',540,150);
   ctx.font='30px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;
-  ctx.fillText(ordered.length+' 个节点 · '+new Set(notes.map(n=>n.date.slice(0,10))).size+' 日',540,200);
+  ctx.fillText(ordered.length+' 个节点 · '+new Set(notes.map(n=>TravelNotes.noteDay(n)).filter(Boolean)).size+' 日',540,200);
   ctx.globalAlpha=1;
   const lats=ordered.map(n=>n.lat),lngs=ordered.map(n=>n.lng);
   const minLat=Math.min(...lats),maxLat=Math.max(...lats),minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
