@@ -1,0 +1,4 @@
+1. 亮色 {"mb":"0px","bg":"rgb(250, 248, 243)","color":"rgb(106, 103, 94)","pad":"0px 5px","fs":"11.25px","theme":"/","rect":{"top":707,"bot":723,"left":204,"w":124,"h":16},"hit":"leaflet-control-attribution leaflet-control"}
+2. 暗色（手动加类）{"mb":"0px","bg":"rgb(29, 28, 25)","color":"rgb(150, 145, 132)","pad":"0px 5px","fs":"11.25px","theme":"theme-dark/","rect":{"top":707,"bot":723,"left":204,"w":124,"h":16},"hit":"leaflet-control-attribution leaflet-control"}
+3. 回落亮色 {"mb":"0px","bg":"rgb(250, 248, 243)","color":"rgb(106, 103, 94)","pad":"0px 5px","fs":"11.25px","theme":"/","rect":{"top":707,"bot":723,"left":204,"w":124,"h":16},"hit":"leaflet-control-attribution leaflet-control"}
+4. 版权条下方 328 档还有谁（点 (266,715) 与 (160,715)）266,715→leaflet-control-attribution leaflet-control | 160,715→map | 30,715→map

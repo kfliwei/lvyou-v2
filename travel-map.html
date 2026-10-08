@@ -93,12 +93,17 @@
   .leaflet-control-zoom{border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow-soft)}
   .leaflet-control-zoom a{width:38px;height:38px;line-height:38px;background:var(--surface);color:var(--ink-900);border-bottom:1px solid var(--line);font-size:var(--fs-9)}
   .leaflet-control-zoom a:last-child{border-bottom:0}
-  .leaflet-control-attribution{margin-bottom:calc(env(safe-area-inset-bottom,0px) + 94px)}
+  /* 这里原来有一条把版权条抬 94px 的 margin-bottom，实测从未生效过：
+     Leaflet 自带 vendor/leaflet/leaflet.css:416 的 .leaflet-container .leaflet-control-attribution{margin:0} 是两级类，
+     单级打不过它（探针 tools/out/b29-probe-attribution2.txt：三档读数 computed margin-bottom 恒 0px）。
+     那个 94 还是「猜统计条有多高」的第三个数（R1 同一族），一起删——版权条就坐在地图底边，实测点得到、没被压住。 */
   @media (hover:hover){.leaflet-control-zoom a:hover{background:var(--surface-2)}}
   .leaflet-control-layers{border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow-soft);background:var(--surface)}
   .leaflet-control-layers-toggle{width:38px;height:38px;background-color:var(--surface);background-size:20px 20px}
   .leaflet-control-layers-expanded{background:var(--surface);color:var(--ink-900);padding:8px 10px;font-size:var(--fs-3)}
-  .leaflet-control-attribution{background:rgba(246,241,229,.75);color:var(--ink-500)}
+  /* 必须带上 .leaflet-container 这一级才赢得了 vendor 那条（同一把刀：单类写的底色一直是白底 rgba(255,255,255,.8)）。
+     --paper-bar / --ink-500 两个 token 随主题自己翻，所以下面 .theme-dark 那条覆盖是多余的，一并摘掉。 */
+  .leaflet-container .leaflet-control-attribution{background:var(--paper-bar);color:var(--ink-500)}
   .leaflet-control-attribution a{color:var(--cinnabar-600)}
   .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow-float)}
   .leaflet-popup-tip{background:var(--surface);border:1px solid var(--line)}
@@ -123,9 +128,14 @@
     padding:0 5px;font-weight:700;font-family:var(--font-sans);
     box-shadow:0 1px 5px rgba(200,109,75,.4);z-index:2;
   }
+  /* 底部堆叠基线：浮层一律坐在主导航之上，这里只留一个数。
+     上一版把统计条 104、时间线 150、抽屉 212 三个数各写各的，统计条一被撑高
+     （加了「制图分享／回放」两枚钮 + 两行字）就把时间线整条压在底下（实测重叠 45px），
+     底部那些记录胶囊怎么点都点不到。改由 layoutBottomStack() 按实测顶边排，CSS 值只当兜底。 */
+  :root{--map-stack-bottom:104px}
   /* 统计条：紧凑卡片 */
   .stat{
-    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:1000;
+    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom));z-index:1000;
     background:var(--paper-bar);
     border:1px solid var(--edge-hair-soft);border-radius:20px;box-shadow:var(--shadow-float);
     padding:12px 16px;display:flex;align-items:center;gap:10px;
@@ -136,7 +146,7 @@
   .statClose{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:rgba(38,36,31,.06);color:#6b665c;font-size:var(--fs-4);cursor:pointer;margin-left:2px;transition:background var(--motion-fast)}
   .statClose:active{background:rgba(38,36,31,.16)}
   .statOpen{
-    position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:1000;
+    position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom));z-index:1000;
     width:44px;height:44px;border:1px solid var(--edge-hair-soft);border-radius:50%;
     background:var(--paper-bar);
     box-shadow:var(--shadow-medium);font-size:var(--fs-8);cursor:pointer;color:var(--color-ink-soft);
@@ -157,23 +167,39 @@
   .emptyTip .emClose{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-4);cursor:pointer}
 
 
-  /* 时间线（底部横向，与地图双向联动 — 方案 Phase 4） */
+  /* 时间线（底部横向，与地图双向联动 — 方案 Phase 4）
+     --tm-gap 是「统计条实测高 + 8」，由 layoutBottomStack() 每次覆盖；这里的 102px 只是 JS 前的兜底 */
   .mm-timeline{
-    position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);z-index:900;
+    position:absolute;left:12px;right:12px;z-index:900;
+    bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom) + var(--tm-gap,102px));
     display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;
   }
   .mm-timeline::-webkit-scrollbar{display:none}
+  /* 右边还有多少＝给一道渐隐口（滚到头自己收）。328 真机档上这两排常常只露一枚，
+     不提示就和「多出的看不到」是同一件事 */
+  .h-clipped{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 30px),transparent)}
+  /* 这排的可点 44px 由三条机制一起撑，缺一条就少一级兜底：
+     ① 胶囊是 BUTTON，Chromium 对 form 控件有一条内部 44px 下限，行内 !important 都按不动
+       （探针 tools/out/probe29-chiph3.txt：压到 8px 后 computed min-height 仍 44px，移动端与桌面模拟两档都一样）；
+     ② 这一排没写 align-items，flex 默认的 stretch 把同排 .tl-trip（min-height:44px）的高度传给胶囊
+       ——只把标签换成 div 仍是 44（读数 tools/out/g02-smoke.txt），所以「那一排不许自己写 align-items」是隐式依赖，得钉住；
+     ③ 下面那行 min-height，是给非 Chromium 内核兜底的那一级。
+     三条一起退化才读到 35（tools/out/g02b-smoke.txt）。浏览器腿 TM04 量的是真实矩形，不能撤：
+     锚钉得住②③那两条声明与形状，钉不住「①还顶着」的几何。 */
   .tl-chip{
-    flex:none;padding:9px 14px;border-radius:999px;
+    flex:none;display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;
     background:var(--paper-bar);border:1px solid var(--edge-hair-soft);
     font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.03em;cursor:pointer;
     box-shadow:var(--shadow-soft);
-    transition:all var(--duration-fast);
+    transition:all var(--duration-fast);white-space:nowrap;
   }
   .tl-chip.active{background:var(--color-ink);color:#fff;border-color:var(--color-ink)}
   .tl-chip i{font-style:normal;opacity:.65;margin-right:5px}
+  /* 地点名：光有时间戳时这排看着像坐标轴刻度，没人预期它可点（批次 29 用户原话「点不开」） */
+  .tl-chip .tl-name{margin-left:6px;font-weight:600;color:var(--color-ink-soft);max-width:96px;overflow:hidden;text-overflow:ellipsis}
+  .tl-chip.active .tl-name{color:#fff}
   .tl-trip{
-    flex:none;display:flex;align-items:center;gap:3px;padding:9px 13px;border-radius:999px;
+    flex:none;display:flex;align-items:center;gap:3px;min-height:44px;padding:0 13px;border-radius:999px;
     background:rgba(200,109,75,.12);border:1px solid rgba(200,109,75,.25);
     font-size:var(--fs-2);color:var(--color-primary-dark);letter-spacing:.03em;cursor:pointer;
     box-shadow:var(--shadow-soft);
@@ -213,10 +239,13 @@
   .ms-item__meta{font-size:var(--fs-2);color:var(--color-muted);margin-top:3px;font-family:var(--font-sans)}
   .ms-item__arr{color:var(--color-faint);display:grid;place-items:center}
   @media (hover:hover){.mem-node:hover .mem-dot{transform:translate(-50%,-50%) scale(1.3)}}
-  /* Memory Sheet */
-  /* Memory Sheet（z-index 必须 > .ctl 缩放控件层 1001，盖在缩放按钮之上） */
-  #memSheet{position:fixed;z-index:1100;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 212px);display:none;max-height:calc(100dvh - 212px - 26px);flex-direction:column;overflow:hidden;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard);background:var(--glass-sheet);backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-sheet);border:1px solid var(--edge-hair-soft);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
+  /* Memory Sheet（z-index 必须 > .ctl 缩放控件层 1001，盖在缩放按钮之上）
+     抽屉坐到底栏之上（旧版写死 212，比统计条还高一层，卡片只剩 485px 高，
+     长正文和照片行被 overflow:hidden 裁在卡片外，用户读到的就是「看不全 / 照片不显示」）。 */
+  #memSheet{position:fixed;z-index:1100;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom));display:none;max-height:calc(100dvh - env(safe-area-inset-bottom,0px) - var(--map-stack-bottom) - 26px);flex-direction:column;overflow:hidden;transform:translateY(115%);transition:transform var(--motion-slow) var(--ease-standard);background:var(--glass-sheet);backdrop-filter:var(--blur-sheet);-webkit-backdrop-filter:var(--blur-sheet);border:1px solid var(--edge-hair-soft);border-radius:30px;box-shadow:var(--shadow-float);padding:10px 20px 24px}
   #memSheet.show{display:flex;transform:translateY(0)}
+  /* 还有下文时给一条看得见的口：滚到底自己消失（pointer-events:none，不挡手势） */
+  #memSheet.ms-clip::after{content:'↑ 上滑看全文';position:absolute;left:20px;right:20px;bottom:6px;height:52px;display:flex;align-items:flex-end;justify-content:center;font-size:var(--fs-3);color:var(--color-muted);font-family:var(--font-sans);background:linear-gradient(to bottom,transparent,var(--paper-50) 62%);pointer-events:none;border-radius:0 0 22px 22px}
   #memSheet .sheet__handle{cursor:pointer;flex:0 0 auto}
   #msBody{flex:1;min-height:0;overflow-y:auto;padding-right:2px}
   .ms-place{font-family:var(--font-serif);font-size:26px;font-weight:400;margin-top:6px;letter-spacing:.01em}
@@ -229,7 +258,7 @@
   .ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
   .ms-tags span{font-size:var(--fs-2);color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:3px 10px;font-weight:600}
   .ms-loc{margin-top:3px;font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.04em}
-  .ms-close{position:absolute;right:16px;top:14px;width:30px;height:30px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;z-index:6}
+  .ms-close{position:absolute;right:12px;top:10px;width:44px;height:44px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;z-index:6}
   @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
 
   /* ============================================================
@@ -255,7 +284,6 @@
   .theme-dark .laymenu .li{color:var(--color-ink-soft)}
   .theme-dark .laymenu .li.on{background:var(--color-primary-soft);color:var(--color-primary-dark)}
   .theme-dark .laymenu .ck{color:var(--color-primary)}
-  .theme-dark .leaflet-control-attribution{background:rgba(29,28,25,.8);color:var(--color-muted)}
   .theme-dark .leaflet-control-attribution a{color:var(--color-primary-dark)}
 
   /* v3 CINEMATIC LAYER */
@@ -477,6 +505,77 @@ function refresh(){
   renderTimeline();
 }
 
+/* TRACE v2：底部三层单点排布（批次 29）
+   统计条的高度会随内容变（两行字 / 「制图分享」「回放」两枚钮在不在），
+   而时间线和游记卡此前各写各的 bottom —— 统计条一撑高就把时间线整条压在下面
+   （328×723 实测重叠 45px，chip 中心命中的是统计条），点遍都点不开。
+   这里只认实测矩形：时间线坐在统计条顶边之上 8px，统计条收起则回到底栏之上那一档。 */
+function layoutBottomStack(){
+  var tl=document.getElementById('mmTimeline');
+  if(!tl) return;
+  /* 统计条收起后原位换成那枚 44px 圆钮，它照样坐在基线上；只量 statBar 会让胶囊压到钮上 */
+  var h=0;
+  [document.getElementById('statBar'),document.getElementById('statOpen')].forEach(function(el){
+    if(el && getComputedStyle(el).display!=='none') h=Math.max(h, el.offsetHeight);
+  });
+  tl.style.setProperty('--tm-gap',(h?Math.round(h)+8:0)+'px');
+}
+/* 卡片是底部抽屉，会把正在看的那个点盖在下面：只挪「被盖住的那一截」，够露出来就停手，
+   挪多少按卡片上沿实测算。四条口径都是这一批探针量出来的，别再退回旧写法：
+   · panBy 的符号是「视口往哪走」不是「内容往哪走」——实测 panBy([0,-120]) 会把同一个点从 y=430 推到 550，
+     旧代码开卡时写 [0,-180] 是把点往卡片底下塞；
+   · Leaflet 的 duration 单位是「秒」，旧代码 420＝七分半，所以这个反向位移一直没露馅；
+   · 带 duration 的平移会被同一条路径上先起的 flyTo 逐帧重设视图吞掉（点胶囊那条实测位移被吞光），故瞬移；
+   · 瞬移自己也会发 moveend 回到这里，所以门坎取「不足 1px 就不挪」：残余亚像素经 Math.round 得 0，
+     而 map.panBy([0,0]) 照样派发 moveend，实测同步自激 1253 帧后爆栈，同一步还把 sheetRaised 抹成 0。 */
+var sheetFocus=null,sheetRaised=0;
+function clearSheetCenter(){
+  var s=document.getElementById('memSheet');
+  if(!map||!sheetFocus||!s.classList.contains('show')) return;
+  var cr=s.getBoundingClientRect(), mr=map.getContainer().getBoundingClientRect(), band=cr.top-mr.top;
+  if(band<120) return;   /* 卡片快占满屏：上面根本没地方看，挪了白挪 */
+  var p=map.latLngToContainerPoint(gxy(sheetFocus[0],sheetFocus[1])), want=band-24, dy=p.y-want;
+  /* 门坎取「不足 1px 就不挪」，不是审美：我们自己那次瞬移也会发 moveend 再回这里，
+     残余 0.4px 走 Math.round 得 0 就等于 map.panBy([0,0])——它照样派发 moveend，
+     于是 抬→moveend→抬 0→moveend 自激，探针数到 1253 帧才爆栈（TM34）；
+     同一步还把 sheetRaised 抹成 0，关卡就不知道该还多少（TM27）。 */
+  if(dy>=1){ sheetRaised=Math.round(dy); map.panBy([0,sheetRaised],{animate:false}); }
+}
+function onSheetMoveEnd(){ clearSheetCenter(); }   /* flyTo 落定后补一次；够清楚了就自己停手 */
+function restoreSheetCenter(){
+  if(map&&sheetRaised) map.panBy([0,-sheetRaised],{animate:false});
+  sheetRaised=0; sheetFocus=null;
+}
+/* 内容超出卡片可视区时留一条口（滚到底自动收）：抽屉是定高容器，
+   没有这条提示，用户读到的就是「文字只能看固定部分，多出的看不到」 */
+function markClip(){
+  var s=document.getElementById('memSheet'), b=document.getElementById('msBody');
+  if(!s||!b) return;
+  var over=b.scrollHeight-b.clientHeight;
+  s.classList.toggle('ms-clip',over>8&&b.scrollTop<over-8);
+}
+/* 横向的两排（底部记录胶囊 / 卡内照片）在 328 真机档上常常只露一枚，
+   右边那些既不滚动也看不见——同一条「多出的看不到」，滚到头提示自己收 */
+function markHClip(el){
+  if(!el) return;
+  el.classList.toggle('h-clipped', el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+}
+/* 抽屉填内容的单点：换正文→记住这一篇的落点→回滚到顶→开层→被盖住才挪地图
+   已经开着再填一次（聚合列表点进单篇）＝只换内容，地图不许再挪第二回 */
+function fillSheet(html,label,focus){
+  var s=document.getElementById('memSheet'), b=document.getElementById('msBody');
+  if(!s||!b) return;
+  var was=s.classList.contains('show');
+  sheetFocus=focus||null;
+  b.innerHTML=html; b.scrollTop=0;
+  UI.sheet(s).open(label);
+  var pr=b.querySelector('.ms-photos');
+  if(pr){ pr.addEventListener('scroll',function(){ markHClip(pr); },{passive:true}); }
+  if(was){ markClip(); if(pr) markHClip(pr); return; }
+  setTimeout(function(){clearSheetCenter();markClip();if(pr)markHClip(pr);},80);
+  if(map) map.on('moveend',onSheetMoveEnd);
+}
+
 // TRACE v2：时间线条（方案 Phase 4 — 底部 chips，点击→flyTo+Sheet，与地图双向联动）
 function renderTimeline(){
   var tl=document.getElementById('mmTimeline');
@@ -510,7 +609,13 @@ function renderTimeline(){
       var chip=document.createElement('button');
       chip.className='tl-chip';
       chip.dataset.nid=n.id;
-      chip.innerHTML='<i>●</i>'+time;
+      /* 只有时间戳时这排读起来像坐标轴刻度；带上地点名它才像「一条能点开的记录」（文本用 textContent 拼，不走 innerHTML） */
+      var nm=String(n.title||n.siteName||'未命名地点');
+      var dot=document.createElement('i'); dot.textContent='●';
+      var tw=document.createElement('span'); tw.textContent=time;
+      var nv=document.createElement('span'); nv.className='tl-name'; nv.textContent=nm;
+      chip.appendChild(dot); chip.appendChild(tw); chip.appendChild(nv);
+      chip.setAttribute('aria-label','这一篇：'+nm+' · '+time+'，点开看全文与照片');
       chip.onclick=function(){
         document.querySelectorAll('.tl-chip').forEach(function(c){c.classList.remove('active');});
         chip.classList.add('active');
@@ -520,6 +625,9 @@ function renderTimeline(){
       tl.appendChild(chip);
     });
   });
+  layoutBottomStack();
+  /* 胶囊排是横向滚动的：右边还有多少枚，得露个口（宽度要等这一帧排完才量得准） */
+  requestAnimationFrame(function(){ markHClip(tl); });
 }
 // openMemSheet 时联动高亮对应 chip（按笔记 id 匹配）
 (function(){
@@ -552,11 +660,9 @@ function openGroupSheet(items){
       +'<span class="ms-item__arr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"/></svg></span>'
       +'</div>';
   }).join('');
-  document.getElementById('msBody').innerHTML='<div class="ms-place">'+place+'</div>'
+  fillSheet('<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+sorted.length+' 段记忆 · 点击查看</div>'
-    +'<div style="margin-top:12px">'+listHtml+'</div>';
-  UI.sheet(document.getElementById('memSheet')).open(place + ' 的记忆列表');
-  if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
+    +'<div style="margin-top:12px">'+listHtml+'</div>', place + ' 的记忆列表');
 }
 /* 供聚合列表点击：按 id 打开单篇 Memory Sheet */
 function openMemSheetById(id){
@@ -575,19 +681,19 @@ function openMemSheet(n){
   const audioHtml=n.audio?'<div class="ms-audio"><span style="font-size:var(--fs-4);color:var(--color-primary-dark);font-weight:600">▶ 原声</span><audio controls preload="none" src="'+n.audio+'"></audio></div>':'';
   const tagsHtml=(n.tags&&n.tags.length)?'<div class="ms-tags">'+n.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'';
   const locHtml=n.lat!=null?'<div class="ms-loc">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';
-  document.getElementById('msBody').innerHTML='<div class="ms-place">'+place+'</div>'
+  /* 照片排在正文之前：它是这篇里最该一眼看见的东西，也是「卡片还有下文」的最好暗示 */
+  fillSheet('<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+time+'</div>'
     +locHtml
-    +(story?'<div class="ms-story">'+story+'</div>':'')
     +photosHtml
+    +(story?'<div class="ms-story">'+story+'</div>':'')
     +audioHtml
-    +tagsHtml;
-  UI.sheet(document.getElementById('memSheet')).open(place + ' 的随手记');
-  if(map) setTimeout(function(){map.panBy([0,-180],{duration:420});},80);
+    +tagsHtml, place + ' 的随手记', (n.lat!=null&&n.lng!=null)?[n.lat,n.lng]:null);
 }
 function closeMemSheet(){
   UI.sheet(document.getElementById('memSheet')).close();
-  if(map) setTimeout(function(){map.panBy([0,180],{duration:420});},80);
+  if(map) map.off('moveend',onSheetMoveEnd);
+  restoreSheetCenter();
 }
 /* 照片全屏查看（点击信息框缩略图放大，再点关闭） */
 function zoomPhoto(src){
@@ -610,11 +716,18 @@ function zoomPhoto(src){
 document.getElementById('statClose').onclick=function(){
   document.getElementById('statBar').style.display='none';
   document.getElementById('statOpen').style.display='flex';
+  layoutBottomStack();   /* 统计条一收，时间线要落回它腾出来的那一档，否则下面空一条 */
 };
 document.getElementById('statOpen').onclick=function(){
   document.getElementById('statBar').style.display='flex';
   document.getElementById('statOpen').style.display='none';
+  layoutBottomStack();
 };
+/* 卡片能滚就得有反馈：滚到底那条口自己收掉；转屏/分屏后重排底部三层 */
+document.getElementById('msBody').addEventListener('scroll',markClip,{passive:true});
+document.getElementById('mmTimeline').addEventListener('scroll',function(){ markHClip(this); },{passive:true});
+window.addEventListener('resize',layoutBottomStack);
+layoutBottomStack();
 // 空状态提示：点关闭按钮后永久不再显示（记录在 localStorage）
 document.getElementById('emptyClose').onclick=function(){
   document.getElementById('emptyTip').style.display='none';

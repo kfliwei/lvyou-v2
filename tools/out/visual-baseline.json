@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-07T08:53:29.698Z",
+  "generatedAt": "2026-10-08T07:53:41.454Z",
   "viewports": [
     "320x640",
     "328x723",
@@ -36,28 +36,28 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "498e678e5ad4be2e",
-      "bytes": 225595
+      "sha": "b86ad49aa507c815",
+      "bytes": 225558
     },
     "topic.328x723.png": {
       "sha": "ba85423b61c32538",
       "bytes": 235140
     },
     "topic.390x844.png": {
-      "sha": "3702b34fc9ebfec1",
-      "bytes": 270064
+      "sha": "8dcc98bd28970db5",
+      "bytes": 269982
     },
     "topic.452x995.png": {
-      "sha": "37638e32317e8e43",
-      "bytes": 309303
+      "sha": "659f6f564628ce08",
+      "bytes": 309320
     },
     "topic.768x1024.png": {
       "sha": "99d0dd00972ad0f3",
       "bytes": 332163
     },
     "topic.1440x900.png": {
-      "sha": "adab0e1ae1ab02cc",
-      "bytes": 722987
+      "sha": "a905221f3f485666",
+      "bytes": 722978
     },
     "search.320x640.png": {
       "sha": "3a14409f450cf7fb",
@@ -396,28 +396,28 @@
       "bytes": 984216
     },
     "travel-map.320x640.png": {
-      "sha": "e672091acf7549b1",
-      "bytes": 134161
+      "sha": "ddd9d6510cedee9b",
+      "bytes": 134310
     },
     "travel-map.328x723.png": {
-      "sha": "0776deda14819c22",
-      "bytes": 134764
+      "sha": "8aac98de72f683cb",
+      "bytes": 134887
     },
     "travel-map.390x844.png": {
-      "sha": "9ce1c013a0b8b321",
-      "bytes": 151554
+      "sha": "f030c4dd2fa0fb55",
+      "bytes": 151767
     },
     "travel-map.452x995.png": {
-      "sha": "8eaf7dc54ae8a76b",
-      "bytes": 163664
+      "sha": "487940f3d8aa8af7",
+      "bytes": 163907
     },
     "travel-map.768x1024.png": {
-      "sha": "b89bb597081104b5",
-      "bytes": 172030
+      "sha": "4c30e8cdd4126d16",
+      "bytes": 172102
     },
     "travel-map.1440x900.png": {
-      "sha": "0146d91175ab44c5",
-      "bytes": 187799
+      "sha": "65d3ccde77ce00fa",
+      "bytes": 187838
     },
     "review.seed.390x844.png": {
       "sha": "05bc0f6059d2556d",
@@ -432,8 +432,8 @@
       "bytes": 160132
     },
     "travel-map.seed.390x844.png": {
-      "sha": "8ecd03aa5879f91e",
-      "bytes": 144171
+      "sha": "5dc6b8924ab85b84",
+      "bytes": 164952
     },
     "expense.ledger.390x844.png": {
       "sha": "fda1f3e32e04c4ed",

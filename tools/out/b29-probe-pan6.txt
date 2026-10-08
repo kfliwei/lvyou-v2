@@ -1,0 +1,7 @@
+0.1 起手 {"lat":39.561904,"zoom":18}
+    P6:panBy @109 中心=39.561904 z=18 ← at obj.<computed> [as panBy] (pptr:evaluate;F%3A%5CMyAi%5Ctrace%5Clvyou-v2%5Ctools%5Cout%5Cprobe29-pan6.js%3A74%3A14:10:141) <- at panSheetBy (TM:522:7) <- at TM:549:25
+1.1 开卡 1.1s {"lat":39.563173,"zoom":18}（pre {"lat":39.561904,"zoom":18}）
+1.2 开卡 1.8s {"lat":39.563173,"zoom":18}
+    P6:panBy @1918 中心=39.563173 z=18 ← at obj.<computed> [as panBy] (pptr:evaluate;F%3A%5CMyAi%5Ctrace%5Clvyou-v2%5Ctools%5Cout%5Cprobe29-pan6.js%3A74%3A14:10:141) <- at panSheetBy (TM:522:7) <- at TM:669:25
+2.1 关卡 {"lat":39.561904,"zoom":18}
+9 异常 0 

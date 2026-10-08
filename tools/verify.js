@@ -3949,7 +3949,7 @@ const EMOJI_MARK = 'emoji-ok:';
     const SHEET = [
       ['topic-common.js', 7, '景点卡/到达弹层/近邻/这一带四条路径'],
       ['node-manager.html', 11, 'rsSheet 与 infoSheet 的开关与互斥（另 5 处未迁移的旧弹层登记在方案文档）'],
-      ['travel-map.html', 3, '记忆列表抽屉的三处开合'],
+      ['travel-map.html', 2, '记忆列表与单篇两条开径已并到 fillSheet 一处 open，加 closeMemSheet 一处 close（批次 29：同一张卡两条填内容路径各写一遍 open＝让位/提示那条腿只有一条上有）'],
       ['topic.html', 1, '壳层兜底的 _closeArrive'],
     ];
     SHEET.forEach(([f, want, why]) => {
@@ -5732,6 +5732,245 @@ function stripBlockComments(s) {
   console.log('排期读数单点闸门: ' + A43.length + ' 条代码锚点（天数一个读法 3 落点 + 起终两行一个出口（endpointRow 定义 + 起 + 终）+ 坐标缺失的同一句真话 3 处 + 头部部件表 3 点 + 环线一个落点（定义 + 5 个入口 + 退单程那一手）+ 定位一条腿（locate 1／调用 1／钮 1／plannerStartFromHere 2）+ 文本框回读 matchKeep 5 处 + 向导读 DOM 单点 2 处 + 第 1 步两条标签口径 + 浏览器腿 6 条脚手架纪律）+ 九族期望 0（预填 5／排期自己解析 DOM／裸 matchStart ×2 侧／state.end = state.start 共享引用／缺省=当前位置那句零调用者的承诺／环线死控件原文／终行局部拼串 lastStop／页内脚手架 window.__）各配正向对照 + 四项内置动态对账（splitIntoDays 调用点 ' + split43.calls + ' 处逐一交代天数口径、非零字面 0 处，判据先自校准；起终点赋值点 ' + ep43.sites + ' 处四种形状、越界 0 处；intentDays 落点 ' + days43.sites + ' 处、越界 0 处；「当前位置」' + cnt43(V43['planner.js'], '当前位置') + ' 处对着 4 条调用者对账）+ 一条自指纪律（flat43/view43 定义行必须走共享剥刀与不剥文档那一支，两处新代码旁各钉一枚现场哨兵）+ 八条浏览器腿形状标签逐条在场；A43 表长 ' + A43.length + ' 条、ZERO43 表长 ' + ZERO43.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify43.js');
   fail += bad43;
 }
+
+/* ============ §44 足迹页底部堆叠与游记卡让位闸门（批次 29） ============
+   用户报（2026-10-08 逐字）：「实际情况是点不开，看不全，一是文字只能看固定部分，多出的看不到，照片不显示。」
+   四条根因（改前形状在 git HEAD 可查，现场读数在 tools/out/b29-probe-*.txt）：
+     R1 遮挡：时间线 bottom 写死 150px，而统计条实测高 94px 且 z 1000 > 900，两者重叠 45px →
+        chip 中心 elementFromPoint 命中的是统计条。绑定一直在，只是这一下永远点不到它。
+     R2 定高裁切：抽屉写死 212px/485px，#msBody 虽 overflow-y:auto 却零提示 → 正文末行与整条照片行
+        都落在卡片可见区之外。用户读到的就是「只能看固定部分」「照片不显示」。
+     R3 让位反号：开卡 map.panBy([0,-180],{duration:420}) —— panBy 的符号是「视口往哪走」，负值是把
+        正在看的那个点往屏幕「下」推，正好推进卡片里；而 Leaflet 的 duration 单位是「秒」，420＝七分半
+        ＝等于没动，所以这个反向位移多年没露馅。topic-common.js 同形一处（[0,-160]），两处一起修。
+     R4 自激：改成按实测矩形算的瞬移以后，自己那次 panBy 也会发 moveend 回到同一个函数，残余亚像素经
+        Math.round 得 0，而 map.panBy([0,0]) 照样派发 moveend → 同步重入 1253 帧后爆栈，同一步还把
+        sheetRaised 抹成 0，关卡就不知道该还多少。
+   这一节钉的是：底部那一摞只有一条由实测高写下的基线、卡片只有一个填内容的入口、让位只有一个几何式
+   函数且它自己会停手、以及「多出的看不到」必须留出口（纵向 ms-clip、横向 h-clipped 两条提示）。
+   收工时闸门自己又逮到第五条（不在用户点单里，也不是我先发现的）：本批把照片排到正文之前那一手，
+   动的正是 ms-story 那行的邻居，而那一行自己把闭合标签写成了 '</div' —— 漏掉一个 >。
+   node --check 与像素基线都拦不住它（HTML 里少一个 > 不报错，样式照样 paint），
+   所以 ②b 那条配平对账钉的是「拼串 + 变量 + 闭合」这一族的形状，先自校准再扫真源。 */
+{
+  let bad44 = 0;
+  const F44 = m => { bad44++; console.log('FAIL §44 足迹页底部堆叠与游记卡让位闸门: ' + m); };
+  const ws44 = s => s.replace(/\s+/g, ' ').trim();
+  const flat44 = s => ws44(stripBlockComments(s));
+  const cnt44 = (s, n) => s.split(n).length - 1;
+  const rd44 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view44 = f => /\.md$/.test(f) ? ws44(rd44(f)) : flat44(rd44(f));
+
+  const FILES44 = ['travel-map.html', 'topic-common.js', 'tools/smoke-travelmap.js', 'README.md'];
+  const V44 = {};
+  FILES44.forEach(f => {
+    if (!fs.existsSync(f)) { F44('缺 ' + f); V44[f] = ''; return; }
+    V44[f] = view44(f);
+  });
+
+  /* ⓪ 自指纪律：flat44 必须走那把共享剥刀。这一节和 §43 不同，**产品文件是 .html**，
+        而本批的注释天然要抄改前的原串（[0,-180]、duration:420、150px 都在注释里写着），
+        所以 html 这一支也必须剥——不剥的话那几族期望 0 当场读非 0（红，看得见），
+        危险方向是反过来的那一支：真代码被当成注释吞掉，住在这一带的期望 0 会静默满足。
+        于是两处新代码旁边各钉一枚现场哨兵：读不到＝这一带又变成盲窗。 */
+  {
+    const DEF44 = (rd44('tools/verify.js').match(/^[ \t]*const flat44 = [^\n]*/m) || [''])[0];
+    if (DEF44.indexOf('stripBlockComments') < 0) F44('§44 的 flat44 定义行没走这把共享剥刀（现场读到的那一行：' +
+      (DEF44.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L44 = (rd44('tools/verify.js').match(/^[ \t]*const view44 = [^\n]*/m) || [''])[0];
+    if (L44.indexOf('.md$') < 0) F44('view44 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L44.slice(0, 60) || '整行没数到') + '）：README 的登记串里天生要写 glob 形状，文档侧的锚会当场读 0');
+    ["if(dy>=1){", "tl.style.setProperty('--tm-gap'"].forEach(function (mk) {
+      if (V44['travel-map.html'].indexOf(mk) < 0) F44('盲区哨兵：「' + mk + '」在 flat 里读不到了（这两行各自贴着一大段解释改前形状的注释；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：一条基线 / 一个填内容入口 / 一个会自己停手的让位函数 / 两条「还有下文」的出口 */
+  const A44 = [
+    ['travel-map.html', ':root{--map-stack-bottom:104px}', 1, '底部那一摞只有一条基线，CSS 里这个数只是 JS 前的兜底（改前是时间线 150、圆钮 150、卡片 212 三个各写各的硬编码数，统计条一撑高就把时间线整条压在下面）'],
+    ['travel-map.html', "tl.style.setProperty('--tm-gap',(h?Math.round(h)+8:0)+'px');", 1, '档位由实测高现算现写；把这一行改回常数，R1 那一族重叠会原样回来'],
+    ['travel-map.html', "[document.getElementById('statBar'),document.getElementById('statOpen')].forEach(function(el){", 1, '两态都要量：统计条收起后原位换成那枚 44px 圆钮，只量 statBar 会让胶囊压到钮上'],
+    ['travel-map.html', "if(el && getComputedStyle(el).display!=='none') h=Math.max(h, el.offsetHeight);", 1, '取两态里的较大者（display:none 的那一枚不参与）'],
+    ['travel-map.html', 'function layoutBottomStack(){', 1, '底部堆叠的几何单点：只有这一处算档位'],
+    ['travel-map.html', 'layoutBottomStack();', 4, '四个落点：首屏、填完胶囊、统计条收起、统计条展开——少一个就是有一处状态变化没人重算'],
+    ['travel-map.html', 'bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom) + var(--tm-gap,102px));', 1, '时间线坐在「基线 + 实测档」之上，而不是坐在某个猜的数上'],
+    ['travel-map.html', '.tl-chip .tl-name{', 1, '胶囊上要有地点名：改前只有时间戳，读起来像坐标轴刻度，没人预期它可点'],
+    ['travel-map.html', 'display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;', 1, '胶囊自己那一行要有 44 这个数（改前那一行根本没有 min-height，只靠 padding:9px 撑出 35）：这一排的可点高度实际由三条机制一起撑——这行声明（非 Chromium 内核那一级）、同排 .tl-trip 经默认 stretch 传下来的一级、BUTTON 让 Chromium 扣的内部 44px 下限（探针 tools/out/probe29-chiph3.txt），剪掉任意一条另两条还顶着，所以 TM04 量真实矩形那条腿不能撤'],
+    ['travel-map.html', "nv.className='tl-name'", 1, '名字那一枚 span 的造法'],
+    ['travel-map.html', "chip.setAttribute('aria-label','这一篇：'", 1, '可达口径同样写着「这一篇」，读屏的人才知道点开的是内容不是刻度'],
+    ['travel-map.html', 'function clearSheetCenter(){', 1, '让位只有一个几何式函数（改前是两个：panSheetBy(h,up) 加两处调用点各抄一遍位移）'],
+    ['travel-map.html', 'if(band<120) return;', 1, '卡片快占满屏时上面根本没地方看，挪了白挪——长正文那档（卡 593、只剩 26px）就是这一条让地图一动不动'],
+    ['travel-map.html', 'if(dy>=1){ sheetRaised=Math.round(dy); map.panBy([0,sheetRaised],{animate:false}); }', 1, 'R4 的原件：门坎不足 1px 就不发这次瞬移。发出去的那一次自己也会发 moveend，残余 0.4px 经 Math.round 得 0，而 panBy([0,0]) 照样派发 moveend → 同步自激 1253 帧爆栈'],
+    ['travel-map.html', 'var sheetFocus=null,sheetRaised=0;', 1, '抬升量要记账，关卡才知道还多少（R4 同一步曾经把 sheetRaised 抹成 0，TM27 抓到过）'],
+    ['travel-map.html', 'function restoreSheetCenter(){', 1, '关卡原样还，不做第二次'],
+    ['travel-map.html', 'if(map&&sheetRaised) map.panBy([0,-sheetRaised],{animate:false});', 1, '还的是记账那个数，不是又一个硬编码位移'],
+    ['travel-map.html', 'function onSheetMoveEnd(){ clearSheetCenter(); }', 1, 'flyTo 落定后补一次（点胶囊那条路径：80ms 时视图还在飞，第一次量的是半途）'],
+    ['travel-map.html', "map.on('moveend',onSheetMoveEnd);", 1, '挂点只在开卡那一条腿上'],
+    ['travel-map.html', "map.off('moveend',onSheetMoveEnd);", 1, '关卡必须摘掉：不摘的话卡关了之后每次平移地图都会自己找一次那个已经不存在的落点'],
+    ['travel-map.html', 'function fillSheet(html,label,focus){', 1, '抽屉填内容的单点：改前聚合列表与单篇两处各写一遍 innerHTML+open，让位/提示那条腿只有一条上有'],
+    ['travel-map.html', 'sheetFocus=focus||null;', 1, '落点跟着这一篇走'],
+    ['travel-map.html', 'if(was){ markClip(); if(pr) markHClip(pr); return; }', 1, '已经开着再填一次＝只换内容，地图不许挪第二回'],
+    ['travel-map.html', "#memSheet.ms-clip::after{content:'↑ 上滑看全文'", 1, 'R2 的出口：定高容器必须让「下面还有」看得见'],
+    ['travel-map.html', "s.classList.toggle('ms-clip',over>8&&b.scrollTop<over-8);", 1, '提示随 scrollTop 生灭（滚到底就该自己收，没有下文还挂着是撒谎）'],
+    ['travel-map.html', "el.classList.toggle('h-clipped', el.scrollLeft + el.clientWidth < el.scrollWidth - 8);", 1, '横向那一族（底部胶囊排／卡内照片排）同一条口径：328 真机档上常常只露一枚，右边那些既不滚动也看不见'],
+    ['travel-map.html', '.h-clipped{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 30px),transparent);mask-image:', 1, '渐隐用 mask 不用底色，免得在毛玻璃卡上压出一条「脏」带子（§23 那把刀的口径）'],
+    ['travel-map.html', 'display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;', 1, '那一排不许自己写 align-items：两排的高度一致是 flex 默认 stretch 从同排 .tl-trip（min-height:44px）传下来的，写成 flex-start 就把这条隐式依赖剪断（实测：与「换成分片 + min-height 35」一起退化时 TM04 当场读到 35/35/35，读数 tools/out/g02b-smoke.txt）'],
+    ['travel-map.html', 'max-height:calc(100dvh - env(safe-area-inset-bottom,0px) - var(--map-stack-bottom) - 26px)', 1, '卡片高度跟着可视区走；改前写死 485，正文末行 top=699 落在可见底 511 之外'],
+    ['topic-common.js', 'function locSheetClear() {', 1, '专题地图那一站的详情卡同形缺陷（改前 map.panBy([0,-160],{duration:420})），与本节同一把几何尺'],
+    ['topic-common.js', 'if (band < 120) return;', 1, '守卫两支都要在：travel-map 那支刚修过，这一支不许单独退回去'],
+    ['topic-common.js', 'if (dy >= 1) { sheetRaised = Math.round(dy); map.panBy([0, sheetRaised], { animate: false }); }', 1, 'R4 的第二次发作在另一份文件里也要钉住：门坎不足 1px 就不发'],
+    ['topic-common.js', 'setTimeout(locSheetClear, 80);', 1, '开卡后按实测算，不在 CSS 里猜卡片高度'],
+    ['topic-common.js', 'if (map && sheetRaised) map.panBy([0, -sheetRaised], { animate: false });', 1, '关卡按记账的数原样还'],
+    ['tools/smoke-travelmap.js', 'if (pan.length > 40) return map;', 1, '浏览器腿自己的刀断：被测形状一旦自激，闸门不许跟着爆栈（不然 TM34 之外还会连带红一串）'],
+    ['tools/smoke-travelmap.js', 'MID.openPans.length === 1 && MID.openPans[0] >= 1 && MID.closePans.length === 1 && MID.closePans[0] <= -1', 1, '一次开卡只挪一次、关卡只还一次、不许零位移——R4 的直接判据'],
+    ['travel-map.html', '.leaflet-container .leaflet-control-attribution{background:var(--paper-bar);color:var(--ink-500)}', 1, '版权条这一层要带上 .leaflet-container 那一级才赢得了 vendor（leaflet.css:413 是两级类，页内单类写了一辈子没生效过，见探针 tools/out/b29-probe-attribution2.txt）'],
+    ['tools/smoke-travelmap.js', 'const norm = v => {', 1, 'hex↔rgb 换算：token 是 #FAF8F3 而 computed 是 rgb(...)，不换算 TM36 永远红——假红与假绿一样没人看，但它是那条判据能跑起来的前提'],
+    ['travel-map.html', "'<div class=\"ms-story\">'+story+'</div>':'')", 1, '正文那一段的闭合标签：本批把照片排到正文之前时，动的就是这一行的 neighbours，而它自己差点少了个 >（§42 那一族「漏收尾 >」在拼串侧的第二次发作，见 ②b 的配平对账）'],
+    ['travel-map.html', "window.addEventListener('resize',layoutBottomStack);", 1, '四个落点之外还有第五层：窗口本身变了形（转屏、分屏、键盘弹出）也得重排——实测高的定义域就是窗口，不是那四个按钮'],
+    ['tools/smoke-travelmap.js', 'const VW = 328, VH = 723;', 1, '浏览器腿量的必须是用户那块屏（§37 把主档从 452×995 改判成 328×723）：档位挪回 452，TM08/TM29/TM31 那几条「右边被切掉」的判据就都在一块不存在的屏上测']
+  ];
+  A44.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F44('A44 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V44)) { F44('A44 登记了 §44 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt44(V44[f], needle);
+    if (n !== exp) F44(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：改前的四条形状，各配一条正向对照（上面那个 0 不是证据，除非同一把刀能在合成源上读出 1） */
+  const ZERO44 = [
+    ['travel-map.html', 'bottom:calc(env(safe-area-inset-bottom,0px) + 150px);',
+      "#mmTimeline{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);z-index:900}",
+      '时间线又回去坐在那个没人量过的 150px 上（R1 的原件：统计条实测 94px、z 1000 > 900，重叠 45px）'],
+    ['travel-map.html', 'bottom:calc(env(safe-area-inset-bottom,0px) + 212px);',
+      "#memSheet{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 212px);max-height:calc(100dvh - 212px - 26px)}",
+      '卡片又回去坐在写死的 212px 上：那一档的算法与统计条实测高无关，撑高一次就压住一次'],
+    ['travel-map.html', 'max-height:calc(100dvh - 212px - 26px)',
+      "#memSheet{max-height:calc(100dvh - 212px - 26px);display:flex}",
+      '卡片最大高又不认可视区了（R2 的原件：长正文那条末行 top=699 落在可见底 511 之外，照片行 577..721 整条在外面）'],
+    ['travel-map.html', 'map.panBy([0,-180],{duration:420});',
+      "function openMemSheet(){ setTimeout(function(){map.panBy([0,-180],{duration:420});},80); }",
+      '开卡又把那个点往卡片底下推（panBy 的负值是视口往下走，不是内容往上走），而且 420 的单位是秒＝等于没动'],
+    ['travel-map.html', 'map.panBy([0,180],{duration:420});',
+      "function closeMemSheet(){ if(map) setTimeout(function(){map.panBy([0,180],{duration:420});},80); }",
+      '关卡改回「还一个猜的数」：挪多少与还多少一旦不是同一笔账，地图就一路漂移'],
+    ['travel-map.html', 'sheetHeight(', 'var sh = function sheetHeight(){ return 485; };',
+      '那个按硬编码算位移的助手又回来了：位移该由卡片上沿的实测矩形算，不该由某个人的估计算'],
+    ['travel-map.html', 'panSheetBy', 'function panSheetBy(h, up) { map.panBy([0, up ? -180 : 180]); }',
+      '让位又拆成「算高」＋「两处调用各抄一遍」两条腿：R3 的反号就是在这种形状里活了多年的'],
+    ['travel-map.html', 'var(--glass-sheet) 62%)',
+      "#memSheet.ms-clip::after{background:linear-gradient(to bottom,transparent,var(--glass-sheet) 62%)}",
+      '渐隐条压在毛玻璃 token 上＝§23 那把刀抓过的那次「那是脏不是毛玻璃」；实心纸用 --paper-50（它就是 --glass-sheet 的实心孪生）'],
+    ['topic-common.js', 'map.panBy([0, -160], { duration: 420 });',
+      "function openSheet(i) { setTimeout(function () { map.panBy([0, -160], { duration: 420 }); }, 80); }",
+      '专题地图那一支的反号写法回来了（与 travel-map 同形，两处是一起修的，不许修一处留一处）'],
+    ['topic-common.js', 'map.panBy([0, 160], { duration: 420 });',
+      "function closeSheet() { if (map) setTimeout(function () { map.panBy([0, 160], { duration: 420 }); }, 80); }",
+      '关卡那个猜的数回来了：这一支也没有记账'],
+    ['topic-common.js', '{ duration: .52 }', "map.panBy([0, 40], { duration: .52 });",
+      '带 duration 的平移会被同一条路径上先起的 flyTo 逐帧重设视图吞掉（探针实测位移被吞光），让位一律瞬移'],
+    ['travel-map.html', 'margin-bottom:calc(env(safe-area-inset-bottom,0px) + 94px)',
+      "  .leaflet-control-attribution{margin-bottom:calc(env(safe-area-inset-bottom,0px) + 94px)}",
+      '那个 94 是「猜统计条有多高」的第三个数（R1 同一族），而且实测一辈子没生效：vendor 的 .leaflet-container .leaflet-control-attribution{margin:0} 是两级类，页内单类打不过它（探针 b29-probe-attribution2.txt 三档 computed margin-bottom 恒 0px）'],
+    ['travel-map.html', '.leaflet-control-attribution{background:rgba(246,241,229,.75)',
+      "  .leaflet-control-attribution{background:rgba(246,241,229,.75);color:var(--ink-500)}",
+      '单类写底色＝写了不生效，屏幕上一直是 Leaflet 自己的白底；改这层要连 .leaflet-container 一起写（TM36 读 computed 才看得见这件事）'],
+    ['travel-map.html', '.theme-dark .leaflet-control-attribution{background:',
+      "  .theme-dark .leaflet-control-attribution{background:rgba(29,28,25,.8);color:var(--color-muted)}",
+      '底色不该按主题各抄一份：--paper-bar / --ink-500 自己随主题翻。正是那份「只有暗色写对了」让亮色的白底活了多年没人发现'],
+    ['travel-map.html', 'flex:none;padding:9px 14px;border-radius:999px;',
+      "  .tl-chip{\n    flex:none;padding:9px 14px;border-radius:999px;\n    background:var(--paper-bar);\n  }",
+      '胶囊又回去只靠 padding 撑高（改前那一行根本没有 min-height，TM04 量到的 35/35/35 就是这么来的）：这一排的可点高度要有自己的声明，不能只靠内核下限与同排 stretch 传下来的高度'],
+  ];
+  ZERO44.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F44('ZERO44 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V44)) { F44('ZERO44 登记了 §44 没读的文件「' + f + '」：' + why); return; }
+    if (cnt44(V44[f], needle) !== 0) F44(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt44(flat44(ctrl), needle) < 1) F44('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ②b 拼串的闭合配平（§42 那一族「漏收尾 >」的第二次发作，只不过这次漏在闭合标签上）：
+        本批把照片排到正文之前，动的就是 ms-story 那行的邻居，而这一行自己少了个 > ——
+        浏览器把后面整段并进这个 div 里，页面上「看着还行」，正文与音频/标签的容器就错了。
+        先自校准（同一把刀必须能在改前原件上读出 1、在改后形状上读出 0），再扫真源。
+        现场标定见探针 tools/out/probe44-div-balance.js。 */
+  {
+    const Q44 = String.fromCharCode(39);
+    const RX44 = /<([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>'\s*\+\s*[A-Za-z_$][A-Za-z0-9_$]*(?:\[[^\]]*\])?\s*\+\s*'\/\1'(?![>])/g;
+    const BAD44 = "+(story?" + Q44 + '<div class="ms-story">' + Q44 + "+story+" + Q44 + "/div" + Q44 + ":" + Q44 + Q44 + ")";
+    const GOOD44 = "+(story?" + Q44 + '<div class="ms-story">' + Q44 + "+story+" + Q44 + "/div>" + Q44 + ":" + Q44 + Q44 + ")";
+    const cb = (BAD44.match(RX44) || []).length, cg = (GOOD44.match(RX44) || []).length;
+    if (cb !== 1 || cg !== 0) F44('§44 的闭合配平正则自己失准（坏串应命中 1、好串应命中 0，实得 ' + cb + '/' + cg + '）：那个「全树 0」不是证据，是这把刀瞎了');
+    ['travel-map.html', 'topic-common.js'].forEach(function (f) {
+      const hits = (rd44(f).match(RX44) || []);
+      if (hits.length) F44(f + ' 有 ' + hits.length + ' 处拼串的闭合标签漏了收尾 >（' +
+        hits.map(h => JSON.stringify(h.slice(0, 56))).join(' ｜ ') + '）：§42 钉的是开标签漏 >，这是同一族病在闭合侧——「<div …> 开、+</div 没关」后面整段会被并进这个容器');
+    });
+  }
+
+  /* ③ 内置动态对账一：底部那些坐在基线上的层，每一层的 bottom 只许认那条变量。
+        逐行扫原文（这一条要看的是「有没有第四种写法」，不能只数总数）。
+        注释里提到 `bottom:calc(` 的行会被一起扫到，那是故意的宽口径：期望 0 那一族走 flat（剥注释），
+        对账走原文；多扫到的行只要含基线就不红，真出现「含 bottom:calc( 又不含基线」的注释行也正好要人看一眼。 */
+  const SCAN44 = src => {
+    const r = { sites: 0, out: [] };
+    src.split('\n').forEach(function (ln, i) {
+      if (ln.indexOf('bottom:calc(') < 0) return;
+      r.sites++;
+      if (ln.indexOf('var(--map-stack-bottom)') < 0) r.out.push('第 ' + (i + 1) + ' 行  ' + ws44(ln).slice(0, 96));
+    });
+    return r;
+  };
+  let BT44 = { sites: 0, out: [] };
+  {
+    const CAL = SCAN44('#a{bottom:calc(env(safe-area-inset-bottom,0px) + 150px)}\n#b{bottom:calc(env(safe-area-inset-bottom,0px) + var(--map-stack-bottom))}');
+    if (CAL.sites !== 2 || CAL.out.length !== 1 || CAL.out[0].indexOf('150px') < 0) F44('§44 的 bottom:calc 扫描器自己失准（合成两行应读到 sites=2／越界 1 且是 150px 那一行，实得 sites=' + CAL.sites + ' 越界=' + JSON.stringify(CAL.out) + '）：扫描器红了，下面那条真读数不可信');
+    BT44 = SCAN44(rd44('travel-map.html'));
+    if (BT44.out.length || BT44.sites < 3) F44('坐在基线外的 bottom:calc 对账失效（实测 ' + BT44.sites + ' 行、越界 ' + BT44.out.length + ' 行：' + BT44.out.join(' ｜ ') + '）——R1 的原件正是「两个各写各的硬编码数」，这一条断了就等于没人守');
+  }
+
+  /* ④ 内置动态对账二：让位这笔账只走一处抬、一处还，全站不许有第三处 map.panBy */
+  {
+    const n = cnt44(V44['travel-map.html'], 'map.panBy(');
+    if (n !== 2) F44('travel-map.html 里 map.panBy( 从 2 处变成 ' + n + ' 处：抬与还是同一笔账的两半（sheetRaised 记一次、还一次）。多出来的那一处要现场看过它挪的是谁、有没有跟着 moveend 回来自己——R4 那次自激就住在「第二个挪地图的人」身上');
+    const t = cnt44(V44['topic-common.js'], 'map.panBy(');
+    if (t !== 3) F44('topic-common.js 里 map.panBy( 从 3 处变成 ' + t + ' 处（§34 的 raiseCenterClear + 本节的抬与还）：新增一处要先说清它守的是哪个落点，别又留一个猜的数');
+  }
+
+  /* ⑤ 浏览器腿齐备检：TM01–TM37 逐条在场（少一条就少一个证据），条数守卫的阈值也要钉住 */
+  {
+    const S44 = V44['tools/smoke-travelmap.js'];
+    for (let i = 1; i <= 37; i++) {
+      const lab = "ok('TM" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt44(S44, lab) !== 1) F44('tools/smoke-travelmap.js 里 TM' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt44(S44, lab) + '）：这一节的立论是「实测矩形 + 真点命中」，删一条就少一个证据，改编号会让 §44 的齐备检集体失效');
+    }
+    /* TM36b 是从 TM36 里分出来的第二条：底色对了但被某一摞盖住，署名照样读不到——两件事各一条，别并成一条含糊的 */
+    if (cnt44(S44, "ok('TM36b") !== 1) F44('TM36b「版权条命中自己」不在场：TM36 只证明底色换了，不证明那行字露得到（R1 的教训就是「绑定在场 ≠ 命中得到」）');
+    if (cnt44(S44, 'checks >= 37') !== 1) F44('条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 38 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 37');
+    /* 齐备检自己也要有第二条腿：上面那个循环上限是个写死的数，把它从 37 收到 30 不会让任何一条红（少守 7 条）。
+       所以拿 smoke 里真实存在的最大编号来对账——不抄常量，表长变了它自己跟着走。 */
+    {
+      const LAB = S44.match(/ok\('(TM\d+)[ ]/g) || [];
+      const MAXN = LAB.reduce((m, s) => Math.max(m, Number(/TM(\d+)/.exec(s)[1])), 0);
+      const SEG = (rd44('tools/verify.js').split('⑤ 浏览器腿齐备检')[1] || '');
+      const BOUND = (SEG.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND === undefined) F44('读不到 ⑤ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND) !== MAXN) F44('⑤ 齐备检的循环上限是 ' + BOUND + '，而 smoke-travelmap 里真实最大编号是 TM' + MAXN + '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V44['README.md'].indexOf('§44') < 0) F44('README.md 的 verify 清单没提 §44（新闸门不写进 README 就等于没装）');
+
+  console.log('足迹页底部堆叠与让位闸门: ' + A44.length + ' 条代码锚点（一条基线 + 实测档位单点 + 两态都量 + 四个落点 + resize 那一层（窗口自己变形也得重排）+ 胶囊带地点名与 aria 同句 + 让位一个几何函数（band<120 守卫 / dy>=1 门坎 / 记账 / flyTo 落定补一次 / 挂与摘成对）+ 填内容一个入口（已开着只换内容）+ 两条「还有下文」的出口（ms-clip 随 scrollTop 生灭、h-clipped 用 mask）+ 那一排不写 align-items（44px 的一致高度是默认 stretch 从同排 .tl-trip 传下来的隐式依赖）+ 胶囊自己那行要有 min-height 声明（这排的可点高度实际由三条机制一起撑：这行声明、同排 stretch、BUTTON 让 Chromium 扣的内部 44px 下限——锚只钉得住声明那一层，几何那条腿是 TM04）+ 卡片高认可视区 + 专题地图那一支同形的四件 + 版权条那层要带 .leaflet-container 才赢得过 vendor + 浏览器腿四条脚手架纪律（刀断 / 只挪一次 / hex↔rgb 换算 / 真机档 328×723））+ 十五族期望 0（时间线 150／卡片 212／卡片 max-height 不认可视区／开卡反号 [0,-180]／关卡猜数 [0,180]／sheetHeight 硬编码助手／panSheetBy 两条腿／渐隐条压毛玻璃 token／专题两支的 -160 与 +160／带 duration 的平移／版权条那 94px／单类写的底色／按主题各抄一份的底色／胶囊只靠 padding 撑高（改前那一行根本没有 min-height））各配正向对照 + 三项内置动态对账（坐在基线外的 bottom:calc 逐行扫原文：' + BT44.sites + ' 行含它、越界 ' + BT44.out.length + ' 行，扫描器先拿合成两行自校准；map.panBy( 两支各 2／3 处，抬与还同一笔账；拼串闭合配平先拿改前原件自校准（坏 1／好 0）再扫两支真源，实得越界 0 处）+ 一条自指纪律（flat44/view44 定义行必须走共享剥刀与不剥文档那一支，两处贴着长注释的新代码旁各钉一枚现场哨兵）+ 浏览器腿 TM01–TM37 齐备检（TM36b 单列一条）与条数守卫；A44 表长 ' + A44.length + ' 条、ZERO44 表长 ' + ZERO44.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify44.js');
+  fail += bad44;
+}
+
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

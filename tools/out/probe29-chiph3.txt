@@ -1,0 +1,32 @@
+=== 原样 ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+=== 整排一起压到 8px（chip + 兄弟） ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+=== 整排一起压到 8px 且去掉行内高（看内容自然高） ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+=== 兄弟压到 8px、chip 不动（看 chip 会不会塌） ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+--- 桌面档（isMobile:false）---
+=== 桌面·原样 ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+=== 桌面·整排压到 8px ===  align-items=normal
+   BUTTON.tl-trip active  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+   BUTTON.tl-chip  真实高=44  computed min-height=44px  computed height=44
+判读：真实高随注入规则一起塌 → 是 flex 交叉轴 stretch 由同排最高那枚决定（b）；computed min-height 恒 44px 而行内 !important 按不动 → 才是 form 控件的整机下限（a）。

@@ -1,0 +1,32 @@
+=== 播种 3 条 · 视口 328x723 ===
+A 时间线容器 top=528 h=45 w=304
+  A1 tl-trip active “●10.08~10.08 3” 117x35 top=532 命中自己=false 命中于=s-main aria=(无)
+  A2 tl-chip “●10.08 01:38” 103x35 top=532 命中自己=false 命中于=stat aria=(无)
+  A3 tl-chip “●10.08 04:38” 103x35 top=532 命中自己=false 命中于=stat aria=(无)
+  A4 tl-chip “●10.08 06:38” 103x35 top=532 命中自己=false 命中于=null aria=(无)
+
+=== B 点了单条记录之后 ===
+B1 #memSheet class="" computed display=none（.show 规则要 display:flex）
+B2 Sheet 矩形 top=0 bottom=0 h=0 w=0 视口高=723 maxHeight=485px
+B3 Sheet 中心命中=topbar · 高亮的 chip=[]
+B4 #msBody 矩形高=0 scrollHeight=0 clientHeight=0 overflowY=auto flex=1 1 0% minH=0px 实滚到的 scrollTop=0
+B5 正文长度=- 显示高=- 需要高=- lineClamp=-
+B6 正文末行位置=null（inView=false 表示尾部读不到）
+B7 照片枚数=0 占位替换数=0
+
+=== C 地图节点 ===
+C0 标记枚数=2 聚合标记="大同古城，2 段记忆，点击查看"
+C1 聚合列表 class="show" 说明="2 段记忆 · 点击查看" 行数=2
+  行1 大同古城2026.10.08 · 01:38 · 晴 18℃
+  行2 应县木塔2026.10.08 · 06:38 · 晴 18℃
+C2 行几何 268x71（<44px 高即触控不达标）
+C3 点行后进单篇：地点="大同古城" 正文="那天的风很大，木塔的影子在地上拉得很长。我在塔下…" 照片=2 解码宽=[900,900]
+
+=== D 顶栏「游记」列表对照 ===
+D1 openList err=null 列表容器=tn-list 卡数=1 内嵌图枚数=4
+  D图1 natural宽=900 版面=57x38
+  D图2 natural宽=900 版面=0x0
+  D图3 natural宽=900 版面=0x0
+  D图4 natural宽=900 版面=46x46
+
+=== 页面异常 0 条 ===

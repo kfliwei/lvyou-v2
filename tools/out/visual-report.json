@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-07T16:24:18.353Z",
+  "ranAt": "2026-10-08T08:15:26.731Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -12,7 +12,7 @@
   ],
   "states": 109,
   "fail": 0,
-  "elapsedSec": 503.3,
+  "elapsedSec": 511.2,
   "results": [
     {
       "state": "index.320x640.png",
@@ -691,11 +691,11 @@
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1112,
+      "lcpMs": 1464,
       "lcpSamples": [
-        2052,
-        1112,
-        1060
+        2656,
+        1464,
+        1368
       ],
       "lcpEl": "H1",
       "cls": 0
@@ -703,11 +703,11 @@
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 896,
+      "lcpMs": 1956,
       "lcpSamples": [
-        896,
-        560,
-        1620
+        2732,
+        1956,
+        708
       ],
       "lcpEl": "?",
       "cls": 0.0009

@@ -1,0 +1,5 @@
+chip 标签=BUTTON  isButton=true
+改前 h=44 minH=44px
+行内 !important min-height:8px 之后 h=44 minH=44px style="min-height: 8px !important;"
+命中这枚元素且写了 height/min-height 的规则：
+   STYLE# {.tl-chip -> flex: 0 0 auto; display: flex; align-items: center; min-height: 44px; padding: 0px 14px; border-radius: 999px; background: var(--paper-bar); border: 1px solid var(--edge-hair-soft); font-size: var(--fs-2); color: var(--color-muted); letter-spacing: 0.03em; cursor: pointer; box-shadow: var(--shadow-soft); transition: all var(--duration-fast); white-space: nowrap;}

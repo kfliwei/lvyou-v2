@@ -1,0 +1,6 @@
+预检 M07 开卡时没人打纵向提示（只有滚动监听，首屏那条「↑ 上滑看全文」不出现）——源码腿无视野：这一行整体没被 A44 钉  的 from/to 不是串（from=object to=string），这条没法预检
+预检 M42 播种那条记录只剩一张照片（TM19 要的是「两枚都已解码、各有版面」）——源码腿无视野：A44 引的是判据行，不看播种  的 from/to 不是串（from=object to=string），这条没法预检
+预检 G01 照片排回正文之后（本批刻意改的次序；A44 钉的是那一行在场，不钉谁在前——期望红在 TM18）  的 from/to 不是串（from=object to=string），这条没法预检
+预检 G02 胶囊 min-height 退回 35px（R1 时代那个数；A44 钉 .tl-name 那一行与 44px 圆钮两态都量，不钉胶囊自己多高——期望红在 TM04）  的 from/to 不是串（from=object to=string），这条没法预检
+预检 G03 在同一条规则之后再补一条同名规则，把底色盖成 Leaflet 自己的白（前面那条锚串一个字没动，只有 computed 看得见——期望红在 TM36）  的 from/to 不是串（from=object to=string），这条没法预检
+中止：预检 5 条不过，树一个字都没动

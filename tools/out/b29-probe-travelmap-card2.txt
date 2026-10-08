@@ -1,0 +1,33 @@
+=== 视口 328x723 · 播种 2 条 ===
+
+=== 一 底部三层几何 ===
+1.1 统计条 #statBar top=525 bottom=619 h=94 z=1000
+1.2 时间线   top=463 bottom=517 h=54 z=900
+1.3 两者重叠=0px（时间线被压在统计条下面）· 底栏 {"top":639,"bottom":709,"h":70,"left":12,"w":304} z=1050
+1.4 chip“●10.08 01:56大同古城” 名=大同古城 aria=有 高=44px top=467 bottom=511 中心(214,489) 命中=SPAN 命中自己=true
+1.5 chip“●10.08 06:56应县木塔” 名=应县木塔 aria=有 高=44px top=467 bottom=511 中心(374,489) 命中=null 命中自己=false
+1.6 胶囊排横滚提示 h-clipped=true（可见 304 / 内容 439，露不下时要 true）
+
+=== 二 对照：收起统计条后再点同一坐标 ===
+2.1 收起后 #statBar display=none，#statOpen display=flex；--tm-gap=52px 时间线 513..567 圆钮 575..619 重叠=0px（要 0）
+2.2 点这一下之后 #memSheet class="show ms-clip" 高亮 chip=["●10.08 01:56大同古城"]（show=打得开）
+
+=== 三 Memory Sheet 打开后（长正文 + 内嵌照片）===
+3.1 Sheet top=26 bottom=619 h=593 display=flex maxHeight=593px
+3.2 #msBody 盒高=528 scrollHeight=655 clientHeight=528 overflowY=auto 拉到最大后 scrollTop=127
+3.3 正文 268 字：top=320 高=401 末行 top=697
+3.4 滚到底之后：scrollTop=127 末行 top=570（卡片可见顶=26，末行落在可见区内＝读得到全文）
+3.5 照片行 .ms-photos={"top":162,"bottom":306,"h":144,"clip":true,"cw":268,"sw":288} → 在可见区内（卡片可见底=619）
+3.6 图1 解码=900x600 版面=140x140 top=162 display=block loading=lazy complete=true
+3.7 图2 解码=900x600 版面=140x140 top=162 display=block loading=lazy complete=true
+3.8 卡内关闭钮={"box":"44x44","at":[285,59],"self":true,"tag":"svg"}
+3.9 溢出提示 ms-clip：顶部=true(文案 "↑ 上滑看全文") / 滚到底=false（要一真一假）
+
+=== 四 顶栏「游记」列表里的内嵌照片 ===
+4.1 解码宽=900 版面=57x38 computed 57px/38px display=block loading=lazy 父=mem-node mem-node--photo 链=mem-node mem-node--photo < leaflet-marker-icon leaflet-zoom-animated leaflet-interactive < leaflet-pane leaflet-marker-pane < leaflet-pane leaflet-map-pane leaflet-pan-anim < leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom 滚动容器=none
+4.2 解码宽=900 版面=0x0 computed 140px/140px display=block loading=lazy 父=ms-photos h-clipped 链=ms-photos h-clipped < DIV < DIV < BODY < HTML 滚动容器=ms-photos h-clipped
+4.3 解码宽=900 版面=0x0 computed 140px/140px display=block loading=lazy 父=ms-photos h-clipped 链=ms-photos h-clipped < DIV < DIV < BODY < HTML 滚动容器=ms-photos h-clipped
+4.4 解码宽=900 版面=46x46 computed 46px/46px display=block loading=lazy 父=tn-trip-head 链=tn-trip-head < tn-trip < tn-timeline < tn-listbody < tn-list 滚动容器=tn-listbody
+4.x 列表容器 tn-list {"top":0,"h":723,"w":328} 卡数=0 首段="←我的游记设置  照片墙  文档  统计  导出  导入旅程时间线日历全部#古建2游记1地点3照片1天数应县木塔2026-10-08 · 2 篇▾"
+
+=== 页面异常 0 条 ===

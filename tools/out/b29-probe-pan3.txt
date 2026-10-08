@@ -1,0 +1,19 @@
+0.1 起手 {"lat":39.561904,"lng":114.092916,"zoom":18}
+1.1 点 大同古城 @(214,489)
+    map.flyTo [39.5619,114.0929,18] @26 起手中心=39.56190
+    panSheetBy h=593 up=true @127
+    map.panBy [0,-307] {"duration":0.52} @127 zoom=17.999999957119027
+1.2 开后 {"lat":39.561912,"lng":114.092916,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false} cls={"c":"show ms-clip","h":593} 笔记点位=[["应县木塔",39.5606],["大同古城",39.5606]]
+    panSheetBy h=593 up=false @1750
+    map.panBy [0,307] {"duration":0.52} @1751 zoom=18
+1.3 关后 {"lat":39.561903,"lng":114.092915,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false}
+3.1 centerPre {"lat":39.561903,"lng":114.092915,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false}
+    panSheetBy h=593 up=true @3698
+    map.panBy [0,-307] {"duration":0.52} @3698 zoom=18
+3.2 开卡 1.1s {"lat":39.561912,"lng":114.092916,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false}
+3.3 开卡 1.8s {"lat":39.561912,"lng":114.092916,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false}
+    panSheetBy h=593 up=false @5517
+    map.panBy [0,307] {"duration":0.52} @5517 zoom=18
+3.4 关卡 {"lat":39.561903,"lng":114.092915,"zoom":18} {"panRun":false,"flyFrame":false,"zoomAnim":false}
+4.1 全程 []
+9 异常 0 

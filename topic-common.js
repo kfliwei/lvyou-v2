@@ -740,6 +740,21 @@
       el.style.display = 'block';
     });
   }
+  /* 底部详情卡会把它正在讲的这一站盖在下面：只挪「被盖住的那一截」，够露出来就停手（同 raiseCenterClear 的口径）。
+     旧写法是 map.panBy([0,-160])，符号反了——panBy 的负值把这个点往屏幕「下」推，正好推进卡片里；
+     它一直没露馅，是因为 duration 写成 420 而 Leaflet 的单位是「秒」（七分半＝等于没动）。 */
+  var sheetRaised = 0;
+  function locSheetClear() {
+    sheetRaised = 0;
+    if (!map || curSite == null || !$('locSheet').classList.contains('show')) return;
+    var s = SITES[curSite];
+    if (!s || s.lat == null || s.lng == null) return;
+    var cr = $('locSheet').getBoundingClientRect(), mr = map.getContainer().getBoundingClientRect(), band = cr.top - mr.top;
+    if (band < 120) return;   /* 卡片快占满屏：上面没地方看，挪了白挪 */
+    var p = map.latLngToContainerPoint(pt(s)), want = band - 24, dy = p.y - want;
+    /* 不足 1px 就不发这次瞬移：map.panBy([0, 0]) 照样派发 moveend（travel-map 那边被它自激出过 1253 帧爆栈） */
+    if (dy >= 1) { sheetRaised = Math.round(dy); map.panBy([0, sheetRaised], { animate: false }); }
+  }
   function openSheet(i) {
     curSite = i;
     /* 最近浏览记录（2026-08-15）：最近 8 个，搜索页展示 */
@@ -814,13 +829,15 @@
         document.querySelectorAll('#legBody .lg.flash').forEach(function (el) { el.classList.remove('flash'); });
       }, 1400);
     }
-    if (map) setTimeout(function () { map.panBy([0, -160], { duration: 420 }); }, 80);
+    setTimeout(locSheetClear, 80);
   }
   function closeSheet() {
     UI.sheet($('locSheet')).close();
     document.querySelector('.tabbar').classList.remove('is-hidden');
     curSite = null; setActiveNode(-1);
-    if (map) setTimeout(function () { map.panBy([0, 160], { duration: 420 }); }, 80);
+    /* 开卡时挪了多少，关卡就原样还多少（animate:false：带 duration 的平移会被同帧的其他视图动画吞掉） */
+    if (map && sheetRaised) map.panBy([0, -sheetRaised], { animate: false });
+    sheetRaised = 0;
   }
   function refreshSheet() { if (curSite != null && $('locSheet').classList.contains('show')) { $('lsBody').innerHTML = buildSheet(curSite); loadTicket(SITES[curSite]); } }
   function drawTripRoute() {

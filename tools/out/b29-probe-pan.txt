@@ -1,0 +1,9 @@
+0.0 起手 {"lat":39.57192,"lng":114.09293,"zoom":14,"loaded":true,"anim":false}
+1.1 手工 map.panBy([0,-306],{duration:0.42}) 之后 {"lat":39.59216,"lng":114.09293,"zoom":14,"loaded":true}
+1.2 手工再 pan 回来 {"lat":39.57192,"lng":114.09293,"zoom":14,"loaded":true}
+2.1 开卡 200ms（动画中途）{"lat":39.57193,"lng":114.09293,"zoom":14,"loaded":true} 卡片 {"h":188,"d":104}
+2.2 开卡动画收尾 {"lat":39.57195,"lng":114.09293,"zoom":14,"loaded":true}
+2.3 关卡之后 {"lat":39.57195,"lng":114.09293,"zoom":14,"loaded":true}（要和 0.0/2.1 之前的 {"lat":39.57192,"lng":114.09293,"zoom":14,"loaded":true} 对上）
+2.4 净位移：开卡动了 0.0 km·deg 折算，关后回到 0.0
+3.1 panSheetBy 现场 {"sheetHeightNow":0,"fn":"function panSheetBy(h,up){ if(!map||!h) return; var d=Math.round(h/2)+10; map.panBy([0,up?-d:d],{duration:420}); }"}
+9 页面异常 0 条 

@@ -1,0 +1,3 @@
+1. 默认态 {"attr":{"top":707,"bot":723,"left":204,"w":124,"h":16},"mapH":723,"mb":"0px","center":{"x":266,"y":715},"hit":"leaflet-control-attribution leaflet-control","hitIsSelf":true,"z":"800","text":"Leaflet | © 高德地图","collapsed":" / statBar=flex"}
+2. 底部那一摞的成员 statBar{flex top-from-mapTop=553 bot-from-mapBot=104 h=66 z=1000} statOpen{none top-from-mapTop=0 bot-from-mapBot=723 h=0 z=1000} mmTimeline{none top-from-mapTop=0 bot-from-mapBot=723 h=0 z=900} memSheet{none top-from-mapTop=0 bot-from-mapBot=723 h=0 z=1100} tabDock=NOEL
+3. 版权条父容器（leaflet-bottom.leaflet-right）{leaflet-bottom leaflet-right pos=absolute bottom=0px bot-from-mapBot=0 h=16 z=1000}
