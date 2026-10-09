@@ -17,12 +17,11 @@
   /* ---------- 工具 ---------- */
   var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function fmtD(ts) { var d = new Date(ts); return d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
-  function fmtDM(ts) { var d = new Date(ts); return pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
+  function fmtD(ts) { return TravelNotes.fmtDayText(ts); }
   function fmtRange(a, b) {
-    var da = new Date(a), db = new Date(b);
-    if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()) return fmtD(a);
-    return fmtD(a) + ' — ' + fmtD(b);
+    var da = fmtD(a), db = fmtD(b);
+    if (da === db) return da;
+    return da + ' — ' + db;
   }
 
   /* ---------- IndexedDB（Promise 封装） ---------- */
@@ -212,7 +211,7 @@
     var withLoc = notes.filter(function (n) { return n.lat != null; });
     var days = {}, cities = {}, provs = {}, photos = 0, audio = 0;
     notes.forEach(function (n) {
-      var d = (n.day || (n.date || '').slice(0, 10)); if (d) days[d] = 1;
+      var d = TravelNotes.dayText(n); if (d) days[d] = 1;
       if (n.siteName) cities[n.siteName] = 1;
       if (n.province) provs[n.province] = 1;
       photos += (n.photos || []).length;

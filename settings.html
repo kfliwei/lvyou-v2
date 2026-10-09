@@ -380,9 +380,7 @@
     function status() {
       var l = window.WebDAV ? WebDAV.last() : null;
       if (!l) { line('wdStatus', window.WebDAV && WebDAV.cfg() ? '配置已保存，还没同步过。' : '还没有配置同步服务。'); return; }
-      var d = new Date(l.ts);
-      function p(n) { return (n < 10 ? '0' : '') + n; }
-      line('wdStatus', '上次同步 ' + (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '：' + (l.msg || ''), l.ok ? 'ok' : 'err');
+      line('wdStatus', '上次同步 ' + TravelNotes.fmtDayText(l.ts).slice(5) + ' ' + TravelNotes.fmtClock(l.ts) + '：' + (l.msg || ''), l.ok ? 'ok' : 'err');
     }
     function render() {
       if (!window.WebDAV) return;

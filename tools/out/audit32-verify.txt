@@ -1,0 +1,54 @@
+MISS    F1 死入口  md-manager.html:156 全文无 «TravelNotes.noteById»
+MISS    F1b  md-manager.html:166 全文无 «noteById»
+MISS    F2 死入口  md-manager.html:571 全文无 «allCities»
+MISS    F3 编辑丢图  md-manager.html:556 全文无 «saveNote»
+MISS    F5 城市档恒空  md-manager.html:419 全文无 «n.city||n.province»
+MISS    F4 blob无revoke  md-manager.html:581 全文无 «a.download=»
+MISS    F8 同步无入口  md-manager.html:707 全文无 «SyncWebDAV»
+DRIFT   F35 静默守卫  声明 md-manager.html:549 实际 264,477,546  «保存»
+MISS    U26 emoji  md-manager.html:110 全文无 «＋ 新建»
+MISS    U12 字重  md-manager.html:332 全文无 «font-weight:900»
+DRIFT   U20 meta无日期空白点  声明 md-manager.html:431 实际 6,470,660  « · »
+MISS    F6 主题计数死码  planner.js:2520 全文无 «if (false)»
+MISS    F7 隐藏日期输入  planner.html:354 全文无 «type="date"»
+DRIFT   F9 假成功toast  声明 planner.js:2107 实际 1432,2033,2035,2066,2069,2095  «路书»
+DRIFT   N23 路书落点  声明 planner.js:2104 实际 1887,1981,1997,2057  «download»
+MISS    N18 载入行程  planner.js:1941 全文无 «restoreLast»
+MISS    N5 无空态  planner.js:2425 全文无 «openTripPicker»
+DRIFT   N9 重排重置  声明 planner.js:1845 实际 1349,1490,1860,2306  «confirm»
+MISS    N8 载入无确认  planner.js:2299 全文无 «loadTripIntoPlanner»
+MISS    N12 出发地  planner.js:1744 全文无 «重新定位»
+MISS    N13 无日期  planner.js:1865 全文无 «第 1 天»
+MISS    F10 清空库  me.html:546 全文无 «clearConfirm»
+MISS    F15 复制失败静默  me.html:296 全文无 «clipboard»
+MISS    N39 导出反馈  me.html:451 全文无 «已导出»
+HIT     B31 已登记  me.html:254  «esc((n.date||'').slice(0,10))»
+MISS    F11 只重试5次  travel-notes.js:578 全文无 «t < 5»
+DRIFT   F13 AI失败无文案  声明 travel-notes.js:1409 实际 26,79,92,93,182,186  «catch»
+HIT     F17 海报无兜底  travel-notes.js:2215  «ctx.fillText»
+DRIFT   B31 已登记  声明 travel-notes.js:1930 实际 1935  «toLocaleDateString»
+DRIFT   F34 widget静默  声明 travel-notes.js:247 实际 257,269  «AndroidCard»
+MISS    F14 CSV无BOM  expense.html:348 全文无 «a.download='旅行开销»
+MISS    F23 筛选回弹  expense.html:263 全文无 «fTrip»
+HIT     U中 z9500  expense.html:71  «#addSheet»
+MISS    F16 CSV无BOM  node-manager.html:1122 全文无 «a.download='custom-nodes»
+DRIFT   N-of 删节点裸confirm  声明 node-manager.html:262 实际 962,1013  «confirm(»
+MISS    F21 去重永不生效  index.html:442 全文无 «todayNoteIds»
+MISS    F24 空数组短路  index.html:552 全文无 «suggestByDateRange»
+MISS    F22 死函数  travel-map.html:358 全文无 «drawWeather»
+MISS    F33 返回键  search.html:256 全文无 «pushState»
+MISS    F25 导出JSON无入口  explore-map.html:447 全文无 «导出»
+HIT     B31 已登记  story.html:140  «esc(n.date||'')»
+HIT     B31 已登记  review.html:513  «slice(0, 4)»
+HIT     B31 已登记  review.html:613  «esc(n.date)»
+HIT     B31 已登记  album-edit.html:238  «(n.date || '')»
+HIT     B31 已登记  results.js:333  «esc(n.date)»
+HIT     B31 已登记  results.js:336  «toLocaleDateString»
+HIT     B31 已登记  vault.js:392  «escH(n.date)»
+HIT     B31 已登记  search.html:216  «(n.date||'')»
+MISS    F27 空下拉  settings.html:243 全文无 «modelWrap»
+MISS    F18 复制反馈  settings.html:538 全文无 «已复制»
+MISS    F26 解码器分叉  share.js:214 全文无 «v3b»
+MISS    F29 导出入口  travel-notes.js:2299 全文无 «btn-tn-export»
+
+=== 对账 命中11 / 行号漂移9 / 全文无此串32 / 文件不存在0 ===

@@ -2086,7 +2086,7 @@
     if (!notes.length) return null;
     var h = '<h1>' + esc(trip.name) + ' · 纪念册</h1><div class="muted">' + notes.length + ' 篇游记</div>';
     notes.forEach(function (n) {
-      h += '<div class="note"><h2>' + esc(n.title || n.siteName || '某处') + '</h2><div class="muted">' + esc(n.date || '') + (n.weather ? ' · ' + esc(n.weather) : '') + '</div><div>' + esc(n.text || n.raw || '') + '</div></div>';
+      h += '<div class="note"><h2>' + esc(n.title || n.siteName || '某处') + '</h2><div class="muted">' + esc(TravelNotes.dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div><div>' + esc(n.text || n.raw || '') + '</div></div>';
     });
     return docShell(trip.name + ' · 纪念册', h);
   }
@@ -2287,7 +2287,7 @@
   function renderTrips() {
     var list = loadTrips();
     var html = list.map(function (t, i) {
-      return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
+      return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? TravelNotes.fmtDayText(t.createdAt) : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
         '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
         '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:var(--fs-3);color:var(--color-muted)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
     }).join('');

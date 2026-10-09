@@ -1,0 +1,1 @@
+index.html:471:    document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';

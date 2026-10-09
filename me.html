@@ -251,7 +251,7 @@
     document.getElementById('meProvs').innerHTML = ALL.map(function(p){ return '<span class="prov' + (provs[p[0]] ? ' on' : '') + '">' + p[1] + '</span>'; }).join('');
     var recent = notes.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,4);
     document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){
-      return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc((n.date||'').slice(0,10)) + '</span></div>';
+      return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc(TravelNotes.dayText(n)) + '</span></div>';
     }).join('') : '<div style="font-size:var(--fs-3);color:var(--color-muted);padding:6px 0">还没有游记，去景点点「语音记录」开始</div>';
     if (window.Expense) { renderTrips(); renderYear(); }
   }

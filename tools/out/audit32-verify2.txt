@@ -1,0 +1,60 @@
+HIT     toast私货1  results.js:23  «function flash(msg)»  全文出现行 23
+HIT     toast私货2  poster.js:25  «function flash(msg)»  全文出现行 25
+HIT     toast私货3  vault.js:249  «function flash(msg)»  全文出现行 249
+HIT     toast私货4  index.html:402  «var tip = function»  全文出现行 402
+HIT     外来绿tip  topic-common.js:332  «rgba(31,122,90»  全文出现行 334
+HIT     旧色板  wishlist.html:122  «DAY_COLORS»  全文出现行 122
+HIT     40键色表  wishlist.html:115  «'名山大川'»  全文出现行 115
+HIT     旧绿  travel-map.html:416  «'#71806C'»  全文出现行 416
+HIT     轨迹写死  travel-map.html:435  «L.polyline(linePts»  全文出现行 435
+HIT     废弃绿  topic-common.js:384  «#5F7A4E»  全文出现行 384
+HIT     danger漂移  album-edit.html:46  «#B3543C»  全文出现行 46
+HIT     旧主色辉光  nav.js:28  «rgba(200,109,75»  全文出现行 28
+HIT     暗色FAB渐变  nav.js:32  «#B4593A»  全文出现行 32
+HIT     旧主色辉光2  me.html:14  «rgba(200,109,75»  全文出现行 14
+HIT     面板复刻旧板  travel-notes.js:330  «#1f3634»  全文出现行 330,1935,2210
+HIT     hover未包  review.html:140  «.ws-item:hover»  全文出现行 140,150
+HIT     hover未包2  review.html:155  «.cal-head .nav button:hover»  全文出现行 155
+HIT     hover未包3  review.html:164  «.md-item:hover»  全文出现行 164
+HIT     hover未包4  planner.html:15  «.card:hover»  全文出现行 15
+HIT     hover未包5  share.html:35  «.day-card:hover»  全文出现行 35
+HIT     emoji态1  results.js:417  «正在写故事»  全文出现行 417
+HIT     emoji态2  results.js:476  «⏳»  全文出现行 417,476
+MISS    emoji态3  topic-common.js:1274 全文无 «⏹»
+MISS    emoji态4  travel-map.html:822 全文无 «⏳»
+HIT     emoji播放  travel-notes.js:854  «⏸»  全文出现行 854,855,861
+HIT     系统字体名  results.js:244  «Songti SC»  全文出现行 77,121,178,183,244,261,382,461
+HIT     系统字体名2  results.js:382  «Songti SC»  全文出现行 77,121,178,183,244,261,382,461
+HIT     系统字体名3  results.js:461  «Songti SC»  全文出现行 77,121,178,183,244,261,382,461
+HIT     野层级1  expense.html:71  «z-index:9500»  全文出现行 71
+HIT     野层级2  trip.html:86  «z-index:9500»  全文出现行 86
+HIT     野层级3  node-manager.html:35  «z-index:9500»  全文出现行 14,35,52
+HIT     面板层级  travel-notes.js:336  «z-index:9000»  全文出现行 336,396
+HIT     本地重写toast  album-edit.html:108  «.ui-toast»  全文出现行 107,108,109
+HIT     软绿无token  wishlist.html:26  «#ECEFEA»  全文出现行 26,31
+HIT     遮罩三浓度  results.js:242  «rgba(32,32,29,.5)»  全文出现行 242,380,459
+HIT     遮罩第三值  planner.js:1463  «rgba(20,16,12,.45)»  全文出现行 1463
+HIT     阴影不用token  planner.js:1470  «0 -8px 30px»  全文出现行 1470
+HIT     主按钮手写色  results.js:261  «id="fgo"»  全文出现行 261
+HIT     标记写死色  wishlist.html:144  «divIcon»  全文出现行 144
+HIT     节点徽标绿  node-manager.html:142  «tr-user»  全文出现行 142
+HIT     分站圆点  story.html:160  «#9C9A92»  全文出现行 160
+HIT     地图空态  wishlist.html:140  «if (!list.length) return;»  全文出现行 140
+HIT     缩略图无alt  md-manager.html:420  «<img»  全文出现行 397,401,420,467,635
+HIT     故事图无alt  story.html:137  «<img»  全文出现行 137
+HIT     详情照片条  travel-notes.js:1926  «max-width:46%»  全文出现行 1926
+HIT     工坊照片条  results.js:328  «max-width:46%»  全文出现行 328
+HIT     对照：review接了放大  review.html:611  «zoomPhotoIdx»  全文出现行 611
+HIT     专题环色表  topic-catalog.js:24  «ring:»  全文出现行 9,12,15,18,21,24,27,30
+HIT     渐变外来色  topic-common.js:1490  «#3E7CB1»  全文出现行 1490
+HIT     封面暖字漂移  album.html:36  «#F4F1E7»  全文出现行 36,41
+HIT     旧muted  travel-map.html:146  «.statClose»  全文出现行 146,147,270
+HIT     导出文档系统字体  results.js:176  «PingFang SC»  全文出现行 176
+HIT     兜底漂移  travel-notes.js:343  «var(--r-sm,8px)»  全文出现行 343,347,435,439
+HIT     返回裸字符  review.html:197  «←»  全文出现行 197
+HIT     返回裸字符2  me.html:89  «←»  全文出现行 89
+HIT     返回裸字符3  settings.html:83  «←»  全文出现行 83
+DRIFT   对照：sprite 里有箭头吗  声明 icons.js:1 实际 92  «<symbol»
+HIT     对照：UI.confirm 存在  ui.js:61  «confirm»  全文出现行 1,4,36,61,510
+
+=== ui-audit 对账 命中55 / 漂移1 / 查无此串2 / 共 58 ===

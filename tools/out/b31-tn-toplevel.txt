@@ -1,0 +1,5 @@
+4| window.Ai = (function () {
+333| background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26241f}\
+2365| window.TNStats = function () {
+2390| window.__tnPickPlace = function (lat, lng, onPick, onCancel) {
+2426| window.__tnShowPlacePicker = function (addr, pois, lat, lng, onPick, onCancel) {

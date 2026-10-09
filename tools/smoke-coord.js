@@ -120,7 +120,8 @@ const CARDS = () => {
     };
   });
 };
-const DATEONLY = c => /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(c.tm);
+/* 批次 31 之后卡面那一格只剩日期（时刻走抽屉与时间线那两档），所以这里认的是纯 YYYY-MM-DD */
+const DATEONLY = c => /^\d{4}-\d{2}-\d{2}$/.test(c.tm);
 
 (async () => {
   const browser = await puppeteer.launch({ executablePath: CHROME, args: ['--no-sandbox', '--disable-dev-shm-usage', '--allow-file-access-from-files'], headless: 'new' });

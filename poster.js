@@ -75,7 +75,7 @@ window.FootprintPoster = (function () {
     if (!pts.length) { (window.UI && window.UI.toast ? window.UI.toast('还没有带位置的游记，先去记录一段旅程吧') : flash('还没有带位置的游记，先去记录一段旅程吧')); return; }
 
     /* ---- 统计 ---- */
-    var days = new Set(all.map(function (n) { return String(n.date || '').slice(0, 10); }).filter(Boolean));
+    var days = new Set(all.map(function (n) { return TravelNotes.dayText(n); }).filter(Boolean));
     var provs = {};
     all.forEach(function (n) { if (n.province) provs[n.province] = 1; });
     var tripCnt = 1;

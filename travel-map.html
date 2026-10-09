@@ -580,7 +580,9 @@ function renderTimeline(){
   var tl=document.getElementById('mmTimeline');
   if(!tl) return;
   var notes=TravelNotes.list();
-  var ordered=notes.filter(function(n){return n.lat!=null&&n.lng!=null;}).sort(function(a,b){return a.ts-b.ts;});
+  /* 没填时间戳的那篇会让减法返回 NaN，而 NaN 比较出来的顺序是引擎说了算：它可能排到最后，reverse 之后就抢到
+     默认那一程，用户打开时间线只看到一枚空白时间格的胶囊。缺 ts 一律当最旧，不许参与「谁最新」的争抢。 */
+  var ordered=notes.filter(function(n){return n.lat!=null&&n.lng!=null;}).sort(function(a,b){return (a.ts||0)-(b.ts||0);});
   tl.innerHTML='';
   if(!ordered.length){ tl.style.display='none'; return; }
   tl.style.display='flex';
@@ -594,7 +596,7 @@ function renderTimeline(){
   });
   trips.reverse();   // 最新旅程在前
   if(tlActive>=trips.length) tlActive=0;
-  var fmtD=function(ts){var d=new Date(ts);function p(x){return (x<10?'0':'')+x;}return p(d.getMonth()+1)+'.'+p(d.getDate());};
+  var fmtD=function(ts){return TravelNotes.fmtDayText(ts).slice(5);};
   trips.forEach(function(t,i){
     var g=document.createElement('button');
     g.className='tl-trip'+(i===tlActive?' active':'');
@@ -603,8 +605,7 @@ function renderTimeline(){
     tl.appendChild(g);
     if(i!==tlActive) return;
     t.notes.forEach(function(n){
-      var d=new Date(n.ts);
-      var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      var time=TravelNotes.fmtDayText(n.ts).slice(5)+' '+TravelNotes.fmtClock(n.ts);
       var chip=document.createElement('button');
       chip.className='tl-chip';
       chip.dataset.nid=n.id;
@@ -648,8 +649,7 @@ function openGroupSheet(items){
   const first=sorted[0];
   const place=esc(first.title||first.siteName||'未命名地点');
   const listHtml=sorted.map(function(n){
-    const d=new Date(n.ts);
-    const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const time=[TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · ');
     const th=(n.photos&&n.photos.length)?'<img loading="lazy" decoding="async" src="'+n.photos[0]+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">':'<span>记</span>';
     const t=(n.title||n.siteName||'未命名');
     return '<div class="ms-item" onclick="openMemSheetById(\''+n.id+'\')">'
@@ -672,8 +672,7 @@ function openMemSheetById(id){
 
 // TRACE v2：Memory Sheet（规范 §6 Memory Card）
 function openMemSheet(n){
-  const d=new Date(n.ts);
-  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const time=[TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · ');
   const place=esc(n.title||n.siteName||'未命名地点');
   const story=esc((n.text||n.raw)||'');
   const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img loading="lazy" decoding="async" src="'+x+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">').join('')+'</div>':'';
@@ -775,7 +774,7 @@ function renderTrack(themeId){
   ctx.fillText('起点 · '+(s.title||s.siteName),110,1160);
   ctx.fillText('终点 · '+(e.title||e.siteName),110,1215);
   ctx.font='28px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;
-  ctx.fillText(new Date().toLocaleDateString()+' 制 · 古建地图集',110,1290);
+  ctx.fillText(TravelNotes.nowDayText()+' 制 · 古建地图集',110,1290);
   ctx.globalAlpha=1;
   const dataUrl=cv.toDataURL('image/png');
   if(window.AndroidVoice&&window.AndroidVoice.saveImage){

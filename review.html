@@ -510,8 +510,8 @@ function renderToday(){
   if (!hits.length) { box.style.display = 'none'; return; }
   box.style.display = 'block';
   box.innerHTML = '<div class="eyebrow">今日重现 · ' + md + '</div>' + hits.slice(0, 6).map(function (n) {
-    return '<div class="md-item"><h3>' + esc(n.title || n.siteName || '未命名') + ' <span style="font-size:var(--fs-3);color:var(--color-muted)">' + (n.date || dayOf(n) || '').slice(0, 4) + '</span></h3>' +
-      '<div class="meta">' + esc(n.date || '') + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
+    return '<div class="md-item"><h3>' + esc(n.title || n.siteName || '未命名') + ' <span style="font-size:var(--fs-3);color:var(--color-muted)">' + dayOf(n).slice(0, 4) + '</span></h3>' +
+      '<div class="meta">' + esc(dayOf(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
       '<div class="txt">' + esc((n.text || n.raw || '').slice(0, 160)) + '</div></div>';
   }).join('');
 }
@@ -610,7 +610,7 @@ function renderDay(){
     var tags=(n.tags&&n.tags.length)?'<div class="tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
     var thumbs=(n.photos&&n.photos.length)?'<div class="thumbs">'+n.photos.slice(0,4).map(function(p,pi){return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="'+esc(p)+'" onclick="TravelNotes.zoomPhotoIdx(\x27'+n.id+'\x27,'+pi+')" alt="">';}).join('')+'</div>':'';
     return '<div class="md-item"><h3>'+esc(n.title||n.siteName||'未命名')+'</h3>'+
-      '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'+
+      '<div class="meta">'+esc(dayOf(n))+(n.weather?' · '+esc(n.weather):'')+'</div>'+
       '<div class="txt">'+esc(n.text||n.raw)+'</div>'+tags+thumbs+'</div>';
   }).join('');
   var moods=Object.keys(MOOD_ICON);
@@ -671,7 +671,7 @@ document.getElementById('aiReport').onclick=function(){
   var provs={},sites={};
   list.forEach(function(n){ if(n.province)provs[n.province]=1; if(n.lat!=null)sites[n.lat.toFixed(4)+','+n.lng.toFixed(4)]=1; });
   var timeline=list.map(function(n){
-    return (n.date||'')+' 在'+(n.siteName||'某处')+(n.weather?'（'+n.weather+'）':'')+'：'+(n.text||n.raw||'').slice(0,100);
+    return dayOf(n)+' 在'+(n.siteName||'某处')+(n.weather?'（'+n.weather+'）':'')+'：'+(n.text||n.raw||'').slice(0,100);
   }).join('\n');
   var prompt='我有 '+list.length+' 篇游记，'+Object.keys(sites).length+' 个地点，覆盖 '+Object.keys(provs).length+' 个省份。请写一篇 400-600 字的年度旅行回顾散文，温暖有画面感，按时间推进，可穿插感悟，不要编造未出现的史实。时间线如下：\n'+timeline;
   var dlg=document.createElement('div');
@@ -683,19 +683,19 @@ document.getElementById('aiReport').onclick=function(){
   function fallbackLocal(reason){
     var provArr=Object.keys(provs), siteArr=Object.keys(sites);
     var days={};
-    list.forEach(function(n){ var d=(n.date||'').slice(0,10); if(d) days[d]=1; });
+    list.forEach(function(n){ var d=dayOf(n); if(d) days[d]=1; });
     var dCount=Object.keys(days).length;
     var first=list[0], last=list[list.length-1];
     var lines=[
       '这一年，你去了 '+Object.keys(provs).length+' 个省份、'+siteArr.length+' 处地方，',
       '留下了 '+list.length+' 篇游记、'+dCount+' 个日子的记录。',
-      (first?'从 '+((first.date||'').slice(0,10)||'出发')+' 的'+(first.siteName||'第一站')+'，':''),
-      (last?'到 '+((last.date||'').slice(0,10)||'归途')+' 的'+(last.siteName||'最后一站')+'，':'')+'',
+      (first?'从 '+(dayOf(first)||'出发')+' 的'+(first.siteName||'第一站')+'，':''),
+      (last?'到 '+(dayOf(last)||'归途')+' 的'+(last.siteName||'最后一站')+'，':'')+'',
       '每一步都算数。',
       '',
       provArr.length?'走过：'+provArr.join('、')+'。':'',
       '',
-      list.slice(0,5).map(function(n){ return '· '+(n.date||'').slice(0,10)+' '+(n.siteName||'某处')+' — '+String(n.text||n.raw||'').slice(0,46); }).join('\n')+(list.length>5?'\n… 还有 '+(list.length-5)+' 段记忆没有写在这里。':''),
+      list.slice(0,5).map(function(n){ return '· '+dayOf(n)+' '+(n.siteName||'某处')+' — '+String(n.text||n.raw||'').slice(0,46); }).join('\n')+(list.length>5?'\n… 还有 '+(list.length-5)+' 段记忆没有写在这里。':''),
       '',
       reason||'在「设置 → AI 助手」配好站点与 Key，下次就能请 AI 把这一年写成散文。'
     ];

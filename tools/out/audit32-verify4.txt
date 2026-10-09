@@ -1,0 +1,63 @@
+HIT     H1 记录FAB=整页重载  nav.js:14
+HIT     H1b 600ms 后才发起  index.html:390
+HIT     H1c GPS 6s  index.html:416
+HIT     H2 定位失败踢出流程  index.html:410
+HIT     H2b  index.html:412
+HIT     H3 足迹页记一笔  travel-map.html:842
+HIT     H3b busy 锁  travel-map.html:851
+HIT     H3c cancel 回调  travel-notes.js:2497
+HIT     H4 更多藏在展开后  topic-common.js:592
+HIT     H4b  topic-common.js:595
+HIT     H5 最近记录死胡同  me.html:253
+HIT     H6 遮罩即关不确认  travel-notes.js:643
+MISS    H7 编辑返回无条件丢  travel-notes.js:1881 全文无 «#tnEditBack', function () { pg.remove»
+HIT     H7b  travel-notes.js:1881
+HIT     H8 上传零确认  settings.html:419
+HIT     H8b  sync-webdav.js:15
+HIT     H9 名不符实  settings.html:582
+HIT     H9b  travel-notes.js:2311
+HIT     H9c 谎报  travel-notes.js:2311
+HIT     H10 12 颗等宽按钮  planner.html:126
+HIT     H10b  planner.js:1425
+HIT     H10c 长文案撑格  planner.js:1431
+HIT     N-默认 抹掉出发日期  planner.js:2332
+HIT     N-默认 分类  expense-form.js:86
+HIT     N-默认 日期  expense-form.js:146
+HIT     N-反馈 谎报  wishlist.html:244
+HIT     N-反馈b catch 吞  wishlist.html:245
+HIT     N-反馈 强制刷新  settings.html:443
+HIT     N-反馈 自动同步静默  sync-webdav.js:245
+HIT     N-破坏 清空无确认  search.html:169
+HIT     N-静默 天气  travel-notes.js:1485
+HIT     M-前置 先定位  topic-common.js:906
+HIT     M-前置  planner.js:1705
+HIT     M-前置b  planner.js:1707
+HIT     M-前置c  planner.js:2525
+HIT     L-首页搜索只读  index.html:236
+HIT     M-触控 .mv 30px  planner.html:104
+HIT     M-触控b mini 28px  planner.html:115
+HIT     M-键盘压住  expense-form.js:150
+HIT     M-键盘b  travel-notes.js:1086
+HIT     L-默认 票种  checklist.html:269
+HIT     L-默认 3 天  results.js:463
+HIT     L-默认 5 天  planner.html:222
+HIT     M-撤销分布  planner.js:2306
+HIT     M-撤销缺失  expense.html:330
+HIT     M-撤销缺失b  travel-notes.js:1751
+HIT     M-破坏c  topic-common.js:1648
+HIT     M-快照续接  planner.js:1255
+HIT     M-搜索落点  travel-map.html:709
+HIT     M-三级埋点  settings.html:197
+HIT     M-两套行程  topic-common.js:870
+HIT     M-备份白名单  backup.js:30
+HIT     对照 反馈完备  node-manager.html:1013
+DRIFT   N11 锁定  声明 planner.js:1657 实际 181,418,1147,1197,1434,2210,2218,2220,2223,2224
+DRIFT   N12 出发地  声明 planner.js:1744 实际 1584
+MISS    N13 日期缺  planner.js:1865 全文无 «第 1 天»
+DRIFT   N21  声明 planner.js:2415 实际 351,376,844,1007,2188,2222,2239,2364,2367,2481
+DRIFT   N36 省份  声明 review.html:556 实际 479,483,487,524,525,528,531,671,672,676
+DRIFT   N37 公里  声明 review.html:483 实际 490
+DRIFT   N35  声明 review.html:580 实际 313,314,524,527,528,543,544,548,685,686
+HIT     N34  review.html:514
+
+=== 对账 命中53 / 漂移6 / 查无此串2 / 共 61 ===

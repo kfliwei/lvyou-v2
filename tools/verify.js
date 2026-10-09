@@ -6041,13 +6041,13 @@ function stripBlockComments(s) {
 
   /* ① 正向锚点：改后的卡面形状 + 三处「坐标是功能不是装饰」的保留点 */
   const A45 = [
-    ['results.js', "+ '<div class=\"m\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '纪念册卡片那一行只有日期与天气（改前尾巴上还挂着「 · 39.5606, 114.0862」）'],
-    ['review.html', "'<div class=\"meta\">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'", 1, 'review 日卡的 .meta 同形状（改前那一串挤在同一行末尾，读起来像调试输出）'],
-    ['travel-notes.js', "'</h4><div class=\"tm\">' + esc(n.date) + '</div><div class=\"tx\">'", 1, '随手记列表卡（renderItem 两个视图共用）：这一行改前还带着「 · 」与那串数，坐标没了之后那个悬空的连接符也要一起走'],
-    ['travel-notes.js', "'<div style=\"color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '导出文档的卡面同一口径（这一处是「文档」，用户没让它带坐标；带坐标的是 vault.js 那条明写「坐标 ·」的元信息行）'],
-    ['travel-notes.js', 'ctx.fillText(n.date, 70, 285);', 1, '海报 canvas 那行只写日期：siteName 在它上面几行已单独绘制，画布上那串数是噪声'],
+    ['results.js', "+ '<div class=\"m\">' + esc(TravelNotes.dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '纪念册卡片那一行只有日期与天气（改前尾巴上还挂着「 · 39.5606, 114.0862」）；日期那一格从裸读 n.date 换成 §41 显示单点（批次 31-A），锚串跟着改——这一支不许退回 esc(n.date)，那对 2026.10.08／2026年10月8日 都不产生统一读数'],
+    ['review.html', "'<div class=\"meta\">'+esc(dayOf(n))+(n.weather?' · '+esc(n.weather):'')+'</div>'", 1, 'review 日卡的 .meta 同形状（改前那一串挤在同一行末尾，读起来像调试输出）；dayOf 是本页对 TravelNotes.noteDay 的既有包装，日期仍只有一个来源'],
+    ['travel-notes.js', "'</h4><div class=\"tm\">' + esc(dayText(n)) + '</div><div class=\"tx\">'", 1, '随手记列表卡（renderItem 两个视图共用）：这一行改前还带着「 · 」与那串数，坐标没了之后那个悬空的连接符也要一起走；日期读 dayText 单点'],
+    ['travel-notes.js', "'<div style=\"color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px\">' + esc(dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '导出文档的卡面同一口径（这一处是「文档」，用户没让它带坐标；带坐标的是 vault.js 那条明写「坐标 ·」的元信息行）'],
+    ['travel-notes.js', 'ctx.fillText(dayText(n), 70, 285);', 1, '海报 canvas 那行只写日期：siteName 在它上面几行已单独绘制，画布上那串数是噪声'],
     ['travel-notes.js', "(n.style ? '<div style=\"color:#6b665c;font-size:var(--fs-2);margin-top:6px\">' + esc(n.style) + '</div>' : '')", 1, '地图 popup 的尾行现在是风格而不是坐标；这一串同时钉住 esc(n.style)——改前那里是裸拼的 n.style，删坐标时顺手补的转义不许退回去'],
-    ['travel-notes.js', "var txt = (n.title || n.siteName || '游记') + '\\n' + (n.date || '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '')", 1, '复制/分享那条文本仍带坐标（用户口径里明写的保留支；浏览器腿 CO07 真点一次复制读回来）'],
+    ['travel-notes.js', "var txt = (n.title || n.siteName || '游记') + '\\n' + dayText(n) + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '')", 1, '复制/分享那条文本仍带坐标（用户口径里明写的保留支；浏览器腿 CO07 真点一次复制读回来）；日期段改读 dayText 后，那串坐标必须还在——这一支不是卡面'],
     ['travel-map.html', "fillSheet('<div class=\"ms-place\">'+place+'</div>'", 2, '两处填内容入口（聚合列表与单篇）都只写地点名——只钉一处等于另一处没人守'],
     ['travel-map.html', "if(map) map.flyTo(gxy(n.lat,n.lng)", 2, '坐标换成定位还在用（胶囊那条路径与列表点开那条路径）：删的是读数，不是那个点'],
     ['topic-common.js', '<b>途经点随手记</b><div class="pm pa">', 1, '专题地图途经点 popup：改前那里是 <div class="pm">lat, lng</div>，一句话的说明被坐标挤到下一档'],
@@ -6183,6 +6183,273 @@ function stripBlockComments(s) {
 
   console.log('卡面裸坐标闸门: ' + A45.length + ' 条代码锚点（改后卡面五处「只留日期/地点名」+ 两处填内容与两处 flyTo 都只钉一遍的形状 + popup 那行的 esc(n.style) + 三处带「坐标」标签的保留点 + 复制文本那条保留支 + 途经点 popup + 浏览器腿三条形状锚（真机档 328×723／切时间视图那一支／展开折叠的旅程卡——少了任何一条，那一支判据就在一块不存在的屏上或 0 张卡上空跑）+ 十族期望 0（results／review／列表卡／导出文档／海报 fillText／地图 popup／抽屉 locHtml 与其拼串与那条死 CSS／专题 popup）各配正向对照 + 三项内置动态对账（全量 readdir ' + var45scan.files + ' 个根目录文件：坐标行 ' + var45scan.sites + '、带标签保留 ' + var45scan.labeled + '、不在屏上的键与 URL ' + var45scan.offscreen + '、越界 ' + var45scan.bare + '，扫描器先拿三行合成样本自校准）+ 一条自指纪律（flat45/view45 定义行必须走那把共享剥刀与不剥文档那一支，两处改动旁各钉一枚现场哨兵）+ 浏览器腿 CO01–CO21 齐备检与条数守卫（含两枚反证锚：屏上那一格 CO19、属性那一格 CO13）；A45 表长 ' + A45.length + ' 条、ZERO45 表长 ' + ZERO45.length + ' 条，抬阈值类变异要取当前长度 + 1；锚点 preflight 见 tools/out/probe45-anchor-preflight.js，变异自测见 tools/out/mut-verify45.js');
   fail += bad45;
+}
+
+/* ============ §46 日期显示口径闸门（批次 31） ============
+   用户点单（逐字）：「日期显示统一」。
+   地基实测（tools/out/b31-divergence.txt，328×723 真浏览器腿）：五条种子全部归一到同一个键 2026-10-08，
+   日历「亮哪格」与「点开有内容」都对，可同一张卡上那行日期印成 2026-10-8 ／ 2026.10.08 ／ 2026年10月8日 ／
+   空串 ／ 十月八号 五种。根因是 §41 只收了「键」，显示那一路从来没收口：各页面各自抄 n.date、各自 slice(0,10)、
+   各自拼年月日；时刻那一族更交给系统的 toLocale 家族，换一台手机（换一套 locale）就换一种读法。
+
+   本节钉四件事：
+     ① 出口只有那五个名字：noteDay（键）+ dayText ／ nowDayText ／ fmtDayText ／ fmtClock（显示），
+        五条定义体与五条导出名逐个钉住，再钉各页面上「包装单点而不是另抄一份」的那几行；
+     ② 本批删掉的旧写法不许回来，每一条期望 0 都配一条「同一把刀能在改前原件上读出 1」的正向对照；
+     ③ 内置全量对账（readdir 全树，不抄名单）：单点调用点逐文件恰数、locale 调用形全站 0、
+        第二份宽松解析全站 1、裸读 .date 按域白名单、手拼日期又渲染上屏的只剩一枚已判定的设备月份 label；
+     ④ 浏览器腿 D01–D22 齐备检 + 条数守卫。
+
+   为什么 ③ 必须自己扫而不是抄登记数字：批次 30 那一节的坐标普查一路是 6 → 8 → 11，两次漏的根因相同
+   （只数登记过的文件与模式）。日期这一族更严重——动手前的静态普查就是 37 处（tools/out/b31-bucket-census.txt），
+   登记表抄不全等于闸门只守一半的页面，而守不住的那一半恰好是用户天天翻的那几页。
+
+   为什么「键统一了」不等于「显示统一了」（这一节为什么不并进 §41）：§41 的锚钉的是分组用的那个串，
+   分组对了、屏上照样能印五种写法——那正是本批用户报上来的症状。显示这一路必须有自己的出口与自己的闸门。 */
+{
+  let bad46 = 0;
+  const F46 = m => { bad46++; console.log('FAIL §46 日期显示口径闸门: ' + m); };
+  const ws46 = s => s.replace(/\s+/g, ' ').trim();
+  const flat46 = s => ws46(stripBlockComments(s));
+  const cnt46 = (s, n) => s.split(n).length - 1;
+  const rd46 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view46 = f => /\.md$/.test(f) ? ws46(rd46(f)) : flat46(rd46(f));
+
+  const FILES46 = ['travel-notes.js', 'results.js', 'review.html', 'travel-map.html', 'md-manager.html',
+    'settings.html', 'planner.js', 'album.js', 'wishlist.html', 'vault.js', 'index.html',
+    'story.html', 'search.html', 'tools/smoke-date.js', 'tools/smoke-coord.js', 'README.md'];
+  const V46 = {};
+  FILES46.forEach(f => {
+    if (!fs.existsSync(f)) { F46('缺 ' + f); V46[f] = ''; return; }
+    V46[f] = view46(f);
+  });
+
+  /* ⓪ 自指纪律：读源码这件事自己先自校准（同 §45 那一支）。
+        危险方向不是「注释里的登记串被当成代码」（那会红，看得见），而是反过来的那一支：
+        真代码被当成注释吞掉，住在这一带的期望 0 会静默满足。于是在本批改过的三处旁边各钉一枚现场哨兵。 */
+  {
+    const DEF46 = (rd46('tools/verify.js').match(/^[ \t]*const flat46 = [^\n]*/m) || [''])[0];
+    if (DEF46.indexOf('stripBlockComments') < 0) F46('§46 的 flat46 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF46.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L46 = (rd46('tools/verify.js').match(/^[ \t]*const view46 = [^\n]*/m) || [''])[0];
+    if (L46.indexOf('.md$') < 0) F46('view46 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L46.slice(0, 60) || '整行没数到') + '）：README 登记串里天生要写这族的形状，文档侧的锚会当场读 0');
+    [['travel-notes.js', 'function noteDay(n) {'],
+     ['travel-map.html', "if(map) map.flyTo(gxy(n.lat,n.lng)"],
+     ['settings.html', "line('wdStatus', '上次同步 '"]].forEach(function (p) {
+      if (V46[p[0]].indexOf(p[1]) < 0) F46('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：五个出口的定义体 + 五条导出名 + 各页面「包装单点而非另抄一份」的那几行 */
+  const A46 = [
+    ['travel-notes.js', 'function noteDay(n) {', 1, '§41 的归一键仍是唯一解析处（dayText 只调它，不再开第二份）'],
+    ['travel-notes.js', 'function dayText(n) { return noteDay(n); }', 1, '屏上日期唯一出口：这一行一旦长出 slice/拼年月日，本节的立论就散了'],
+    ['travel-notes.js', 'function nowDayText() { return fmtDay(Date.now()); }', 1, '「今天/生成于/记录于」也走同一个 fmtDay，不再各页各取一套 locale'],
+    ['travel-notes.js', "function fmtDay(ts) { var d = new Date(ts); if (!isFinite(d.getTime())) return '';", 1, '坏 ts 读空而不是印 NaN（改前 travel-map 那两行会把 NaN 画到屏上）'],
+    ['travel-notes.js', "function fmtClock(ts) { var d = new Date(ts); if (!isFinite(d.getTime())) return ''; return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }", 1, '时刻固定档：HH:MM，坏 ts 同样读空'],
+    ['travel-notes.js', "function fmtTime(ts) { var day = fmtDay(ts), ck = fmtClock(ts); return [day, ck].filter(Boolean).join(' '); }", 1, '日+时刻这一族改成拼两个固定档（改前它自己从零拼年月日，是五种写法之一）'],
+    ['travel-notes.js', 'noteDay: noteDay,', 1, '五个出口都真的挂到 window.TravelNotes 上：定义在而没导出，页面就只能自己再抄一份'],
+    ['travel-notes.js', 'dayText: dayText,', 1, '同上（这一支是屏上那一格的主出口）'],
+    ['travel-notes.js', 'nowDayText: nowDayText,', 1, '同上（导出文档头、纪念册「生成于」都靠它）'],
+    ['travel-notes.js', 'fmtDayText: fmtDay,', 1, '同上（ts → YYYY-MM-DD，短档页面自己 slice）'],
+    ['travel-notes.js', 'fmtClock: fmtClock,', 1, '同上（ts → HH:MM）'],
+    ['travel-notes.js', "' 篇 · 记录于 ' + nowDayText()", 1, '导出文档的头一行读设备时刻的固定档（改前是 locale）'],
+    ['review.html', 'function dayOf(n){return TravelNotes.noteDay(n);}', 1, '这一页的既有包装转发的就是单点：留包装可以，另抄解析不行'],
+    ['md-manager.html', "function dayText(n) { return (window.TravelNotes && TravelNotes.dayText) ? TravelNotes.dayText(n) : ''; }", 1, '数据管理页从前自己抄了一份宽松解析，现在只剩转发（转发失败读空，不猜形状）'],
+    ['md-manager.html', "function ymOf(n) { return dayText(n).slice(0, 7) || '未知'; }", 1, '月份分组从显示单点派生，不再是第二份解析'],
+    ['md-manager.html', '<script src="travel-notes.js"></script>', 1, '这页必须先载单点：转发的前提是库在场（漏载会让上面两行静默读空）'],
+    ['travel-map.html', "const time=[TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · ');", 2, '单篇抽屉与聚合列表两处共用同一把刀：只钉一处等于另一处没人守'],
+    ['travel-map.html', "var time=TravelNotes.fmtDayText(n.ts).slice(5)+' '+TravelNotes.fmtClock(n.ts);", 1, '时间线胶囊的短档（MM-DD HH:MM）：slice 的是单点的输出，不是原始字段'],
+    ['travel-map.html', 'var fmtD=function(ts){return TravelNotes.fmtDayText(ts).slice(5);};', 1, '旅程档头那对日期同一支短档'],
+    ['travel-map.html', "ctx.fillText(TravelNotes.nowDayText()+' 制 · 古建地图集'", 1, '海报画布上的制图时刻也收进固定档'],
+    ['results.js', 'function dayStr(ts) { return TravelNotes.fmtDayText(ts); }', 1, '纪念册/图鉴的日期档转发单点（改前这里是从零拼四位年 + 补零月日）'],
+    ['results.js', "' · 生成于 ' + TravelNotes.nowDayText()", 3, '三处「生成于」共用一个出口（只钉一处会留下另两处各写各的）'],
+    ['settings.html', "line('wdStatus', '上次同步 ' + TravelNotes.fmtDayText(l.ts).slice(5) + ' ' + TravelNotes.fmtClock(l.ts)", 1, '云同步那行「上次同步」的时刻：改前这里是页内自拼 + locale 混用'],
+    ['album.js', 'function fmtD(ts) { return TravelNotes.fmtDayText(ts); }', 1, '相册章标题的日期档（改前是 2026.10.08 点号形）'],
+    ['wishlist.html', 'function fmt(ts) { return TravelNotes.fmtDayText(ts); }', 1, '心愿单「已打卡 · 日期」同一支（改前同样是点号形）'],
+    ['planner.js', "esc(t.createdAt ? TravelNotes.fmtDayText(t.createdAt) : '')", 1, '候选行的小字创建日期：没有createdAt 就读空，不印 undefined'],
+    ['vault.js', "'> 由 行迹 TRACE 导出 · ' + TravelNotes.nowDayText()", 1, '导出索引的头一行同一口径'],
+    ['tools/smoke-date.js', 'const VW = 328, VH = 723;', 1, '浏览器腿量的必须是用户那块屏（§37 口径）'],
+    ['tools/smoke-date.js', 'const SHAPE_SRC', 1, '形状刀只声明一份（改名或再声明一份都会让下面那条「按名字共用」变成两份刀：正判据与 D00 自校准必须共用同一把）'],
+    ['tools/smoke-date.js', 'new RegExp(SHAPE_SRC', 1, '正判据必须按名字共用那把刀：把刀体行内重打一遍，声明照旧在场而两处从此各改各的，D00 的自校准就只校准了没人用的那把'],
+    ['tools/smoke-date.js', "document.getElementById('tnViewTime')", 1, '时间视图那一支真切换过：renderItem 两视图共用，只验聚合那一支＝另一支没人守'],
+    ['tools/smoke-date.js', 'window.__CAP = [];', 1, '复制那条出口是私有函数、没有对外 API，只能真点 + 拦 clipboard；改成直接调内部函数＝验一个不存在的出口'],
+    ['tools/smoke-coord.js', "const DATEONLY = c => /^\\d{4}-\\d{2}-\\d{2}$/.test(c.tm);", 1, '§45 那两条形判据跟着本批改档：卡面只剩日期（时刻归抽屉与时间线），这条锚钉的是「不许把时间档再塞回卡面」'],
+    ['travel-map.html', '.sort(function(a,b){return (a.ts||0)-(b.ts||0);})', 1, '时间线排序把「没填时间戳」当最旧：原式 a.ts-b.ts 对缺 ts 的那篇返回 NaN，顺序交给引擎，那一枚能抢走默认那一程（屏上只剩一只空时间格的胶囊）'],
+    ['story.html', "var _sp=cards.map(function(n){return n.ts;}).filter(function(t){return typeof t==='number'&&isFinite(t);});", 1, '卷首语的跨度只算有 ts 的站：原式 (末站ts-首站ts) 撞上缺 ts 就读 NaN，而「跨 NaN 天」是直接上屏的字'],
+    ['search.html', 'TravelNotes.init({});', 1, '搜索页必须自己把游记库灌进来：这一行不在，TravelNotes.list() 恒为空数组，搜自己的游记恒读「0 篇」（浏览器腿 D13 的分母也靠它）'],
+  ];
+  A46.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F46('A46 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V46)) { F46('A46 登记了 §46 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt46(V46[f], needle);
+    if (n !== exp) F46(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批删掉的旧写法，各配一条正向对照（那个 0 不是证据，除非同一把刀能在原件上读出 1）。
+        对照串取自 tools/out/b31-bucket-census.txt 与 git HEAD 的对应行。 */
+  const ZERO46 = [
+    ['results.js', 'esc(n.date)',
+      "var h='<div class=\"card\">' + '<div class=\"m\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' + '</div>';",
+      '纪念册卡面又把裸 n.date 抄回屏上：那对 2026-10-8 与 2026.10.08 都不产生统一读数'],
+    ['review.html', 'esc(n.date)',
+      "return '<div class=\"md-item\"><h3>'+esc(n.title)+'</h3>'+'<div class=\"meta\">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'+'</div>';",
+      'review 日卡的 .meta 回到裸读日期字段（本批五种写法里那一种就是这么印出来的）'],
+    ['travel-notes.js', "'</h4><div class=\"tm\">' + esc(n.date) + '</div>",
+      "it.innerHTML = '<h4>' + esc(n.title) + '</h4><div class=\"tm\">' + esc(n.date) + '</div><div class=\"tx\">' + '</div>';",
+      '列表卡 .tm 退回原始字段：这一格是用户看得最多的那一行，坏形状直接上屏'],
+    ['travel-notes.js', "function fmtTime(ts) { var d = new Date(ts); function p(n)",
+      "function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }",
+      '单点自己退回从零拼年月日：那就不再有「只调 noteDay」这一条纪律，第二份解析住在最该干净的地方'],
+    ['travel-map.html', "String(d.getMonth()+1).padStart(2,'0')+'.'",
+      "const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');",
+      '抽屉与聚合列表那两行回到点号形 2026.10.08（用户报的五种写法之一）'],
+    ['album.js', 'function fmtDM(ts)',
+      "function fmtDM(ts) { var d = new Date(ts); return pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }",
+      '零调用者的第二份短档又被写回来：留着它的后果是下一个人以为日期还有第二种出口'],
+    ['settings.html', "(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours())",
+      "      line('wdStatus', '上次同步 ' + (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '：' + (l.msg || ''), l.ok ? 'ok' : 'err');",
+      '「上次同步」回到页内自拼，月那段还漏了补零（10-8 与 10-08 在同屏并存）'],
+    ['wishlist.html', "d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate())",
+      "function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }",
+      '心愿单那档回到点号形'],
+  ];
+  ZERO46.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F46('ZERO46 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V46)) { F46('ZERO46 登记了 §46 没读的文件「' + f + '」：' + why); return; }
+    if (cnt46(V46[f], needle) !== 0) F46(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt46(flat46(ctrl), needle) < 1) F46('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置全量对账：五把扫描都先拿合成样本自校准，再去扫全树（readdir 不递归，与 §45 同一口径） */
+  const FILES46ALL = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+  let var46 = { files: FILES46ALL.length, calls: 0, locale: 0, parse: 0, datelines: 0, hand: 0 };
+
+  /* (a) 单点调用点：逐文件恰数。登记表抄漏一个文件＝那一页没人守；实得比登记多＝新落点没登记。 */
+  {
+    const RE46 = /TravelNotes\.(dayText|noteDay|nowDayText|fmtDayText|fmtClock)\(/g;
+    const CALL46 = {
+      'album-edit.html': 2, 'album.js': 2, 'index.html': 2, 'md-manager.html': 1, 'me.html': 1,
+      'planner.js': 2, 'poster.js': 1, 'results.js': 11, 'review.html': 1, 'search.html': 1,
+      'settings.html': 2, 'story.html': 4, 'travel-map.html': 9, 'travel-notes.js': 1, 'vault.js': 5, 'wishlist.html': 1,
+    };
+    const CAL46 = ((flat46("  it.innerHTML = '<b>' + esc(TravelNotes.dayText(n)) + '</b>';\n  var ck = TravelNotes.fmtClock(ts);\n").match(RE46)) || []).length;
+    if (CAL46 !== 2) F46('§46 的调用点扫描器自己失准（两行合成样本应读 2，实得 ' + CAL46 + '）：扫描器红了，下面那张逐文件对账就不是证据');
+    const DRIFT46 = [];
+    FILES46ALL.forEach(function (f) {
+      const n = ((flat46(rd46(f)).match(RE46)) || []).length;
+      var46.calls += n;
+      const exp = CALL46[f] || 0;
+      if (n !== exp) DRIFT46.push(f + ' 实得 ' + n + '／登记 ' + exp);
+      delete CALL46[f];
+    });
+    Object.keys(CALL46).forEach(f => { if (CALL46[f]) DRIFT46.push(f + ' 登记 ' + CALL46[f] + '／实得 0（那一页的接线被拆了，或文件名改了）'); });
+    if (DRIFT46.length) F46('单点调用点与登记表对不上（' + DRIFT46.join(' ｜ ') + '）：口径是「日期只有一个出口」，多出来的那种调用是第几个出口、少掉的那一个是哪一页的接线，都得当场说清');
+    if (var46.calls < 40) F46('全站单点调用只剩 ' + var46.calls + ' 处（实测 46）：扫描口径本身漂了（判据被改窄或文件没数到），这一条一失准，上面那张对账就变成空断言');
+  }
+
+  /* (b) locale 那一族：系统设置不许决定屏上读数。只认调用形，登记串写在注释里不会把自己读红。 */
+  {
+    const RE46L = /toLocale(?:Date|Time)String\s*\(/g;
+    const CAL46L = ((flat46('  var s = new Date(ts).toLocaleDateString(); ctx.fillText(s, 10, 10);').match(RE46L)) || []).length;
+    if (CAL46L !== 1) F46('locale 那把刀自己读不到合成样本（应 1 实得 ' + CAL46L + '）：下面那个「全站 0」就只是刀瞎了');
+    const HITL = [];
+    FILES46ALL.forEach(function (f) {
+      const n = ((flat46(rd46(f)).match(RE46L)) || []).length;
+      var46.locale += n;
+      if (n) HITL.push(f + ':' + n);
+    });
+    if (var46.locale) F46('屏上读数又交给系统 locale 了（' + HITL.join(' ｜ ') + '）：同一篇导出文档在两台手机上会印成两种样子（en-US 的 10/8/2026 与 zh-CN 的 2026/10/8 都不在口径里）；数字千分位那种 toLocaleString 不在此列');
+  }
+
+  /* (c) 第二份宽松解析：全站只许 noteDay 本体那一处。 */
+  {
+    const NEED46P = '(\\d{4})\\D';   /* 源码里的字面形状：左括号、\d{4}、右括号、\D */
+    const CAL46P = cnt46(flat46("  var m = s.match(/(\\d{4})\\D(\\d{1,2})\\D(\\d{1,2})/);"), NEED46P);
+    if (CAL46P !== 1) F46('宽松解析那把刀读不到合成样本（应 1 实得 ' + CAL46P + '）：下面那个「全站 1」就不是证据');
+    const HITP = [];
+    FILES46ALL.forEach(function (f) {
+      const n = cnt46(flat46(rd46(f)), NEED46P);
+      var46.parse += n;
+      if (n) HITP.push(f + ':' + n);
+    });
+    if (var46.parse !== 1) F46('全站「四位年 + 任意分隔」的宽松解析从 1 处（travel-notes.js 的 noteDay 本体）变成 ' + var46.parse + ' 处（' + HITP.join(' ｜ ') + '）：每多一处就多一份解析，坏形状在这里被修好、在别处又不修，正是本批五种写法的成因');
+  }
+
+  /* (d) 裸读 .date：记账域（那是开销自己的日期字段）与四处已定性的读点之外，不许新增。 */
+  {
+    const DATE46 = {
+      'expense-form.js': 2, 'expense.html': 4, 'expense.js': 7,
+      'md-manager.html': 1, 'me.html': 1, 'travel-notes.js': 4, 'vault.js': 2,
+    };
+    const D46 = {};
+    FILES46ALL.forEach(function (f) {
+      const n = rd46(f).split('\n').filter(ln => /\.date\b/.test(ln)).length;
+      var46.datelines += n;
+      if (n) D46[f] = n;
+    });
+    const DRIFT46D = [];
+    Object.keys(D46).forEach(f => { if (D46[f] !== (DATE46[f] || 0)) DRIFT46D.push(f + ' 实得 ' + D46[f] + '／登记 ' + (DATE46[f] || 0)); });
+    Object.keys(DATE46).forEach(f => { if (!D46[f]) DRIFT46D.push(f + ' 登记 ' + DATE46[f] + '／实得 0'); });
+    if (DRIFT46D.length) F46('裸读 .date 的行数与登记对不上（' + DRIFT46D.join(' ｜ ') + '）：登记的是「记账域自己的日期字段」+ 四处已定性（md-manager 解析外部 MD 的输入、me.html 按年份筛开销、travel-notes 的归一键本体与注释、vault.js 的 zip DOS 时间戳）；游记的显示落点不在此列，新增了就是要开第二个出口');
+    if (var46.datelines < 15) F46('全站 .date 行从 21 处掉到 ' + var46.datelines + ' 处：扫描口径漂了（记账域那一族是功能字段，不该跟着卡面一起砍）');
+  }
+
+  /* (e) 手拼日期 + 渲染信号：这一族就是 S1-4 的成因形状，全站只许剩一枚已判定的设备月份 label。 */
+  {
+    const REND46 = ['<div', '<span', '<p ', '<p>', '<b>', '<li', '<td', 'innerHTML', 'fillText(', 'bindPopup(', 'textContent', 'rows.push(', 'line(', 'status'];
+    const SCAN46H = src => {
+      const out = [];
+      src.split('\n').forEach(function (ln, i) {
+        if (!/(getFullYear\(\)|getMonth\(\)|getDate\(\))/.test(ln)) return;
+        if (!REND46.some(k => ln.indexOf(k) >= 0)) return;
+        out.push('第 ' + (i + 1) + ' 行  ' + ws46(ln).slice(0, 104));
+      });
+      return out;
+    };
+    const CAL46H = SCAN46H("  var s = d.getFullYear() + '-' + d.getMonth(); el.innerHTML = s;\n  const k = d.getDate() + '-' + m; cache[k] = 1;\n");
+    if (CAL46H.length !== 1) F46('手拼+渲染那把刀失准（两行合成样本应 1，实得 ' + CAL46H.length + '）：第一行该抓（拼完就上屏），第二行该放（只是缓存键）');
+    const HITS46 = [];
+    FILES46ALL.forEach(function (f) { SCAN46H(rd46(f)).forEach(o => HITS46.push(f + ':' + o)); });
+    var46.hand = HITS46.length;
+    if (var46.hand !== 1) F46('「从零拼年月日又被渲染上屏」的行从 1 处变成 ' + var46.hand + ' 处（' + HITS46.join(' ｜ ') + '）：口径是屏上日期只准走那五个出口；要新增豁免得先说明它为什么不是游记日期');
+    if (HITS46.length && HITS46[0].indexOf("seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？'") < 0)
+      F46('全站仅剩的那一枚手拼不是首页「N 月，去哪？」那行（实得：' + HITS46[0] + '）：那一行是设备月份 label、与游记日期无关，已判定保留；换成一枚别的就说明口径漂了');
+  }
+
+  /* ④ 浏览器腿齐备检：D01–D22 逐条在场（少一条就少一个屏上证据），条数守卫的阈值也要钉住 */
+  {
+    const S46 = V46['tools/smoke-date.js'];
+    for (let i = 1; i <= 22; i++) {
+      const lab = "ok('D" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt46(S46, lab) !== 1) F46('tools/smoke-date.js 里 D' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt46(S46, lab) + '）：这一节的立论是「每一个页面都读到同一个串」，删一条就少一个证据，改编号会让 §46 的齐备检集体失效');
+    }
+    if (cnt46(S46, "ok('D00 形状刀自校准") !== 1) F46('D00 那条形状刀自校准不在场：没有它，下面十几发「0 命中」可能只是正则瞎了');
+    if (cnt46(S46, "ok('D18b ") !== 1) F46('D18b 那条普查分母不在场：十页全读不到日期时，十个「坏形状 0 命中」会一起绿掉，那是空跑');
+    if (cnt46(S46, "ok('D20b ") !== 1) F46('D20b（复制那条仍带坐标）不在场：本批统一显示的时候不许顺手把 §45 的保留支砍掉');
+    if (cnt46(S46, 'checks >= 24') !== 1) F46('条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 25 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 24');
+    {
+      const LAB46 = S46.match(/ok\('(D\d+)[ ]/g) || [];
+      const MAXN46 = LAB46.reduce((m, s) => Math.max(m, Number(/D(\d+)/.exec(s)[1])), 0);
+      const SEG46 = (rd46('tools/verify.js').split('④ 浏览器腿齐备检：D01')[1] || '');
+      const BOUND46 = (SEG46.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND46 === undefined) F46('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND46) !== MAXN46) F46('④ 齐备检的循环上限是 ' + BOUND46 + '，而 smoke-date 里真实最大编号是 D' + MAXN46 + '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V46['README.md'].indexOf('§46') < 0) F46('README.md 的 verify 清单没提 §46（新闸门不写进 README 就等于没装）');
+
+  console.log('日期显示口径闸门: ' + A46.length + ' 条代码锚点（五个出口的定义体 + 五条导出名 + 各页面「包装单点而非另抄解析」的那几行，含 review 的 dayOf、md-manager 的 dayText/ymOf 与其 script 载入、travel-map 两处共用同形与两处短档、results 三枚「生成于」各钉期望次数、§45 那条 CO 形判据跟着改档）+ 八族期望 0（裸读 n.date 三处／单点自己退回拼年月日／抽屉点号形／album 的第二份短档／settings 的页内自拼／wishlist 点号形）各配正向对照 + 五把内置扫描全量对账（readdir ' + var46.files + ' 个根目录文件：调用点 ' + var46.calls + ' 处逐文件恰数、locale 调用形 ' + var46.locale + '、宽松解析 ' + var46.parse + '、裸读 .date ' + var46.datelines + '、手拼+渲染 ' + var46.hand + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat46/view46 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 D01–D22 齐备检与条数守卫（含 D00 形状刀自校准、D20b 保留支反证）；A46 表长 ' + A46.length + ' 条、ZERO46 表长 ' + ZERO46.length + ' 条，抬阈值类变异要取当前长度 + 1；取数探针见 tools/out/probe31-counts.js，变异自测见 tools/out/mut-verify46.js');
+  fail += bad46;
 }
 
 

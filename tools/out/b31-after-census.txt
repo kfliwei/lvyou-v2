@@ -1,0 +1,6 @@
+album.js:215:      var d = (n.day || (n.date || '').slice(0, 10)); if (d) days[d] = 1;
+expense.js:127:    g.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+expense.js:184:      copy.date = d; out.push(copy); filled++;
+poster.js:78:    var days = new Set(all.map(function (n) { return String(n.date || '').slice(0, 10); }).filter(Boolean));
+travel-notes.js:285:    var s = String((n && (n.day || n.date)) || '');
+travel-notes.js:294:     §41 钉的是「键」（分组/统计/点开），显示一直是各页面各抄一次 n.date，

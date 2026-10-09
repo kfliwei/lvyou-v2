@@ -1,0 +1,33 @@
+### index.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### topic.html dead=0 tiny=0 off=40 inlineBad=0 errs=0
+### explore-map.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### travel-map.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### search.html dead=0 tiny=0 off=38 inlineBad=0 errs=0
+### wishlist.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### review.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### settings.html dead=3 tiny=0 off=0 inlineBad=0 errs=0
+  DEAD  {"el":"span","text":"高级设置","why":"cursor"}
+  DEAD  {"el":"span","text":"地图调节与数据迁移","why":"cursor"}
+  DEAD  {"el":"span.adv-arr","text":"▾","why":"cursor"}
+### me.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### node-manager.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### album.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### album-edit.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### story.html dead=0 tiny=0 off=0 inlineBad=0 errs=0
+### planner.html dead=15 tiny=0 off=0 inlineBad=0 errs=0
+  DEAD  {"el":"div.card","text":"从哪里开始 开始规划","why":"class/attr"}
+  DEAD  {"el":"div#aiRouteCard.card","text":"AI 精选路线 目的地（哪个省 / 城市） 游玩天数","why":"class/attr"}
+  DEAD  {"el":"div#destCard.card","text":"热门目的地 山西 551四川 532云南 393贵州","why":"class/attr"}
+  DEAD  {"el":"div.ph","text":"从哪里开始","why":"cursor"}
+  DEAD  {"el":"div.input-bar","text":"开始规划","why":"cursor"}
+  DEAD  {"el":"div.ph","text":"AI 精选路线","why":"cursor"}
+  DEAD  {"el":"div.fld","text":"目的地（哪个省 / 城市）","why":"cursor"}
+  DEAD  {"el":"div.fld","text":"游玩天数1-15 天","why":"cursor"}
+  DEAD  {"el":"div.row","text":"1-15 天","why":"cursor"}
+  DEAD  {"el":"span","text":"1-15 天","why":"cursor"}
+  DEAD  {"el":"div.fld","text":"出行方式 自驾公共交通其他","why":"cursor"}
+  DEAD  {"el":"div.fld","text":"景点偏好 必去网红推荐","why":"cursor"}
+  DEAD  {"el":"div","text":"AI 参考全网热门行程出 5 条方案；选一条后可继续","why":"cursor"}
+  DEAD  {"el":"div.ph","text":"热门目的地","why":"cursor"}
+  DEAD  {"el":"div#destChips.chips","text":"山西 551四川 532云南 393贵州 373甘肃","why":"cursor"}
+### md-manager.html dead=0 tiny=0 off=0 inlineBad=0 errs=0

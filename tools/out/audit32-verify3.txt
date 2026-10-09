@@ -1,0 +1,43 @@
+DRIFT   N3 空日卡  声明 planner.js:2061 实际 305,1027,1159,1170,1179,1258,1334,2447,2469
+DRIFT   N4 候选无反馈  声明 planner.html:175 实际 262
+MISS    N5 我的行程空态  planner.js:2425 全文无 «tripPick»
+HIT     N6 同名重复  planner.js:2385  «name»
+MISS    N7 必去偏好  planner.js:2023 全文无 «must_see»
+DRIFT   N7 chip  声明 planner.html:105 实际 51,52,53,54,55,146,150,223,224,225
+MISS    N8 载入无确认  planner.js:2299 全文无 «tripPick»
+DRIFT   N9 重排确认  声明 planner.js:1845 实际 1349,1490,1860,2306
+MISS    N10 改名自动重排  planner.js:2381 全文无 «sortStops»
+DRIFT   N11 锁定仍可拖  声明 planner.js:1657 实际 181,418,1147,1197,1434,2210,2218,2220,2223,2224
+MISS    N12 出发地无重定位  planner.js:1744 全文无 «originMode»
+MISS    N13 无日期  planner.js:1865 全文无 «第 1 天»
+MISS    N19 进行中标签  planner.html:135 全文无 «进行中»
+MISS    N19b  me.html:483 全文无 «进行中»
+MISS    N20 三下拉  planner.html:223 全文无 «sel»
+DRIFT   N21 预选  声明 planner.js:2415 实际 351,376,844,1007,2188,2222,2239,2364,2367,2481
+HIT     N22 天号当日期  planner.js:2230  «天»
+DRIFT   N23 路书  声明 planner.js:2104 实际 1887,1981,1997,2057
+DRIFT   N23b toast  声明 planner.js:2107 实际 1432,2033,2035,2066,2069,2095
+MISS    N24 查看器无关闭  planner.js:1639 全文无 «viewer»
+DRIFT   N25 无锚点  声明 results.js:557 实际 507
+MISS    N26 清空所有数据  me.html:547 全文无 «清空»
+MISS    N27 删票无确认  me.html:368 全文无 «删除»
+DRIFT   N28 票卡静默  声明 me.html:369 实际 148,199,261
+MISS    N29 入口  me.html:180 全文无 «me-recent»
+MISS    N30 分享反馈  review.html:289 全文无 «share»
+MISS    N31 导出  review.html:287 全文无 «export»
+DRIFT   N32 海报  声明 review.html:586 实际 183,184,185,186,187,204,206,207,208,210
+MISS    N33 复制  review.html:530 全文无 «copy»
+HIT     N34 老格式  review.html:514  «n.date»
+DRIFT   N35 天数  声明 review.html:580 实际 210,231,546,619,634,676,691,706
+HIT     N36 省份  review.html:556  «province»
+HIT     N37 公里  review.html:483  «km»
+MISS    N38 待办空态  me.html:300 全文无 «待办»
+MISS    N39 导出反馈  me.html:451 全文无 «导出»
+MISS    N40 设置四步  me.html:386 全文无 «Key»
+MISS    N41 默认值  expense.html:187 全文无 «fTrip»
+MISS    N42 清缓存  me.html:511 全文无 «缓存»
+MISS    N43 入口  me.html:241 全文无 «随手记»
+HIT     N1 toast  index.html:402  «tip»
+DRIFT   N2 行程入口  声明 planner.js:2429 实际 198,225,474,693,695,983,985,986,988,989
+
+=== ux-audit 对账 命中6 / 漂移13 / 查无此串22 / 共 41 ===

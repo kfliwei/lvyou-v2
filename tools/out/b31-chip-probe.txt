@@ -1,0 +1,4 @@
+=== 起手（没开列表面板）===
+{"statMain":"游记 5 篇 · 地点 3 处","tlExists":true,"tlDisplay":"flex","tlHtml":265,"chips":1,"trips":2,"firstChipText":"● 形状E日期全坏","firstSpan":" "}
+=== 开列表面板后 ===
+{"chips":1,"firstSpan":" ","allSpans":[" "],"tlHtml":"<button class=\"tl-trip active\"><i>●</i> <em>1</em></button><button class=\"tl-chip\" data-nid=\"dE\" aria-label=\"这一篇：形状E日期全坏 ·  ，点开看全文与照片\"><i>●</i><span> </span><span class=\"tl-name\">形状E日期全坏</span></button><button class=\"tl-trip\"><i>●</i>10-08~10-08 <em>4</em></button>"}

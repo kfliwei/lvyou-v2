@@ -31,7 +31,7 @@
     var fm = [
       '---',
       'title: ' + escYaml(n.title || n.siteName || '未命名'),
-      'date: ' + escYaml(n.date || ''),
+      'date: ' + escYaml(TravelNotes.dayText(n)),
       (n.siteName ? 'place: ' + escYaml(n.siteName) : null),
       (n.lat != null ? 'lat: ' + n.lat : null),
       (n.lng != null ? 'lng: ' + n.lng : null),
@@ -128,9 +128,10 @@
     var sorted = notesIn.slice().sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
     var notesByPath = {};
     sorted.forEach(function (n) {
-      var day = (n.day || (n.date ? n.date.slice(0, 10) : '未知')).replace(/-/g, '');
+      var dstr = TravelNotes.dayText(n);
+      var day = (dstr || '未知').replace(/-/g, '');
       var ym = day.slice(0, 6);
-      var fname = (n.date ? n.date.slice(0, 10) : '') + ' ' + (fn(n.title || n.siteName || '未命名', 40) || '未命名') + '.md';
+      var fname = (dstr ? dstr + ' ' : '') + (fn(n.title || n.siteName || '未命名', 40) || '未命名') + '.md';
       var path = 'journeys/' + ym + '/' + fname;
       // 防重名
       var k = 2, base = path;
@@ -160,12 +161,12 @@
       }
     });
     /* 索引（MOC） */
-    var lines = ['# 我的旅行 · 索引', '', '> 由 行迹 TRACE 导出 · ' + new Date().toLocaleDateString(), ''];
+    var lines = ['# 我的旅行 · 索引', '', '> 由 行迹 TRACE 导出 · ' + TravelNotes.nowDayText(), ''];
     lines.push('## 全部游记（' + sorted.length + ' 篇）', '');
     sorted.forEach(function (n) {
       var info = notesByPath[n.id];
       if (!info) return;
-      lines.push('- ' + (n.date || '') + ' · [[' + info.path.replace(/^journeys\/\d{6}\//, '').replace(/\.md$/, '') + ']] ' + (n.siteName ? '— ' + n.siteName : ''));
+      lines.push('- ' + TravelNotes.dayText(n) + ' · [[' + info.path.replace(/^journeys\/\d{6}\//, '').replace(/\.md$/, '') + ']] ' + (n.siteName ? '— ' + n.siteName : ''));
     });
     lines.push('', '## 地点');
     var locs = {};
@@ -388,8 +389,9 @@
         ? '<section><h2>原声</h2><audio controls preload="none" src="' + n.audio + '"></audio></section>'
         : '<section><h2>原声</h2><p class="dim">（原声文件未随文档携带，请在 App 内收听）</p></section>';
     }
+    var dayStr = TravelNotes.dayText(n);
     var meta = [
-      n.date ? '<p class="meta">日期 · ' + escH(n.date) + '</p>' : '',
+      dayStr ? '<p class="meta">日期 · ' + escH(dayStr) + '</p>' : '',
       n.siteName ? '<p class="meta">地点 · ' + escH(n.siteName) + '</p>' : '',
       (n.lat != null) ? '<p class="meta">坐标 · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) + '</p>' : '',
       (n.tags && n.tags.length) ? '<p class="meta">标签 · ' + n.tags.map(escH).join(' / ') + '</p>' : ''

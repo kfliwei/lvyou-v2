@@ -40,10 +40,11 @@
     var uniq = {}; list.forEach(function (x) { if (x.siteName) uniq[x.siteName] = 1; });
     var places = Object.keys(uniq);
     var head = list[0], tail = list[list.length - 1];
-    var span = (head && tail && head.date && tail.date) ? (head.date + ' 到 ' + tail.date) : '这段时间';
+    var dHead = head ? TravelNotes.dayText(head) : '', dTail = tail ? TravelNotes.dayText(tail) : '';
+    var span = (dHead && dTail) ? (dHead + ' 到 ' + dTail) : '这段时间';
     var body = list.map(function (x) {
       var w = x.weather ? '，' + x.weather : '';
-      return '· ' + x.date + '，来到' + (x.siteName || '某处') + w + '。' + (x.text || x.raw || '').replace(/\s+/g, ' ').slice(0, 80);
+      return '· ' + TravelNotes.dayText(x) + '，来到' + (x.siteName || '某处') + w + '。' + (x.text || x.raw || '').replace(/\s+/g, ' ').slice(0, 80);
     }).join('\n');
     var close = places.length ? '走过的' + places.length + '个地方，' : '';
     return '这是一段属于' + span + '的旅程。\n\n' + body + '\n\n' + close + '把风景和心情都收进了行囊。愿下一次出发，仍有热爱。';
@@ -151,7 +152,7 @@
     var withLoc = notes.filter(function (n) { return n.lat != null; });
     var provinces = {}, dynasties = {}, types = {}, days = new Set(), cities = new Set();
     notes.forEach(function (n) {
-      var d = (n.date || '').slice(0, 10); if (d) days.add(d);
+      var d = TravelNotes.dayText(n); if (d) days.add(d);
       if (n.province) provinces[n.province] = 1;
     });
     withLoc.forEach(function (n) {
@@ -230,8 +231,7 @@
     apply(notes);
   }
   function dayStr(ts) {
-    var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; }
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    return TravelNotes.fmtDayText(ts);
   }
   /* 共用「筛选 + 生成」面板 */
   function openFilterPanel(kind, label, icon, emptyMsg, render) {
@@ -330,10 +330,10 @@
       var q = pickQuote(n.siteName || n.title || '');
       var quoteHtml = q ? '<div class="q">「' + esc(q.t) + '」——' + esc(q.a) + '</div>' : '';
       return '<div class="card"><h2>' + esc(n.title || n.siteName) + '</h2>'
-        + '<div class="m">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
+        + '<div class="m">' + esc(TravelNotes.dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
         + pics + tags + '<div class="t">' + esc(n.text || n.raw) + '</div>' + quoteHtml + '</div>';
     }).join('');
-    var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), stats + cards);
+    var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + TravelNotes.nowDayText(), stats + cards);
     saveDoc('我的旅行纪念册', html);
     });
   }
@@ -349,11 +349,11 @@
         var q = pickQuote(name);
         var quoteHtml = q ? '<div class="q">「' + esc(q.t) + '」——' + esc(q.a) + '</div>' : '';
         return '<div class="card"><h2>' + esc(name) + '</h2>'
-          + '<div class="m">首次探访 ' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
+          + '<div class="m">首次探访 ' + esc(TravelNotes.dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
           + (n.photos && n.photos[0] ? '<div style="margin:10px 0"><img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(n.photos[0]) + '" style="max-width:100%;border-radius:12px"></div>' : '')
           + '<div class="t">' + esc((n.text || n.raw || '').slice(0, 220)) + (n.text && n.text.length > 220 ? '…' : '') + '</div>' + quoteHtml + '</div>';
       }).join('');
-      var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), cards);
+      var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + TravelNotes.nowDayText(), cards);
       saveDoc('个人旅行图鉴', html);
       });
   }
@@ -399,7 +399,7 @@
       d.querySelector('#scopy').onclick = copyStory;
       d.querySelector('#ssave').onclick = function () {
         var title = '我的旅程故事';
-        var html = docShell(title, prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), '<div class="card"><div class="t">' + esc(body.textContent) + '</div></div>');
+        var html = docShell(title, prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + TravelNotes.nowDayText(), '<div class="card"><div class="t">' + esc(body.textContent) + '</div></div>');
         if (window.AndroidVoice && window.AndroidVoice.saveTextFile) {
           window.__tnSaveDone = function (r) {
             if (r === 'err') flash('保存失败');
@@ -416,7 +416,7 @@
         var list = notes.slice().sort(function (a, b) { return a.ts - b.ts; });
         go.disabled = true; go.textContent = '⏳ 正在写故事…'; body.style.display = 'block'; body.textContent = ''; act.style.display = 'none';
         var timeline = list.map(function (n) {
-          return n.date + ' 在' + (n.siteName || '某处') + (n.weather ? '（' + n.weather + '）' : '') + '：' + (n.text || n.raw || '').slice(0, 120);
+          return TravelNotes.dayText(n) + ' 在' + (n.siteName || '某处') + (n.weather ? '（' + n.weather + '）' : '') + '：' + (n.text || n.raw || '').slice(0, 120);
         }).join('\n');
         /* 无 Key 本地兜底：时间线叙事，不让用户空手而归 */
         if (!(window.Ai && Ai.hasKey())) {

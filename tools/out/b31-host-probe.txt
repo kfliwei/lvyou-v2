@@ -1,0 +1,13 @@
+album-edit.html: tn=Y ui=Y | theme.js,travel-notes.js,album.js,icons.js,ui.js
+md-manager.html: tn=N ui=Y | theme.js,vault.js,icons.js,ui.js
+me.html: tn=Y ui=Y | theme.js,icons.js,nav.js,geo.js,ui.js,expense.js,checklist.js,ticketbox.js,travel-notes.js,wishlist.js
+planner.html: tn=Y ui=Y | theme.js,vendor/leaflet/leaflet.js,geo.js,travel-notes.js,wishlist.js,site-tickets.js,icons.js,ui.js,nation-index.js,vendor/pako.min.js,share.js,checklist.js,expense.js,planner.js,nav.js
+search.html: tn=Y ui=Y | theme.js,topic-meta-lite.js,travel-notes.js,icons.js,ui.js,nav.js
+review.html: tn=Y ui=Y | theme.js,vendor/leaflet/leaflet.js,geo.js,travel-notes.js,quotes.js,results.js,poster.js,ui.js,icons.js,nav.js
+story.html: tn=Y ui=Y | theme.js,vendor/leaflet/leaflet.js,geo.js,icons.js,ui.js,travel-notes.js,nav.js
+travel-map.html: tn=Y ui=Y | theme.js,vendor/leaflet/leaflet.js,geo.js,quotes.js,travel-notes.js,results.js,vault.js,icons.js,ui.js,nav.js
+index.html: tn=Y ui=Y | theme.js,icons.js,nav.js,topic-catalog.js,geo.js,quotes.js,topic-counts.js,expense.js,expense-form.js,travel-notes.js,results.js,vault.js,ui.js,ticketbox.js,wishlist.js
+topic.html: tn=Y ui=Y | theme.js,vendor/leaflet/leaflet.js,node-lod.js,geo.js,nearby.js,quotes.js,travel-notes.js,results.js,vault.js,topic-meta.js,site-images.js,site-images-local.js,wishlist.js,site-tickets.js,ui.js,topic-common.js,icons.js
+LIB planner.js refs TravelNotes=true refs UI.=true len=2650
+LIB results.js refs TravelNotes=true refs UI.=true len=519
+LIB vault.js refs TravelNotes=false refs UI.=true len=438

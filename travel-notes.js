@@ -264,7 +264,7 @@ window.Ai = (function () {
       try {
         if (window.Wish && Wish.list) wishes = Wish.list().filter(function (x) { return !x.visited; }).length;
       } catch (e) {}
-      var place = latest ? ((latest.site || latest.city || '在路上') + ' · ' + (latest.date || '')) : '';
+      var place = latest ? ((latest.site || latest.city || '在路上') + ' · ' + dayText(latest)) : '';
       var quote = latest ? String(latest.text || '').replace(/\s+/g, ' ').trim() : '';
       window.AndroidCard.updateCard(JSON.stringify({
         cities: Object.keys(cs).length, notes: notes.length, wishes: wishes,
@@ -275,9 +275,10 @@ window.Ai = (function () {
   function $(id) { return document.getElementById(id); }
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   var esc = (window.UI && UI.esc) ? UI.esc : function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
-  function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  function fmtClock(ts) { var d = new Date(ts); if (!isFinite(d.getTime())) return ''; return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+  function fmtTime(ts) { var day = fmtDay(ts), ck = fmtClock(ts); return [day, ck].filter(Boolean).join(' '); }
   function uid() { return 'tn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
-  function fmtDay(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  function fmtDay(ts) { var d = new Date(ts); if (!isFinite(d.getTime())) return ''; function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
   /* 日期归一单点：day 字段 → date 里的年月日 → ts 反推，一律出补零的 YYYY-MM-DD。
      历史数据/导入/备份恢复的 date 形状五花八门（2026-10-8、2026.10.08、2026年10月8日、没有），
      而日历「亮哪格」与「点开有内容」必须共用同一个键，否则格子亮了却永远打不开。 */
@@ -290,6 +291,11 @@ window.Ai = (function () {
   }
   function noteMonth(n) { var d = noteDay(n); return d ? d.slice(0, 7) : UNDATED; }
   function noteYear(n) { var d = noteDay(n); return d ? d.slice(0, 4) : UNDATED; }
+  /* 屏上那行日期的唯一出口：只准调 noteDay，不再开第二份解析。
+     §41 钉的是「键」（分组/统计/点开），显示一直是各页面各抄一次 n.date，
+     于是同一个键下面能印出 2026-10-8 / 2026.10.08 / 2026年10月8日 / 空串 四种写法。 */
+  function dayText(n) { return noteDay(n); }
+  function nowDayText() { return fmtDay(Date.now()); }
   var UNDATED = '未填日期';   /* 兜底分组名：整条既没有日期也没有 ts 时不至于渲染成空白档 */
   /* 日期档倒序，兜底档永远压在最后 */
   function sortDays(ks) {
@@ -1590,8 +1596,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
           className: '', iconSize: [20, 20], iconAnchor: [10, 18]
         })
       });
-      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:160px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span><br>' + (n.weather ? esc(n.weather) + '<br>' : '') + esc((n.text || n.raw).slice(0, 140)) + (n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '" style="width:100%;margin-top:6px;height:32px"></audio>' : '') + '</div>');
-      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + (n.date || '')); UI.markerKeys(m, function () { m.openPopup(); }); }
+      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:160px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(dayText(n)) + '</span><br>' + (n.weather ? esc(n.weather) + '<br>' : '') + esc((n.text || n.raw).slice(0, 140)) + (n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '" style="width:100%;margin-top:6px;height:32px"></audio>' : '') + '</div>');
+      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + dayText(n)); UI.markerKeys(m, function () { m.openPopup(); }); }
       m.addTo(tnLayer);
     });
   }
@@ -1734,7 +1740,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p, pi) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '" onclick="TravelNotes.zoomPhotoIdx(\x27' + n.id + '\x27,' + pi + ')" alt="">'; }).join('') + '</div>' : '';
     var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
-    it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:var(--fs-3);color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
+    it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:var(--fs-3);color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(dayText(n)) + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
       '<button data-a="edit">编辑</button><button data-a="copy">复制</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="doc">文档</button><button data-a="del" class="danger">删除</button></div>';
     it.querySelector('[data-a=edit]').onclick = function () { openEdit(n.id); };
     it.querySelector('[data-a=card]').onclick = function () { genCard(n); };
@@ -1922,12 +1928,12 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       var tags = (n.tags && n.tags.length) ? '<div style="margin:8px 0">' + n.tags.map(function (t) { return '<span style="display:inline-block;background:#f2d5d0;color:var(--color-primary);border-radius:999px;font-size:var(--fs-3);padding:3px 10px;margin-right:6px">#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
       return '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px;margin-bottom:16px">' +
         '<h2 style="margin:0 0 4px;font-size:var(--fs-9);color:#26241f">' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span style="font-size:var(--fs-4);color:#6b665c">· ' + esc(n.siteName) + '</span>' : '') + '</h2>' +
-        '<div style="color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
+        '<div style="color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px">' + esc(dayText(n)) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
         pics + tags +
         '<div style="white-space:pre-wrap;line-height:1.8;font-size:var(--fs-5);color:#333">' + esc(n.text || n.raw) + '</div></div>';
     }).join('');
     var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>我的旅行游记</title><style>@media print{body{background:#fff!important}div{box-shadow:none!important;border:1px solid #ddd!important}h1{color:#333!important;background:none!important;padding:20px 0!important}}@media(max-width:600px){div{padding:12px!important}h2{font-size:var(--fs-7)!important}}</style></head><body style="margin:0;background:#f6f1e5;font-family:&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif">' +
-      '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center"><h1 style="margin:0;font-size:26px">我的旅行游记</h1><p style="margin:8px 0 0;font-size:var(--fs-4);opacity:.85">共 ' + sorted.length + ' 篇 · 记录于 ' + new Date().toLocaleDateString() + '</p></div>' +
+      '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center"><h1 style="margin:0;font-size:26px">我的旅行游记</h1><p style="margin:8px 0 0;font-size:var(--fs-4);opacity:.85">共 ' + sorted.length + ' 篇 · 记录于 ' + nowDayText() + '</p></div>' +
       '<div style="max-width:720px;margin:0 auto;padding:16px">' + cards + '</div></body></html>';
     var d = el('div', 'tn-dlg');
     d.innerHTML = '<h4>导出游记文档 <button class="tn-x" id="tnDocX" style="font-size:var(--fs-5)">'+TI('close', 14)+'</button></h4>' +
@@ -2123,7 +2129,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   /* ---------- 图文卡片（canvas） ---------- */
   var _cardCanvas = null, _genBusy = false;
   function copyNoteText(n) {
-    var txt = (n.title || n.siteName || '游记') + '\n' + (n.date || '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '\n' + (n.text || n.raw || '');
+    var txt = (n.title || n.siteName || '游记') + '\n' + dayText(n) + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '\n' + (n.text || n.raw || '');
     function legacy() {
       try {
         var ta = document.createElement('textarea');
@@ -2213,7 +2219,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     ctx.fillText(n.siteName, 70, 220);
     ctx.fillStyle = 'rgba(255,255,255,.85)';
     ctx.font = '30px sans-serif';
-    ctx.fillText(n.date, 70, 285);
+    ctx.fillText(dayText(n), 70, 285);
     ctx.strokeStyle = 'rgba(255,255,255,.4)';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(70, 330); ctx.lineTo(1010, 330); ctx.stroke();
@@ -2270,8 +2276,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
           className: '', iconSize: [22, 22], iconAnchor: [11, 20]
         })
       });
-      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span>' + pic + '<div style="white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px">' + esc(n.text || n.raw) + '</div>' + (n.style ? '<div style="color:#6b665c;font-size:var(--fs-2);margin-top:6px">' + esc(n.style) + '</div>' : '') + '</div>', { maxWidth: 280 });
-      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + (n.date || '') + '，点击查看全文'); UI.markerKeys(m, function () { m.openPopup(); }); }
+      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(dayText(n)) + '</span>' + pic + '<div style="white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px">' + esc(n.text || n.raw) + '</div>' + (n.style ? '<div style="color:#6b665c;font-size:var(--fs-2);margin-top:6px">' + esc(n.style) + '</div>' : '') + '</div>', { maxWidth: 280 });
+      if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + dayText(n) + '，点击查看全文'); UI.markerKeys(m, function () { m.openPopup(); }); }
       m.addTo(layer);
     });
     if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.25));
@@ -2317,6 +2323,14 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     list: function () { return notes.slice(); },
     /* 日期归一口径（YYYY-MM-DD，坏形状/缺字段一律由 ts 兜底）：外部页面按日期分组必须走这里 */
     noteDay: noteDay,
+    /* 屏上显示口径：与上面的键同形，页面里不要再自己 slice/拼年月日 */
+    dayText: dayText,
+    nowDayText: nowDayText,
+    /* 固定档的时刻读数：ts → YYYY-MM-DD / HH:MM。
+       屏上凡是「今天」「生成于」「上次同步」这类设备时刻都走这里，Date 原生那个 toLocale 家族不许用——
+       它跟着系统 locale 走，同一篇导出文档在两台手机上印成两种样子。 */
+    fmtDayText: fmtDay,
+    fmtClock: fmtClock,
     storageMB: storageMB,
     /* 按索引查询（city/day/ts），IDB 不可用时回退内存 filter；cb(noteArray) */
     queryIndex: function (idx, value, cb) {
@@ -2337,7 +2351,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     /* 全量走 IDB 范围查询（时间范围），回退内存 filter；cb(noteArray) */
     queryRange: function (fromDay, toDay, cb) {
       var byRange = function (n) {
-        var day = n.day || (n.date || '').slice(0, 10);
+        var day = noteDay(n);
         if (!day) return false;
         if (fromDay && day < fromDay) return false;
         if (toDay && day > toDay) return false;

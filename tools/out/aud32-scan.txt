@@ -1,0 +1,348 @@
+
+======== A 用了单点却没引脚本 ========
+  explore-map.html:107  用 UI 但未引 ui.js（已引: theme.js,icons.js,topic-catalog.js,nav.js）
+  小计 1 条
+
+======== B 内联事件里调的函数找不到定义 ========
+  小计 0 条（含动态注入的字符串里定义的，需人工二验）
+
+======== C getElementById 落点在本页 HTML 不存在 ========
+  review.html:648  取 #yrPrev — 本页无此 id（且脚本字符串里也没造过）
+  review.html:655  取 #yrNext — 本页无此 id（且脚本字符串里也没造过）
+  小计 2 条
+
+======== D sw.js 预缓存 vs 根目录真实文件 ========
+  CACHE 版本串: trace-v86
+  sw 里出现「precache」字样: false
+  根目录 html/css 共 22 个，sw.js 未提及 1 个 → icons-demo.html
+
+======== E 原生 alert/confirm/prompt ========
+  小计 0 条
+
+======== F 屏上日期/时刻自拼 ========
+  index.html:468  var picks = SEASONS[new Date().getMonth() + 1] || [];
+  index.html:471  document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';
+  md-manager.html:279  function fmtDay(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d
+  md-manager.html:363  document.getElementById('stWords').textContent = words.toLocaleString();
+  md-manager.html:622  document.getElementById('stWords').textContent = words.toLocaleString();
+  review.html:307  else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
+  review.html:505  var md = pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  review.html:593  var today=new Date(),td=today.getFullYear()===y&&today.getMonth()+1===m?today.getDate():0;
+  settings.html:385  line('wdStatus', '上次同步 ' + (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMi
+  travel-map.html:597  var fmtD=function(ts){var d=new Date(ts);function p(x){return (x<10?'0':'')+x;}return p(d.getMonth()+1)+'.'+p(
+  travel-map.html:607  var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours(
+  travel-map.html:652  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+
+  travel-map.html:676  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+
+  travel-map.html:778  ctx.fillText(new Date().toLocaleDateString()+' 制 · 古建地图集',110,1290);
+  wishlist.html:118  function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d
+  album.js:20  function fmtD(ts) { var d = new Date(ts); return d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.g
+  album.js:21  function fmtDM(ts) { var d = new Date(ts); return pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
+  backup.js:288  + (env.createdAt ? ' · 备份于 ' + dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate())
+  checklist.js:72  var em = new Date(+startDate.slice(0, 4), sm - 1, d + (n - 1)).getMonth() + 1;
+  expense.js:62  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d
+  expense.js:68  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  planner.js:1049  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  planner.js:1893  不用 toLocaleDateString/toLocaleString —— 那跟着系统语言走，同一份行程在两台手机上会生成两个不同的文件。
+  planner.js:2290  return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main">
+  results.js:234  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  results.js:336  var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + 
+  results.js:356  var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range
+  results.js:402  var html = docShell(title, prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), 
+  travel-notes.js:278  function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFul
+  travel-notes.js:280  function fmtDay(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFull
+  travel-notes.js:1477  var dateStr = d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+  travel-notes.js:1689  if (!calState.ym) calState.ym = newest ? (+newest.slice(0, 4)) * 100 + (+newest.slice(5, 7)) : now.getFullYear
+  travel-notes.js:1703  var isToday = (y === now.getFullYear() && mo === now.getMonth() + 1 && d === now.getDate());
+  travel-notes.js:1710  $X(body, '#calToday').onclick = function () { calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1); re
+  travel-notes.js:1935  '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center
+  vault.js:163  var lines = ['# 我的旅行 · 索引', '', '> 由 行迹 TRACE 导出 · ' + new Date().toLocaleDateString(), ''];
+  vault.js:298  date: u16((((t.getFullYear() - 1980) & 0x7F) << 9) | ((t.getMonth() + 1) << 5) | t.getDate())
+  小计 37 条
+
+======== G 裸 emoji 当图标 ========
+  topic-meta-lite.js:1  window.TOPIC_REGISTRY={"sc":{"p":"sc","title":"四川风光人文地图","dataJs":"sc-data.js","foodJs":"sc-food.js"
+  topic-meta.js:54  '名山大川': '⛰️', '雪山冰川': '🏔️', '高原湖泊': '💧',
+  topic-meta.js:55  '峡谷天堑': '🏜️', '江河瀑布': '🌊', '古建寺院': '🏛️',
+  topic-meta.js:56  '古城古镇': '🏯', '红色遗迹': '🚩', '民族风情': '🏘️',
+  topic-meta.js:57  '城市地标': '🏙️', '溶洞奇观': '🕳️', '森林草原': '🌲',
+  topic-meta.js:58  '宗教圣地': '🛕', '遗址陵墓': '⛏️', '温泉康养': '♨️',
+  topic-meta.js:59  '其他': '📍'
+  topic-meta.js:166  '城市地标': '🏙️', '古城遗址': '🏛️', '森林山川': '🌲',
+  topic-meta.js:167  '草原湿地': '🌿', '宗教圣地': '🛕', '红色遗迹': '🚩',
+  topic-meta.js:168  '江河峡谷': '🌊', '石窟艺术': '🗿', '民族风情': '🏘️',
+  topic-meta.js:169  '长城关隘': '🏯', '沙漠戈壁': '🏜️', '雪山高原': '🏔️',
+  topic-meta.js:170  '峡谷天堑': '🏜️', '丹霞地貌': '⛰️', '其他': '📍',
+  topic-meta.js:171  '温泉康养': '♨️', '古建寺院': '🏛️', '溶洞奇观': '🕳️'
+  topic-meta.js:266  '城市地标': '🏙️', '民族风情': '🏘️', '雪山冰川': '🏔️',
+  topic-meta.js:267  '草原湿地': '🌿', '雅丹地貌': '🏜️', '红色遗迹': '🚩',
+  topic-meta.js:268  '峡谷天堑': '🏜️', '沙漠戈壁': '🏜️', '古城遗址': '🏛️',
+  topic-meta.js:269  '石窟艺术': '🗿', '宗教圣地': '🛕', '古建寺院': '🏛️',
+  topic-meta.js:270  '温泉康养': '♨️', '森林山川': '🌲', '江河瀑布': '🌊',
+  topic-meta.js:271  '高原湖泊': '💧', '其他': '📍'
+  topic-meta.js:273  '名山大川': '⛰️'
+  topic-meta.js:369  '城市地标': '🏙️', '民族风情': '🏘️', '红色遗迹': '🚩',
+  topic-meta.js:370  '峡谷天堑': '🏜️', '古城遗址': '🏛️', '古城古镇': '🏯',
+  topic-meta.js:371  '宗教圣地': '🛕', '古建寺院': '🏛️', '温泉康养': '♨️',
+  topic-meta.js:372  '森林山川': '🌲', '江河瀑布': '🌊', '高原湖泊': '💧',
+  topic-meta.js:373  '溶洞奇观': '🕳️', '丹霞地貌': '⛰️', '草原湿地': '🌿',
+  topic-meta.js:374  '名山大川': '⛰️', '遗址陵墓': '⛏️', '其他': '📍'
+  topic-meta.js:376  '雪山冰川': '🏔️'
+  topic-meta.js:463  '宗教圣地': '🛕', '城市地标': '🏙️', '高原湖泊': '💧', '盐湖': '🧂',
+  topic-meta.js:464  '草原湿地': '🌿', '沙漠戈壁': '🏜️', '名山大川': '⛰️', '江河湖泊': '💧',
+  topic-meta.js:465  '古城古镇': '🏯', '江河瀑布': '🌊', '丹霞地貌': '⛰️', '古建寺院': '🏛️',
+  topic-meta.js:466  '森林山川': '🌲', '名山梯田': '🌾', '雪山冰川': '🏔️', '红色遗迹': '🚩',
+  topic-meta.js:467  '雅丹地貌': '🏜️', '温泉地热': '♨️', '古遗址': '⛏️', '垭口': '⛰️',
+  topic-meta.js:468  '神山': '🏔️', '民族风情': '🏘️', '其他': '📍'
+  topic-meta.js:470  '冰川': '🧊',
+  topic-meta.js:471  '古城遗址': '🏛️',
+  topic-meta.js:472  '峡谷天堑': '🏜️',
+  topic-meta.js:473  '民族村寨': '🛖',
+  topic-meta.js:474  '遗址陵墓': '⛏️'
+  topic-meta.js:528  '宗教圣地': '🛕', '民族风情': '🏘️', '名山梯田': '🌾', '神山': '🏔️',
+  topic-meta.js:529  '峡谷天堑': '🏜️', '民族村寨': '🏘️', '高原湖泊': '💧', '森林山川': '🌲',
+  topic-meta.js:530  '江河湖泊': '💧', '热带雨林': '🌴', '冰川': '🏔️', '古遗址': '⛏️',
+  topic-meta.js:531  '草原湿地': '🌿', '雪山冰川': '🏔️', '寺庙': '🛕', '红色遗迹': '🚩',
+  topic-meta.js:532  '边境口岸': '🛂', '圣湖': '💧', '土林': '⛰️', '城市地标': '🏙️',
+  topic-meta.js:533  '其他': '📍'
+  topic-meta.js:535  '温泉地热': '♨️'
+  topic-meta.js:591  '宗教圣地': '🛕', '古塔': '🗼', '城市地标': '🏙️', '遗址陵墓': '⛏️',
+  topic-meta.js:592  '草原湿地': '🌿', '高原湖泊': '💧', '江河湖泊': '💧', '民族风情': '🏘️',
+  topic-meta.js:593  '边境口岸': '🛂', '民族村寨': '🏘️', '森林山川': '🌲', '雅丹地貌': '🏜️',
+  topic-meta.js:594  '沙漠戈壁': '🏜️', '古城遗址': '🏛️', '峡谷天堑': '🏜️', '其他': '📍'
+  topic-meta.js:596  '名山大川': '⛰️'
+  topic-meta.js:651  '遗址陵墓': '⛏️', '古塔': '🗼', '城市地标': '🏙️', '长城关隘': '🏯',
+  topic-meta.js:652  '楼阁牌坊': '🏯', '民族风情': '🏘️', '古建寺院': '🏛️', '名山大川': '⛰️',
+  topic-meta.js:653  '石窟艺术': '🗿', '江河瀑布': '🌊', '红色遗迹': '🚩', '峡谷天堑': '🏜️',
+  topic-meta.js:654  '丹霞地貌': '⛰️', '江河湖泊': '💧', '古城遗址': '🏛️', '宗教圣地': '🛕',
+  topic-meta.js:655  '名山梯田': '🌾', '森林山川': '🌲', '高原湖泊': '💧', '其他': '📍'
+  topic-meta.js:657  '古城古镇': '🏘️',
+  topic-meta.js:659  '草原湿地': '🌿'
+  topic-meta.js:712  '名山大川': '⛰️', '文庙书院': '🏛️', '城市地标': '🏙️', '古城古镇': '🏯',
+  topic-meta.js:713  '峡谷天堑': '🏜️', '江河湖泊': '💧', '溶洞奇观': '🕳️', '民族村寨': '🏘️',
+  topic-meta.js:714  '丹霞地貌': '⛰️', '古城遗址': '🏛️', '楼阁牌坊': '🏯', '古建寺院': '🏛️',
+  topic-meta.js:715  '高原湖泊': '💧', '森林山川': '🌲', '红色遗迹': '🚩', '遗址陵墓': '⛏️',
+  topic-meta.js:716  '名山梯田': '🌾', '其他': '📍'
+  topic-meta.js:718  '宗教圣地': '☸️',
+  topic-meta.js:719  '民族风情': '🪕',
+  topic-meta.js:720  '温泉康养': '♨️',
+  topic-meta.js:721  '草原湿地': '🌿'
+  topic-meta.js:777  '楼阁牌坊': '🏯', '城市地标': '🏙️', '江河湖泊': '💧', '文庙书院': '🏛️',
+  topic-meta.js:778  '民族风情': '🏘️', '宗教圣地': '🛕', '名山大川': '⛰️', '古建寺院': '🏛️',
+  topic-meta.js:779  '民族村寨': '🏘️', '峡谷天堑': '🏜️', '溶洞奇观': '🕳️', '森林山川': '🌲',
+  topic-meta.js:780  '草原湿地': '🌿', '古城古镇': '🏯', '红色遗迹': '🚩', '高原湖泊': '💧',
+  topic-meta.js:781  '其他': '📍'
+  topic-meta.js:783  '温泉康养': '♨️'
+  topic-meta.js:835  '城市地标': '🏙️', '古城古镇': '🏯', '峡谷天堑': '🏜️', '草原湿地': '🌿',
+  topic-meta.js:836  '石窟艺术': '🗿', '古城遗址': '🏛️', '宗教圣地': '🛕', '森林山川': '🌲',
+  topic-meta.js:837  '溶洞奇观': '🕳️', '名山大川': '⛰️', '其他': '📍'
+  topic-meta.js:839  '古建寺院': '⛩️',
+  topic-meta.js:840  '名山梯田': '🌾',
+  topic-meta.js:841  '民族风情': '🪕',
+  topic-meta.js:842  '高原湖泊': '💧'
+  topic-meta.js:900  '遗址陵墓': '⛏️', '古城遗址': '🏛️', '石窟艺术': '🗿', '城市地标': '🏙️',
+  topic-meta.js:901  '沙漠戈壁': '🏜️', '森林山川': '🌲', '江河湖泊': '💧', '峡谷天堑': '🏜️',
+  topic-meta.js:902  '古塔': '🗼', '丹霞地貌': '⛰️', '江河瀑布': '🌊', '红色遗迹': '🚩',
+  topic-meta.js:903  '其他': '📍'
+  topic-meta.js:905  '古建寺院': '⛩️',
+  topic-meta.js:906  '古遗址': '🏺',
+  topic-meta.js:907  '名山大川': '⛰️',
+  topic-meta.js:908  '宗教圣地': '☸️',
+  topic-meta.js:909  '楼阁牌坊': '🏛️',
+  topic-meta.js:910  '民族村寨': '🛖',
+  topic-meta.js:911  '民族风情': '🪕',
+  topic-meta.js:912  '草原湿地': '🌿',
+  topic-meta.js:913  '长城关隘': '🧱',
+  topic-meta.js:914  '高原湖泊': '💧'
+  topic-meta.js:938  cz: {p: 'cz', title: '红军长征', dataJs: 'changzheng-data.js', foodJs: '', foodEnabled: false, totalTagS
+  topic-meta.js:956  }, themeIcons: {喀斯特山水: '🏞️', 古城古镇: '🏯', 民族村寨: '🏘️', 人文古迹: '🏛️', 江河湖泊: '💧', 名山梯田: '⛰️', 溶洞: '🕳️
+  topic-meta.js:957  '人文古迹': '🏺',
+  topic-meta.js:958  '其他': '📍',
+  topic-meta.js:959  '古城古镇': '🏘️',
+  topic-meta.js:960  '名山梯田': '🌾',
+  topic-meta.js:961  '喀斯特山水': '🏞️',
+  topic-meta.js:962  '峡谷': '⛰️',
+  topic-meta.js:963  '民族村寨': '🛖',
+  topic-meta.js:964  '江河湖泊': '💧',
+  topic-meta.js:965  '海岛海滩': '🏖️',
+  topic-meta.js:966  '温泉地热': '♨️',
+  topic-meta.js:967  '溶洞': '🕳️',
+  topic-meta.js:968  '瀑布': '💦',
+  topic-meta.js:969  '热带雨林': '🌴',
+  topic-meta.js:970  '茶山': '🍵',
+  topic-meta.js:971  '边境口岸': '🛂',
+  topic-meta.js:972  '雪山冰川': '🏔️'
+  topic-meta.js:1015  themeIcons: {圣湖: '💧', 神山: '🏔️', 寺庙: '🛕', 古遗址: '🏛️', 土林: '🌋', 垭口: '🔻', 边境口岸: '🚩', 草原: '🌾', 峡谷
+  topic-meta.js:1016  '其他': '📍',
+  topic-meta.js:1017  '冰川': '🧊',
+  topic-meta.js:1018  '古城': '🏯',
+  topic-meta.js:1019  '古遗址': '🏺',
+  topic-meta.js:1020  '土林': '🗿',
+  topic-meta.js:1021  '圣湖': '🌊',
+  topic-meta.js:1022  '垭口': '⛰️',
+  topic-meta.js:1023  '寺庙': '🛕',
+  topic-meta.js:1024  '峡谷': '⛰️',
+  topic-meta.js:1025  '村庄': '🏡',
+  topic-meta.js:1026  '神山': '🗻',
+  topic-meta.js:1027  '纪念碑': '🗽',
+  topic-meta.js:1028  '草原': '🌾',
+  topic-meta.js:1029  '边境口岸': '🛂'
+  topic-meta.js:1031  '宗教圣地': '☸️',
+  topic-meta.js:1032  '古建寺院': '⛩️',
+  topic-meta.js:1033  '城市地标': '🏙️',
+  topic-meta.js:1034  '名山大川': '⛰️',
+  topic-meta.js:1035  '民族风情': '🪕',
+  topic-meta.js:1036  '森林山川': '🌲',
+  topic-meta.js:1037  '高原湖泊': '💧',
+  topic-meta.js:1038  '古城古镇': '🏘️',
+  topic-meta.js:1039  '名山梯田': '🌾',
+  topic-meta.js:1040  '草原湿地': '🌿',
+  topic-meta.js:1041  '雪山冰川': '🏔️',
+  topic-meta.js:1042  '红色遗迹': '🚩',
+  topic-meta.js:1043  '沙漠戈壁': '🏜️',
+  topic-meta.js:1044  '江河湖泊': '💧',
+  topic-meta.js:1045  '盐湖': '🧂',
+  topic-meta.js:1046  '江河瀑布': '💦',
+  topic-meta.js:1047  '丹霞地貌': '🏜️',
+  topic-meta.js:1048  '雅丹地貌': '🏜️',
+  topic-meta.js:1049  '温泉地热': '♨️',
+  topic-meta.js:1050  '遗址陵墓': '⛏️',
+  topic-meta.js:1051  '古城遗址': '🏛️',
+  topic-meta.js:1052  '民族村寨': '🛖',
+  topic-meta.js:1053  '峡谷天堑': '🏜️',
+  topic-meta.js:1054  '热带雨林': '🌴'
+  topic-meta.js:1059  bj: {p: 'bj', title: '北京古都人文地图', dataJs: 'bj-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1060  tj: {p: 'tj', title: '天津海河人文地图', dataJs: 'tj-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1061  he: {p: 'he', title: '河北燕赵大地地图', dataJs: 'he-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1062  ha: {p: 'ha', title: '河南中原大地地图', dataJs: 'ha-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1063  sd: {p: 'sd', title: '山东齐鲁山海地图', dataJs: 'sd-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1064  ln: {p: 'ln', title: '辽宁山海关东地图', dataJs: 'ln-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1065  jl: {p: 'jl', title: '吉林长白神韵地图', dataJs: 'jl-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1066  hlj: {p: 'hlj', title: '黑龙江北国风光地图', dataJs: 'hlj-data.js', foodJs: '', foodEnabled: false, totalTagS
+  topic-meta.js:1067  sh: {p: 'sh', title: '上海海派都会地图', dataJs: 'sh-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1068  js: {p: 'js', title: '江苏水韵江南地图', dataJs: 'js-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1069  zj: {p: 'zj', title: '浙江诗画山水地图', dataJs: 'zj-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1070  ah: {p: 'ah', title: '安徽徽韵山水地图', dataJs: 'ah-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1071  fj: {p: 'fj', title: '福建山海福地地图', dataJs: 'fj-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1072  jx: {p: 'jx', title: '江西红色赣鄱地图', dataJs: 'jx-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1073  gd: {p: 'gd', title: '广东岭南风情地图', dataJs: 'gd-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1074  hi: {p: 'hi', title: '海南热带海岛地图', dataJs: 'hi-data.js', foodJs: '', foodEnabled: false, totalTagSuffi
+  topic-meta.js:1128  '城市地标': '🏙️', '其他': '📍', '神祠': '🛕', '民族风情': '🏘️',
+  topic-meta.js:1129  '古城古镇': '🏯', '佛寺': '🏛️', '人文古迹': '🏛️', '森林山川': '🌲',
+  topic-meta.js:1130  '古城遗址': '🏛️', '宗教圣地': '🛕', '草原湿地': '🌿', '峡谷天堑': '🏜️',
+  topic-meta.js:1131  '高原湖泊': '💧', '江河湖泊': '💧', '红色遗迹': '🚩', '江河瀑布': '🌊',
+  topic-meta.js:1132  '雪山冰川': '🏔️', '寺庙': '🛕', '古建寺院': '🏛️', '重大战役': '⚔️',
+  topic-meta.js:1133  '名山大川': '⛰️', '森林草原': '🌲', '古塔': '🗼', '民族村寨': '🏘️',
+  topic-meta.js:1134  '长城关隘': '🏯', '旧址纪念地': '🚩', '名山梯田': '🌾', '峡谷': '🏜️',
+  topic-meta.js:1135  '重要会议': '🏛️', '溶洞奇观': '🕳️', '喀斯特山水': '⛰️', '溶洞': '🕳️',
+  topic-meta.js:1136  '沙漠戈壁': '🏜️', '遗址陵墓': '⛏️', '楼阁牌坊': '🏯', '衙署民居': '🏘️',
+  topic-meta.js:1137  '渡口渡江': '⛴️', '陵寝墓葬': '⛏️', '温泉康养': '♨️', '道观': '🛕',
+  topic-meta.js:1138  '雅丹地貌': '🏜️', '石窟寺': '🗿', '名城名镇': '🏯', '边境口岸': '🛂',
+  topic-meta.js:1139  '古遗址': '⛏️', '神山': '🏔️', '圣湖': '💧', '石窟艺术': '🗿',
+  topic-meta.js:1140  '江河峡谷': '🌊', '温泉地热': '♨️', '村庄': '🏘️', '会师地': '🚩',
+  topic-meta.js:1141  '寺观彩塑': '🛕', '瀑布': '🌊', '海岛海滩': '🏖️', '垭口': '⛰️',
+  topic-meta.js:1142  '丹霞地貌': '⛰️', '雪山草地': '🏔️', '热带雨林': '🌴', '茶山': '🍵',
+  topic-meta.js:1143  '寺观壁画': '🛕', '出发地': '🚩', '纪念碑': '🗿', '雪山高原': '🏔️',
+  topic-meta.js:1144  '古戏台': '🎭', '古城': '🏯', '草原': '🌿', '冰川': '🏔️',
+  topic-meta.js:1145  '土林': '⛰️', '盐湖': '🧂', '文庙书院': '🏛️'
+  小计 184 条
+
+======== H <img> 缺 alt ========
+  album-edit.html:236  <img loading="lazy" decoding="async" src="' + n.photos[0] + '" onerror="window.UI&&UI.imgFail(this)">
+  md-manager.html:420  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '">
+  md-manager.html:467  <img loading="lazy" decoding="async" src="' + esc(p) + '" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI
+  node-manager.html:838  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="nmPhotoImg" src="' + preset.cov
+  node-manager.html:891  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" id="nmPhotoImg" src="' + b64 + '" s
+  story.html:137  <img loading="lazy" decoding="async" src="'+esc(p)+'" onerror="window.UI&&UI.imgFail(this)">
+  travel-map.html:653  <img loading="lazy" decoding="async" src="'+n.photos[0]+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&U
+  travel-map.html:679  <img loading="lazy" decoding="async" src="'+x+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(
+  results.js:328  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '" style="max-wid
+  results.js:353  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(n.photos[0]) + '" styl
+  travel-notes.js:1457  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + b64 + '">
+  travel-notes.js:1794  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" class="tn-trip-cover" src="' + esc(
+  travel-notes.js:1859  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + b64 + '">
+  travel-notes.js:1926  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + p + '" style="max-width:46
+  travel-notes.js:2271  <img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(n.photos[0]) + '" styl
+  小计 15 条
+
+======== I catch 空吞 ========
+  checklist.html:137  try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  checklist.html:146  } catch (e) {}
+  checklist.html:225  try { history.replaceState(null, '', 'checklist.html'); } catch (e2) {}
+  checklist.html:265  try { history.replaceState(null, '', 'checklist.html?trip=' + encodeURIComponent(tripId)); } catch (
+  expense.html:157  try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  expense.html:167  } catch (e) {}
+  expense.html:369  try { history.replaceState(null, '', 'expense.html'); } catch (e2) {}
+  expense.html:378  try { history.replaceState(null, '', 'expense.html?trip=' + encodeURIComponent(tripId)); } catch (e)
+  index.html:385  } catch (e) {}
+  index.html:391  } catch (e) {}
+  index.html:449  } catch(e){}
+  index.html:504  }catch(e){}
+  index.html:515  }catch(e){}
+  index.html:550  }catch(e){}
+  md-manager.html:240  } catch (e) {}
+  md-manager.html:258  } catch (e) {}
+  md-manager.html:562  } catch (err) {}
+  me.html:148  function readTrips(){ try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e)
+  me.html:199  }).catch(function(){});
+  me.html:261  try { TravelNotes.init({}); } catch (e) {}
+  node-manager.html:163  try { localStorage.removeItem(legacyKey); } catch (e) {}
+  node-manager.html:166  } catch (e) { return []; }
+  node-manager.html:168  function saveUserNodes(arr) { try { localStorage.setItem(USER_KEY, JSON.stringify(arr)); } catch (e)
+  node-manager.html:196  amap.on('tileerror', function () { if (!map.hasLayer(osm)) { try { amap.remove(); } catch (e) {} osm
+  node-manager.html:260  }).catch(function () {});
+  node-manager.html:445  try { placeUserMarker(rec); } catch (e) {}
+  node-manager.html:449  try { refreshMine(); } catch (e) {}
+  node-manager.html:458  try { j = JSON.parse(t.replace(/^[^{]*/, '').replace(/[^}]*$/, '')); } catch (e) {}
+  node-manager.html:702  } catch (e) {}
+  node-manager.html:759  } catch (e) {}
+  review.html:297  function saveMoods(){ try{ localStorage.setItem('tn_dayMoods',JSON.stringify(dayMoods)); }catch(e){}
+  review.html:539  }catch(e){}
+  review.html:569  if (!_provMap.hasLayer(_osm)) { try { _amap.remove(); } catch (e) {} _osm.addTo(_provMap); }
+  search.html:150  try{ hist=JSON.parse(localStorage.getItem('tn_search_hist')||'[]'); }catch(e){}
+  search.html:151  try{ rec=JSON.parse(localStorage.getItem('tn_recent')||'[]'); }catch(e){}
+  search.html:169  if(clr) clr.onclick=function(){ try{ localStorage.removeItem('tn_search_hist'); }catch(e){} render()
+  search.html:235  }catch(e){}
+  settings.html:327  } catch(e){}
+  settings.html:336  }).catch(function () {});
+  settings.html:353  try { last = localStorage.getItem('tn_lastVoiceError') || ''; } catch (e) {}
+  settings.html:362  } catch (e) {}
+  settings.html:467  var cur='md'; try{ cur=localStorage.getItem('tn_font')||'md'; }catch(e){}
+  settings.html:472  ch.onclick=function(){ try{ localStorage.setItem('tn_font', ch.dataset.f); }catch(e){} box.querySele
+  settings.html:494  ib.value = (function () { try { return localStorage.getItem('tn_aiBase') || ''; } catch (e) { return
+  settings.html:560  try{ localStorage.setItem('tn_lastBackup', String(Date.now())); }catch(e){}
+  settings.html:600  try { lod = JSON.parse(localStorage.getItem('tn_lod') || '{}'); } catch(e) {}
+  settings.html:601  var save = function(){ try { localStorage.setItem('tn_lod', JSON.stringify(lod)); } catch(e){} };
+  settings.html:639  function off() { try { return localStorage.getItem('tn_plan_pref') === '0'; } catch (e) { return fal
+  settings.html:652  function off() { try { return localStorage.getItem('tn_planner_weather') === '0'; } catch (e) { retu
+  settings.html:694  try { akEl.value = localStorage.getItem('tn_amap_key') || ''; } catch (e) {}
+  settings.html:697  try { if (v) localStorage.setItem('tn_amap_key', v); else localStorage.removeItem('tn_amap_key'); } 
+  settings.html:710  try { TravelNotes.ensureUI(); } catch (e) {}
+  story.html:103  if(!map.hasLayer(osmLayer)){ try{ amapStreet.remove(); }catch(e){} osmLayer.addTo(map); }
+  topic.html:200  }catch(e){}
+  travel-map.html:444  } catch(e){}
+  travel-map.html:711  (function(){var ml=location.search.match(/[?&]lat=([-.\d]+)[&]lng=([-.\d]+)/);if(ml){var nm=(locatio
+  trip.html:188  try { return JSON.parse(localStorage.getItem('tn_trips') || '[]'); } catch (e) { return []; }
+  trip.html:201  } catch (e) {}
+  trip.html:245  }).catch(function () {});
+  trip.html:413  try { history.replaceState(null, '', 'trip.html?trip=' + encodeURIComponent(tripId)); } catch (e) {}
+  小计 202 条（只列前 60）
+
+======== J 写死 z-index ========
+  album-edit.html:84  z-index:1000 — .picker{position:fixed;inset:0;z-index:1000;background:rgba(32,32,29,.5);display:flex;alig
+  expense.html:71  z-index:9500 — #addSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-heigh
+  index.html:64  z-index:9500 — padding:10px 8px;z-index:9500;text-align:left;
+  md-manager.html:88  z-index:9800 — .zoom-mask{position:fixed;inset:0;background:rgba(20,20,18,.94);z-index:9800;display:flex;
+  node-manager.html:14  z-index:9500 — .nm-topbar{position:fixed;left:0;right:0;top:0;z-index:9500;display:flex;align-items:cente
+  review.html:68  z-index:9000 — .report-dlg{position:fixed;left:10px;right:10px;bottom:10px;z-index:9000;max-height:80dvh;
+  settings.html:591  z-index:9999 — d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;t
+  travel-map.html:39  z-index:1000 — position:absolute;left:0;right:0;top:0;z-index:1000;
+  trip.html:86  z-index:9500 — #addSheet{position:fixed;z-index:9500;left:8px;right:8px;bottom:8px;display:none;max-heigh
+  wishlist.html:271  z-index:9600 — d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;t
+  nav.js:26  z-index:1050 — var css = '.bottom-nav{z-index:1050}' +
+  planner.js:1463  z-index:1100 — m.style.cssText = 'position:fixed;inset:0;z-index:1100;background:rgba(20,16,12,.45);displ
+  poster.js:27  z-index:9600 — d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;t
+  results.js:25  z-index:9500 — f.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;t
+  topic-common.js:192  z-index:1200 — nearBar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:calc
+  travel-notes.js:336  z-index:9000 — .tn-mask{position:fixed;inset:0;background:rgba(17,28,27,.6);z-index:9000;display:none}\
+  vault.js:252  z-index:9800 — d.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;t
+  小计 57 处，涉及 17 个文件（每文件只列首处）

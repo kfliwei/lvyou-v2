@@ -1,0 +1,37 @@
+./album.js:20:  function fmtD(ts) { var d = new Date(ts); return d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
+./album.js:21:  function fmtDM(ts) { var d = new Date(ts); return pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
+./album.js:24:    if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()) return fmtD(a);
+./album.js:158:    var year = first ? String(new Date(first.ts).getFullYear()) : String(new Date().getFullYear());
+./backup.js:288:      + (env.createdAt ? ' · 备份于 ' + dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate())
+./checklist.js:72:        var em = new Date(+startDate.slice(0, 4), sm - 1, d + (n - 1)).getMonth() + 1;
+./expense.html:209:    var y = String(new Date().getFullYear());
+./expense.js:62:  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+./expense.js:67:    d.setDate(d.getDate() + (Math.round(Number(n)) || 0));
+./expense.js:68:    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+./index.html:468:    var picks = SEASONS[new Date().getMonth() + 1] || [];
+./index.html:471:    document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';
+./planner.js:1047:    d.setDate(d.getDate() + di);
+./planner.js:1049:    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+./planner.js:1070:    var days = Math.round((target - new Date(t.getFullYear(), t.getMonth(), t.getDate())) / 86400000);
+./poster.js:87:    var year = new Date().getFullYear();
+./results.js:235:    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+./review.html:307:    else{var n=new Date();curYm=n.getFullYear()+'-'+pad(n.getMonth()+1);}
+./review.html:505:  var md = pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+./review.html:508:    return d.slice(5) === md && d.slice(0, 4) !== String(now.getFullYear());
+./review.html:589:  var first=new Date(y,m-1,1).getDay(),dim=new Date(y,m,0).getDate();
+./review.html:593:  var today=new Date(),td=today.getFullYear()===y&&today.getMonth()+1===m?today.getDate():0;
+./settings.html:385:      line('wdStatus', '上次同步 ' + (d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '：' + (l.msg || ''), l.ok ? 'ok' : 'err');
+./test-data.js:18:    return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()) + ' ' + p(x.getHours()) + ':' + p(x.getMinutes());
+./travel-map.html:597:  var fmtD=function(ts){var d=new Date(ts);function p(x){return (x<10?'0':'')+x;}return p(d.getMonth()+1)+'.'+p(d.getDate());};
+./travel-map.html:607:      var time=String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+./travel-map.html:652:    const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+./travel-map.html:676:  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+./travel-notes.js:278:  function fmtTime(ts) { var d = new Date(ts); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+./travel-notes.js:1477:    var dateStr = d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+./travel-notes.js:1689:    if (!calState.ym) calState.ym = newest ? (+newest.slice(0, 4)) * 100 + (+newest.slice(5, 7)) : now.getFullYear() * 100 + (now.getMonth() + 1);
+./travel-notes.js:1695:    var startDow = first.getDay(); /* 0=日 */
+./travel-notes.js:1696:    var dim = new Date(y, mo, 0).getDate();
+./travel-notes.js:1703:      var isToday = (y === now.getFullYear() && mo === now.getMonth() + 1 && d === now.getDate());
+./travel-notes.js:1710:    $X(body, '#calToday').onclick = function () { calState.ym = now.getFullYear() * 100 + (now.getMonth() + 1); renderCalView(body, list); };
+./vault.js:299:      date: u16((((t.getFullYear() - 1980) & 0x7F) << 9) | ((t.getMonth() + 1) << 5) | t.getDate())
+./wishlist.html:118:  function fmt(ts) { var d = new Date(ts); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }

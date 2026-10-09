@@ -1,0 +1,10 @@
+./md-manager.html:363:    document.getElementById('stWords').textContent = words.toLocaleString();
+./md-manager.html:624:    document.getElementById('stWords').textContent = words.toLocaleString();
+./planner.js:1893:     不用 toLocaleDateString/toLocaleString —— 那跟着系统语言走，同一份行程在两台手机上会生成两个不同的文件。
+./planner.js:2290:      return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
+./results.js:337:    var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), stats + cards);
+./results.js:357:      var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), cards);
+./results.js:403:        var html = docShell(title, prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), '<div class="card"><div class="t">' + esc(body.textContent) + '</div></div>');
+./travel-map.html:778:  ctx.fillText(new Date().toLocaleDateString()+' 制 · 古建地图集',110,1290);
+./travel-notes.js:1935:      '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center"><h1 style="margin:0;font-size:26px">我的旅行游记</h1><p style="margin:8px 0 0;font-size:var(--fs-4);opacity:.85">共 ' + sorted.length + ' 篇 · 记录于 ' + new Date().toLocaleDateString() + '</p></div>' +
+./vault.js:164:    var lines = ['# 我的旅行 · 索引', '', '> 由 行迹 TRACE 导出 · ' + new Date().toLocaleDateString(), ''];

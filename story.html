@@ -117,7 +117,7 @@ function groupTrips(list){
 function renderSel(){
   var sel=document.getElementById('tripSel');
   sel.innerHTML='<option value="all">全部旅程</option>'+trips.map(function(t,i){
-    return '<option value="'+i+'">'+(t.notes[0].date||'').slice(0,10)+' ~ '+(t.notes[t.notes.length-1].date||'').slice(0,10)+'（'+t.notes.length+' 篇）</option>';
+    return '<option value="'+i+'">'+TravelNotes.dayText(t.notes[0])+' ~ '+TravelNotes.dayText(t.notes[t.notes.length-1])+'（'+t.notes.length+' 篇）</option>';
   }).join('');
 }
 function render(){
@@ -129,15 +129,17 @@ function render(){
   var box=document.getElementById('cards');
   if(!cards.length){ box.innerHTML='<div class="story-empty"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="足迹线稿"><ellipse cx="34" cy="66" rx="6" ry="9" transform="rotate(-15 34 66)"/><circle cx="30" cy="52" r="2"/><circle cx="36" cy="49" r="1.6"/><circle cx="42" cy="52" r="1.4"/><ellipse cx="66" cy="42" rx="5.4" ry="8" transform="rotate(10 66 42)"/><circle cx="63" cy="30" r="1.8"/><circle cx="69" cy="28" r="1.5"/><circle cx="74" cy="30" r="1.3"/><ellipse cx="96" cy="20" rx="4.4" ry="6.4" transform="rotate(-8 96 20)" opacity=".5"/><path d="M14 84 Q60 76 108 12" stroke-dasharray="3 5" opacity=".3"/></svg><b>还没有带坐标的游记</b><span>先在地图上记录几篇，<br>这里会把它们讲成一段旅程。</span></div>'; return; }
   /* 批次7-C 旅程开篇：竖排题签取首站地名，横排一句卷首语（数据全来自 cards，不编） */
-  var _f=cards[0], _l=cards[cards.length-1];
-  var _days=Math.max(1,Math.round((_l.ts-_f.ts)/86400000)+1);
+  var _f=cards[0];
+  /* 卷首语的跨度只拿有 ts 的那几站算：没填时间戳的游记会把手上的减法打成 NaN，而「跨 NaN 天」是会上屏的 */
+  var _sp=cards.map(function(n){return n.ts;}).filter(function(t){return typeof t==='number'&&isFinite(t);});
+  var _days=_sp.length>1?Math.max(1,Math.round((Math.max.apply(null,_sp)-Math.min.apply(null,_sp))/86400000)+1):1;
   var _op='<div class="vrow"><span class="vtitle">'+esc(String(_f.siteName||_f.title||'此程').slice(0,10))+'</span>'
     +'<p class="vlead">自这里落笔 · 共 '+cards.length+' 站 · 跨 '+_days+' 天</p></div>';
   box.innerHTML=_op+cards.map(function(n,i){
     var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p){return '<img loading="lazy" decoding="async" src="'+esc(p)+'" onerror="window.UI&&UI.imgFail(this)">';}).join('')+'</div>':'';
     var tags=(n.tags&&n.tags.length)?'<div class="sc-tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
     return '<div class="story-card" data-i="'+i+'">'
-      +'<div class="sc-date">'+esc(n.date||'')+'</div>'
+      +'<div class="sc-date">'+esc(TravelNotes.dayText(n))+'</div>'
       +'<div class="sc-place">'+esc(n.title||n.siteName||'未命名')+'</div>'
       +'<div class="sc-meta">'+esc(n.siteName||'')+(n.weather?' · '+esc(n.weather):'')+'</div>'
       +'<div class="sc-txt">'+esc(n.text||n.raw)+'</div>'+pics+tags+'</div>';
@@ -164,7 +166,7 @@ function drawRoute(upto){
 function updateNav(i){
   var n=cards[i]; if(!n) return;
   document.getElementById('snTitle').textContent=(n.title||n.siteName||'未命名');
-  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+((n.date||'').slice(0,10));
+  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+TravelNotes.dayText(n);
   document.getElementById('snPrev').disabled=(i<=0);
   document.getElementById('snNext').disabled=(i>=cards.length-1);
 }

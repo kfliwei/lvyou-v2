@@ -1,0 +1,24 @@
+expense.html:216:      if (!x || Expense.isoOf(x.date)) return;
+expense.html:295:      var d = Expense.dayFromStart(start, g.date);
+expense.html:299:      if (!g.date) tag = '日期未知';
+expense.html:303:      return '<div class="x-day"><div class="x-dayh"><b>' + esc(g.date || '日期未知') + '</b>' +
+md-manager.html:599:      date: fm.date || '',
+me.html:223:        if (!g.date || g.date.slice(0, 4) !== year) return;
+review.html:692:      (first?'从 '+((first.date||'').slice(0,10)||'出发')+' 的'+(first.siteName||'第一站')+'，':''),
+review.html:693:      (last?'到 '+((last.date||'').slice(0,10)||'归途')+' 的'+(last.siteName||'最后一站')+'，':'')+'',
+story.html:120:    return '<option value="'+i+'">'+(t.notes[0].date||'').slice(0,10)+' ~ '+(t.notes[t.notes.length-1].date||'').slice(0,10)+'（'+t.notes.length+' 篇）</option>';
+expense-form.js:128:      if (window.UI && UI.toast) UI.toast('已记 ' + Expense.fmtMoney(it.cents) + ' 元 · ' + it.cat + ' · ' + it.date);
+expense-form.js:146:        dateEl.value = Expense.isoOf(o.date) || Expense.todayISO();
+expense.js:81:    var own = isoOf(x && x.date);
+expense.js:122:      var d = isoOf(x.date);
+expense.js:127:    g.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+expense.js:133:    listOf(tripId).forEach(function (x) { if (!isoOf(x.date)) { n++; c += centsOf(x); } });
+expense.js:179:      if (isoOf(x.date)) { out.push(x); return; }
+expense.js:184:      copy.date = d; out.push(copy); filled++;
+expense.js:273:      L.push(csvRow([isoOf(x.date) || dateOf(x.day), '第' + x.day + '天', x.cat, fmtMoney(x.cents), x.who || '', x.note || '']));
+results.js:43:    var span = (head && tail && head.date && tail.date) ? (head.date + ' 到 ' + tail.date) : '这段时间';
+results.js:46:      return '· ' + x.date + '，来到' + (x.siteName || '某处') + w + '。' + (x.text || x.raw || '').replace(/\s+/g, ' ').slice(0, 80);
+travel-notes.js:1072:        onSaved: function (it) { drawExpList(); drawExpToday(); expForm.open({ date: it.date, focusAmount: true }); },
+travel-notes.js:1161:    Expense.byDate(expTrip.id, expTrip.start).forEach(function (x) { if (x.date === today) g = x; });
+vault.js:323:        u32(0x04034b50), u16(20), u16(0x0800), u16(0), now.time, now.date,
+vault.js:328:        u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), now.time, now.date,

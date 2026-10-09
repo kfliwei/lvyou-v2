@@ -235,7 +235,7 @@
     var items = notes.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).map(function (n) {
       var th = (n.photos && n.photos[0]) ? '<img loading="lazy" decoding="async" src="' + n.photos[0] + '" onerror="window.UI&&UI.imgFail(this)">' : '<span>记</span>';
       return '<div class="n-item" data-id="' + esc(n.id) + '"><div class="th">' + th + '</div>'
-        + '<div class="main"><b>' + esc(n.title || n.siteName || '未命名') + '</b><span>' + esc((n.date || '') + (n.weather ? ' · ' + n.weather : '')) + '</span></div></div>';
+        + '<div class="main"><b>' + esc(n.title || n.siteName || '未命名') + '</b><span>' + esc(TravelNotes.dayText(n) + (n.weather ? ' · ' + n.weather : '')) + '</span></div></div>';
     }).join('');
     var pk = openPicker('添加一段记忆', items);
     pk.el.querySelectorAll('.n-item').forEach(function (it) {
@@ -256,7 +256,7 @@
       lead: (n.text || n.raw || '').trim(),
       layout: ph.length >= 2 ? 'duo' : (ph.length ? 'full' : 'text'),
       photos: ph,
-      caption: (n.date || '') + (n.weather ? ' · ' + n.weather : ''),
+      caption: TravelNotes.dayText(n) + (n.weather ? ' · ' + n.weather : ''),
       audio: n.audio || '',
       audioLabel: n.title || n.siteName || '',
       mapPoints: (n.lat != null && n.lng != null) ? [{ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' }] : []

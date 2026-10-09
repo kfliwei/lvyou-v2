@@ -25,13 +25,17 @@
  },
  {
   "page": "topic.html",
-  "clickable": 62,
-  "scanned": 9505,
+  "clickable": 90,
+  "scanned": 9511,
   "dead": [],
   "deadN": 0,
   "tinyN": 0,
   "tiny": [],
   "offscreen": [
+   {
+    "el": "button.chip",
+    "text": "名山大川"
+   },
    {
     "el": "button.chip",
     "text": "雪山冰川"
@@ -186,11 +190,7 @@
    },
    {
     "el": "button.rs-chip",
-    "text": "城市地标 49"
-   },
-   {
-    "el": "button.rs-chip",
-    "text": "森林草原 44"
+    "text": "寺庙 3"
    }
   ],
   "inlineBad": [],
@@ -484,7 +484,7 @@
  {
   "page": "settings.html",
   "clickable": 56,
-  "scanned": 80,
+  "scanned": 83,
   "dead": [
    {
     "el": "span",
@@ -523,8 +523,8 @@
  },
  {
   "page": "me.html",
-  "clickable": 14,
-  "scanned": 14,
+  "clickable": 17,
+  "scanned": 17,
   "dead": [],
   "deadN": 0,
   "tinyN": 0,
@@ -644,7 +644,7 @@
  {
   "page": "planner.html",
   "clickable": 51,
-  "scanned": 71,
+  "scanned": 89,
   "dead": [
    {
     "el": "div.card",

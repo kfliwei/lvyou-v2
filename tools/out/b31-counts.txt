@@ -1,0 +1,23 @@
+=== §46 单点调用点（剥块注释 + 空白归一后计数）===
+  album-edit.html = 2  {"TravelNotes.dayText(":2}
+  album.js = 2  {"TravelNotes.fmtDayText(":1,"TravelNotes.dayText(":1}
+  index.html = 2  {"TravelNotes.noteDay(":2}
+  md-manager.html = 1  {"TravelNotes.dayText(":1}
+  me.html = 1  {"TravelNotes.dayText(":1}
+  planner.js = 2  {"TravelNotes.dayText(":1,"TravelNotes.fmtDayText(":1}
+  poster.js = 1  {"TravelNotes.dayText(":1}
+  results.js = 11  {"TravelNotes.dayText(":7,"TravelNotes.fmtDayText(":1,"TravelNotes.nowDayText(":3}
+  review.html = 1  {"TravelNotes.noteDay(":1}
+  search.html = 1  {"TravelNotes.dayText(":1}
+  settings.html = 2  {"TravelNotes.fmtDayText(":1,"TravelNotes.fmtClock(":1}
+  story.html = 4  {"TravelNotes.dayText(":4}
+  travel-map.html = 9  {"TravelNotes.fmtDayText(":2,"TravelNotes.fmtClock(":3,"TravelNotes.dayText(":2,"TravelNotes.noteDay(":1,"TravelNotes.nowDayText(":1}
+  travel-notes.js = 1  {"TravelNotes.noteDay(":1}
+  vault.js = 5  {"TravelNotes.dayText(":4,"TravelNotes.nowDayText(":1}
+  wishlist.html = 1  {"TravelNotes.fmtDayText(":1}
+文件数=16 总调用点=46
+locale 族命中文件=["travel-notes.js"]
+宽松年月日解析正则命中文件=["travel-notes.js"]
+.date 命中行数=21 按文件={"expense-form.js":2,"expense.html":4,"expense.js":7,"md-manager.html":1,"me.html":1,"travel-notes.js":4,"vault.js":2}
+手拼日期 + 渲染信号 命中行数=1
+  index.html:471  document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';

@@ -213,7 +213,7 @@
     }):notes.slice(0,5);
     out+='<div class="sec-t"><b>游记</b><span>'+nh.length+' 篇</span></div>';
     nh.slice(0,15).forEach(function(n){
-      out+='<div class="item" data-go="travel-map.html?id='+encodeURIComponent(n.id||'')+'"><span class="dot" style="background:#71806C"></span><div class="main"><div class="nm">'+esc(n.title||n.siteName||'未命名')+'</div><div class="sub">'+esc((n.date||'')+(n.province?' · '+n.province:'')+(n.siteName?' · '+n.siteName:''))+'</div></div><span class="arr">›</span></div>';
+      out+='<div class="item" data-go="travel-map.html?id='+encodeURIComponent(n.id||'')+'"><span class="dot" style="background:#71806C"></span><div class="main"><div class="nm">'+esc(n.title||n.siteName||'未命名')+'</div><div class="sub">'+esc((TravelNotes.dayText(n))+(n.province?' · '+n.province:'')+(n.siteName?' · '+n.siteName:''))+'</div></div><span class="arr">›</span></div>';
     });
     if(!nh.length && q) out+='<div class="empty" style="padding:30px 20px"><span>没有匹配的游记</span></div>';
 
@@ -263,6 +263,10 @@ $q.oninput=function(){ state.q=$q.value; state.limit=20; clearTimeout(state._t);
   /* 支持 ?q= 直达：从首页搜索框等入口带关键词跳转 */
   var qp = new URLSearchParams(location.search).get('q');
   if (qp) { $q.value = qp; state.q = qp; }
+  /* 游记库是 IndexedDB 异步加载，且 notes 只在 init() 里灌：本页此前一行 init 都没调，
+     于是 TravelNotes.list() 永远是空数组——搜自己的游记恒读「0 篇」。补齐加载，并让 ready 后重渲染一次。 */
+  window.TravelNotes._onReady = render;
+  try { TravelNotes.init({}); } catch (e) {}
   loadData(function(){ render(); });
 })();
 </script>

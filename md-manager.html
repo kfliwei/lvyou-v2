@@ -178,6 +178,7 @@
   </div>
 </div>
 
+<script src="travel-notes.js"></script>
 <script src="vault.js"></script>
 <script src="icons.js"></script>
 <script src="ui.js"></script>
@@ -275,9 +276,8 @@
   /* ---------- 工具 ---------- */
   function esc(s) { return window.UI.esc(s); }
   function escHtml(s) { return esc(s); }
-  function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function fmtDay(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
-  function ymOf(n) { var d = (n.day || (n.date || '').slice(0, 10) || fmtDay(n.ts || Date.now())).slice(0, 7); return d || '未知'; }
+  function dayText(n) { return (window.TravelNotes && TravelNotes.dayText) ? TravelNotes.dayText(n) : ''; }
+  function ymOf(n) { return dayText(n).slice(0, 7) || '未知'; }
   function wordsOf(n) { return String(n.text || n.raw || '').length; }
   function toast(msg) {
     if (window.UI) { UI.toast(msg); return; }
@@ -416,12 +416,13 @@
   function el(tag, cls, html) { var d = document.createElement(tag); if (cls) d.className = cls; if (html != null) d.innerHTML = html; return d; }
   function itemFor(n) {
     var it = el('div', 'md-item');
+    var ds = dayText(n);
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
     var thumbs = (n.photos && n.photos.length) ? '<div class="thumbs">' + n.photos.slice(0, 3).map(function (p) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '">'; }).join('') + '</div>' : '';
     it.innerHTML =
       '<h3>' + esc(n.title || n.siteName || '未命名') + '</h3>' +
       (n.siteName && n.siteName !== n.title ? '<div class="loc">' + esc(n.siteName) + '</div>' : '') +
-      '<div class="meta"><span>' + esc((n.date || '').slice(0, 10) || '') + '</span><span class="dot"></span><span>' + wordsOf(n) + ' 字</span>' + ((n.photos || []).length ? '<span class="dot"></span><span>' + n.photos.length + ' 张照片</span>' : '') + '</div>' +
+      '<div class="meta">' + (ds ? '<span>' + esc(ds) + '</span><span class="dot"></span>' : '') + '<span>' + wordsOf(n) + ' 字</span>' + ((n.photos || []).length ? '<span class="dot"></span><span>' + n.photos.length + ' 张照片</span>' : '') + '</div>' +
       tags + thumbs +
       '<div class="foot">查看 Markdown →</div>';
     it.onclick = function () { openDetail(n); };
@@ -447,7 +448,8 @@
     }
     /* frontmatter 属性卡 */
     var rows = [];
-    if (n.date) rows.push(['日期', n.date.slice(0, 10)]);
+    var ds = dayText(n);
+    if (ds) rows.push(['日期', ds]);
     if (n.siteName) rows.push(['地点', n.siteName]);
     if (n.weather) rows.push(['天气', n.weather]);
     if (n.style) rows.push(['风格', n.style]);
@@ -467,7 +469,7 @@
     var wallHtml = (n.photos && n.photos.length) ? '<div class="photo-wall">' + n.photos.map(function (p) { return '<img loading="lazy" decoding="async" src="' + esc(p) + '" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">'; }).join('') + '</div>' : '';
     box.innerHTML =
       '<h1 class="art-title">' + esc(n.title || n.siteName || '未命名') + '</h1>' +
-      '<div class="art-meta">' + esc((n.date || '').slice(0, 10) || '') + (n.siteName && n.siteName !== n.title ? ' · ' + esc(n.siteName) : '') + '</div>' +
+      '<div class="art-meta">' + [ds, (n.siteName && n.siteName !== n.title ? n.siteName : '')].filter(Boolean).map(esc).join(' · ') + '</div>' +
       fmHtml + bodyHtml + audioHtml + wallHtml +
       '<div class="edit-chip" onclick="toggleEdit()"><svg class="ti" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-edit"/></svg> 编辑这篇游记（改标题/正文/标签）</div>' +
       '<div id="editBox" class="hide">' +
@@ -652,7 +654,8 @@
     var box = document.getElementById('artBox');
     document.getElementById('dTitle').textContent = n.title || '外部文件';
     var rows = [];
-    if (n.date) rows.push(['日期', n.date]);
+    var ds = dayText(n);
+    if (ds) rows.push(['日期', ds]);
     if (n.siteName) rows.push(['地点', n.siteName]);
     var fmHtml = rows.length ? '<dl class="fm-card">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' : '';
     box.innerHTML =
