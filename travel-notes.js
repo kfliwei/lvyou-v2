@@ -641,7 +641,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     s.textContent = CSS;
     document.head.appendChild(s);
     var mask = el('div', 'tn-mask');
-    mask.onclick = closePanel;
+    /* 两条关闭入口都必须走 closePanel() 的脏检查，且不许把 click 事件当参数传进去 */
+    mask.onclick = function () { closePanel(); };
     // 录音面板（深色沉浸）
     var panel = el('div', 'tn-panel');
     panel.innerHTML = '\
@@ -701,7 +702,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         b.classList.add('on');
       };
     });
-    $X(panel, '#tnX').onclick = closePanel;
+    $X(panel, '#tnX').onclick = function () { closePanel(); };
     $X(panel, '#tnRec').onclick = toggleRec;
     $X(panel, '#tnPolish').onclick = doPolish;
     $X(panel, '#tnSave').onclick = saveNote;
@@ -959,11 +960,12 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     clearTimeout(flash._t);
     flash._t = setTimeout(function () { fe.classList.remove('on'); }, 2200);
   }
-  /* 自定义确认弹层（替代原生 confirm，WebView/预览环境原生对话框不可靠） */
-  function confirmDialog(msg, onOk, okLabel) {
+  /* 自定义确认弹层（替代原生 confirm，WebView/预览环境原生对话框不可靠）
+     noLabel 可改：这颗钮在「关掉不保存」这类场景里说的是「继续编辑」，硬写「取消」会让人不敢点 */
+  function confirmDialog(msg, onOk, okLabel, noLabel) {
     var m = el('div', 'tn-cfm');
     m.innerHTML = '<div class="tc-box"><div class="tc-txt">' + msg + '</div>' +
-      '<div class="tc-btns"><button class="tc-no">取消</button><button class="tc-ok">' + (okLabel || '确认') + '</button></div></div>';
+      '<div class="tc-btns"><button class="tc-no">' + (noLabel || '取消') + '</button><button class="tc-ok">' + (okLabel || '确认') + '</button></div></div>';
     document.body.appendChild(m);
     m.querySelector('.tc-ok').onclick = function () { m.remove(); onOk && onOk(); };
     m.querySelector('.tc-no').onclick = function () { m.remove(); };
@@ -1016,7 +1018,43 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     setPhase('idle');
     resetTab();   /* 批次 24-C：每次打开都回到「记此刻」，上一笔停在哪儿都不带过来 */
   }
-  function closePanel() {
+  /* ---------- 关闭前的内容判定（批次 32-D） ----------
+     这一屏是产品最核心的动作：人站在景点前说一段话。手滑碰一下边就整段作废，
+     比丢一次备份更伤信任，所以「屏上有没有还没进库的内容」必须在关掉之前问一句。
+     判定读 DOM + state 的真值，不读 phase（phase 是状态机，不代表内容存不存在）。 */
+  function panelDirty() {
+    if (!ui || !state) return null;
+    if (ui.panel.classList.contains('is-expense')) {
+      var amt = $X(ui.panel, '#adAmt');
+      var v = amt && String(amt.value || '').trim();
+      if (v) return { kind: 'exp', amount: v };
+      return null;
+    }
+    var raw = (getRaw() || '').trim();
+    var aiEl = $X(ui.panel, '#tnAI');
+    var ai = aiEl && aiEl.style.display === 'block' ? (aiEl.textContent || '').trim() : '';
+    var ph = (state.photos || []).length;
+    if (raw || ai || ph || state.audio) return { kind: 'note', raw: raw, ai: ai, photos: ph, audio: !!state.audio };
+    return null;
+  }
+  function dirtyWords(d) {
+    if (d.kind === 'exp') return '这一笔开销还没记上（' + d.amount + ' 元），关掉就不在这台设备上了。';
+    var bits = [];
+    if (d.raw) bits.push('转写/正文 ' + d.raw.length + ' 字');
+    if (d.ai) bits.push('整理好的正文');
+    if (d.photos) bits.push(d.photos + ' 张配图');
+    if (d.audio) bits.push('录音');
+    return '这一段还没保存（' + (bits.join('、') || '已有内容') + '），关掉就没了，也不会进游记列表。';
+  }
+  /* force=true 只允许本文件里的确认回调传；绑定处一律包一层，免得把 click 事件当成 force 传进来 */
+  function closePanel(force) {
+    if (force !== true) {
+      var d = panelDirty();
+      if (d) {
+        confirmDialog(dirtyWords(d), function () { closePanel(true); }, '关掉不保存', '继续编辑');
+        return;
+      }
+    }
     if (ui) {
       var hide = function () { ui.mask.style.display = 'none'; ui.panel.style.display = 'none'; };
       if (window.UI && UI.vt) UI.vt(hide); else hide();
@@ -2309,7 +2347,13 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     zoomPhoto: zoomPhoto,
     exportNotes: exportNotes,
     importNotes: importNotes,
-    clearNotes: function () { notes = []; persist(); if (window.TravelNotes._afterSave) window.TravelNotes._afterSave(); flash('已清除全部数据'); },
+    /* 只管游记，别的集合一条不碰；文案必须按清除前的真实条数说，不能替用户坐实「全清了」 */
+    clearNotes: function () {
+      var n = notes.length;
+      notes = []; persist();
+      if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
+      flash(n ? ('已清除 ' + n + ' 篇游记，图册/行程/账目/设置都没动') : '本机已经没有游记了');
+    },
     /* 全量替换游记（供 backup.js 恢复调用）：必须走 persist() 的 diff 通道，
        直接写 IDB 会被下一次 persist() 用内存快照覆盖回去 */
     replaceNotes: function (list) {

@@ -1,0 +1,32 @@
+面板状态+命中 = {"inline":"flex","computed":"flex","visibility":"visible","opacity":"1","rect":[0,0,328,723],"at164_360":"HTML."}
+再等 900ms 后 at164_360 = DIV.tn-ring
+mask display = block
+遮罩矩形 = [0,0,328,723]
+网格归属计数 = {"DIV.tn-head":155,"BUTTON#tnX.tn-x":9,"DIV.tn-title":29,"SMALL#tnSite.tn-site":29,"DIV.tn-seg":68,"BUTTON#tnTabNote.on":77,"BUTTON#tnTabExp":77,"DIV.tn-body":1051,"DIV#tnNow.tn-now":120,"DIV.tn-now__place":85,"DIV.tn-now__time":26,"DIV#tnPrompt.tn-prompt":186,"DIV#tnRing.tn-ring":348,"BUTTON#tnRec.tn-mic":53,"svg":13,"path":2,"line":1,"DIV#tnMicLabel.tn-miclabel":16,"B":22,"DIV":92,"SPAN":80,"BUTTON#bkGo":26,"DIV#tnRaw.tn-recbox":9,"TEXTAREA#tnRawEdit":90,"DIV.tn-foot":205,"DIV.tn-acts":104,"BUTTON#tnQuote.tn-repolish":24}
+非面板点样本 = [
+ {
+  "p": [
+   20,
+   569
+  ],
+  "k": "DIV",
+  "chain": "DIV{z:9500,pe:auto,pos:fixed}"
+ },
+ {
+  "p": [
+   29,
+   569
+  ],
+  "k": "DIV",
+  "chain": "DIV{z:9500,pe:auto,pos:fixed}"
+ },
+ {
+  "p": [
+   38,
+   569
+  ],
+  "k": "DIV",
+  "chain": "DIV{z:9500,pe:auto,pos:fixed}"
+ }
+]
+面板上的关闭/危险控件 = [{"id":"tnX","cls":"tn-x","txt":"←","rect":[12,12,34,34],"click":true},{"id":"tnTabNote","cls":"on","txt":"记此刻","rect":[14,60,147,44],"click":true},{"id":"tnTabExp","cls":"","txt":"记开销","rect":[167,60,147,44],"click":true},{"id":"tnRec","cls":"tn-mic","txt":"","rect":[123,402,82,82],"click":false},{"id":"","cls":"on","txt":"散文游记推荐","rect":[0,0,0,0],"click":false},{"id":"","cls":"","txt":"述事方式","rect":[0,0,0,0],"click":false},{"id":"","cls":"","txt":"攻略指南","rect":[0,0,0,0],"click":false},{"id":"","cls":"","txt":"朋友圈文案","rect":[0,0,0,0],"click":false},{"id":"","cls":"","txt":"原文保留","rect":[0,0,0,0],"click":false},{"id":"tnExpPick","cls":"tn-exp-pick","txt":"","rect":[0,0,0,0],"click":false},{"id":"tnPolish","cls":"tn-repolish","txt":"整理一下","rect":[0,0,0,0],"click":false},{"id":"tnQuote","cls":"tn-repolish","txt":"追加名言","rect":[134,665,60,32],"click":true},{"id":"tnSave","cls":"tn-save","txt":"保存游记","rect":[0,0,0,0],"click":false},{"id":"tnQuoteBack","cls":"tn-x","txt":"←","rect":[0,0,0,0],"click":false},{"id":"tnQuoteClear","cls":"tn-x","txt":"","rect":[0,0,0,0],"click":false}]

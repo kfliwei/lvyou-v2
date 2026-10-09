@@ -10,11 +10,16 @@
  *   tn_webdav_autosync = '1' | '0'（默认关）
  *   tn_webdav_last     = { ts, ok, msg }           ← 上次同步结果，仅本机展示用
  *
- * 远端布局：<url>/<dir>/trace-full-backup.json （单文件全量，schema 由 backup.js 定）
- * 同步语义：
- *   push       = 本机采集 → 整包 PUT 覆盖远端
- *   pull       = GET 远端 → 与本机并集合并（本机优先，云端不会盖掉本地新记录）
- *   pull force = GET 远端 → 替换式恢复（唯一能把「别处已删除」带回来的路径）
+ * 远端布局：<url>/<dir>/trace-full-backup.json （整包一个文件，schema 由 backup.js 定）
+ * 写远端 = 「本机这份整包替换云端那份」，所以每一次覆盖都可能让云端独有的记录消失，三条出口：
+ *   confirmPush = 手动上传。先各读一次（本机采集 + 云端 GET），按 coverPlan 判定：云端还没有就直传，
+ *                 云端已有就弹确认，正文如实写出「云端有几篇游记/图册/数据键是本机找不到的」。
+ *   pushAuto    = 自动上传（防抖后自己发起）。同一条判定，但它背后没有任何一次点击，
+ *                 所以「可能会丢」的三种情况一律不传，只写进 tn_webdav_last + 一条页内提醒。
+ *   push        = 裸覆盖。产品代码里零调用者，只给 tools/ 验证脚本走 401/409/MKCOL 传输链路。
+ * 读远端：
+ *   pull       = GET + 并集合并（本机优先，云端不会盖掉本地新记录）
+ *   pull force = GET + 替换式恢复（唯一能把「别处已删除」带回来的路径），走 askForce 确认
  * 删除不跨设备传播是单文件无墓碑方案的固有边界，已在文档登记。
  * ============================================================ */
 (function () {
@@ -148,29 +153,140 @@
     try { return JSON.parse(ls(LAST_KEY) || 'null'); } catch (e) { return null; }
   }
 
-  /* ---------- push ---------- */
+  /* ---------- push：一条 PUT，三个出口 ----------
+     putEnv 是全站唯一写远端文件的地方；它只认「已经决定要覆盖」这件事，自己不做任何判断。
+     判断全部在 coverPlan 里，出口只有 confirmPush（手动，必过确认框）和 pushAuto（自动，可能丢就不传）。
+     裸 push = 采集 + 整包覆盖，产品代码里一个调用者都不许有，只给 tools/ 的验证脚本走传输链路。 */
+  function putEnv(c, env, cb) {
+    var body;
+    try { body = Backup.serialize(env); } catch (e) { record(false, e.message); cb(e); return; }
+    var url = fileUrl(c);
+    function put() { return send(c, 'PUT', url, body, { 'Content-Type': 'application/json; charset=utf-8' }); }
+    put().then(function (r) {
+      if (r.ok) return r;
+      if (r.status === 404 || r.status === 409) return ensureCollection(c).then(put);
+      throw new Error(httpHint(r.status));
+    }).then(function (r) {
+      if (!r || !r.ok) throw new Error(httpHint(r ? r.status : 0));
+      record(true, '已上传 ' + Backup.describe(env));
+      cb(null, { bytes: body.length, env: env, status: r.status });
+    }, function (e) {
+      var m = redact(e && e.message || e);
+      record(false, m);
+      cb(new Error(m));
+    });
+  }
   function push(cb) {
     var c = cfg();
     if (!c) { cb(new Error('还没有配置 WebDAV 服务')); return; }
     if (!window.Backup) { cb(new Error('备份模块未加载')); return; }
     Backup.collect(function (err, env) {
       if (err) { record(false, '采集失败'); cb(err); return; }
-      var body;
-      try { body = Backup.serialize(env); } catch (e) { record(false, e.message); cb(e); return; }
-      var url = fileUrl(c);
-      function put() { return send(c, 'PUT', url, body, { 'Content-Type': 'application/json; charset=utf-8' }); }
-      put().then(function (r) {
-        if (r.ok) return r;
-        if (r.status === 404 || r.status === 409) return ensureCollection(c).then(put);
-        throw new Error(httpHint(r.status));
-      }).then(function (r) {
-        if (!r || !r.ok) throw new Error(httpHint(r ? r.status : 0));
-        record(true, '已上传 ' + Backup.describe(env));
-        cb(null, { bytes: body.length, env: env, status: r.status });
-      }, function (e) {
-        var m = redact(e && e.message || e);
-        record(false, m);
-        cb(new Error(m));
+      putEnv(c, env, cb);
+    });
+  }
+
+  /* ---------- 覆盖判定单点 ----------
+     「云端那一份里，有没有这台设备找不到的东西」——按 id 逐条比，不按条数差猜。
+     返回形状够确认框和自动上传各自写一句话，不用两处各抄一套口径。 */
+  function lostIds(localArr, remoteArr) {
+    var have = {};
+    (localArr || []).forEach(function (x) { if (x && x.id) have[x.id] = 1; });
+    var lost = 0;
+    (remoteArr || []).forEach(function (x) { if (x && x.id && !have[x.id]) lost++; });
+    return lost;
+  }
+  function coverPlan(env, remote) {
+    var p = {
+      first: !remote || !remote.exists,
+      invalid: !!(remote && remote.exists && !remote.valid),
+      unknown: !!(remote && remote.error),
+      reason: (remote && remote.error) || (remote && remote.exists && !remote.valid && remote.msg) || '',
+      localNotes: (env.notes || []).length,
+      localAlbums: (env.albums || []).length,
+      remoteNotes: 0, remoteAlbums: 0,
+      loseNotes: 0, loseAlbums: 0, remoteOnlyKeys: 0
+    };
+    if (remote && remote.env) {
+      var re = remote.env, rs = (re.storage || {});
+      p.remoteNotes = (re.notes || []).length;
+      p.remoteAlbums = (re.albums || []).length;
+      p.loseNotes = lostIds(env.notes, re.notes);
+      p.loseAlbums = lostIds(env.albums, re.albums);
+      var lh = env.storage || {};
+      [['data', rs.data], ['prefs', rs.prefs]].forEach(function (pair) {
+        var mine = lh[pair[0]] || {};
+        Object.keys(pair[1] || {}).forEach(function (k) {
+          if (!(k in mine) || (pair[1][k] && !mine[k])) p.remoteOnlyKeys++;
+        });
+      });
+    }
+    p.lose = p.loseNotes + p.loseAlbums + p.remoteOnlyKeys;
+    p.risky = p.unknown || p.invalid || p.lose > 0;
+    return p;
+  }
+  function pushWords(p, env, remote) {
+    if (p.unknown) return {
+      title: '上传到云端', danger: true, okText: '仍然覆盖',
+      text: '现在读不到云端那一份（' + p.reason + '）。上传是整包覆盖，万一里面有你这台设备没有的记录，覆盖之后就找不回来了。'
+    };
+    if (p.invalid) return {
+      title: '云端那个文件不是行迹备份', danger: true, okText: '仍然覆盖',
+      text: '云端已有同名文件，但读不出可行的迹备份（' + p.reason + '）。上传会把整个文件替换掉。'
+    };
+    if (p.lose > 0) return {
+      title: '云端有本机没有的记录', danger: true, okText: '仍然覆盖',
+      text: '云端：' + (remote.summary || '') + '。其中 ' + p.loseNotes + ' 篇游记、' + p.loseAlbums + ' 本图册、' +
+        p.remoteOnlyKeys + ' 项数据在这台设备上找不到。上传会把云端整包换成本机的 ' + p.localNotes + ' 篇 / ' +
+        p.localAlbums + ' 本，换掉的那部分云端就没有了，「从云端恢复」也读不回来。'
+    };
+    return {
+      title: '用本机这份替换云端', danger: false, okText: '覆盖上传',
+      text: '本机：' + Backup.describe(env) + '。云端已有的记录这台设备全都有，覆盖不会少东西；上传仍是整包替换云端那一份。'
+    };
+  }
+  /* 手动上传：先各读一次（本机采集 + 云端 GET），再决定直传还是问一句。
+     onStage('check'|'upload') 让按钮文案能分两段，不是一句「正在上传…」把两次网络往返都盖住。 */
+  function confirmPush(cb, onStage) {
+    var c = cfg();
+    if (!c) { cb(new Error('还没有配置 WebDAV 服务')); return; }
+    if (!window.Backup) { cb(new Error('备份模块未加载')); return; }
+    function stage(s) { try { if (onStage) onStage(s); } catch (e) {} }
+    stage('check');
+    Backup.collect(function (err, env) {
+      if (err) { record(false, '采集失败'); cb(err); return; }
+      remoteInfo(function (rerr, remote) {
+        var p = coverPlan(env, rerr ? { error: rerr.message } : remote);
+        if (p.first) { stage('upload'); putEnv(c, env, cb); return; }
+        /* 没有确认层可用时绝不静默覆盖：宁可让用户重试，也不替他做这个决定 */
+        if (!window.UI || !UI.confirm) { cb(new Error('云端已有一份备份，这个页面没有确认框可用，请先在设置页手动上传')); return; }
+        UI.confirm(pushWords(p, env, rerr ? null : remote), function (ok) {
+          if (!ok) { cb(null, { cancelled: true }); return; }
+          stage('upload');
+          putEnv(c, env, cb);
+        });
+      });
+    });
+  }
+  /* 自动上传：没有任何一次点击，所以「可能会丢」的三种情况一律不传，并把原因写进上次同步记录 + 一条页内提醒 */
+  function pushAuto(cb) {
+    cb = cb || function () {};
+    var c = cfg();
+    if (!c) { cb(null, { skipped: '还没有配置 WebDAV 服务' }); return; }
+    if (!window.Backup) { cb(new Error('备份模块未加载')); return; }
+    Backup.collect(function (err, env) {
+      if (err) { record(false, '自动上传采集失败'); cb(err); return; }
+      remoteInfo(function (rerr, remote) {
+        var p = coverPlan(env, rerr ? { error: rerr.message } : remote);
+        if (!p.risky) { putEnv(c, env, cb); return; }
+        var why = p.unknown ? '云端读不到（' + p.reason + '）'
+          : p.invalid ? '云端那个文件不是可行的迹备份'
+          : '云端有 ' + p.loseNotes + ' 篇游记、' + p.loseAlbums + ' 本图册、' + p.remoteOnlyKeys + ' 项数据是本机没有的';
+        record(false, '自动上传已跳过：' + why + '，整包覆盖会丢');
+        /* 必须是 UI.toast：UI.tileWarn 的签名是 (layer, name)，第一行就 !layer.on 返回，
+           传字符串进去等于这句告警从来没上过屏（跳过不覆盖是产品替用户做的决定，必须让他看见原因） */
+        try { UI.toast && UI.toast('自动上传已跳过：' + why); } catch (e) {}
+        cb(null, { skipped: why });
       });
     });
   }
@@ -217,19 +333,26 @@
     }, function (ok) { next(!!ok); });
   }
 
-  /* ---------- 云端摘要（设置页展示「云端有什么」） ---------- */
+  /* ---------- 云端摘要（设置页展示「云端有什么」） ----------
+     settled 那一道闸不是装饰：404 分支如果只 cb() 不截断 Promise 链，第二级 .then 会拿着
+     undefined 再走一次 validate()，得到「备份内容不是对象」——于是同一次调用者收到两个回调，
+     「远端根本没有文件」被二次报成「远端文件是坏的」。实测炸在 confirmPush 上：
+     先按 404 直传成功，紧接着又弹出一层危险确认（tools/out/b32-smoke-irr-run1.txt 的 I14）。 */
   function remoteInfo(cb) {
     var c = cfg();
     if (!c) { cb(new Error('还没有配置 WebDAV 服务')); return; }
+    var settled = false;
+    function once(err, info) { if (settled) return; settled = true; cb(err, info); }
     send(c, 'GET', fileUrl(c), null, {}).then(function (r) {
-      if (r.status === 404) { cb(null, { exists: false }); return; }
+      if (r.status === 404) { once(null, { exists: false }); return undefined; }
       if (!r.ok) throw new Error(httpHint(r.status));
       return r.text();
     }).then(function (text) {
+      if (settled) return;
       var v = Backup.validate(text);
-      if (!v.ok) { cb(null, { exists: true, valid: false, msg: v.error }); return; }
-      cb(null, { exists: true, valid: true, env: v.env, text: text, summary: Backup.describe(v.env) });
-    }).catch(function (e) { cb(new Error(redact(e.message))); });
+      if (!v.ok) { once(null, { exists: true, valid: false, msg: v.error }); return; }
+      once(null, { exists: true, valid: true, env: v.env, text: text, summary: Backup.describe(v.env) });
+    }).catch(function (e) { once(new Error(redact(e.message))); });
   }
 
   /* ---------- 自动同步：改数据后防抖 30s 上传，默认关 ---------- */
@@ -242,7 +365,7 @@
     if (timer) clearTimeout(timer);
     timer = setTimeout(function () {
       timer = null;
-      push(function (err) { if (err) { try { UI.tileWarn && UI.tileWarn('云同步失败：' + err.message); } catch (e) {} } });
+      pushAuto(function (err) { if (err) { try { UI.toast && UI.toast('云同步失败：' + err.message); } catch (e) {} } });
     }, delay || AUTO_DEBOUNCE);
   }
   function installAutosync() {
@@ -265,6 +388,9 @@
     redact: redact,
     test: test,
     push: push,
+    coverPlan: coverPlan,
+    confirmPush: confirmPush,
+    pushAuto: pushAuto,
     pull: pull,
     remoteInfo: remoteInfo,
     autosyncOn: autosyncOn,

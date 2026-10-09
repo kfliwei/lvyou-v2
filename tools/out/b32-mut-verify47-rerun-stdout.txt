@@ -1,0 +1,11 @@
+=== mut-verify47 · 靶子 53 条（红 48／抹登记 1／静默 4），预检 全过 ===
+基准 verify 全绿 ✓（不可逆动作闸门: 57 条代码锚点（写远端单点 putEnv / 判定单点 coverPla…）
+(node:3468) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+基准 smoke-irreversible 判据全绿 ✓（58 条）
+OK   R06 remoteInfo 的 404 那一支不截断链（同一调用者答两次：先直传成功又  → 逆动作闸门: sync-webdav.js 里「if (r.status === 404) { once(null, { exists: false }」实得 0，期望 
+(node:10712) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+OK   U03 coverPlan 里图册那一类不计 lose（钉的是 p.lose 求和那一行  → 源码腿 0 红且整跑绿，浏览器腿红在 I06（共 1 条红）
+=== mut-verify47: 53 条靶子 → 红对 1／静默对 1／异常 0／跳过 51 ===
+注意：U 类重跑过 smoke-irreversible，它按固定文件名落读数 tools/out/b32-smoke-irreversible.txt；跑完要在干净树上复跑一次并把读数盖回去。

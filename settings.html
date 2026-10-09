@@ -245,7 +245,7 @@
       <div class="data-acts">
         <button class="btn-secondary" onclick="expBackup()">导出备份</button>
         <button class="btn-secondary" onclick="impBackup()">导入备份</button>
-        <button class="data-danger" onclick="clearAll()">清除全部数据</button>
+        <button class="data-danger" onclick="clearAll()">清除全部游记</button>
       </div>
       <div style="margin-top:10px;font-size:var(--fs-3);color:var(--color-muted);line-height:1.7">导出备份 = 保存成一个文件；换手机或误删后，用「导入备份」恢复。</div>
     </div>
@@ -412,14 +412,19 @@
       };
       $('wdPushBtn').onclick = function () {
         if (!WebDAV.cfg()) { line('wdResult', '先保存配置', 'err'); return; }
-        busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], true);
-        $('wdPushBtn').textContent = '正在上传…';
-        WebDAV.push(function (err, r) {
-          busy(['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'], false);
+        var keys = ['wdTestBtn', 'wdSaveBtn', 'wdPushBtn', 'wdPullBtn', 'wdForceBtn'];
+        busy(keys, true);
+        $('wdPushBtn').textContent = '检查云端…';
+        /* 覆盖云端是不可逆的，确认与判定都在 WebDAV.confirmPush 里；这里只按阶段改按钮文案 */
+        WebDAV.confirmPush(function (err, r) {
+          busy(keys, false);
           $('wdPushBtn').textContent = '上传到云端';
           if (err) { line('wdResult', '上传失败：' + err.message, 'err'); status(); return; }
+          if (r && r.cancelled) { line('wdResult', '已取消，云端那一份没有改动。'); status(); return; }
           line('wdResult', '已上传：' + Backup.describe(r.env), 'ok');
           status();
+        }, function (stage) {
+          $('wdPushBtn').textContent = stage === 'check' ? '检查云端…' : '正在上传…';
         });
       };
       $('wdPullBtn').onclick = function () {
@@ -577,8 +582,22 @@
     });
   }
   function clearAll(){
-    UI.confirm({ title: '清除全部数据', text: '确定清除全部游记数据？此操作不可恢复。', okText: '清除', danger: true }, function (ok) {
+    var n = (window.TravelNotes && TravelNotes.count) ? TravelNotes.count() : 0;
+    var auto = window.WebDAV && WebDAV.autosyncOn && WebDAV.autosyncOn();
+    /* 这颗只管游记：别的集合一条都不碰，所以正文必须点名「没动的那些」，
+       并先把自动上传关掉——清完那一下会走 _afterSave，开着的话等于把空库推上云端覆盖唯一那份备份 */
+    UI.confirm({
+      title: '清除全部游记',
+      text: '删掉本机 ' + n + ' 篇游记（连正文、配图、录音一起）。图册、行程、开销、想去清单、自建地点、AI 与云同步设置都不受影响。' +
+        (auto ? '自动上传会先关掉，这批删除不会自己推上云端。' : '') + '删了就找不回来。',
+      okText: '清除 ' + n + ' 篇', danger: true
+    }, function (ok) {
       if (!ok) return;
+      if (auto) {
+        WebDAV.setAutosync(false);
+        if (window.WDW && WDW.render) WDW.render();
+        toast('已关闭自动上传');
+      }
       if (window.TravelNotes && TravelNotes.clearNotes) TravelNotes.clearNotes();
       refreshStorage();
     });

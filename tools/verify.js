@@ -6453,5 +6453,278 @@ function stripBlockComments(s) {
 }
 
 
+/* ============ §47 不可逆动作闸门（批次 32） ============
+   用户点单（逐字）：「全面审核 项目的功能和ui视觉的完整性、实用性和操作便利性」→ 报告 §8 第 1 条
+   「先补 S1-1 / S1-2 这两颗数据不可逆的雷」；修法顺序由用户选定「2 → 3 → 1」。
+
+   地基实测（改前，tools/out/b32-probe-before.txt，328×723 真 Chrome + 真 WebDAV 桩）：
+     · 手动「上传到云端」：本机 0 篇 / 云端 3 篇 → 零确认 PUT 1 次，云端 notes 3→0。
+     · 自动上传：没人点按钮，scheduleSync 到点自己 PUT，同样零确认。
+     · 连锁：只点「清除全部数据」，33s 后 autosync 自己把空包推上去，唯一的云端备份 3→0。
+     · 名不符实：按钮与确认层都写「清除全部数据」，实得只有 notes 2→0（图册/行程/账目/设置全在），
+       而页内提示报「已清除全部数据」。
+     · 录音面板：打了字点 #tnX → 面板收起，重开 textarea 为空，整段口语就地作废、全程零追问。
+       同一次实测把「点遮罩丢内容」这个说法本身推翻：面板 inset 0 全铺（z9001）盖死遮罩（z9000），
+       9px 网格 2997 点命中遮罩 0 处，可达出口只有 #tnX——所以两条入口都得接脏检查，而不是只修遮罩。
+   改后（tools/out/b32-smoke-irreversible.txt）：58 项全绿——确认层出现时 PUT 自增 0；取消后云端仍 3 篇；
+   确认之后才 3→0；自动路径遇「会丢」一次都不写并把原因飘成 toast；清完只有游记归零且开关回落、
+   33s 内 PUT 自增 0；脏关闭出确认层、选「继续编辑」内容一字未动、干净态仍直关。
+
+   本节钉四件事：
+     ① 覆盖判定只有一个出口：coverPlan 是唯一判「会不会丢」的地方，写远端只有一个 putEnv，
+        出口只有 confirmPush（手动，除远端 404 外必过 UI.confirm）与 pushAuto（自动， risky 一律不写）；
+     ② 裸 push 在产品代码里零调用者——这一条必须是全量扫描出来的，不是抄名单抄出来的；
+     ③ 「清除全部数据 / 已清除全部数据」这两个名不符实的串全站 0，closePanel 的绑定不许退回裸引用；
+     ④ 浏览器腿 I01–I56 齐备检 + 带字母的两条（I14b 单次回调、I22b 开关 UI 同步）+ 条数守卫。
+
+   顺带这一批查出两处「设计内静默」，都由本节的期望 0 钉住：
+     · remoteInfo 的 404 分支只 cb() 不截断 Promise 链 → 同一调用者收到两次回调，
+       「远端没有文件」被二次报成「备份内容不是对象」（实测炸在 I14：先直传成功又弹一层危险确认）。
+     · UI.tileWarn 的签名是 (layer, name)，第一行 !layer.on 就 return；把告警文案当第一个实参传进去，
+       「自动上传已跳过」「云同步失败」两句从来没上过屏。 */
+{
+  let bad47 = 0;
+  const F47 = m => { bad47++; console.log('FAIL §47 不可逆动作闸门: ' + m); };
+  const ws47 = s => s.replace(/\s+/g, ' ').trim();
+  const flat47 = s => ws47(stripBlockComments(s));
+  const cnt47 = (s, n) => s.split(n).length - 1;
+  const rd47 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view47 = f => /\.md$/.test(f) ? ws47(rd47(f)) : flat47(rd47(f));
+
+  const FILES47 = ['sync-webdav.js', 'settings.html', 'travel-notes.js', 'backup.js', 'ui.js',
+    'tools/smoke-irreversible.js', 'tools/smoke-backup.js', 'README.md'];
+  const V47 = {};
+  FILES47.forEach(f => {
+    if (!fs.existsSync(f)) { F47('缺 ' + f); V47[f] = ''; return; }
+    V47[f] = view47(f);
+  });
+
+  /* ⓪ 自指纪律（同 §45/§46 那一支）：危险方向是「真代码被当成注释吞掉」——
+        住在这一带的期望 0 会静默满足。于是在本批改动的三处旁边各钉一枚现场哨兵。 */
+  {
+    const DEF47 = (rd47('tools/verify.js').match(/^[ \t]*const flat47 = [^\n]*/m) || [''])[0];
+    if (DEF47.indexOf('stripBlockComments') < 0) F47('§47 的 flat47 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF47.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L47 = (rd47('tools/verify.js').match(/^[ \t]*const view47 = [^\n]*/m) || [''])[0];
+    if (L47.indexOf('.md$') < 0) F47('view47 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L47.slice(0, 60) || '整行没数到') + '）：README 与审核文档里天生要写这族的改前形状，文档侧的锚会当场读 0');
+    [['sync-webdav.js', 'function pushAuto(cb) {'],
+     ['settings.html', "$('wdPushBtn').onclick = function () {"],
+     ['travel-notes.js', 'function closePanel(force) {']].forEach(function (p) {
+      if (V47[p[0]].indexOf(p[1]) < 0) F47('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：判定单点 + 两个出口 + 页面上的三处接线 */
+  const A47 = [
+    /* —— sync-webdav.js：写远端只有一个口子 —— */
+    ['sync-webdav.js', 'function putEnv(c, env, cb) {', 1, '全站唯一写远端文件的地方；它自己不做任何判断，只认「已经决定要覆盖」'],
+    ['sync-webdav.js', 'if (r.status === 404 || r.status === 409) return ensureCollection(c).then(put);', 1, '建目录重试链（批次 8 那条 PUT→MKCOL→PUT 的真顺序还挂在这里）'],
+    ['sync-webdav.js', 'function push(cb) {', 1, '裸覆盖那一支仍然保留，但只给 tools/ 的验证脚本走传输链路（② 会扫全站证明产品侧零调用者）'],
+    ['sync-webdav.js', 'function coverPlan(env, remote) {', 1, '「云端有没有这台设备找不到的东西」的唯一判定处'],
+    ['sync-webdav.js', 'function lostIds(localArr, remoteArr) {', 1, '按 id 逐条比，不按条数差猜（本机 2 篇 / 云端 3 篇 ≠ 一定丢 1 篇）'],
+    ['sync-webdav.js', 'p.lose = p.loseNotes + p.loseAlbums + p.remoteOnlyKeys;', 1, '会丢的三类各算一份：游记 / 图册 / 只有云端有的数据键'],
+    ['sync-webdav.js', 'p.risky = p.unknown || p.invalid || p.lose > 0;', 1, '「可能会丢」的精确定义在这一行；自动出口只认它'],
+    ['sync-webdav.js', 'function pushWords(p, env, remote) {', 1, '四档情形各写一句话，文案由判定派生，不是两处各抄一套'],
+    ['sync-webdav.js', 'title: \'云端有本机没有的记录\', danger: true, okText: \'仍然覆盖\',', 1, '真会丢的那一档必须红 + 动词写「仍然覆盖」（「确定」不说明后果）'],
+    ['sync-webdav.js', 'text: \'本机：\' + Backup.describe(env) + \'。云端已有的记录这台设备全都有，覆盖不会少东西；', 1, '超集那一档要说「不会少东西」，把红色只留给真会丢的情形（否则每档都红＝红牌失灵）'],
+    ['sync-webdav.js', 'function confirmPush(cb, onStage) {', 1, '手动出口：先各读一次（本机采集 + 云端 GET）再决定直传还是问一句'],
+    ['sync-webdav.js', 'stage(\'check\');', 1, '按钮文案分两段：一句「正在上传…」不许把两次网络往返都盖住'],
+    ['sync-webdav.js', 'if (p.first) { stage(\'upload\'); putEnv(c, env, cb); return; }', 1, '只有「远端还没有这个文件」允许不追问——建第一份备份没有可丢的东西'],
+    ['sync-webdav.js', 'if (!window.UI || !UI.confirm) { cb(new Error(', 1, '没有确认层可用时报错，绝不静默覆盖：宁可让用户重试，也不替他做这个决定'],
+    ['sync-webdav.js', 'if (!ok) { cb(null, { cancelled: true }); return; }', 1, '取消是一个要上报的结果，不是一个吞掉的分支'],
+    ['sync-webdav.js', 'function pushAuto(cb) {', 1, '自动出口：没有任何一次点击，所以判定只能偏保守'],
+    ['sync-webdav.js', 'if (!p.risky) { putEnv(c, env, cb); return; }', 1, '自动路径唯一允许写入的条件；risky 之外一律不写'],
+    ['sync-webdav.js', 'record(false, \'自动上传已跳过：\' + why + \'，整包覆盖会丢\');', 1, '跳过要写进上次同步记录（设置页那行「上次同步」读它）'],
+    ['sync-webdav.js', 'cb(null, { skipped: why });', 1, '跳过不是错误：上报 skipped 而不是抛，避免自动路径把失败告警刷成噪声'],
+    ['sync-webdav.js', 'var settled = false;', 1, 'remoteInfo 的单次回调守卫（改前 404 那一支会把同一次调用答两次）'],
+    ['sync-webdav.js', 'function once(err, info) { if (settled) return; settled = true; cb(err, info); }', 1, '同一个调用者只收一次回调；这条守卫本身零其它调用者，靠 I14b 反证'],
+    ['sync-webdav.js', 'if (settled) return;', 2, '两处截断各有自己的发作点：once() 里那一处挡「已经答过的人再答一次」，第二级 .then 里那一处挡「undefined 被 validate 报成备份内容不是对象」（404 走了第一条出口后，链子还在往下跑）'],
+    ['sync-webdav.js', 'if (r.status === 404) { once(null, { exists: false }); return undefined; }', 1, '「远端没有文件」是 exists:false，不是坏文件'],
+    ['sync-webdav.js', 'push: push,', 1, '导出面：push 仍在（tools/ 用），三个新出口也都得真的挂出去'],
+    ['sync-webdav.js', 'coverPlan: coverPlan,', 1, '同上——导出不是为了页面调用，是为了浏览器腿能直接对判定做断言'],
+    ['sync-webdav.js', 'confirmPush: confirmPush,', 1, '同上'],
+    ['sync-webdav.js', 'pushAuto: pushAuto,', 1, '同上'],
+    ['sync-webdav.js', 'pushAuto(function (err)', 1, '防抖定时器接的是自动出口（改前这里是裸 push，等于没人点也覆盖）'],
+    /* —— settings.html：页面上的两颗雷 —— */
+    ['settings.html', 'WebDAV.confirmPush(function (err, r) {', 1, '手动上传按钮改走带确认的出口'],
+    ['settings.html', 'if (r && r.cancelled) { line(\'wdResult\', \'已取消，云端那一份没有改动。\');', 1, '取消之后要给回话，不说谎也不沉默'],
+    ['settings.html', 'stage === \'check\' ? \'检查云端…\' : \'正在上传…\'', 1, '两段文案真的接上了 onStage（写了函数不接＝白写）'],
+    ['settings.html', '<button class="data-danger" onclick="clearAll()">清除全部游记</button>', 1, '按钮名字与实际范围一致（改前：清除全部数据）'],
+    ['settings.html', 'title: \'清除全部游记\',', 1, '确认层跟着改名，不能只改按钮留文案谎报'],
+    ['settings.html', '\' + (auto ? \'自动上传会先关掉，这批删除不会自己推上云端。\' : \'\') +', 1, '连锁的因果要在按下去之前说出来'],
+    ['settings.html', 'okText: \'清除 \' + n + \' 篇\', danger: true', 1, '危险档 + 动词带本机真实篇数（n 来自 TravelNotes.count()，不是文案常量）'],
+    ['settings.html', 'WebDAV.setAutosync(false);', 1, '清完那一下会走 _afterSave→scheduleSync：先把开关关掉'],
+    ['settings.html', 'if (window.WDW && WDW.render) WDW.render();', 1, '关完要刷新那个开关的 UI，否则状态与显示分叉（I34 量的是这一条）'],
+    ['settings.html', 'if (window.TravelNotes && TravelNotes.clearNotes) TravelNotes.clearNotes();', 1, '清除只走 clearNotes 这一个口子（它不碰其它集合）'],
+    /* —— travel-notes.js：面板关闭前的内容判定 —— */
+    ['travel-notes.js', 'function panelDirty() {', 1, '「这一屏有没有还没进库的内容」的唯一判定，读 DOM + state 真值'],
+    ['travel-notes.js', 'function dirtyWords(d) {', 1, '问句按会丢的东西派生（字数 / 配图 / 录音 / 一笔钱），不是通用模板'],
+    ['travel-notes.js', 'function closePanel(force) {', 1, '关闭的唯一出口，force 只允许本文件的确认回调传'],
+    ['travel-notes.js', 'if (force !== true) {', 1, '严格比较：事件对象、1、非空字符串都算「不是强制」，不许放宽成「有没有实参」'],
+    ['travel-notes.js', 'confirmDialog(dirtyWords(d), function () { closePanel(true); }, \'关掉不保存\', \'继续编辑\');', 1, '两个按钮各写自己的后果；只有确认回调这一处能传 force'],
+    ['travel-notes.js', 'mask.onclick = function () { closePanel(); };', 1, '遮罩入口包一层（② 的另一支：不许把 click 事件当第一个实参递进去）'],
+    ['travel-notes.js', '$X(panel, \'#tnX\').onclick = function () { closePanel(); };', 1, '真机档唯一可达的关闭出口（实测 9px 网格遮罩命中 0，能点到的只有它）'],
+    ['travel-notes.js', 'function confirmDialog(msg, onOk, okLabel, noLabel) {', 1, '第 3/4 形参：这一族的问句必须有自定义动词，「确定/取消」说不清「关掉就没了」'],
+    ['travel-notes.js', 'clearNotes: function () {', 1, '清除的对外出口仍是单个函数，改名与文案都在它自己嘴里'],
+    ['travel-notes.js', '篇游记，图册/行程/账目/设置都没动', 1, '结果提示说实话：报条数 + 点名没动的那些'],
+    /* —— 浏览器腿的形状 —— */
+    ['tools/smoke-irreversible.js', 'const VW = 328, VH = 723;', 1, '必须量用户那块屏（§37 口径）'],
+    ['tools/smoke-irreversible.js', "m.classList.contains('tn-cfm') ? 'tn-cfm' : 'ui-modal'", 1, '判据把两套确认层读成同一枚形状，名字取自各自的真实类名（.ui-modal-mask / .tn-cfm）；选择器抄错＝永远读到 null 然后判成「没弹层」，那种绿比红更坏'],
+    ['tools/smoke-irreversible.js', 'function seedLocal(ids, davPort, withAlbum)', 1, '本机条数与「有没有图册」都按参数铺：I31 的「其它集合没动」要有分母'],
+    ['tools/smoke-irreversible.js', 'function remoteEnv(noteIds, albumIds, dataObj)', 1, '云端那一份按 id 铺：lose 的三类计数各有正向样本，否则 I06 的「3 篇 / 1 本 / 1 项」是抄来的数'],
+    ['tools/smoke-irreversible.js', 'await page.evaluate(\'WebDAV.scheduleSync(400)\')', 2, '自动腿只能靠短防抖跑（30s 太长），两句钉住「会丢就不传」和「不会丢就传」两条腿走的都是 scheduleSync 而不是直调 pushAuto——少一句，另一条腿就变成直调'],
+    ['tools/smoke-irreversible.js', 'await sleep(31000);', 1, '连锁那一条必须跨过默认防抖窗口再读：只等 2s 读到 0 是必然的，不构成证据'],
+    ['tools/smoke-irreversible.js', 'document.querySelector(".tn-mask").click()', 1, '遮罩那一条按代码路径也要验（屏上摸不到≠两条入口可以不接）'],
+    ['tools/smoke-irreversible.js', 'checks >= 57', 1, '条数守卫（本闸门自己也会被删）：判据 58 条，ok() 在自增前求值所以表达式写 57'],
+    ['tools/smoke-backup.js', 'window.WebDAV.push(function (e, r)', 4, '批次 8 那四条传输链路仍走裸 push：这一族是 tools/ 的合法调用者，② 的白名单口径要靠它反证（改了它＝那把刀没了正向对照）'],
+  ];
+  A47.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F47('A47 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V47)) { F47('A47 登记了 §47 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt47(V47[f], needle);
+    if (n !== exp) F47(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批删掉的旧写法各配一条正向对照（那个 0 不是证据，除非同一把刀能在改前原件上读出 1）。
+        对照串取自 HEAD 与 tools/out/b32-probe-before.txt 的现场读数。 */
+  const ZERO47 = [
+    ['settings.html', 'WebDAV.push(function',
+      "        WebDAV.push(function (err, r) {\n          busy(keys, false);\n          $('wdPushBtn').textContent = '上传到云端';\n        });",
+      '手动上传又接回裸 push：零确认整包覆盖，正是报告里那颗「一次点击抹掉唯一云端备份」的雷'],
+    ['sync-webdav.js', "UI.tileWarn && UI.tileWarn('云同步失败",
+      "      push(function (err) { if (err) { try { UI.tileWarn && UI.tileWarn('云同步失败：' + err.message); } catch (e) {} } });",
+      '云同步失败的告警又交给 UI.tileWarn(字符串)：它的签名是 (layer, name)，第一行 !layer.on 就 return，这句话永远上不了屏（设计内静默）'],
+    ['sync-webdav.js', "UI.tileWarn && UI.tileWarn('自动上传已跳过",
+      "        try { UI.tileWarn && UI.tileWarn('自动上传已跳过：' + why); } catch (e) {}",
+      '「替你挡下覆盖」这件事不吭声：用户以为在同步，其实云端那一份早就过期了'],
+    ['travel-notes.js', "flash('已清除全部数据')",
+      "clearNotes: function () { notes = []; persist(); if (window.TravelNotes._afterSave) window.TravelNotes._afterSave(); flash('已清除全部数据'); },",
+      '结果提示又谎报「全部数据」：实际只删游记，而用户会以为图册和账目也没了（名不符实那一支）'],
+    ['settings.html', '清除全部数据',
+      "        <button class=\"data-danger\" onclick=\"clearAll()\">清除全部数据</button>",
+      '那颗按钮的名字/标题又回到「清除全部数据」：这名字承诺的范围比实际大，而它实际只删游记（名不符实那一整族，按钮与确认层标题一起守）'],
+    ['settings.html', "text: '确定清除全部游记数据？此操作不可恢复。'",
+      "      UI.confirm({ title: '清除全部数据', text: '确定清除全部游记数据？此操作不可恢复。', okText: '清除', danger: true }, function (ok) {",
+      '确认层回到「全部游记数据」这种含混说法：既不报条数，也不说清哪些集合不受影响'],
+    ['travel-notes.js', 'mask.onclick = closePanel;',
+      '    mask.onclick = closePanel;',
+      '绑定退回裸函数引用：click 事件对象会被当第一个实参传进 closePanel(force)，今天它 !== true 还拦得住，明天判定一放宽这里就是绕过脏检查的后门（HEAD 那一行就是这两句字节）'],
+    ['travel-notes.js', "$X(panel, '#tnX').onclick = closePanel;",
+      "    $X(panel, '#tnX').onclick = closePanel;",
+      '同上，而且这一枚是真机档唯一可达的关闭出口（HEAD 那一行就是这两句字节）'],
+    ['travel-notes.js', 'function closePanel() {',
+      'function closePanel() {\n    if (ui) {',
+      'closePanel 的 force 形参被抹掉：脏检查那条 if 的判据失去输入，「不许把事件当强制」这条纪律没人守（对照取自 HEAD:travel-notes.js:1019 的真形状）'],
+  ];
+  ZERO47.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F47('ZERO47 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V47)) { F47('ZERO47 登记了 §47 没读的文件「' + f + '」：' + why); return; }
+    if (cnt47(V47[f], needle) !== 0) F47(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt47(flat47(ctrl), needle) < 1) F47('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置全量对账：四把扫描都先拿合成样本自校准，再去扫全树（readdir 不递归，与 §45/§46 同一口径）。
+        为什么必须自己扫：②的登记名单是「我记得的那几个调用点」，而「产品代码不许有裸 push」这句
+        说的是全树。批次 30 那节坐标普查 6→8→11 的根因就是只数登记过的文件。 */
+  const FILES47ALL = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+  let var47 = { files: FILES47ALL.length, bare: 0, toolsBare: 0, exits: 0, clear: 0, panel: 0 };
+  const TOOLS47 = fs.readdirSync('tools').filter(f => /\.js$/.test(f) && fs.statSync(path.join('tools', f)).isFile());
+
+  /* (a) 裸 push 的调用者：产品侧期望 0，tools/ 侧只统计不断言（它是那把刀的正向对照）。 */
+  {
+    const RE47B = /WebDAV\.push\s*\(/g;
+    const CAL47B = ((flat47("  $('b').onclick = function () { WebDAV.push(function (e, r) {}); };").match(RE47B)) || []).length;
+    if (CAL47B !== 1) F47('§47 的裸 push 扫描器自己读不到合成样本（应 1 实得 ' + CAL47B + '）：下面那个「产品侧 0」就只是刀瞎了');
+    const HITB = [];
+    FILES47ALL.forEach(function (f) {
+      const n = ((flat47(rd47(f)).match(RE47B)) || []).length;
+      if (n) { var47.bare += n; HITB.push(f + ':' + n); }
+    });
+    TOOLS47.forEach(function (f) {
+      var47.toolsBare += ((flat47(rd47(path.join('tools', f))).match(RE47B)) || []).length;
+    });
+    if (var47.bare) F47('产品代码里出现裸 WebDAV.push 调用 ' + var47.bare + ' 处（' + HITB.join(' ｜ ') + '）：它是「采集→整包覆盖远端」，没有判定也没有确认，唯一合法的调用者是 tools/ 的验证脚本（现读 tools/ 侧 ' + var47.toolsBare + ' 处）');
+    if (var47.toolsBare < 4) F47('tools/ 侧裸 push 只剩 ' + var47.toolsBare + ' 处（实测 4）：扫描口径漂了或者批次 8 那条传输腿被拆了，此时上面那个「产品侧 0」没有正向对照，不构成证据');
+  }
+
+  /* (b) push 家族的落点：判定/出口的名字在产品代码里只许出现在 sync-webdav.js 本体 + settings.html 的手动按钮。 */
+  {
+    const RE47E = /\b(?:WebDAV\.)?(confirmPush|pushAuto|coverPlan)\s*\(/g;
+    const CAL47E = ((flat47('  function confirmPush(cb) { pushAuto(function () {}); }').match(RE47E)) || []).length;
+    if (CAL47E !== 2) F47('push 家族那把刀失准（合成一行应读 2，实得 ' + CAL47E + '）：定义与调用都算命中，读不到就等于下面那张表全空');
+    const EXIT47 = { 'sync-webdav.js': 6, 'settings.html': 1 };
+    const E47 = {};
+    FILES47ALL.forEach(function (f) {
+      const n = ((flat47(rd47(f)).match(RE47E)) || []).length;
+      if (n) { var47.exits += n; E47[f] = n; }
+    });
+    const DRIFTE = [];
+    Object.keys(E47).forEach(f => { if (E47[f] !== (EXIT47[f] || 0)) DRIFTE.push(f + ' 实得 ' + E47[f] + '／登记 ' + (EXIT47[f] || 0)); });
+    Object.keys(EXIT47).forEach(f => { if (!E47[f]) DRIFTE.push(f + ' 登记 ' + EXIT47[f] + '／实得 0（那一处的接线被拆了）'); });
+    if (DRIFTE.length) F47('confirmPush/pushAuto/coverPlan 的落点与登记表对不上（' + DRIFTE.join(' ｜ ') + '）：口径是「判定只有一个出口」，现读的 6 处 = sync-webdav.js 三个定义 + coverPlan 被手动/自动两个出口各读一次 + pushAuto 被防抖定时器调一次（confirmPush 的调用者在 settings.html，那一处单独登记 1）；多出来的那一处是第二个出口，少掉的那一处说明确认层已经没人调了');
+  }
+
+  /* (c) 名不符实的串：全站产品文件 0（文档侧允许登记改前文案，view47 那一支不剥 .md，但这一把只扫 js/html）。 */
+  {
+    const NEED47C = ['清除全部数据', '已清除全部数据', '确定清除全部游记数据'];
+    const CAL47C = NEED47C.filter(s => flat47('<button onclick="clearAll()">清除全部数据</button> // 已清除全部数据').indexOf(s) >= 0).length;
+    if (CAL47C !== 2) F47('文案那把刀自校准失准（合成一行应命中 2 个旧串，实得 ' + CAL47C + '）：命中数不对说明下面的全站 0 是刀的问题，不是产品的问题');
+    const HITC = [];
+    FILES47ALL.forEach(function (f) {
+      const t = flat47(rd47(f));
+      NEED47C.forEach(s => { if (t.indexOf(s) >= 0) HITC.push(f + ' 含「' + s + '」'); });
+    });
+    var47.clear = HITC.length;
+    if (var47.clear) F47('名不符实的旧文案回来了（' + HITC.join(' ｜ ') + '）：那颗按钮实际只删游记，承诺「全部数据」就是让用户以为图册和账目也没了');
+  }
+
+  /* (d) closePanel 的落点：只有 travel-notes.js 能碰它（面板状态机私有）。 */
+  {
+    const RE47P = /closePanel\s*[;(]/g;
+    const CAL47P = ((flat47('  function closePanel(force) { x.onclick = closePanel; closePanel(); }').match(RE47P)) || []).length;
+    if (CAL47P !== 3) F47('closePanel 那把刀失准（合成一行应读 3：定义 + 裸引用 + 直调，实得 ' + CAL47P + '）：读不到裸引用那一种形状，就分不清「包一层」和「裸引用」，② 里那两条期望 0 也就没了对照');
+    const P47 = {};
+    FILES47ALL.forEach(function (f) {
+      const n = ((flat47(rd47(f)).match(RE47P)) || []).length;
+      if (n) { var47.panel += n; P47[f] = n; }
+    });
+    if (var47.panel !== 4 || !P47['travel-notes.js']) F47('全站 closePanel 落点从 travel-notes.js 的 4 处（定义 + 遮罩绑定 + #tnX 绑定 + 确认回调里的 force 版）变成 ' + JSON.stringify(P47) + '：少一处说明某个关闭出口没人守，多一处说明别的页面开始绕过面板状态机直接关它');
+  }
+
+  /* ④ 浏览器腿齐备检：I01–I56 逐条在场 + 带字母的两条 + 循环上限对账 + 条数守卫 */
+  {
+    const S47 = V47['tools/smoke-irreversible.js'];
+    for (let i = 1; i <= 56; i++) {
+      const lab = "ok('I" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt47(S47, lab) !== 1) F47('tools/smoke-irreversible.js 里 I' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt47(S47, lab) + '）：这一节的立论是「点下去之前先问，问的内容要说清会丢什么」，删一条就少一个证据，改编号会让 §47 的齐备检集体失效');
+    }
+    if (cnt47(S47, "ok('I14b ") !== 1) F47('I14b（一次 remoteInfo 只回调一次）不在场：它是 remoteInfo 那条单次回调守卫唯一的反证——守卫本身零其它调用者，删了这条判据就没人知道它还在不在工作');
+    if (cnt47(S47, "ok('I22b ") !== 1) F47('I22b（真点开关后 UI 与状态同步）不在场：自动那两条腿若是靠写 localStorage 打开的，就永远测不出「开关显示开了但其实没开」这一族');
+    if (cnt47(S47, 'checks >= 57') !== 1) F47('条数守卫不在了或阈值被挪：判据是 58 条，ok() 在自增前求值，所以表达式写的是 checks >= 57');
+    {
+      const LAB47 = S47.match(/ok\('(I\d+)[ ]/g) || [];
+      const MAXN47 = LAB47.reduce((m, s) => Math.max(m, Number(/I(\d+)/.exec(s)[1])), 0);
+      const SEG47 = (rd47('tools/verify.js').split('④ 浏览器腿齐备检：I01')[1] || '');
+      const BOUND47 = (SEG47.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND47 === undefined) F47('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND47) !== MAXN47) F47('④ 齐备检的循环上限是 ' + BOUND47 + '，而浏览器腿里真实最大编号是 I' + MAXN47 + '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V47['README.md'].indexOf('§47') < 0) F47('README.md 的 verify 清单没提 §47（新闸门不写进 README 就等于没装）');
+
+  console.log('不可逆动作闸门: ' + A47.length + ' 条代码锚点（写远端单点 putEnv / 判定单点 coverPlan+lostIds / 手动出口 confirmPush 的四档文案与「无确认层就报错」/ 自动出口 pushAuto 的 risky 唯一放行式 / remoteInfo 单次回调守卫三行 / 导出面四枚 / settings 两颗雷的接线与文案 / travel-notes 的 panelDirty-dirtyWords-closePanel 三件与两处绑定形状 / 浏览器腿的屏档·种子·31s 跨防抖·条数守卫 / smoke-backup 四条裸 push 腿的正向对照）+ 九族期望 0（裸 push 回产品代码 / UI.tileWarn(字符串) 两支静默 / flash 谎报 / 按钮名与确认层文案 / closePanel 两处裸引用 / 无形参的 closePanel 定义）各配正向对照 + 四把内置扫描全量对账（readdir ' + var47.files + ' 个根目录文件 + tools/ ' + TOOLS47.length + ' 个：裸 push 产品侧 ' + var47.bare + '／tools 侧 ' + var47.toolsBare + '、push 家族落点 ' + var47.exits + ' 逐文件恰数、名不符实文案 ' + var47.clear + '、closePanel 落点 ' + var47.panel + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat47/view47 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 I01–I56 齐备检与条数守卫（含 I14b 单次回调反证、I22b 开关 UI 同步）；A47 表长 ' + A47.length + ' 条、ZERO47 表长 ' + ZERO47.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b32-probe-before.txt，改后读数见 tools/out/b32-smoke-irreversible.txt，变异自测见 tools/out/mut-verify47.js');
+  fail += bad47;
+}
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

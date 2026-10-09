@@ -1,0 +1,47 @@
+=== 批次 32-A 地基实测（当前＝改动前的产品代码） ===
+桩：http://127.0.0.1:8751/  云端预置 3 篇游记（合法 schema 2 包）
+
+[L1] 本机 0 篇、云端 3 篇，点一次「上传到云端」
+  点击前：PUT 次数=0 GET 次数=0 云端 notes=3
+(node:6880) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  点击后 600ms：确认层=无（没有任何对话框）
+  PUT 次数=1 云端 notes=0 ← 云端被替换成什么
+  结果行文案="已上传：0 篇游记 · 0 本图册 · 5 项数据键 / 1 项偏好 · 0 KB · 备份于 2026-10-09 18:11"
+
+[L2] autosync=1、本机 0 篇、云端 3 篇，没人点按钮（探针直接调 scheduleSync，产品默认 30s）
+  调用前：autosyncOn=true PUT 次数=1
+  调用后：PUT 次数=2（自增 1）云端 notes=0
+  期间出现过确认层吗=null
+  tn_webdav_last={"ts":1791540676756,"ok":true,"msg":"已上传 0 篇游记 · 0 本图册 · 5 项数据键 / 1 项偏好 · 0 KB · 备份于 2026-10-09 18:11"}
+
+[L3] 本机 2 篇，点「清除全部数据」
+  按钮文案="清除全部数据"
+  清前条数={"notes":2,"albums":1,"wishlist":1,"trips":1,"userNodes":1,"expense":1,"budgetKeys":1,"hasWebdavCfg":true,"autosync":null}
+  确认层={"cls":"ui-modal-mask show","title":"清除全部数据","text":"确定清除全部游记数据？此操作不可恢复。","ok":"清除","no":"取消"}
+  清后条数={"notes":0,"albums":1,"wishlist":1,"trips":1,"userNodes":1,"expense":1,"budgetKeys":1,"hasWebdavCfg":true,"autosync":null}
+  页面上现存的提示文案=["tn-flash on|已清除全部数据"]
+  clearNotes 的源码串（现场读，不抄文档）=function () { notes = []; persist(); if (window.TravelNotes._afterSave) window.TravelNotes._afterSave(); flash('已清除全部数据'); }
+  清完 PUT 次数=2 云端 notes=0（autosync 关，此步只看不判）
+
+[L3b] autosync=1、本机 2 篇、云端 3 篇，点「清除全部数据」（完全不碰上传按钮）
+  清前：云端 notes=3 PUT 次数=2 自动上传钩子挂着吗=function () {
+      try { scheduleSync(); } catch (e) {}
+      if (prev) return prev.apply
+  清除后 2s：PUT 自增 0（默认防抖 30s，此刻还该是 0）
+  清除后 33s：PUT 自增 1 云端 notes=0
+  tn_webdav_last={"ts":1791540713131,"ok":true,"msg":"已上传 0 篇游记 · 1 本图册 · 5 项数据键 / 1 项偏好 · 1 KB · 备份于 2026-10-09 18:11"}
+  → 若云端 notes 从 3 变 0，则「清除游记」这一次点击独立把唯一备份抹了，全程没有任何上传确认
+
+[L4] 录音面板：打字 → 点关闭 / 点遮罩
+  打字后：panel display=flex  textarea="我在木塔下说了一段话，还没保存" 保存钮 disabled=false
+  面板尺寸=[328,723] 四点命中=["2,2→tn-head","164,360→TEXTAREA","326,721→tn-foot","10,700→tn-foot"]
+  9px 网格逐点 elementFromPoint 归属={"grid":2997,"by":{"mask":0,"panel":0,"panelChild":2799,"other":198},"otherSamples":["DIV","DIV","DIV","DIV","DIV","DIV"]}
+  #tnX 位置与中心命中={"rect":[12,12,34,34],"topAtCenter":"tnX","isSelf":true}
+  代码里调 mask.click() 后：panel display=none
+  重新打开后 textarea="" 保存钮 disabled=true → 那段话还在不在
+  点 ← (#tnX) 后：panel display=none 期间确认层=null
+  再开一次 textarea=""
+  游记条数（内容没保存所以应还是 2）=2
+
+=== 探针结束 ===
