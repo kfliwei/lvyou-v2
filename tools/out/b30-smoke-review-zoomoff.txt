@@ -1,0 +1,19 @@
+PASS  种子数据已写入  [added=8]
+PASS  TI 图标入口可用
+PASS  日历渲染出有记录的日期  [has=8]
+PASS  点日期后日详情有内容（旧缺陷：TI 未定义 → 整块空白）  [items=1 boxLenBefore=100 emptyBox=false]
+PASS  心情条渲染 6 个图标 + 1 个清除  [mk=7]
+PASS  心情位走 sprite 图标而非 emoji 字形  [svg=6 emojiKeys=0]
+PASS  图标确有 sprite 引用（smile/meh/sad/mountain/food/compass）  [#ti-smile,#ti-meh,#ti-sad,#ti-mountain,#ti-food,#ti-compass]
+PASS  日历格的心情位同样走图标（选完心情后才有节点，允许尚未出现）  [none]
+PASS  心情已持久化  [{"2026-10-02":"😀"}]
+PASS  持久化后日历格回显走图标  [cal=""]
+PASS  找到「有照片的那一天」（缩略图判据不许在零张卡上空跑）  [day=2026-10-02（第 1/8 个）]
+PASS  日卡缩略图每枚都带 src 属性  [img=1 缺src=0]
+PASS  日卡缩略图真解码出像素（naturalWidth>0）  [decoded=1/1]
+FAIL  日卡缩略图每枚都接了放大出口  [zoom=0/1]
+FAIL  点缩略图真打开看图器，且就是点的那一张  [open=false src= 缩略图src=img-test/photo-ruijin.svg w=0]
+FAIL  看图器自带关闭钮  [x=false]
+PASS  全程无 JS 报错
+
+3 项失败

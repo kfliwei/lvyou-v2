@@ -1,4 +1,4 @@
-/* 一次性反向自证：摘掉 review.html 日卡缩略图的 onclick，smoke-review 必须红在「接了放大出口／点开看图器」那两条。
+/* 一次性反向自证：摘掉 review.html 日卡缩略图的 onclick，smoke-review 必须且只红在「接了放大出口／点开看图器／看图器自带关闭钮」那三条（实测 PASS 14／FAIL 3，读数 tools/out/b30-smoke-review-zoomoff.txt），src 两条照绿。
    用法: node tools/out/probe30-click-off.js off|on */
 const fs = require('fs');
 const P = 'review.html';
