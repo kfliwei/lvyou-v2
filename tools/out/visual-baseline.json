@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-08T07:53:41.454Z",
+  "generatedAt": "2026-10-09T09:13:22.267Z",
   "viewports": [
     "320x640",
     "328x723",
@@ -44,16 +44,16 @@
       "bytes": 235140
     },
     "topic.390x844.png": {
-      "sha": "8dcc98bd28970db5",
-      "bytes": 269982
+      "sha": "a3969c047a18c9ae",
+      "bytes": 270063
     },
     "topic.452x995.png": {
       "sha": "659f6f564628ce08",
       "bytes": 309320
     },
     "topic.768x1024.png": {
-      "sha": "99d0dd00972ad0f3",
-      "bytes": 332163
+      "sha": "cca1008a0d2177dd",
+      "bytes": 332161
     },
     "topic.1440x900.png": {
       "sha": "a905221f3f485666",
@@ -428,12 +428,12 @@
       "bytes": 130416
     },
     "story.seed.390x844.png": {
-      "sha": "c2bbff49100b7ddf",
-      "bytes": 160132
+      "sha": "f11ed2723f14db04",
+      "bytes": 158974
     },
     "travel-map.seed.390x844.png": {
-      "sha": "5dc6b8924ab85b84",
-      "bytes": 164952
+      "sha": "5f34a7b9f60d9c33",
+      "bytes": 164900
     },
     "expense.ledger.390x844.png": {
       "sha": "fda1f3e32e04c4ed",
