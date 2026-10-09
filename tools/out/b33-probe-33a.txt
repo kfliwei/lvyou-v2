@@ -1,0 +1,126 @@
+
+==================== 腿 ① 随手记面板族：触控目标实测（328×723 dpr2，地板 44px）====================
+· 录音/编辑屏（.tn-panel）
+—— .tn-panel：在场
+   根节点 display=flex，视口 328×723，可见交互件 5 枚
+     44×44  top=12  button#tnX.tn-x  「←」
+     147×44  top=70  button#tnTabNote.on  「记此刻」
+     147×44  top=70  button#tnTabExp  「记开销」
+     82×82  top=401  button#tnRec.tn-mic
+     60×44  top=653  button#tnQuote.tn-repolish  「追加名言」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+—— #tnQuotes：在场
+   根节点 display=flex，视口 328×723，可见交互件 4 枚
+     44×44  top=8  button#tnQuoteBack.tn-x  「←」
+     44×44  top=71  button#tnQuoteClear.tn-x
+     296×109  top=151  div.tn-quote  「玲珑应塔碧霄中，层阁峥嵘接斗宫。」
+     296×46  top=269  button.web  「查找更多相关名言」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+· 真鼠标点 #tnQuoteClear 中心（290,93）之后：{"value":"","expOn":false,"panelExpense":false,"quotesShown":true}
+—— .tn-cfm：在场
+   根节点 display=flex，视口 328×723，可见交互件 2 枚
+     109×44  top=372  button.tc-no  「继续编辑」
+     109×44  top=372  button.tc-ok  「关掉不保存」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+—— .tn-list：在场
+   根节点 display=flex，视口 328×723，可见交互件 10 枚
+     44×44  top=8  button#tnListBack.tn-x  「←」
+     44×44  top=8  button#tnSetBtn.tn-x  「设置」
+     60×44  top=61  button#tnWallBtn.tn-pill  「照片墙」
+     51×44  top=61  button#tnDocBtn.tn-pill  「文档」
+     51×44  top=61  button#tnStatsBtn.tn-pill  「统计」
+     51×44  top=61  button#tnExpBtn.tn-pill  「导出」
+     51×44  top=61  button#tnImpBtn.tn-pill  「导入」
+     95×44  top=190  button#tnViewTrip.tn-viewtab.on  「旅程」
+     95×44  top=190  button#tnViewTime.tn-viewtab  「时间线」
+     95×44  top=190  button#tnViewCal.tn-viewtab  「日历」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+—— .tn-list：在场
+   根节点 display=flex，视口 328×723，可见交互件 28 枚
+     44×44  top=8  button#tnListBack.tn-x  「←」
+     44×44  top=8  button#tnSetBtn.tn-x  「设置」
+     60×44  top=61  button#tnWallBtn.tn-pill  「照片墙」
+     51×44  top=61  button#tnDocBtn.tn-pill  「文档」
+     51×44  top=61  button#tnStatsBtn.tn-pill  「统计」
+     51×44  top=61  button#tnExpBtn.tn-pill  「导出」
+     51×44  top=61  button#tnImpBtn.tn-pill  「导入」
+     95×44  top=190  button#tnViewTrip.tn-viewtab  「旅程」
+     95×44  top=190  button#tnViewTime.tn-viewtab.on  「时间线」
+     95×44  top=190  button#tnViewCal.tn-viewtab  「日历」
+     75×44  top=706  命中=null（中心点打不到自己）  button  「编辑」
+     75×44  top=706  命中=null（中心点打不到自己）  button  「复制」
+     75×44  top=706  命中=null（中心点打不到自己）  button  「卡片」
+     75×44  top=756 （不在取景框内）  命中=null（中心点打不到自己）  button  「MD」
+     75×44  top=756 （不在取景框内）  命中=null（中心点打不到自己）  button  「文档」
+     75×44  top=756 （不在取景框内）  命中=null（中心点打不到自己）  button.danger  「删除」
+     75×44  top=961 （不在取景框内）  命中=null（中心点打不到自己）  button  「编辑」
+     75×44  top=961 （不在取景框内）  命中=null（中心点打不到自己）  button  「复制」
+     75×44  top=961 （不在取景框内）  命中=null（中心点打不到自己）  button  「卡片」
+     75×44  top=1011 （不在取景框内）  命中=null（中心点打不到自己）  button  「MD」
+     75×44  top=1011 （不在取景框内）  命中=null（中心点打不到自己）  button  「文档」
+     75×44  top=1011 （不在取景框内）  命中=null（中心点打不到自己）  button.danger  「删除」
+     75×44  top=1216 （不在取景框内）  命中=null（中心点打不到自己）  button  「编辑」
+     75×44  top=1216 （不在取景框内）  命中=null（中心点打不到自己）  button  「复制」
+     75×44  top=1216 （不在取景框内）  命中=null（中心点打不到自己）  button  「卡片」
+     75×44  top=1266 （不在取景框内）  命中=null（中心点打不到自己）  button  「MD」
+     75×44  top=1266 （不在取景框内）  命中=null（中心点打不到自己）  button  「文档」
+     75×44  top=1266 （不在取景框内）  命中=null（中心点打不到自己）  button.danger  「删除」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 18 枚
+—— .tn-editpage：在场
+   根节点 display=flex，视口 328×723，可见交互件 3 枚
+     44×44  top=6  button#tnEditBack.tn-x  「←」
+     64×44  top=544  button#tnEditAddPhoto  「加照片」
+     296×50  top=657  button#tnEditSave  「保存修改」
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+—— .tn-viewer：在场
+   根节点 display=flex，视口 328×723，可见交互件 1 枚
+     44×44  top=14  button#tvX.tn-viewer-x
+   小结：低于 44px 地板 0 枚；中心点打不到自己 0 枚
+· 面板族汇总（只数在屏上的）
+   低于 44px 的共 0 枚：
+   页面未捕获报错：0 条
+
+==================== 腿 ② 备份提醒条（index.html:498 z9500）与面板 9001 / .tn-cfm 9700 ====================
+· 提醒条在场=true，rect top=561 bottom=619 h=58，z=8000，#bkGo 69×32，tn_lastBackup=null（没写过 → `+null||0` → 恒判「超 30 天」）
+· index 静止态（视口高 723）
+   z=1050  fixed  top=639 bottom=709 h=70  .bottom-nav  nav.bottom-nav
+   z=8000  fixed  top=561 bottom=619 h=58  body>fixed  div  「距上次备份已超 30 天，数据只在本机，建议备份」
+· openPanel 之后（视口高 723）
+   z=1050  fixed  top=639 bottom=709 h=70  .bottom-nav  nav.bottom-nav
+   z=8000  fixed  top=561 bottom=619 h=58  body>fixed  div  「距上次备份已超 30 天，数据只在本机，建议备份」
+   z=9000  fixed  top=0 bottom=723 h=723  .tn-mask  div.tn-mask
+   z=9000  fixed  top=0 bottom=723 h=723  body>fixed  div.tn-mask
+   z=9001  fixed  top=0 bottom=723 h=723  .tn-panel  div.tn-panel.has-exp.is-idle
+   z=9001  fixed  top=0 bottom=723 h=723  body>fixed  div.tn-panel.has-exp.is-idle  「←留下这一刻应县木塔 · 2026-10-09 」
+   z=9500  fixed  top=6 bottom=28 h=22  body>fixed  div.tn-flash
+· 面板打开时条仍在：与 .tn-panel 重叠面积 17400 px²（占条 100%）
+   9px 网格命中链 top6：div#tnRaw.tn-recbox×79 | div.tn-body×69 | b×60 | textarea#tnRawEdit×30
+   中心点落进条矩形里的面板控件 0 枚：
+· 脏面板 .tn-cfm 出现时（视口高 723）
+   z=1050  fixed  top=639 bottom=709 h=70  .bottom-nav  nav.bottom-nav
+   z=8000  fixed  top=561 bottom=619 h=58  body>fixed  div  「距上次备份已超 30 天，数据只在本机，建议备份」
+   z=9000  fixed  top=0 bottom=723 h=723  .tn-mask  div.tn-mask
+   z=9000  fixed  top=0 bottom=723 h=723  body>fixed  div.tn-mask
+   z=9001  fixed  top=0 bottom=723 h=723  .tn-panel  div.tn-panel.has-exp.is-editing
+   z=9001  fixed  top=0 bottom=723 h=723  body>fixed  div.tn-panel.has-exp.is-editing  「←留下这一刻应县木塔 · 2026-10-09 」
+   z=9500  fixed  top=6 bottom=28 h=22  body>fixed  div.tn-flash
+   z=9700  fixed  top=0 bottom=723 h=723  .tn-cfm  div.tn-cfm
+   z=9700  fixed  top=0 bottom=723 h=723  body>fixed  div.tn-cfm  「这一段还没保存（转写/正文 5 字），关掉就没了」
+· .tn-cfm 主按钮几何/命中：{"rect":"109×44","top":372,"hit":"button.tc-ok","own":true}
+· 反向对照：tn_lastBackup=昨天 → 提醒条在场=false（应为 false；为 true 说明那 30 天门没有真的在算）
+
+==================== 腿 ③ story：日卡时刻 + 底部翻页浮条的重叠带 ====================
+· 卡面日期实际读数：[{"date":"2026-10-02","raw":null},{"date":"2026-10-03","raw":null},{"date":"2026-10-04","raw":null}]
+· 出口对照（第一篇）：raw n.date=2026-10-02 09:12 | noteDay=2026-10-02 | dayText=2026-10-02 | fmtDayText=2026-10-02 | fmtClock=09:12
+· 判据：屏上有没有「时分」→ 没有（批次 31 统一口径顺手收掉了）
+· 翻页浮条：top=557 bottom=619 h=62 w=304 z=80 背景=rgba(250, 248, 243, 0.82) backdrop=blur(20px) saturate(1.5)
+· 条内两颗钮实测：[{"id":"snPrev","w":44,"h":44,"disabled":true,"hit":"button#snPrev.sn-btn"},{"id":"snNext","w":44,"h":44,"disabled":false,"hit":"button#snNext.sn-btn"}]
+· #cards padding-bottom=200px，文档高 1373，视口高 723，卡片数 3，本页有底部导航=true
+· 起始滚动位重叠：{"label":"当前滚动位","overlapped":1,"px2":7600,"firstOverlapTop":576}
+· 最大滚动位（scrollY=650）：最后一张卡底到条顶 48 px
+   落在条带里的内容块 0 个：[]
+   其中正文段落被压的行数：[]
+· 逐 180px 扫滚动位：有 3 个停靠位存在「正文段落被条带压住」，样本 [[{"scrollY":0,"coveredLines":1,"totalLines":1}],[{"scrollY":180,"coveredLines":1,"totalLines":1}],[{"scrollY":360,"coveredLines":2.49,"totalLines":5}]]
+· story 未捕获报错：0 条
+
+=== probe33-touch 跑完 ===

@@ -6277,6 +6277,8 @@ function stripBlockComments(s) {
     ['tools/smoke-coord.js', "const DATEONLY = c => /^\\d{4}-\\d{2}-\\d{2}$/.test(c.tm);", 1, '§45 那两条形判据跟着本批改档：卡面只剩日期（时刻归抽屉与时间线），这条锚钉的是「不许把时间档再塞回卡面」'],
     ['travel-map.html', '.sort(function(a,b){return (a.ts||0)-(b.ts||0);})', 1, '时间线排序把「没填时间戳」当最旧：原式 a.ts-b.ts 对缺 ts 的那篇返回 NaN，顺序交给引擎，那一枚能抢走默认那一程（屏上只剩一只空时间格的胶囊）'],
     ['story.html', "var _sp=cards.map(function(n){return n.ts;}).filter(function(t){return typeof t==='number'&&isFinite(t);});", 1, '卷首语的跨度只算有 ts 的站：原式 (末站ts-首站ts) 撞上缺 ts 就读 NaN，而「跨 NaN 天」是直接上屏的字'],
+    ['story.html', 'function dayClock(n){', 1, '批次 33-D 的拼串定义行单独钉：这一屏要「日 + 时分」（同一程里早上落笔和深夜补记不许看着是同一天）。摘掉定义不是「少一处接线」而是两处调用 ReferenceError、整页崩，跟下面那条数出的 3 不同因，各配一发变异'],
+    ['story.html', 'dayClock(n)', 3, '定义 1 + 日卡与翻页条各 1 恰三次：任一处退回裸 TravelNotes.dayText 就掉到 2，屏上那行时分静默消失（浏览器腿 D12 的形状刀抓不到，因为它只认坏形状不认少了时分）'],
     ['search.html', 'TravelNotes.init({});', 1, '搜索页必须自己把游记库灌进来：这一行不在，TravelNotes.list() 恒为空数组，搜自己的游记恒读「0 篇」（浏览器腿 D13 的分母也靠它）'],
   ];
   A46.forEach(a => {
@@ -6428,14 +6430,14 @@ function stripBlockComments(s) {
   /* ④ 浏览器腿齐备检：D01–D22 逐条在场（少一条就少一个屏上证据），条数守卫的阈值也要钉住 */
   {
     const S46 = V46['tools/smoke-date.js'];
-    for (let i = 1; i <= 22; i++) {
+    for (let i = 1; i <= 23; i++) {
       const lab = "ok('D" + (i < 10 ? '0' + i : '' + i) + ' ';
       if (cnt46(S46, lab) !== 1) F46('tools/smoke-date.js 里 D' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt46(S46, lab) + '）：这一节的立论是「每一个页面都读到同一个串」，删一条就少一个证据，改编号会让 §46 的齐备检集体失效');
     }
     if (cnt46(S46, "ok('D00 形状刀自校准") !== 1) F46('D00 那条形状刀自校准不在场：没有它，下面十几发「0 命中」可能只是正则瞎了');
     if (cnt46(S46, "ok('D18b ") !== 1) F46('D18b 那条普查分母不在场：十页全读不到日期时，十个「坏形状 0 命中」会一起绿掉，那是空跑');
     if (cnt46(S46, "ok('D20b ") !== 1) F46('D20b（复制那条仍带坐标）不在场：本批统一显示的时候不许顺手把 §45 的保留支砍掉');
-    if (cnt46(S46, 'checks >= 24') !== 1) F46('条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 25 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 24');
+    if (cnt46(S46, 'checks >= 25') !== 1) F46('条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 26 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 25');
     {
       const LAB46 = S46.match(/ok\('(D\d+)[ ]/g) || [];
       const MAXN46 = LAB46.reduce((m, s) => Math.max(m, Number(/D(\d+)/.exec(s)[1])), 0);
@@ -6448,7 +6450,7 @@ function stripBlockComments(s) {
 
   if (V46['README.md'].indexOf('§46') < 0) F46('README.md 的 verify 清单没提 §46（新闸门不写进 README 就等于没装）');
 
-  console.log('日期显示口径闸门: ' + A46.length + ' 条代码锚点（五个出口的定义体 + 五条导出名 + 各页面「包装单点而非另抄解析」的那几行，含 review 的 dayOf、md-manager 的 dayText/ymOf 与其 script 载入、travel-map 两处共用同形与两处短档、results 三枚「生成于」各钉期望次数、§45 那条 CO 形判据跟着改档）+ 八族期望 0（裸读 n.date 三处／单点自己退回拼年月日／抽屉点号形／album 的第二份短档／settings 的页内自拼／wishlist 点号形）各配正向对照 + 五把内置扫描全量对账（readdir ' + var46.files + ' 个根目录文件：调用点 ' + var46.calls + ' 处逐文件恰数、locale 调用形 ' + var46.locale + '、宽松解析 ' + var46.parse + '、裸读 .date ' + var46.datelines + '、手拼+渲染 ' + var46.hand + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat46/view46 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 D01–D22 齐备检与条数守卫（含 D00 形状刀自校准、D20b 保留支反证）；A46 表长 ' + A46.length + ' 条、ZERO46 表长 ' + ZERO46.length + ' 条，抬阈值类变异要取当前长度 + 1；取数探针见 tools/out/probe31-counts.js，变异自测见 tools/out/mut-verify46.js');
+  console.log('日期显示口径闸门: ' + A46.length + ' 条代码锚点（五个出口的定义体 + 五条导出名 + 各页面「包装单点而非另抄解析」的那几行，含 review 的 dayOf、md-manager 的 dayText/ymOf 与其 script 载入、travel-map 两处共用同形与两处短档、results 三枚「生成于」各钉期望次数、§45 那条 CO 形判据跟着改档）+ 八族期望 0（裸读 n.date 三处／单点自己退回拼年月日／抽屉点号形／album 的第二份短档／settings 的页内自拼／wishlist 点号形）各配正向对照 + 五把内置扫描全量对账（readdir ' + var46.files + ' 个根目录文件：调用点 ' + var46.calls + ' 处逐文件恰数、locale 调用形 ' + var46.locale + '、宽松解析 ' + var46.parse + '、裸读 .date ' + var46.datelines + '、手拼+渲染 ' + var46.hand + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat46/view46 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 D01–D23 齐备检与条数守卫（含 D00 形状刀自校准、D20b 保留支反证、D23 旅程故事页那行读「日 · 时分」）；A46 表长 ' + A46.length + ' 条、ZERO46 表长 ' + ZERO46.length + ' 条，抬阈值类变异要取当前长度 + 1；取数探针见 tools/out/probe31-counts.js，变异自测见 tools/out/mut-verify46.js');
   fail += bad46;
 }
 
@@ -6723,6 +6725,576 @@ function stripBlockComments(s) {
 
   console.log('不可逆动作闸门: ' + A47.length + ' 条代码锚点（写远端单点 putEnv / 判定单点 coverPlan+lostIds / 手动出口 confirmPush 的四档文案与「无确认层就报错」/ 自动出口 pushAuto 的 risky 唯一放行式 / remoteInfo 单次回调守卫三行 / 导出面四枚 / settings 两颗雷的接线与文案 / travel-notes 的 panelDirty-dirtyWords-closePanel 三件与两处绑定形状 / 浏览器腿的屏档·种子·31s 跨防抖·条数守卫 / smoke-backup 四条裸 push 腿的正向对照）+ 九族期望 0（裸 push 回产品代码 / UI.tileWarn(字符串) 两支静默 / flash 谎报 / 按钮名与确认层文案 / closePanel 两处裸引用 / 无形参的 closePanel 定义）各配正向对照 + 四把内置扫描全量对账（readdir ' + var47.files + ' 个根目录文件 + tools/ ' + TOOLS47.length + ' 个：裸 push 产品侧 ' + var47.bare + '／tools 侧 ' + var47.toolsBare + '、push 家族落点 ' + var47.exits + ' 逐文件恰数、名不符实文案 ' + var47.clear + '、closePanel 落点 ' + var47.panel + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat47/view47 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 I01–I56 齐备检与条数守卫（含 I14b 单次回调反证、I22b 开关 UI 同步）；A47 表长 ' + A47.length + ' 条、ZERO47 表长 ' + ZERO47.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b32-probe-before.txt，改后读数见 tools/out/b32-smoke-irreversible.txt，变异自测见 tools/out/mut-verify47.js');
   fail += bad47;
+}
+
+
+/* ============ §48 浮层层级与首页提示互斥闸门（批次 33-C） ============
+   用户点单（逐字）：「先不做a，其它的如果是问题就修，对项目有提升的就改」。
+   这一节管的是两件「改了不等于见效」的事，两件的失败模式都不在源码里，而在层叠与真鼠标上。
+
+   地基实测（改前，tools/out/b33-probe-33b.txt:15、:19、b33-probe-ancestry.txt、b33-probe-editpage.txt:13，
+   328×723 真 Chrome）：
+     · #tnQuotes 写得很「对」：.tn-quotes{position:fixed;inset:0;z-index:9005}，但它住在
+       .tn-foot 里，而 .tn-foot 自己是 position:relative;z-index:2 —— 父级既然建了堆叠上下文，
+       孩子那个 9005 就出不去，实际按 2 参加排序，被同排 z:3 的档位条盖住。
+       抬完触控地板后的读数更直白：#tnQuoteClear 44×44 完好，中心点 elementFromPoint 却是背后的
+       button#tnTabExp —— 真鼠标点「清空搜索」会把「记开销」档切走，而框没清干净。
+     · 首页那条备份提醒（z-index:9500）压住了随手记那一族全屏浮层：实测编辑页里
+       #tnEditAddPhoto 64×44 完好，中心点 elementsFromPoint[0] 就是这条 div
+       （真鼠标点下去 #tnEditFile 收到 0 次 click，加照片整条入口在屏上是死的——这半句当时也是推的，
+       反向腿那一段把它量成了读数）。
+     · 顺带查出一句假话：这条的判定只读 tn_lastBackup（本机导出备份），不读 tn_webdav_last
+       （WebDAV 上传成功）。开了自动同步的人每次冷启都看到「数据只在本机，建议备份一次」。
+
+   上面那两个「改前会怎样」原本是顺着命中链推出来的，没有落盘读数（推断不是证据）。这一条由反向腿补上：
+   tools/out/probe33-prefix.js —— 产品码一行不动，在运行时造出改前条件（把那条 div 的 inline z 覆盖成 9500；
+   把 #tnQuotes 用 appendChild 重挂回 .tn-foot），再真鼠标点中心。
+   读数 tools/out/b33-probe-prefix.txt：
+     · :9  造出来的 z=9500 → #tnEditFile click=0 次（顶命中就是那条 bar）
+     · :15 现场 z=8000 → 同一枚钮 click=1 次（把上一档变成反证，而不是「探针压根没点」）
+     · :22–:24 搬回 .tn-foot 之后祖先链读回 div.tn-foot(z=2) → div.tn-panel(z=9001)，
+       #tnQuoteClear 44×44 中心点顶命中 button#tnTabExp（别人的）
+     · :28 真点之后 {"value":"云冈","expOn":true,"panelExpense":true} —— 「清钮没赢、档被切走」现场复现
+     · :33–:34 同一页搬回 body：顶命中 svg（自己的），真点之后框归空、档位没动、浮层还在
+   这条反向腿自己踩过两个坑，都记在这儿免得下次重踩：
+     ① 种子 photos 为空 → 编辑页那一行上移到 y=480，条带（561–619）罩不住，「没复现」是探针的锅；
+     ② page.evaluate 漏传 where 实参 → 分支恒走 body，两档读同一份现场。搬完要立刻读一次父级坐实时机。
+   判据也不许按几何重叠（条的矩形罩住中心点）许愿「0 次」：z=8000 那档罩得住但在 .tn-editpage(9010) 之下，
+   那样会把现场那一档判成假失败。要按「顶命中是不是那条 bar」定期望。
+
+   改后（tools/out/b33-smoke-layer.txt，本节的腿）：39 条判据全绿、0 条未捕获报错——浮层直接住 body、祖先链里再没有
+   .tn-foot/.tn-seg，三枚控件真鼠标各命中自己，污染搜索框后真点清钮 → 框归空且档位没被切走；
+   提醒条降到 8000 之后无浮层时仍看得见可点（顶命中自己的 span、#bkGo 在场、在取景框内），
+   .tn-list/.tn-panel/.tn-editpage 三层在场时都不再压人，#tnEditAddPhoto 真点把 click 送到
+   #tnEditFile 恰 1 次；备份判定四档 localStorage 正反对照全对。
+   （L40 那条是「抛出即判据没跑完」的反证，只在腿中途抛了才执行——这一跑没抛，所以落盘是 39 条而不是 40 条。）
+
+   本节钉四件事：
+     ① 那一层的**归属**：#tnQuotes 的 markup 必须紧跟在 body 注入语句之后（光 z:9005 在场不构成
+        修复——改前它就在场）；三处控件的接线必须从 qq 找，$X(panel, '#tnQuote…') 那六形一律回潮即红；
+     ② 提醒条的 z 必须**严格低于整族**，而整族是派生出来的（.tn-* + position:fixed + z-index），
+        不是抄名单：新增一层而名单没跟上，红；把某一层的 z 挪走，红；把条子抬回 9000 以上，红；
+     ③ 「上次备份」的两个出口必须**写、读、禁入备份包三方都在**：tn_lastBackup 由 settings 写、tn_webdav_last 由
+        sync-webdav 的 record() 写（shape 是 {ts,ok,msg}，index.html 判的正是 w.ok===true && w.ts）；
+        读的人与写的人各恰一处，形状改了不报错，只会静默恒弹或恒不弹；
+     ④ 浏览器腿 L01–L39 齐备检 + 条数守卫（含 L40 那条「抛出即判据没跑完」的反证）。 */
+{
+  let bad48 = 0;
+  const F48 = m => { bad48++; console.log('FAIL §48 浮层层级与互斥闸门: ' + m); };
+  const ws48 = s => s.replace(/\s+/g, ' ').trim();
+  const flat48 = s => ws48(stripBlockComments(s));
+  const cnt48 = (s, n) => s.split(n).length - 1;
+  const rd48 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view48 = f => /\.md$/.test(f) ? ws48(rd48(f)) : flat48(rd48(f));
+
+  const FILES48 = ['travel-notes.js', 'index.html', 'design.css', 'sync-webdav.js', 'settings.html',
+    'backup.js', 'tools/smoke-layer.js', 'README.md'];
+  const V48 = {};
+  FILES48.forEach(f => {
+    if (!fs.existsSync(f)) { F48('缺 ' + f); V48[f] = ''; return; }
+    V48[f] = view48(f);
+  });
+
+  /* ⓪ 自指纪律（同 §45/§46/§47 那一支）：这一族的期望 0 全住在「改前原串还写在注释里」的那一带，
+        真代码被注释吞掉时它们会静默满足。于是在三处改动旁边各钉一枚现场哨兵。 */
+  {
+    const DEF48 = (rd48('tools/verify.js').match(/^[ \t]*const flat48 = [^\n]*/m) || [''])[0];
+    if (DEF48.indexOf('stripBlockComments') < 0) F48('§48 的 flat48 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF48.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L48 = (rd48('tools/verify.js').match(/^[ \t]*const view48 = [^\n]*/m) || [''])[0];
+    if (L48.indexOf('.md$') < 0) F48('view48 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L48.slice(0, 60) || '整行没数到') + '）：README 与审核文档里天生要写这族的改前形状，文档侧的锚会当场读 0');
+    [['travel-notes.js', "document.body.insertAdjacentHTML('beforeend',"],
+     ['index.html', "if(w&&w.ok===true&&w.ts>last) last=w.ts;"],
+     ['tools/smoke-layer.js', "if (ms === 12000 && typeof fn === 'function')"]].forEach(function (p) {
+      if (V48[p[0]].indexOf(p[1]) < 0) F48('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：层的归属 + 接线单点 + 提醒条的两个出口与它的 z + 腿的形状 */
+  const A48 = [
+    /* —— travel-notes.js：名言检索层搬出 .tn-foot —— */
+    ['travel-notes.js', "document.body.insertAdjacentHTML('beforeend',", 1, '这一层跟 .tn-guide 那一层一样住在 body 上；改法不是把 9005 抬更大，是换它参加排序的那一层'],
+    ['travel-notes.js', '<div class="tn-quotes" id="tnQuotes">', 1, '字面 id 同时是 §42 盲区哨兵钉的那一枚，改名会连带红 §42'],
+    ['travel-notes.js', "var qq = document.getElementById('tnQuotes');", 1, '浮层自己有一个变量名，接线才谈得上「从谁身下找」'],
+    ['travel-notes.js', "var qs = $X(qq, '#tnQuoteSearch');", 1, '搜索框从浮层里找（改前从 panel 找：panel 里没有它了，$X 会静默拿到 null 然后炸在 oninput 上）'],
+    ['travel-notes.js', "var qlist = $X(qq, '#tnQuoteList');", 1, '结果列表同上'],
+    ['travel-notes.js', "$X(qq, '#tnQuoteHint').textContent", 1, '提示语同上——这一处最阴：写空了不报错，屏上只是少一句引导'],
+    ['travel-notes.js', "$X(qq, '#tnQuoteBack').onclick", 1, '返回钮同上'],
+    ['travel-notes.js', "$X(qq, '#tnQuoteClear').onclick", 1, '清空钮同上（改前真鼠标点它落在背后的档位条上）'],
+    ['travel-notes.js', "$X(panel, '#tnQuote').onclick = function(){", 1, '触发钮**留在脚注里是设计**：它是面板上的一个动作，只有它展开的那一层才搬走'],
+    ['travel-notes.js', "qq.style.display = 'none';", 2, '收起这一层的两支各一处：点返回、追加成功（appendQuote 不收起，用户就回不到正文）'],
+    ['travel-notes.js', '<div class="hint" id="tnQuoteHint">', 1, 'hint 那一行由 insertAdjacentHTML 发出，说明它是 markup 而不是后补的 DOM'],
+    ['travel-notes.js', '.tn-quotes{position:fixed;inset:0;z-index:9005', 1, '整屏不透明层（background:var(--bg) 在 design.css 的 skin 族里）：数字不是本节的重点，归属才是，但这一行是派生扫描的分母'],
+    /* —— index.html：备份提醒条的 z 与两个出口 —— */
+    ['index.html', '104px);z-index:8000;background', 1, '降到那一族最低档（9000）之下：结构性不可能遮挡，不必在六处开屏各挂一次「摘条子」的钩子'],
+    ['index.html', "var last=+localStorage.getItem('tn_lastBackup')||0;", 1, '出口一：本机导出备份（settings 的 expBackup 写它）'],
+    ['index.html', "var w=JSON.parse(localStorage.getItem('tn_webdav_last')||'null');", 1, '出口二：WebDAV 上传成功（sync-webdav 的 record 写它，shape 是 {ts,ok,msg}）'],
+    ['index.html', 'if(w&&w.ok===true&&w.ts>last) last=w.ts;', 1, '取两者里较近的一次，判定才是「距上次备份」；ok===true 是严格比较，缺字段/字符串 "false" 都不算成功'],
+    ['index.html', 'setTimeout(function(){ d.remove(); }, 12000);', 1, '12s 自己摘走：全站用这个时长的只有这一处（腿 L08 就是靠这个唯一性截计时器）'],
+    ['index.html', "document.getElementById('bkGo').onclick=function(){ d.remove(); location.href='settings.html'; };", 1, '提示要能一步走到设置页，且点下去立刻消失（不消失的用户第二次看到它就不信了）'],
+    ['index.html', 'z-index:9500', 1, '这是 .search-panel（页内搜索下拉），本批未定性：登记它，是为了有人动首页层叠时这条会红而不是静默漂走'],
+    /* —— 两个出口的写侧：形状改了不报错，只会静默恒弹或恒不弹 —— */
+    ['sync-webdav.js', "var CFG_KEY = 'tn_webdav', AUTO_KEY = 'tn_webdav_autosync', LAST_KEY = 'tn_webdav_last';", 1, '键名在这里定义一次；index.html 里是字面串，两处不同名就没人报错'],
+    ['sync-webdav.js', 'function record(ok, msg) {', 1, '「上次同步」的唯一写点'],
+    ['sync-webdav.js', 'JSON.stringify({ ts: Date.now(), ok: !!ok, msg:', 1, 'index.html 读的 w.ok / w.ts 就是这一行的形状'],
+    ['settings.html', "localStorage.setItem('tn_lastBackup', String(Date.now()));", 1, '手动导出备份写时间戳；写成 Date 对象或 ISO 串，+localStorage 会读成 NaN→0→永远弹'],
+    ['backup.js', "'tn_webdav_last',", 1, '这两个键都登记在 NEVER.exact 里（本机状态，不进备份包）：进了包就把「这台机器备份过」这件事带到另一台机器，那边读到旧时间戳→该提醒的不提醒'],
+    ['backup.js', "'tn_lastBackup', 'tn_storefail_warned'", 1, '同上——③(b) 那把键落点扫描的分母就是这三方（写的人、读的人、禁入备份包的那份名单），少一方就有一边改了名字'],
+    ['design.css', 'body .tn-listbar input,body .tn-quotes .sr input{min-height:44px}', 1, '33-B 的触控地板管到这一层：搬层不搬地板，浮层里的输入框仍要 44'],
+    /* —— 浏览器腿的形状 —— */
+    ['tools/smoke-layer.js', 'const VW = 328, VH = 723;', 1, '必须量用户那块屏（§37 口径）'],
+    ["tools/smoke-layer.js", "if (ms === 12000 && typeof fn === 'function')", 1, '把 12s 摘除的计时器截成稳定被测对象：不改产品行为，只让「浮层在场时不遮挡」能量到东西（否则读的是一个已经不存在的元素，那是假绿）'],
+    ['tools/smoke-layer.js', "e.textContent.indexOf('距上次备份') >= 0", 1, '腿里找条子的判据取自文案：产品改这句话，腿会读成「没出现」而红，不会静默空转'],
+    ['tools/smoke-layer.js', 'window.__L.barHit()', 3, '三层浮层各问一次「中心点顶命中是不是这条」；少一层就是少守一层'],
+    ['tools/smoke-layer.js', 'checks >= 38', 1, '条数守卫（本闸门自己也会被删）：判据 39 条，ok() 在自增前求值所以表达式写 38'],
+  ];
+  A48.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F48('A48 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V48)) { F48('A48 登记了 §48 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt48(V48[f], needle);
+    if (n !== exp) F48(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批删掉的旧写法各配一条正向对照（那个 0 不是证据，除非同一把刀能在改前原件上读出 1）。
+        对照串取自 git show HEAD:travel-notes.js / HEAD:index.html 的真形状。 */
+  const ZERO48 = [
+    ['travel-notes.js', "$X(panel, '#tnQuotes')",
+      "    var qq = $X(panel, '#tnQuotes');",
+      '浮层又变回面板的后代：父级 .tn-foot 有 z-index:2，堆叠上下文把孩子关住，9005 写了等于没写'],
+    ['travel-notes.js', "$X(panel, '#tnQuoteSearch')",
+      "    var qs = $X(panel, '#tnQuoteSearch');",
+      '接线退回从 panel 找：markup 已经在 body 上了，panel 里没有它，$X 拿到 null，qs.oninput 当场炸（这一族在真机上的表现是「点开就白屏一下」）'],
+    ['travel-notes.js', "$X(panel, '#tnQuoteList')",
+      "    var qlist = $X(panel, '#tnQuoteList');",
+      '同上：renderQuotes 写不进任何地方，浮层永远开着一片空白'],
+    ['travel-notes.js', "$X(panel, '#tnQuoteHint')",
+      "$X(panel, '#tnQuoteHint').textContent = kw ? ('已按当前地点「' + kw + '」检索，可修改关键词') : '输入关键词检索相关名言';",
+      '提示语那一处改线打空是最阴的失败：不报错、不炸，只是屏上少一句「已按当前地点…」，用户不知道检索词是哪来的'],
+    ['travel-notes.js', "$X(panel, '#tnQuoteBack')",
+      "$X(panel, '#tnQuoteBack').onclick = function(){ qq.style.display = 'none'; panel.style.display = 'flex'; };",
+      '返回钮没接上＝浮层开了关不掉，只能退出整页重开（真机上是唯一收起这一层的出口）'],
+    ['travel-notes.js', "$X(panel, '#tnQuoteClear')",
+      "$X(panel, '#tnQuoteClear').onclick = function(){ qs.value = ''; renderQuotes(''); };",
+      '清空钮没接上＝用户以为还能清，而那一枚 44×44 的落点其实是背后的档位条（改前的实测正是这个）'],
+    ['index.html', '104px);z-index:9500;background',
+      "      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:9500;background:rgba(32,32,29,.94);",
+      '提醒条抬回 9500：又落进那一族浮层中间（9000/9001/9005/9006/9010 全是整屏不透明层），编辑页的「加照片」重新变成死的'],
+    ['index.html', "||0; if(Date.now()-last>30*864e5){",
+      "    var last=+localStorage.getItem('tn_lastBackup')||0;\n    if(Date.now()-last>30*864e5){",
+      '判定又只读本机那一个出口：开了 WebDAV 自动同步的人每次冷启都被告知「数据只在本机」，这句话对他就是假的（两个出口之间必须隔着取较近那一步）'],
+  ];
+  ZERO48.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F48('ZERO48 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V48)) { F48('ZERO48 登记了 §48 没读的文件「' + f + '」：' + why); return; }
+    if (cnt48(V48[f], needle) !== 0) F48(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt48(flat48(ctrl), needle) < 1) F48('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置扫描：三把，都先拿合成样本自校准，再去读现场。
+        为什么必须派生而不是抄名单：本节的立论是「条子低于**整族**」，而「整族」是随代码长的——
+        将来有人再加一层 .tn-xxx 全屏浮层，名单式守卫会安静地不知道它存在。 */
+  let var48 = { fam: 0, minFam: 0, barZ: 0, keys: {} };
+  const FAM48_RE = /\.tn-([a-z0-9-]+)\s*\{[^{}]*?position:fixed[^{}]*?z-index:\s*(-?\d+)/g;
+
+  /* (a) 派生「随手记那一族整屏浮层」，逐成员对账登记表，并要求提醒条严格低于全族最低档 */
+  {
+    const CAL48A = flat48('.tn-fakea{position:fixed;inset:0;z-index:9000}.tn-fakeb{position:fixed;left:0;z-index:9999}').match(FAM48_RE);
+    if ((CAL48A || []).length !== 2) F48('派生那把刀自校准失准（合成两句应读 2，实得 ' + ((CAL48A || []).length) + '）：刀一瞎，下面那句「条子低于整族」就只是句空话');
+    const FAM48 = {};
+    ['travel-notes.js', 'design.css'].forEach(function (f) {
+      let m; FAM48_RE.lastIndex = 0;
+      while ((m = FAM48_RE.exec(V48[f]))) FAM48[m[1]] = Number(m[2]);
+    });
+    const REG48 = { mask: 9000, list: 9000, panel: 9001, settings: 9002, dlg: 9003, wall: 9004,
+      quotes: 9005, guide: 9006, editpage: 9010, flash: 9500, cfm: 9700, viewer: 9900 };
+    const DRIFT48 = [];
+    Object.keys(FAM48).forEach(k => { if (!(k in REG48)) DRIFT48.push('.tn-' + k + '=' + FAM48[k] + ' 没登记（新添的一整屏层：提醒条 8000 到底低不低过它，没人算过）'); });
+    Object.keys(REG48).forEach(k => {
+      if (!(k in FAM48)) DRIFT48.push('.tn-' + k + ' 派生不到（登记 ' + REG48[k] + '）：它那一段 position:fixed/z-index 的形状被改写，刀读不到＝这一层不再参加对账');
+      else if (FAM48[k] !== REG48[k]) DRIFT48.push('.tn-' + k + ' 实得 z=' + FAM48[k] + '／登记 ' + REG48[k]);
+    });
+    if (DRIFT48.length) F48('整屏浮层族与登记表对不上（' + DRIFT48.join(' ｜ ') + '）');
+    var48.fam = Object.keys(FAM48).length;
+    var48.minFam = Math.min.apply(null, Object.keys(FAM48).map(k => FAM48[k]));
+    const bm = V48['index.html'].match(/left:14px;right:14px[^'"]*?z-index:(-?\d+)/);
+    if (!bm) F48('派生不到提醒条自己的 z（那条 cssText 里 left:14px;right:14px 之后没有 z-index 了）：本节的立论没有读数');
+    else {
+      var48.barZ = Number(bm[1]);
+      if (!(var48.barZ < var48.minFam)) F48('提醒条 z=' + var48.barZ + ' 没有低于整族最低 z=' + var48.minFam + '：它又夹在这一族中间，就会压住其中某几层的整屏区（改前压编辑页那颗钮就是这么来的）');
+      if (String(var48.barZ) !== '8000') F48('提醒条 z 现场读到 ' + var48.barZ + '（登记 8000）：① 的正向锚与整族对账用的是同一个值，两处必须一致');
+    }
+  }
+
+  /* (b) 「上次备份」两个出口的读写跨文件对账：按文件数命中，不按名字名单 */
+  {
+    const ROOT48 = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+    const CAL48B = flat48("localStorage.setItem('tn_lastBackup', '1'); var x=localStorage.getItem('tn_webdav_last');");
+    const kc = ['tn_lastBackup', 'tn_webdav_last'].map(k => (CAL48B.match(new RegExp("'" + k + "'", 'g')) || []).length);
+    if (kc.join(',') !== '1,1') F48('备份键那把刀自校准失准（合成一行两键各应读 1，实得 ' + kc.join(',') + '）：读不到就等于下面那张表全空');
+    const KEY48 = { 'tn_lastBackup': { 'index.html': 1, 'settings.html': 1, 'backup.js': 1 },
+      'tn_webdav_last': { 'index.html': 1, 'sync-webdav.js': 1, 'backup.js': 1 } };
+    Object.keys(KEY48).forEach(function (k) {
+      const E48 = {};
+      ROOT48.forEach(function (f) {
+        const n = ((flat48(rd48(f)).match(new RegExp("'" + k + "'", 'g')) || [])).length;
+        if (n) E48[f] = n;
+      });
+      var48.keys[k] = E48;
+      const want = KEY48[k], got = Object.keys(E48).sort().join('+') || '空';
+      const wd = Object.keys(want).sort().join('+');
+      if (got !== wd) F48('键「' + k + '」的落点与登记表对不上：现读 ' + got + '（' + JSON.stringify(E48) + '），登记 ' + wd + '——口径是「写的人一处、读的人一处、禁入备份包一处」：少一处＝有一边改了名字，那条判定会静默恒弹或恒不弹；多一处＝多了一个人写同一份「上次备份」，谁赢看不出来');
+      Object.keys(want).forEach(function (f) { if ((E48[f] || 0) !== want[f]) F48('键「' + k + '」在 ' + f + ' 里实得 ' + (E48[f] || 0) + '，期望 ' + want[f] + '：同一文件里读它两次或写它两次，说明出口不再唯一'); });
+    });
+  }
+
+  /* (c) 位置邻接：那一层的 markup 必须紧跟在 body 注入语句之后（光 z:9005 在场不构成修复） */
+  {
+    const T48 = V48['travel-notes.js'];
+    const iB = T48.indexOf("document.body.insertAdjacentHTML('beforeend',");
+    const iQ = T48.indexOf('<div class="tn-quotes" id="tnQuotes">');
+    if (iB < 0 || iQ < 0) F48('邻接检读不到两头（insertAdjacentHTML@' + iB + '／markup@' + iQ + '）：① 那两条锚有一条已经漂了，这一支当场失明');
+    else if (!(iQ > iB && iQ - iB <= 60)) F48('markup（@' + iQ + '）与 body 注入语句（@' + iB + '）之间隔了 ' + (iQ - iB) + ' 个字符（上限 60，现场取数时是 49，那就是那句注入语句自己的长度）：那一层不是被这段语句插进 body 的——改前它就是住在 panel.innerHTML 的 .tn-foot 里，同一个 z:9005、同一段 markup，只是位置不同');
+  }
+
+  /* ④ 浏览器腿齐备检：L01–L39 逐条在场 + 抛出反证那条 + 循环上限对账 + 条数守卫 */
+  {
+    const S48 = V48['tools/smoke-layer.js'];
+    for (let i = 1; i <= 39; i++) {
+      const lab = "ok('L" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt48(S48, lab) !== 1) F48('tools/smoke-layer.js 里 L' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt48(S48, lab) + '）：这一节的立论是「层级改动必须由真鼠标点得到来证明」，删一条就少一个证据，改编号会让 §48 的齐备检集体失效');
+    }
+    if (cnt48(S48, "ok('L40 ") !== 1) F48('L40（两条腿跑完没有抛出）不在场：腿是顺序跑的，抛在中间＝后面的判据一条都没执行，那种「全绿」是空转出来的');
+    if (cnt48(S48, "ok('L12 ") !== 1) F48('L12 不在场（它问的是「编辑页里这条仍在 DOM」）：这一条把「不遮挡」与「摘掉」区分开——靠六处开屏各挂钩子也能做到不压人，但那不是本节要的修法');
+    if (cnt48(S48, 'checks >= 38') !== 1) F48('条数守卫不在了或阈值被挪：判据是 39 条，ok() 在自增前求值，所以表达式写的是 checks >= 38');
+    {
+      const LAB48 = S48.match(/ok\('(L\d+)[ ]/g) || [];
+      const MAXN48 = LAB48.reduce((m, s) => Math.max(m, Number(/L(\d+)/.exec(s)[1])), 0);
+      const SEG48 = (rd48('tools/verify.js').split('④ 浏览器腿齐备检：L01')[1] || '');
+      const BOUND48 = (SEG48.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND48 === undefined) F48('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND48) !== MAXN48 - 1) F48('④ 齐备检的循环上限是 ' + BOUND48 + '，而浏览器腿里真实最大编号是 L' + MAXN48 + '：L40 只在 catch 支里（抛了才会跑），所以上限该是最大编号减 1；上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V48['README.md'].indexOf('§48') < 0) F48('README.md 的 verify 清单没提 §48（新闸门不写进 README 就等于没装）');
+  if (V48['README.md'].indexOf('smoke-layer') < 0) F48('README.md 没登记 tools/smoke-layer.js 这条腿');
+
+  console.log('浮层层级与互斥闸门: ' + A48.length + ' 条代码锚点（名言层的 body 注入与 markup 各一／五处接线从 qq 找＋触发钮留 panel 那一条／收起两支的 display 恰 2／注入 CSS 里那一族的 z 分母／提醒条的 z:8000 与两个出口的读法与严格比较／12s 唯一时长与 #bkGo 的落点／.search-panel 那处未定性的 z:9500 登记成哨兵／写侧三行（LAST_KEY 定义、record 唯一写点、{ts,ok,msg} 形状）与 settings 的 String(Date.now())／design.css 那条 44px 地板管到浮层输入框／浏览器腿的屏档·计时器劫持·文案判据·三层各问一次·条数守卫）+ 八族期望 0（六形 $X(panel, \'#tnQuote…\') 回潮／z-index:9500 回条子／两出口判定缩回单出口）各配 HEAD 原串正向对照 + 三把内置扫描全量对账（派生整屏浮层族 ' + var48.fam + ' 个成员逐一对表、最低 z=' + var48.minFam + ' 必须严格大于提醒条 z=' + var48.barZ + '；两个备份键的落点逐文件恰数（现读 ' + JSON.stringify(var48.keys) + '）；markup 与 body 注入语句的邻接 ≤60 字符），每把都先拿合成样本自校准 + 一条自指纪律（flat48/view48 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 L01–L39 齐备检与条数守卫（含 L40 抛出反证、L12「还在 DOM」那条把「不遮挡」与「摘掉」区分开）；A48 表长 ' + A48.length + ' 条、ZERO48 表长 ' + ZERO48.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b33-probe-33b.txt:15、:19 与 tools/out/b33-probe-editpage.txt:13，那两句「改前会怎样」由反向腿 tools/out/probe33-prefix.js 在运行时造出改前条件量成读数（tools/out/b33-probe-prefix.txt:9 click=0、:15 click=1、:28 切档残留、:34 现场三归零），改后读数见 tools/out/b33-smoke-layer.txt，变异自测见 tools/out/mut-verify48.js');
+  fail += bad48;
+}
+
+/* ============ §49 入口接线与深链回执闸门（批次 34） ============
+   用户点单（逐字）：「旅程回顾页面下方列出的三条随手记的记录，有照片但不显示，只有空白的照片框，
+   点击没响应（只是展示吗？）」，以及「先不做a，其它的如果是问题就修，对项目有提升的就改」。
+   这一节管两类「屏上看得见、点下去没反应」，它们的失败模式都不在源码里，而在真鼠标与载入时序上。
+
+   地基实测（改前，tools/out/b34-probe-deadclick.txt，328×723 真 Chrome）：
+     · story.html 的日卡照片框：在场 6 枚，带 onclick 属性的 0 枚（:6）；首枚 90×90@35,636、
+       cursor:auto、onclickAttr 空（:5）；真点之后查看器读数 null（:7）。
+       同一族动作在 review.html 早就接好了（:18/:19 那条对照在改前就是通的），所以「点了没反应」不能赖环境。
+     · me.html「最近记录」：一排纯 div——onclickAttr 空、dataGo 空、cursor:auto（:12），
+       行高 [32,33,33]（:13）低于项目自定 44 地板。
+       这一腿自己踩过坑：首行排不到（cy=909 在视口 723 之外），:14 那句「url 未变」因此不算证据——
+       视口外的 mouse.click 等于没点。本节的结论只认三条属性读数，取点一律先滚进视口
+       （常驻腿 E24 就是把「顶命中读成 null＝这一格在视口外」钉成判据，而不是让它冒充一次成功的点击）。
+     · 底导航带 nav.bottom-nav 占 639–709（:8），story 首枚的中心点 681 正落在这条带里，
+       那一点之后 url 变成 travel-map.html（:9）——「点照片框，页面却换了」是改前的现场。
+   深链那一支另有地基：travel-map.html 的 ?id= 写在脚本解析期，那一刻 TravelNotes.list() 是空数组
+   （notes 由 IndexedDB 异步灌入，init() 还要更晚）。插桩读数 tools/out/b34-probe-deadlink.txt:10
+   「解析期那次调用条数 [0]」、:11 形状 ["解析期:708"]；效果读数 :21/:22 仍是「游记 4 篇 · 地点 3 处」
+   与全体 fitBounds 的中心。而另外两档（:34 缺坐标、:40 id 不存在）读回来的也是这同一句常态统计——
+   沉默不是「定位失败」，是那段代码压根没跑过。同页不依赖 notes 的 ?lat= 链在同一环境能 flyTo 并回执
+   （:28/:29），所以也不能赖环境。search.html:216 一直往这条链上送人，me.html 本批又接了一个入口。
+
+   改后（tools/out/b34-probe-deadclick-after.txt 与 tools/out/b34-probe-deadlink-after.txt）：
+     · story 6/6 带 onclick、滚进中位后 90×90@35,317 顶命中 img（:10）、真点开出查看器 "1 / 2"（:11）；
+       原位那一读仍是 null（:7）——接线改了、版式没改，那一半单独报给审核报告 §3 等点单，不伪装成已修。
+     · me 三行 [44,44,44]（:15）、dataGo 与 cursor 齐（:14）、真点 url 变成 travel-map.html?id=s3（:17）。
+     · 解析期调用 0 次（:10）、locateDeepNote 那一次条数 [4]（:11）、?id=s2 落到「已定位：云冈石窟」
+       中心 z13（:21/:22），缺坐标与找不到两档各有一句可读回执（:34、:40）。
+   常驻腿 tools/smoke-entry.js 把这些收在一起：32 条判据全绿、0 条未捕获报错（tools/out/b34-smoke-entry.txt）。
+
+   本节钉四件事：
+     ① 每一枚「app 屏上看得见的缩略图」都要归到出口四档之一（页面级查看器／页内全屏层／编辑稿动作／
+        行级出口），导出文档里的那些另立一档。这条按派生扫描对账、不抄名单：将来多一处出图而没归档，红。
+        分母取自盘上的行，同一把刀再走一遍 flat 视图对账——注释里写一句出图形状就会把行数带偏。
+     ② me.html 那一排从前是 div：现在它是入口，就得一起带上 44 地板、cursor、role/tabindex/aria-label
+        和键盘那半支（只接鼠标＝一半人可点）。发出 data-go 的文件必须也有读 dataset.go 的人，逐文件对账。
+     ③ 深链的立论是「消费必须在载入完成之后」，所以钉的是 locateDeepNote 那一段的形状：
+        三档回执各恰一处、flyTo 恰一处、读库恰一处、一次性清零恰一处、且整段不许再有 setTimeout——
+        挂 500ms 是猜一个「载入大概完成了」的时刻，不是等载入完成，那种写法在本节判据里回潮即红。
+     ④ 浏览器腿 E01–E31 齐备检 + 分母守卫（E00 种子不对整腿收摊，不把空转写成绿）+ 条数守卫 +
+        E32 那条「抛出即判据没跑完」的反证。 */
+{
+  let bad49 = 0;
+  const F49 = m => { bad49++; console.log('FAIL §49 入口接线与深链回执: ' + m); };
+  const ws49 = s => s.replace(/\s+/g, ' ').trim();
+  const flat49 = s => ws49(stripBlockComments(s));
+  const cnt49 = (s, n) => s.split(n).length - 1;
+  const rd49 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view49 = f => /\.md$/.test(f) ? ws49(rd49(f)) : flat49(rd49(f));
+
+  const FILES49 = ['story.html', 'me.html', 'design.css', 'travel-map.html', 'search.html',
+    'md-manager.html', 'tools/smoke-entry.js', 'README.md'];
+  const V49 = {};
+  FILES49.forEach(f => {
+    if (!fs.existsSync(f)) { F49('缺 ' + f); V49[f] = ''; return; }
+    V49[f] = view49(f);
+  });
+
+  /* ⓪ 自指纪律（同 §45/§46/§47/§48 那一支）：本节的期望 0 有一族住在「改前原串还写在注释里」的那一带，
+        真代码被注释吞掉时它们会静默满足。于是在四处改动旁边各钉一枚现场哨兵。 */
+  {
+    const DEF49 = (rd49('tools/verify.js').match(/^[ \t]*const flat49 = [^\n]*/m) || [''])[0];
+    if (DEF49.indexOf('stripBlockComments') < 0) F49('§49 的 flat49 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF49.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L49 = (rd49('tools/verify.js').match(/^[ \t]*const view49 = [^\n]*/m) || [''])[0];
+    if (L49.indexOf('.md$') < 0) F49('view49 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L49.slice(0, 60) || '整行没数到') + '）：审核报告与 README 天生要写这族的改前形状，文档侧的锚会当场读 0');
+    [['story.html', "n.photos.map(function(p,pi){"],
+     ['me.html', "var box = document.getElementById('meRecent');"],
+     ['design.css', '#meRecent .rec{min-height:44px}'],
+     ['travel-map.html', 'function locateDeepNote(){']].forEach(function (p) {
+      if (V49[p[0]].indexOf(p[1]) < 0) F49('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：三处出口的接线 + 深链那一段的骨架 + 常驻腿的形状 */
+  const A49 = [
+    /* —— story.html：日卡照片框接上页面级查看器 —— */
+    ['story.html', '<div class="sc-pics">', 1, '照片框这一族在场；改前它是「有 src 有样式、没有出口」的一排图'],
+    ['story.html', "onclick=\"TravelNotes.zoomPhotoIdx(\\x27'+n.id+'\\x27,'+pi+')\"", 1, '接到页面级查看器，且落在「第几张」由 pi 决定：改成写死 0 就是永远停在第一张；改前这一行只有 src 与 onerror，实测 6 枚里 0 枚带 onclick（tools/out/b34-probe-deadclick.txt:6）'],
+    ['story.html', 'n.photos.map(function(p,pi){', 1, 'map 的形参要带 pi：查看器落在「第几张」全靠它，少一个形参就永远停在第一张'],
+    ['story.html', '.story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto;cursor:pointer}', 1, 'cursor 与接线必须一起改：只接不显，用户照样不知道能点（改前 cursor:auto 同一条读数 :5）'],
+    /* —— me.html：「最近记录」从 div 变成合格的入口 —— */
+    ['me.html', "data-go=\"travel-map.html?id=' + encodeURIComponent(n.id||'')", 1, '出口跟 search.html:216 同一形状；encodeURIComponent 在，id 里带了奇怪字符也不会把查询串拼歪'],
+    ['me.html', 'role="button" tabindex="0" aria-label="打开这篇游记"', 1, '接成入口就要可达：这三样与 onclick 同批落地，缺一样是一半人能点'],
+    ['me.html', 'location.href=it.dataset.go;', 2, 'onclick 与 onkeydown 两支各一处——只接鼠标＝键盘用户点不动'],
+    ['me.html', "if(e.key==='Enter'||e.key===' '){ e.preventDefault(); location.href=it.dataset.go; }", 1, '空格键要 preventDefault：不拦的话滚页与跳转同时发生'],
+    ['me.html', 'return (b.ts||0) - (a.ts||0);', 1, '裸减法撞没填时间戳那篇返回 NaN，顺序交给引擎，「最近」两个字就成了谎（§7 登记的那一族）'],
+    ['me.html', "var box = document.getElementById('meRecent');", 1, '容器只查一次：写入与接线共用同一个节点，改线打空就不会一半行有出口一半没有'],
+    ['me.html', "box.querySelectorAll('.rec').forEach(function(it){", 1, '逐行绑定的分母取自 DOM，不是模板里的计数——渲染没出来的行不该有人替它认领出口'],
+    /* —— design.css：入口不能是新的低值钮 —— */
+    ['design.css', '#meRecent .rec{min-height:44px}', 1, '44 地板管到这一排：改前实测 [32,33,33]，接成入口而不抬地板＝造一枚不合格的新钮'],
+    /* —— travel-map.html：深链消费挪到载入完成之后 + 三档回执 + 一次性 —— */
+    ['travel-map.html', 'function locateDeepNote(){', 1, '深链找那一篇这件事必须是一个「被载入回调叫去」的函数，不是解析期自执行'],
+    ['travel-map.html', 'refresh(); locateDeepNote();', 1, '挂在 _onReady 之后，且排在 refresh 之后：refresh 会写那行字，回执晚一步才能盖在它上面'],
+    ['travel-map.html', "var _deepId=(location.search.match(/[?&]id=([^&]+)/)||[])[1]||'';", 1, '解析期只取串（不读库）：串当场就在 URL 里，库里的条数要等载入完成'],
+    ['travel-map.html', "_deepId='';", 1, '一次性：不清零的话，保存之后 _onReady 再跑一次会把人从全体视野抢回那一点'],
+    ['travel-map.html', "sm.textContent='没找到那篇游记，可能已经被删除了'", 1, '回执档一：找不到也要说话（改前三档读回来是同一句常态统计，tools/out/b34-probe-deadlink.txt:34、:40）'],
+    ['travel-map.html', "sm.textContent='「'+nm+'」没有坐标，地图上定位不了'", 1, '回执档二：命中了但地图上没有那一点，不能和用户的期望之间留一片空白'],
+    ['travel-map.html', "sm.textContent='已定位：'+nm", 1, '回执档三：成功也要说同一口径的一句话'],
+    ['travel-map.html', 'try{ id=decodeURIComponent(_deepId); }catch(e){}', 1, '坏 % 串会让 decodeURIComponent 抛 URIError；这一抛发生在 _onReady 里＝整页刷新没跑完（实测腿 E19）'],
+    ['travel-map.html', 'if(nn.lat==null||nn.lng==null)', 1, '缺坐标那一档要显式判：lat 为 0 是合法值，用真值判断会把赤道上的点读成「没有坐标」'],
+    ['travel-map.html', "var nn=TravelNotes.list().filter(function(x){return x.id===id;})[0];", 1, '读库恰一次且在这一段里：整节的立论就是「这一刻 notes 已经灌好了」，实测条数 4（tools/out/b34-probe-deadlink-after.txt:11）'],
+    ['travel-map.html', 'function openMemSheetById(id){', 1, '聚合列表点单篇的入口（深链之外同一条 id 的第二个消费者）'],
+    ['travel-map.html', "onclick=\"zoomPhoto(this.src)\"", 2, '游记卡与记忆列表那两族缩略图各接一处本页全屏层'],
+    ['travel-map.html', "'已定位：'", 2, '深链与 ?lat= 两条链共用这一句回执口径：把某一处挪走，这一条会红而不是静默少一种'],
+    /* —— search.html：旧入口保留哨兵 —— */
+    ['search.html', 'travel-map.html?id=', 1, '首页搜索那条老出口要一直在：深链修好了而入口被删，等于把通路从两条砍回一条（入口太窄那一族）'],
+    /* —— 常驻浏览器腿的形状 —— */
+    ['tools/smoke-entry.js', 'const VW = 328, VH = 723;', 1, '必须量用户那块屏（§37 口径）'],
+    ['tools/smoke-entry.js', "localStorage.setItem('tn_onboarded', '1');", 1, '不打这个标记，首启引导蒙层（z9990）会吃掉真鼠标点击，症状酷似「入口没接线」'],
+    ['tools/smoke-entry.js', "e.scrollIntoView({ block: 'center' });", 1, '滚进中位而不是起始：block:start 会把缩略图送到 y=0，中心命中的是吸顶条，那是取点的锅'],
+    ['tools/smoke-entry.js', "RD.hit !== 'null'", 1, '把「顶命中读成 null＝那一格在视口外」钉成判据：视口外的 mouse.click 等于没点，上一版就是这么「点过」的'],
+    ['tools/smoke-entry.js', 'appmaptile', 1, '瓦片噪声单记：静态 http 环境里在线瓦片注定取不到，混进 errs 就没法分辨真异常'],
+    ['tools/smoke-entry.js', 'SEED_DENOMINATOR', 1, '分母不对就整腿收摊——「判据不许空跑」这条在这一腿里是唯一落点'],
+    ['tools/smoke-entry.js', 'checks >= 31', 1, '条数守卫（本闸门自己也会被删）：判据 32 条，ok() 在自增前求值所以表达式写 31'],
+    ['tools/smoke-entry.js', 'gujian-notes', 1, '种子直写的是产品自己那个库名；库名换了而腿还在写旧库，读到的永远是空态'],
+  ];
+  A49.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F49('A49 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V49)) { F49('A49 登记了 §49 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt49(V49[f], needle);
+    if (n !== exp) F49(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批改掉的旧写法各配一条正向对照（那个 0 不是证据，除非同一把刀能在改前原件上读出 1）。
+        对照串取自 git show HEAD:story.html / HEAD:me.html / HEAD:travel-map.html 的真行原文。 */
+  const ZERO49 = [
+    ['travel-map.html', 'var nts=TravelNotes.list();for(var i=0;i<nts.length;i++)',
+      "(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();",
+      '深链又回到解析期读库：那一刻 notes 还是空数组，for 一次都不进，不 flyTo、不改那行字、也不说为什么（插桩读数 tools/out/b34-probe-deadlink.txt:10 条数 [0]）'],
+    ['travel-map.html', "setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null)",
+      "(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();",
+      '挂 500ms 是猜一个「载入大概完成了」的时刻，不是等载入完成：慢机上库还没灌好照样空转，快机上地图刚建就被抢——那种写法没有任何判据能看见它失败'],
+    ['travel-map.html', 'location.search.match(/[?&]id=([^&]+)/);if(m){',
+      "(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();",
+      '解析期自执行那一支回来了：本节的立论（消费必须在载入完成之后）当场失效，而屏上只会表现为「点了没反应」'],
+    ['story.html', "n.photos.map(function(p){return '<img loading=\"lazy\" decoding=\"async\" src=\"'+esc(p)+'\" onerror=\"window.UI&&UI.imgFail(this)\">';",
+      "    var pics=(n.photos&&n.photos.length)?'<div class=\"sc-pics\">'+n.photos.map(function(p){return '<img loading=\"lazy\" decoding=\"async\" src=\"'+esc(p)+'\" onerror=\"window.UI&&UI.imgFail(this)\">';}).join('')+'</div>':'';",
+      '照片框回到「有图无出口」那一版：用户看到的还是空白照片框，点了没响应——这就是本批用户点单逐字报的那件事'],
+    ['story.html', '.story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto}',
+      "  .story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto}",
+      'cursor 从这一行退回去：接线还在但屏上没有任何可点承诺（改前实测 cursor:auto，tools/out/b34-probe-deadclick.txt:5）'],
+    ['me.html', "'<div class=\"rec\"><span class=\"dot\"></span>",
+      "      return '<div class=\"rec\"><span class=\"dot\"></span><span class=\"t\">' + esc(n.title || n.siteName || '未命名') + '</span><span class=\"d\">' + esc(TravelNotes.dayText(n)) + '</span></div>';",
+      '那一排又变回纯 div：无出口、无 data-go、无 role（改前实测 onclickAttr 空、dataGo 空、cursor:auto，tools/out/b34-probe-deadclick.txt:12）——「最近记录」四个字就成了一个摆设'],
+    ['me.html', 'b.ts - a.ts',
+      "    var recent = notes.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,4);",
+      '排序回到裸减法：撞上没有 ts 的那篇返回 NaN，比较结果交给引擎，「最近」两字的顺序不再可预期'],
+    ['me.html', "document.getElementById('meRecent').innerHTML = recent.length",
+      "    document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){",
+      '写入与接线分开各查一次容器：绑定时拿到的可能不是刚写进去的那批节点，症状是「有时能点有时不能点」这种最难复现的'],
+  ];
+  ZERO49.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F49('ZERO49 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V49)) { F49('ZERO49 登记了 §49 没读的文件「' + f + '」：' + why); return; }
+    if (cnt49(V49[f], needle) !== 0) F49(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt49(flat49(ctrl), needle) < 1) F49('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置扫描：三把，都先拿合成样本自校准，再去读现场。
+        为什么必须派生而不是抄名单：本节的立论是「每一枚屏上看得见的缩略图都有出口」，
+        而「有哪些缩略图」是随代码长的——有人再加一处出图，名单式守卫会安静地不知道它存在。 */
+  let var49 = { em: 0, emFlat: 0, rowExit: 0, dg: {}, seg: {}, deep: 0 };
+  const EM49_SRC = '\\.photos(?:\\.slice\\([^)]*\\))?\\.map\\(';
+
+  /* (a) 派生「谁在拼照片缩略图」，逐文件对账条数，并要求每一枚归到出口档位之一 */
+  {
+    const CAL49 = ['<div>' + 'x.photos.slice(0,4).map(function(p,pi){return "<img onclick=\"TravelNotes.zoomPhotoIdx(" );',
+      'y.photos.map(function(p){ return "<img onclick=\"zoomPhoto(this.src)" );'].join('\n');
+    const calN = (CAL49.match(new RegExp(EM49_SRC, 'g')) || []).length;
+    if (calN !== 2) F49('缩略图那把刀自校准失准（合成两行、含带 slice 与不带 slice 两种形状，应读 2，实得 ' + calN + '）：刀一瞎，下面那句「每一枚都归了档」就只是句空话');
+    const ROOT49 = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+    const BUCK49 = [
+      ['zoomPhotoIdx', '接到页面级查看器'],
+      ['zoomPhoto(this.src)', '接到页内全屏放大层'],
+      ['data-act=', '编辑稿的照片位：每一枚自带「换」「删」两个动作，出口在图之外'],
+      ['max-width:46', '导出文档里的图：那份文档在 app 内被 esc() 成纯文本预览，屏上没有这一枚（results.js:79 那条预览线）'],
+    ];
+    const ROWEX49 = { 'md-manager.html': 'it.onclick = function () { openDetail(n); };' };
+    const EM49 = [];
+    ROOT49.forEach(function (f) {
+      rd49(f).split(/\r?\n/).forEach(function (L, i) {
+        if (new RegExp(EM49_SRC).test(L)) EM49.push({ f: f, i: i });
+      });
+    });
+    var49.em = EM49.length;
+    var49.emFlat = ROOT49.reduce((a, f) => a + ((flat49(rd49(f)).match(new RegExp(EM49_SRC, 'g')) || []).length), 0);
+    if (var49.em !== var49.emFlat) F49('缩略图分母在两个视图里不一致：按行读到 ' + var49.em + ' 处、剥完注释再读到 ' + var49.emFlat + ' 处——有一处写在块注释里（盘上的行那把刀看不见注释），归档表会把一句不存在的话当成一枚图来判它有没有出口');
+    const PER49 = {};
+    EM49.forEach(function (o) {
+      const raw = rd49(o.f);
+      const win = raw.split(/\r?\n/).slice(o.i, o.i + 4).join(' ');
+      PER49[o.f] = (PER49[o.f] || 0) + 1;
+      const hit = BUCK49.filter(b => win.indexOf(b[0]) >= 0)[0];
+      if (hit) return;
+      if (ROWEX49[o.f] && rd49(o.f).indexOf(ROWEX49[o.f]) >= 0) { var49.rowExit++; return; }
+      F49(o.f + ':' + (o.i + 1) + ' 在拼缩略图，但它和它下面三行里没有四个出口档位里的任何一个，也不在「行级出口」那条例外里（例外要求本文件里能找到那行的行处理器）：屏上一枚能看不能点的图，就是本批用户逐字报的那个症状');
+    });
+    const REG49 = { 'album-edit.html': 1, 'md-manager.html': 2, 'results.js': 1, 'review.html': 1,
+      'story.html': 1, 'travel-map.html': 1, 'travel-notes.js': 2 };
+    const D49 = [];
+    Object.keys(PER49).forEach(k => { if (!(k in REG49)) D49.push(k + '=' + PER49[k] + ' 没登记（新添的一处出图：它归哪一档、屏上有没有那一枚，没人算过）'); });
+    Object.keys(REG49).forEach(k => {
+      if (!(k in PER49)) D49.push(k + ' 派生不到（登记 ' + REG49[k] + ' 处）：它那一段 .photos(...).map( 的形状被改写，刀读不到＝这一处出图不再参加归档');
+      else if (PER49[k] !== REG49[k]) D49.push(k + ' 实得 ' + PER49[k] + '／登记 ' + REG49[k]);
+    });
+    if (D49.length) F49('缩略图发出者与登记表对不上（' + D49.join(' ｜ ') + '）');
+    if (var49.rowExit !== 1) F49('靠「行级出口」这一档过关的缩略图现在读到 ' + var49.rowExit + ' 处（登记 1 处＝md-manager 列表行，浏览器腿 E27 实测点它打开详情）：多于 1 处就是有第二处出图在给自己找豁免，少于一处就是那条例外已经不需要了，两种都要重新看一眼而不是让闸门静默');
+  }
+
+  /* (b) data-go 的发出者与读取者跨文件对账：入口这一族不许「有人写没人读」 */
+  {
+    const CAL49B = flat49("var q='<div data-go=\"a\">'; x.onclick=function(){ location.href=q.dataset.go; };");
+    if ((cnt49(CAL49B, 'data-go=') !== 1) || (cnt49(CAL49B, 'dataset.go') !== 1)) F49('data-go 那把刀自校准失准（合成一行两样各应读 1，实得 ' + cnt49(CAL49B, 'data-go=') + '/' + cnt49(CAL49B, 'dataset.go') + '）：读不到就等于下面那张表全空');
+    const REG49B = { 'me.html': { emit: 1, read: 2 }, 'search.html': { emit: 3, read: 2 } };
+    const DG49 = {};
+    fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile()).forEach(function (f) {
+      const t = flat49(rd49(f));
+      const e = cnt49(t, 'data-go='), r = cnt49(t, 'dataset.go');
+      if (e || r) DG49[f] = { emit: e, read: r };
+    });
+    var49.dg = DG49;
+    const D49B = [];
+    Object.keys(DG49).forEach(k => {
+      if (!(k in REG49B)) D49B.push(k + ' 发出/读取 data-go 但没登记（' + JSON.stringify(DG49[k]) + '）：新入口要一并进 A49 的形状判据');
+      else if (JSON.stringify(DG49[k]) !== JSON.stringify(REG49B[k])) D49B.push(k + ' 实得 ' + JSON.stringify(DG49[k]) + '／登记 ' + JSON.stringify(REG49B[k]));
+      if (DG49[k].emit > 0 && DG49[k].read === 0) D49B.push(k + ' 发出 ' + DG49[k].emit + ' 处 data-go 却一次都不读：那一行在屏上长得像入口，点了什么都不发生');
+    });
+    Object.keys(REG49B).forEach(k => { if (!(k in DG49)) D49B.push(k + ' 派生不到 data-go（登记 ' + JSON.stringify(REG49B[k]) + '）：形状被改写，这条通路不再参加对账'); });
+    if (D49B.length) F49('data-go 发出／读取与登记表对不上（' + D49B.join(' ｜ ') + '）');
+  }
+
+  /* (c) 深链那一段的形状：三档回执各一处 + 读库一次 + 一次性清零 + 不许再用计时器猜载入完成 */
+  {
+    const raw49 = rd49('travel-map.html').split(/\r?\n/);
+    const s49 = raw49.findIndex(L => L.indexOf('function locateDeepNote(){') >= 0);
+    let e49 = -1;
+    for (let i = s49 + 1; i < raw49.length; i++) { if (raw49[i].trim() === '}') { e49 = i; break; } }
+    if (s49 < 0 || e49 < 0) F49('读不到 locateDeepNote 那一段的两头（起始 @' + s49 + '／结束 @' + e49 + '）：这一支当场失明，③ 的所有计数都不作数');
+    else {
+      const seg = raw49.slice(s49, e49 + 1).join('\n');
+      const segF = flat49(seg);
+      const C49 = [['sm.textContent', 3, '三档回执各一处：少一档就是又回到沉默（改前 ?id= 三种落点读回来是同一句常态统计）'],
+        ['.flyTo(', 1, '定位动作恰一处：出现第二处就是有人在段外或循环里重复抢镜头'],
+        ['TravelNotes.list()', 1, '读库恰一处：这一处必须在载入完成之后，整段的立论就是它'],
+        ["_deepId=''", 1, '一次性清零恰一处：不写就等于给每次 _onReady 都留了一次抢焦点的机会'],
+        ['decodeURIComponent', 1, '解码只在段内一次，且必须裹在 try/catch 里'],
+        ['lat==null', 1, '缺坐标那一档的判据形状：换成真值判断会把 lat=0 读成没有坐标'],
+        ['setTimeout', 0, '段内不许再有计时器：挂 500ms 是猜载入完成，不是等载入完成，那种写法看不见自己失败']];
+      C49.forEach(function (c) {
+        const a = cnt49(seg, c[0]), b = cnt49(segF, c[0]);
+        var49.seg[c[0]] = a;
+        if (a !== c[1]) F49('locateDeepNote 段内「' + c[0] + '」实得 ' + a + '，期望 ' + c[1] + '：' + c[2]);
+        if (a !== b) F49('locateDeepNote 段内「' + c[0] + '」按原文读到 ' + a + '、剥完注释读到 ' + b + '：差额住在注释里，那种「计数对了」是抄来的不是代码给的');
+      });
+      const T49 = V49['travel-map.html'];
+      const i1 = T49.indexOf("var _deepId=(location.search.match(");
+      const i2 = T49.indexOf('function locateDeepNote(){');
+      const i3 = T49.indexOf('refresh(); locateDeepNote();');
+      if (!(i1 >= 0 && i2 > i1 && i3 > i2)) F49('深链三件套的先后不对（取串@' + i1 + '／函数@' + i2 + '／调用@' + i3 + '）：立论是「解析期只取串、消费在载入完成之后」，顺序倒了就是又回到解析期读库');
+      const i4 = T49.indexOf('window.TravelNotes._onReady');
+      const between = T49.slice(i4, i3);
+      if (!(i4 >= 0 && i3 > i4 && /function\s*\(/.test(between) && between.indexOf('};') < 0)) F49('refresh(); locateDeepNote(); 没落在 _onReady 那一支的函数体里（锚@' + i4 + '／调用@' + i3 + '，两者之间读到 ' + JSON.stringify(between.slice(0, 40)) + '）：那一句是载入完成的唯一信号，挂在别处就又回到「没人等载入完成」');
+      const nCalls = cnt49(T49, 'locateDeepNote(');
+      if (nCalls !== 2) F49('travel-map.html 里 locateDeepNote( 实得 ' + nCalls + '，期望 2（定义一处 + _onReady 里调用一处）：多一处就是有人在载入完成之外又抢了一次镜头，少一处是这一段不再被任何人叫起');
+    }
+  }
+
+  /* ④ 浏览器腿齐备检：E01–E31 逐条在场 + 分母守卫 + 抛出反证 + 循环上限对账 + 条数守卫 */
+  {
+    const S49 = V49['tools/smoke-entry.js'];
+    for (let i = 1; i <= 31; i++) {
+      const lab = "ok('E" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt49(S49, lab) !== 1) F49('tools/smoke-entry.js 里 E' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt49(S49, lab) + '）：这一节的立论是「入口能不能点必须由真鼠标点得到来证明」，删一条就少一个证据，改编号会让 §49 的齐备检集体失效');
+    }
+    if (cnt49(S49, "ok('E00 ") !== 1) F49('E00（种子自校准：库里 4 篇／带图 3 篇／缺坐标 1 篇）不在场：分母一错，下面每一句 miss 都会被读成产品缺陷，而真正的空转不会红');
+    if (cnt49(S49, "throw new Error('SEED_DENOMINATOR'") !== 1) F49('分母不对就整腿收摊那一支不在场：只有 say 一句而不 throw，那条腿会继续把「什么都没量到」写成一片绿');
+    if (cnt49(S49, "ok('E32 ") !== 1) F49('E32（两条腿跑完没有抛出）不在场：腿是顺序跑的，抛在中间＝后面的判据一条都没执行，那种「全绿」是空转出来的');
+    if (cnt49(S49, "ok('E24 ") !== 1) F49('E24 不在场（它问的是「那一格滚进视口后顶命中读不读得到东西」）：这一条把「点过」与「点到」区分开——上一版 review 那一条就是这么「点」成功的');
+    if (cnt49(S49, 'checks >= 31') !== 1) F49('条数守卫不在了或阈值被挪：判据是 32 条，ok() 在自增前求值，所以表达式写的是 checks >= 31');
+    {
+      const LAB49 = S49.match(/ok\('(E\d+)[ ]/g) || [];
+      const MAXN49 = LAB49.reduce((m, s) => Math.max(m, Number(/E(\d+)/.exec(s)[1])), 0);
+      const SEG49 = (rd49('tools/verify.js').split('④ 浏览器腿齐备检：E01')[1] || '');
+      const BOUND49 = (SEG49.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND49 === undefined) F49('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND49) !== MAXN49 - 1) F49('④ 齐备检的循环上限是 ' + BOUND49 + '，而浏览器腿里真实最大编号是 E' + MAXN49 + '：E32 只在 catch 支里（抛了才会跑），所以上限该是最大编号减 1；上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V49['README.md'].indexOf('§49') < 0) F49('README.md 的 verify 清单没提 §49（新闸门不写进 README 就等于没装）');
+  if (V49['README.md'].indexOf('smoke-entry') < 0) F49('README.md 没登记 tools/smoke-entry.js 这条腿');
+
+  console.log('入口接线与深链回执闸门: ' + A49.length + ' 条代码锚点（story 那一族的图／出口／pi 形参／cursor 同一行／me 的 data-go+encodeURIComponent／role-tabindex-aria 三件／location.href 两支各一／空格 preventDefault／||0 排序／容器单点／逐行绑定的分母／design.css 那条 44 地板管到 .rec／深链五件（函数、_onReady 之后的调用、解析期只取串、一次性清零、三档回执各一处）与段内解码 try、lat==null 显式判、读库恰一次、聚合入口与两族全屏层、共用回执口径两处／search 那条老出口的保留哨兵／常驻腿的屏档·onboarded 标记·block:center·顶命中 null 判据·瓦片噪声·分母收摊·条数守卫·库名）+ 八族期望 0（解析期读库那三形／setTimeout 猜载入／story 有图无出口那一行／story 无 cursor 那条规则／me 无出口的那排 div／裸减法／写入与绑定分开的旧形）各配 HEAD 原串正向对照 + 三把内置扫描全量对账（派生缩略图发出者 ' + var49.em + ' 处逐文件对表并强制归四档之一、靠行级出口过关的恰 ' + var49.rowExit + ' 处，另按剥注释视图对账分母（现读 ' + var49.emFlat + '）；data-go 的发出与读取逐文件恰数（现读 ' + JSON.stringify(var49.dg) + '）且发出者必有人读；locateDeepNote 段内七项计数（回执 3／flyTo 1／读库 1／清零 1／解码 1／lat 判 1／计时器 0）原文与剥注释两视图一起数 + 三件套先后与 _onReady 落点），每把都先拿合成样本自校准 + 一条自指纪律（flat49/view49 定义行走那把共享剥刀与不剥文档那一支，四处改动旁各钉哨兵）+ 浏览器腿 E01–E31 齐备检与条数守卫（含 E00 分母、E32 抛出反证、E24「顶命中 null」那条把「点过」与「点到」区分开）；A49 表长 ' + A49.length + ' 条、ZERO49 表长 ' + ZERO49.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b34-probe-deadclick.txt:5、:6、:12、:13 与 tools/out/b34-probe-deadlink.txt:10、:21、:22、:34、:40（那两条「点了没反应」与「深链静默」分别由 :8/:9 底导航带读数与 :28/:29 的 ?lat= 对照排除环境因素；:14 那句 me 的「url 未变」不作数——:12 的取点在视口外），改后读数见 tools/out/b34-probe-deadclick-after.txt:6、:10、:11、:15、:17 与 tools/out/b34-probe-deadlink-after.txt:10、:11、:21、:22、:34、:40，常驻腿实测见 tools/out/b34-smoke-entry.txt（32 条判据全绿），变异自测见 tools/out/mut-verify49.js');
+  fail += bad49;
 }
 
 

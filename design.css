@@ -875,16 +875,20 @@ body .tn-panel .tn-acts{
   background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
   width:auto;height:auto;position:static;border-radius:0;
 }
+/* 这里的 `min-height:auto` 从前是为了压掉注入 <style> 里胶囊时代的 46/48（皮肤改成文字链接后
+   要贴着字走），但它连 44 触控地板一起压掉了——批次 33-B 实测最后那枚 #tnQuote 停在 60×32
+   （真值 tools/out/b33-probe-33b.txt:10，改后同位读数 60×44 见 b33-probe-33a.txt:10）。皮肤意图（无底、下划线）与命中区高度是两件事：
+   高度点名 44，下划线跟着改读中线偏移，不再贴盒底（贴底在 32 高时离字 2px，44 高时会离字 14px）。 */
 body .tn-panel .tn-acts button{
   display:inline-flex;align-items:center;
-  min-height:auto;padding:0.375rem 2px;
+  min-height:44px;padding:0.375rem 2px;
   font-size:var(--fs-5);font-weight:500;font-family:var(--font-sans);
   color:var(--color-primary-dark);background:none;border:0;box-shadow:none;
   position:relative;letter-spacing:.02em;
   transition:opacity var(--duration-fast) var(--ease-standard);
 }
 body .tn-panel .tn-acts button::after{
-  content:"";position:absolute;left:0;bottom:2px;height:1.5px;width:100%;
+  content:"";position:absolute;left:0;bottom:calc(50% - 12px);height:1.5px;width:100%;
   background:currentColor;transform-origin:left;
   transition:transform var(--duration-normal) var(--ease-standard);
 }
@@ -979,7 +983,7 @@ body .tn-listbar .tn-setbtn{background:rgba(255,255,255,.7);color:var(--color-mu
 /* ---- 游记列表顶栏：两行结构（标题不被工具按钮遮挡） ---- */
 body .tn-listbar{display:block;padding-left:1rem;padding-right:1rem}
 body .tn-listbar__row1{display:flex;align-items:center;gap:8px;min-height:40px}
-body .tn-listbar__row1 .tn-x{width:34px;height:34px;flex:0 0 auto}
+body .tn-listbar__row1 .tn-x{flex:0 0 auto}
 body .tn-listbar__row1 b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body .tn-listbar__row2{display:flex;gap:8px;overflow-x:auto;padding:0.625rem 0 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 body .tn-listbar__row2::-webkit-scrollbar{display:none}
@@ -989,7 +993,7 @@ body .tn-listbar__row2 .tn-pill.on{background:var(--color-primary);color:var(--b
 body .tn-listbar__row2 #tnWallBtn{background:var(--color-primary-soft);color:var(--color-primary-dark);border:0}
 /* ---- 标签胶囊 ---- */
 body .tn-tagbar{background:transparent}
-body .tn-tagbar button{background:var(--color-surface);border:1px solid var(--color-line-strong);color:var(--color-ink-soft);border-radius:999px;font-size:var(--fs-4);height:32px;padding:0 14px}
+body .tn-tagbar button{background:var(--color-surface);border:1px solid var(--color-line-strong);color:var(--color-ink-soft);border-radius:999px;font-size:var(--fs-4);padding:0 14px}
 body .tn-tagbar button.on{background:var(--color-primary);border-color:var(--color-primary);color:var(--bg);font-weight:600;box-shadow:0 3px 12px rgba(200,109,75,.22)}
 /* ---- 统计条 ---- */
 body .tn-stats{background:transparent;padding:0.125rem 16px 8px}
@@ -1016,10 +1020,22 @@ body .tn-item .tags span{background:var(--color-primary-soft);color:var(--color-
 /* 照片：圆角 */
 body .tn-item .pics img{border-radius:12px;width:84px;height:84px}
 /* 操作：文字链接（杂志式，替代老按钮） */
+/* 六枚动作钮在 328 档一行放不下：`.tg` 实测只有 237.6px（卡片 271.6，列表两侧各让出时间轴与边距，
+   真值 tools/out/b33-probe-tg.txt:1），而 6×44 + 5×6 = 294。从前 `flex:1 1 0%` 把六枚压成 35 宽
+   （改前逐枚读数 35×36，tools/out/b33-probe-run2.txt:47–:64；抬完高度仍是 35×44，同 18 枚低于地板，
+   tools/out/b33-probe-33b.txt:47–:65）。这里改成一行三枚的等分格：
+   basis = (100% − 2×gap)/3，grow 归 0 免得孤出来的那枚被拉成整行宽——只加 min-width 那一版试演
+   实测就是 [4,2] 两行、第二行两枚各 116（tools/out/b33-probe-tg-run.txt:21），等分格那一版才是 [3,3]
+   各 75（tools/out/b33-probe-tg.txt:21）。
+   代价是卡片高 164 → 214（+50，改前 b33-probe-tg-run.txt:22／改后 b33-probe-tg.txt:22），
+   换掉的是「删除」这种不可逆动作只有 35px 命中区。 */
 body .tn-item .tg{display:flex;gap:6px;justify-content:flex-start;margin-top:0.75rem;padding-top:0.625rem;border-top:1px solid var(--color-line)}
-body .tn-item .tg button{flex:1;min-height:36px;padding:0 4px;border:0;background:none;border-radius:0;font-size:var(--fs-4);font-weight:500;color:var(--color-primary-dark);cursor:pointer;position:relative;white-space:nowrap;letter-spacing:0}
-body .tn-item .tg button::after{content:"";position:absolute;left:0;bottom:2px;height:1.5px;width:100%;background:currentColor;transform-origin:left;transition:transform var(--duration-normal) var(--ease-standard)}
-@media (hover:hover){body .tn-item .tg button:hover::after{transform:scaleX(1.2)}}
+body .tn-item .tg button{flex:0 1 calc((100% - 12px)/3);min-width:44px;padding:0 4px;border:0;background:none;border-radius:0;font-size:var(--fs-4);font-weight:500;color:var(--color-primary-dark);cursor:pointer;position:relative;white-space:nowrap;letter-spacing:0}
+/* 下划线跟着字走，不跟格子走：改前每枚 35 宽（文字 24 + 内衬 8），width:100% 看着就是字的下划线；
+   等分换行后格子宽到 75，还按 100% 画就成了一条横在标签下的分隔线。2.2em ≈ 26.8px（两字 24px、
+   「MD」21px），居中后仍贴字；hover 那一下的放大要连位移一起写，否则会被 translateX 覆盖掉。 */
+body .tn-item .tg button::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:calc(50% - 12px);height:1.5px;width:2.2em;background:currentColor;transform-origin:left;transition:transform var(--duration-normal) var(--ease-standard)}
+@media (hover:hover){body .tn-item .tg button:hover::after{transform:translateX(-50%) scaleX(1.2)}}
 body .tn-item .tg button.danger{color:var(--color-primary-dark)}
 body .tn-item .tg button.danger::after{background:var(--color-primary-dark)}
 /* ---- 空状态 ---- */
@@ -1443,13 +1459,13 @@ html.font-lg{--fs-stage:1.0625}     /* 设置页大字档：17/16（原 17.5px�
    谁后加载谁说了算。下面按口径逐族归位。
    实测代价（tools/out/b25b-probe-content44.js）：内容区那几枚从 40 抬到 44，
    行高 42→44（+2px）、两档零横向溢出、页高不变——换得起。
-   **尚未归位的尾巴**（批次 25-B 没点单，登记给下一批；它们不在顶栏里，smoke-topbar 抓不到）：
-   travel-map.html:136 `.statClose`／:157 `.emClose`（浮层右上角 X）、story.html:37 `.sn-btn`（翻卡前后）、
-   review.html:23 月历翻页／:37 `.moodrow .mk` 心情章、travel-notes.js:649 `tnQuoteClear`／:2071 `tnZoomX`
-   （这两枚还是内联 style，不在类选择器里）、design.css:1269 `.ui-btn`／:1337 `.rs-chip`／:1017 `.tg button`
-   （本文件内的 36/40 残留，抬它们要连别的页一起看，因为 `.ui-btn` 是全站通用钮）、
-   design.css:1528 `.hero__seal`（装饰章，非控件，**不算**）。抬一枚就得重拍那一页的像素基线，
+   **尚未归位的尾巴**（批次 33-B 已收掉随手记面板族与 story `.sn-btn`；剩下的都不在顶栏里，smoke-topbar 抓不到）：
+   travel-map.html:146 `.statClose`／:167 `.emClose`（浮层右上角 X，实测 40×40）、
+   review.html:23 月历翻页 `.cal-head .nav button`／:37 `.moodrow .mk` 心情章（实测 40×40）、
+   design.css:1307 `.ui-btn`／:1375 `.rs-chip`（本文件内的 40/36 残留，抬它们要连别的页一起看，因为 `.ui-btn` 是全站通用钮）、
+   design.css:1581 `.hero__seal`（装饰章，非控件，**不算**）。抬一枚就得重拍那一页的像素基线，
    所以按页点单、别一次全改。
+   批次 25-B 记在这里的 `tnZoomX` 已在批次 27 改名 `.tn-viewer-x`（design.css:1078，实测 44×44，本批探针复核过）。
    ============================================================ */
 .story-bar .back,.nm-topbar .back{width:44px!important;height:44px!important;min-width:44px;min-height:44px;border-radius:50%}
 button.act,button.act.sec,button.mine,button.go{min-height:44px}
@@ -1459,6 +1475,24 @@ button.act,button.act.sec,button.mine,button.go{min-height:44px}
 .wl-remove,.ck-remove,.ech-del,.tb-open{width:44px!important;height:44px!important}
 .nm-item-btn{min-height:44px}
 .is-btn{min-height:44px}
+/* 「我的」页最近记录那一行现在是入口（批次 34：整行跳 travel-map.html?id=），入口按 44 档走。
+   改前实测行高 32/33/33（tools/out/b34-probe-deadclick.txt:16），比地板差 12；页内那条 .rec 只留皮肤。 */
+#meRecent .rec{min-height:44px}
+/* 随手记面板族（批次 33-B 归位）：真机 328×723 实测去重后在屏 16 枚低于地板（改前逐枚名单
+   tools/out/b33-probe-run2.txt:77；同一支探针改后复跑＝0 枚，tools/out/b33-probe-33a.txt:80），
+   卡片动作钮那一族另压着 18 枚 35 宽（tools/out/b33-probe-33b.txt:47–:64，其中 6 枚在取景框内）。
+   尺寸从前全写在
+   travel-notes.js 注入的那份 <style> 里，而它在 design.css **之后**加载，同特异度时后加载者赢，
+   所以这里点名 44 也压不住它——内联那十一处 width/height/min-* 已剥净，尺寸只从这里读。
+   `.tn-x` 一条覆盖五处落点（面板头 / 列表顶栏 / 名言浮层 / 引导页 / 编辑页），不再各写一档
+   （改前实测 32/34/36/40 四种）。 */
+body .tn-x{width:44px;height:44px;flex:0 0 auto}
+body .tn-pill,body .tn-viewtab,body .tn-repolish,body .tn-tagbar button,body .tn-guide .bar .spk,body .tn-style button,body .tn-editpage .body button,body .tn-item .tg button,body .tn-cfm .tc-btns button{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+/* 「加照片」这枚从前没有任何尺寸声明（实测 40×20，全靠 UA 默认），抬高度得连内衬一起给 */
+body .tn-editpage .body button{padding:0 12px}
+body .tn-listbar input,body .tn-quotes .sr input{min-height:44px}
+body .tn-more>summary{min-height:44px}
+.story-nav .sn-btn{width:44px;height:44px}
 /* 36px 一族：地图上浮控件，允许低于 44，理由见上面的口径 */
 /* `margin:0 auto` 不是装饰：玻璃柱的**宽**是各页自己写的（travel-map 44／map.css 40），
    钮的尺寸在这里点名成 36，两边没人对账时钮贴左、柱子右侧空一条（实测留白 0/8 与 0/4）。

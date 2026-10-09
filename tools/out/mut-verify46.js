@@ -98,8 +98,8 @@ const FP = [
   ['tools/verify.js', 'const flat46 = s => ws46(stripBlockComments(s));'],
   ['tools/verify.js', "if (L46.indexOf('.md$') < 0) F46('view46"],
   ['tools/verify.js', 'if (var46.parse !== 1) F46('],
-  ['tools/verify.js', 'for (let i = 1; i <= 22; i++) {'],
-  ['tools/verify.js', "cnt46(S46, 'checks >= 24') !== 1"],
+  ['tools/verify.js', 'for (let i = 1; i <= 23; i++) {'],
+  ['tools/verify.js', "cnt46(S46, 'checks >= 25') !== 1"],
   ['tools/verify.js', "'new RegExp(SHAPE_SRC'"],
   ['tools/smoke-date.js', 'const VW = 328, VH = 723;'],
   ['tools/smoke-date.js', "ok('D18b "],
@@ -182,6 +182,14 @@ t('R13 摘掉扫描器渲染信号名单里的 textContent（那一行照样是�
   "    const REND46 = ['<div', '<span', '<p ', '<p>', '<b>', '<li', '<td', 'innerHTML', 'fillText(', 'bindPopup(', 'textContent', 'rows.push(', 'line(', 'status'];",
   "    const REND46 = ['<div', '<span', '<p ', '<p>', '<b>', '<li', '<td', 'innerHTML', 'fillText(', 'bindPopup(', 'rows.push(', 'line(', 'status'];"]],
   '从零拼年月日又被渲染上屏');
+t('R14 摘掉 story 的 dayClock 定义行（这不是「少一处接线」而是两处调用 ReferenceError、整页崩；A46 那条定义体锚就是为这一发立的）', [['story.html',
+  "function dayClock(n){ return [TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · '); }",
+  "/* 定义被摘 */"]],
+  'function dayClock(n){');
+t('R15 story 日卡那一处调用退回裸 TravelNotes.dayText（时分静默消失：调用点总数没变、旧写法没回来、普查只认坏形状不认少了时分——只有 dayClock(n) 那条「恰 3」看得见）', [['story.html',
+  "+'<div class=\"sc-date\">'+esc(dayClock(n))+'</div>'",
+  "+'<div class=\"sc-date\">'+esc(TravelNotes.dayText(n))+'</div>'"]],
+  '实得 2，期望 3');
 
 /* ---------- ② 守卫自己 ---------- */
 t('S01 共享剥刀退回不剥注释（flat46 的定义行自己有哨兵：注释里抄的改前原串会被当成代码在场）', [['tools/verify.js',
@@ -232,12 +240,12 @@ t('S12 裸读 .date 的分母下限挪高（记账域那一族被顺手砍时没
   '    if (var46.datelines < 15) F46(',
   '    if (var46.datelines < 1500) F46(']],
   '扫描口径漂了');
-t('S13 齐备检循环上限从 22 收到 21（收窄一格就少守一条，而且它自己永远不会红）', [['tools/verify.js',
-  '    for (let i = 1; i <= 22; i++) {',
-  '    for (let i = 1; i <= 21; i++) {']],
-  '循环上限是 21');
-t('S14 条数守卫阈值从 24 挪到 2（删 23 条判据照样绿）〔上一发打不红是靶子自己的错：它改的是 verify.js 里的 needle 串，而 needle 写成 checks >= 2，正好是 checks >= 24 的前缀子串——「子串碰撞」这条老账在网自己身上第二次发作〕', [['tools/smoke-date.js',
-  'checks >= 24',
+t('S13 齐备检循环上限从 23 收到 22（收窄一格就少守一条，而且它自己永远不会红）', [['tools/verify.js',
+  '    for (let i = 1; i <= 23; i++) {',
+  '    for (let i = 1; i <= 22; i++) {']],
+  '循环上限是 22');
+t('S14 条数守卫阈值从 25 挪到 2（删 24 条判据照样绿）〔上一发打不红是靶子自己的错：它改的是 verify.js 里的 needle 串，而 needle 写成 checks >= 2，正好是 checks >= 25 的前缀子串（当年那个数写作 24）——「子串碰撞」这条老账在网自己身上第二次发作〕', [['tools/smoke-date.js',
+  'checks >= 25',
   'checks >= 2']],
   '阈值被挪');
 tAll('S15 抹掉 README 里 §46 的登记（摘登记要抹全部出现：只摘一处 indexOf 照样命中）', 'README.md', '§46', '§xx', '就等于没装');

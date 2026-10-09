@@ -1,0 +1,54 @@
+
+==================== 腿 ① 备份提醒条 ====================
+  （启动屏 #bootSplash(z:9999 inset:0) 退场等了 11ms，之后才量提醒条）
+PASS  L01 量之前启动屏已退场（它盖着时任何 z 都命中不到，那种红是探针的锅）  [等 11ms]
+PASS  L02 空库里这条真的出现了（判定落空时下面全是空转）  [rect=14,561 300×58]
+PASS  L03 computed z-index 就是 8000（那一族浮层最低的一档是 9000）  [现场 z=8000]
+PASS  L04 position=fixed（它靠这个住在视口下沿，与页面滚动无关）  [现场 position=fixed]
+PASS  L05 无浮层时中心点顶命中它自己或其后代（降过头＝功能被埋，这条是「看得见」那半边）  [顶命中=span]
+PASS  L06 整条落在 328×723 取景框内（bottom:…104px 那条算式没把它推出屏）  [top=561 bottom=619／屏高 723]
+PASS  L07 「去备份」钮 #bkGo 在场（提示要能一步走到设置页）  [bkGo=true]
+PASS  L08 12s 摘除计时器被截到恰 1 条（产品仍会自己摘走；全站用 12000 的只有这一处）  [截到 1 条]
+PASS  L09 .tn-list(z:9000) 在场时提醒条中心点顶命中不是它  [顶命中=div.tn-listbody]
+PASS  L10 .tn-panel(z:9001，design.css 里 background:var(--color-bg) 不透明) 在场时不压  [顶命中=b]
+PASS  L11 .tn-editpage(z:9010) 在场时不压（改前中心点 elementsFromPoint[0] 就是这条 div）  [顶命中=div.body]
+PASS  L12 编辑页里这条仍在 DOM（不遮挡是靠层级，不是靠六处开屏各挂一次「摘条子」的钩子）  [还在 DOM=true]
+PASS  L13 #tnEditAddPhoto 中心点命中链的 [0] 不是提醒条  [顶命中=button#tnEditAddPhoto]
+PASS  L14 #tnEditAddPhoto 中心点顶命中是自己或其后代  [64×44 顶命中=button#tnEditAddPhoto]
+      [0] button#tnEditAddPhoto rect=248,544 64×44 pos=static z=auto
+      [1] div rect=16,543 296×46 pos=static z=auto
+      [2] div.body rect=0,59 328×585 pos=static z=auto
+      [3] div.tn-editpage rect=0,0 328×723 pos=fixed z=9010
+      [4] div.tn-body rect=0,114 328×519 pos=relative z=2
+PASS  L15 真鼠标点它之后 #tnEditFile 收到 click 恰 1 次（改前恒 0：那一点被那条 div 吃了）  [实得 1 次]
+  · 判定的四档：
+PASS  L16 两键全无（新用户）→ 弹  [读到「弹(8000)」]
+PASS  L17 WebDAV 成功且新鲜→ 不弹（这句就是本批修的那句假话：开了自动同步的人不该被告知「数据只在本机」）  [读到「不弹()」]
+PASS  L18 WebDAV 失败（ok:false）→ 弹（期望 0 的那一档必须配正向对照，否则「不弹」可能只是整块没跑）  [读到「弹(8000)」]
+PASS  L19 WebDAV 成功但已 90 天→ 弹（新鲜度判的是「距上次」，不是「有没有成功过」）  [读到「弹(8000)」]
+  腿① 未捕获报错：0 条
+
+==================== 腿 ② #tnQuotes：真鼠标点得到自己吗 ====================
+PASS  L20 页面上 .tn-quotes 只有 1 份（insertAdjacentHTML 住在 buildUI 的守卫里，重复开屏不许再插一层）  [实得 1 份]
+PASS  L21 #tnQuotes 直接住 body（改前它住在 .tn-foot 里，父级建了堆叠上下文，孩子的 9005 出不去）  [div#tnQuotes.tn-quotes → body → html]
+PASS  L22 computed z-index 仍是 9005（抬的不是数字，是它参加排序的那一层）  [现场 z=9005]
+PASS  L23 祖先链里再没有 .tn-foot / .tn-seg（链上只剩 body、html）  [div#tnQuotes.tn-quotes(z=9005) → body(z=auto) → html(z=auto)]
+PASS  L24 点「追加名言」之后浮层真的铺开（触发钮留在 .tn-foot 里、浮层在 body 上，两头都得接住）  [display=flex]
+PASS  L25 #tnQuoteHint 写到了当前地点（$X(qq,…) 四处改线的第一处证据，打空就是 no-el）  [「已按当前地点「云冈石窟」检索，可修改关键词」]
+PASS  L26 #tnQuoteClear 中心点顶命中自己（改前那一点落在背后的 button#tnTabExp 上）  [44×44 顶命中=svg]
+PASS  L27 #tnQuoteBack 中心点顶命中自己（收起这一层的唯一屏上出口，点不到就出不去）  [44×44 顶命中=button#tnQuoteBack.tn-x]
+PASS  L28 #tnQuoteSearch 中心点顶命中自己（输入框在整条 .sr 行里，那一行从前也被档位条压着）  [244×44 顶命中=input#tnQuoteSearch]
+  · 污染之后（点之前）：搜索框=「云冈」 结果条数=4
+PASS  L29 真鼠标点清钮中心之后搜索框清空  [value=「」]
+PASS  L30 同一次点击没有把档位切到「记开销」（改前那一点落在背后的 #tnTabExp 上）  [{"value":"","expOn":false,"panelExpense":false,"quotesShown":true}]
+PASS  L31 同一次点击之后浮层还开着（清钮不是关钮，别把这一层顺手关掉）  [quotesShown=true]
+PASS  L32 真鼠标点返回钮之后浮层收起（display=none）  [display=none]
+PASS  L33 真鼠标点返回钮之后面板回到台前（点前先把它按进幕内，否则这条读的是它本来就有的样子）  [点前=none／点后=flex]
+PASS  L34 浮层里的结果项中心点顶命中自己  [296×153 顶命中=span.at]
+PASS  L35 真点结果项追加之后浮层收起（appendQuote 那一支改的是 body 上这一层的 display）  [display=none]
+PASS  L36 追加之后正文真的变长了  [正文长度 0 → 35]
+PASS  L37 追加之后的浮层提示说的是「已追加名言」  [「已追加名言 · 正文已有内容，可点「整理」]
+  腿② 未捕获报错：0 条
+PASS  L38 两条腿全程 0 条页面未捕获报错  [腿① 0 条／腿② 0 条]
+PASS  L39 判据条数 ≥ 38（这一节自己也是会被删的）  [checks=38]
+PASS  共 39 项，失败 0

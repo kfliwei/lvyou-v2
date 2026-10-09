@@ -17,7 +17,7 @@ PASS  V15 日历网格是 display:grid（改前这一页读不到 map.css，那�
 PASS  V16 网格恰好 7 列  [cols=7]
 PASS  V17 日格有高度（aspect-ratio 生效，不再是行高 17px 的裸 span）  [cellH=62]
 PASS  V18 日格真的分了多行（≥3 行才算铺成月历）  [rows=3]
-FAIL  V19 有记录的那一格底色与空格子不同且不是全透明  [rgba(0, 0, 0, 0) vs rgba(0, 0, 0, 0)]
+PASS  V19 有记录的那一格底色与空格子不同且不是全透明  [rgba(174, 87, 56, 0.1) vs rgba(0, 0, 0, 0)]
 PASS  V20 月份导航钮 ≥44×44（改前 36×36，且这一屏从没加载过那条规则）  [44x44]
 PASS  V21 「本月」胶囊 ≥44 高（改前 min-height:34px）  [h=44]
 PASS  V22 说明行落在 .tn-cal-day-tip 上且 display:flex（批次 26 那条样式此前住在错的表里）  [flex 本月 2 篇，分布在 2 天 · 点上面带色的日期看当天]
@@ -34,4 +34,4 @@ PASS  V32 results.js 纪念册预览的关闭钮（第五处）  [{"w":44,"h":44
 PASS  V33 首页（第二个宿主页）点照片也是全屏 fixed 查看器（map.css 不在这一页的名单里）  [{"imgs":3,"viewer":true,"pos":"fixed","rect":"328x723"}]
 PASS  V34 全程零未捕获报错
 PASS  V35 判据条数 ≥ 30（这一节自己也是会被删的）  [checks=35]
-=== smoke-viewer: 36 项，失败 1 ===
+=== smoke-viewer: 36 项，失败 0 ===

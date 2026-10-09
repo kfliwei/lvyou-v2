@@ -1,0 +1,23 @@
+  · 只加载页面（buildUI 还没跑） 共 0 份 .tn-quotes
+  · ensureUI + openPanel 之后 共 1 份 .tn-quotes
+    [0] 父=BODY 是 getElementById 那一份=true｜inline display=(空) computed=none z=9005 rect=0,0 0×0
+         back.onclick=function clear.onclick=function back rect=0,0 0×0 hint=「检索与当前地点相关的名言，点选一条即可追」
+  · 点 #tnQuote 打开浮层之后 共 1 份 .tn-quotes
+    [0] 父=BODY 是 getElementById 那一份=true｜inline display=flex computed=flex z=9005 rect=0,0 328×723
+         back.onclick=function clear.onclick=function back rect=16,8 44×44 hint=「已按当前地点「云冈石窟」检索，可修改关键」
+  · el.click() 那一下：那个 back 属于 getElementById 那一份=true
+  · el.click() #tnQuoteBack 之后 共 1 份 .tn-quotes
+    [0] 父=BODY 是 getElementById 那一份=true｜inline display=none computed=none z=9005 rect=0,0 0×0
+         back.onclick=function clear.onclick=function back rect=0,0 0×0 hint=「已按当前地点「云冈石窟」检索，可修改关键」
+  · 真鼠标点 (38,30)，那一点顶命中=tnQuoteBack
+  · 真鼠标点 back 之后 共 1 份 .tn-quotes
+    [0] 父=BODY 是 getElementById 那一份=true｜inline display=none computed=none z=9005 rect=0,0 0×0
+         back.onclick=function clear.onclick=function back rect=0,0 0×0 hint=「已按当前地点「云冈石窟」检索，可修改关键」
+  · 每份的 display 时间线（open→close 各读一次 inline/computed）：
+    [0] inline=none computed=none 是文档里第一份=true
+  · 追加前：浮层=flex 可点条数=3 第一条=「凿石开山，因岩结构，真容」 依赖在场={"rawEdit":true,"raw":true,"polish":true,"save":true}
+    即刻：inline=none computed=none 正文长度=35 浮层提示=「已追加名言 · 正文已有」(display=block)
+    +120ms：inline=none computed=none 正文长度=35 浮层提示=「已追加名言 · 正文已有」(display=block)
+    +400ms：inline=none computed=none 正文长度=35 浮层提示=「已追加名言 · 正文已有」(display=block)
+    （append 那一支若真跑到 display=none，即刻那一读必须是 none；后面两档又变 flex＝有别的东西重开）
+  未捕获报错：0 条

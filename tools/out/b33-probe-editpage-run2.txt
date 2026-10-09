@@ -1,0 +1,10 @@
+· 开列表后在场：.tn-list=true .tn-item=0 [data-a=edit]=0
+· 切时间线后：.tn-item=1 [data-a=edit]=1
+· 点编辑：clicked:edit
+· 编辑页在场=true display=flex #tnEditAddPhoto=true
+FATAL: Waiting failed
+Error: Waiting failed
+    at <instance_members_initializer> (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:21:21)
+    at new WaitTask (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/common/WaitTask.js:27:16)
+    at IsolatedWorld.waitForFunction (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/api/Realm.js:49:26)
+    at CdpFrame.waitForFunction (file:///F:/MyAi/trace/lvyou-v2/tools/node_modules/puppeteer-core/lib/puppeteer/api/Frame.js:585:43)

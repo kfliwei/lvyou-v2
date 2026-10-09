@@ -1,0 +1,35 @@
+==================== 腿 0 自校准：种子真的灌进去了吗 ====================
+· 库里 3 篇，其中带图的 3 篇（期望各 3）
+
+==================== 腿 ① story.html：.sc-pics img ====================
+· 首枚缩略图：{"n":6,"rect":"90×90@35,636","cx":80,"cy":681,"hit":"a.bottom-nav__item","own":false,"onclickAttr":"","cursor":"auto","dataGo":"","sel":".story-card .sc-pics img"}
+· 在场缩略图 6 枚，其中带 onclick 属性的 0 枚
+· 真点之后查看器读数：null ｜ 页面报错 4 条
+· 底导航带：{"el":"nav.bottom-nav","top":639,"bottom":709,"h":70}（视口高 723，落在这一带里的内容点了归导航，不归内容）
+· 那一点之后 url：http://127.0.0.1:8234/travel-map.html
+
+==================== 腿 ② me.html：#meRecent .rec ====================
+· 首行读数：{"n":3,"rect":"264×32@32,894","cx":164,"cy":909,"hit":"null","own":false,"onclickAttr":"","cursor":"auto","dataGo":"","sel":"#meRecent .rec"}
+· 各行实测高度：[32,33,33]（项目自定地板 44，见 design.css 触控口径那段）
+· 真点首行之后：url 未变（//127.0.0.1:8234/me.html） ｜ 查看器 null
+· 页面报错 2 条：[404] http://127.0.0.1:8234/favicon.ico | [console] Failed to load resource: the server responded with a status of 404 (Not Found)
+
+==================== 腿 ③ 正向对照 review.html：同一族动作必须开查看器 ====================
+· 对照落点在场性：{"n":2,"attr":"TravelNotes.zoomPhotoIdx('s3',0)"}
+· 真点对照之后查看器读数：{"idx":"1 / 2","src":"034ab1d51239cd1e.jpg"}（这一条必须不是 null，否则 ①／② 的「没反应」就分不清是产品漏接线还是这台环境打不开查看器）
+· 页面报错 0 条
+
+==================== 腿 ④ md-manager.html：点 .thumbs img 走的是行的出口 ====================
+· 首枚缩略图：{"n":6,"rect":"46×46@35,416","cx":58,"cy":439,"hit":"img","own":true,"onclickAttr":"","cursor":"pointer","dataGo":"","sel":".md-item .thumbs img"}
+· 点之前：详情视图在场=false｜列表在场=true
+· 点之后：详情视图在场=true｜列表在场=false｜查看器=null
+   （若详情开了而查看器没开＝行已可点、只是缩略图没有独立放大；这与「点了没反应」不同罪）
+· 页面报错 0 条
+
+==================== 附：results.js 那两处的渲染上下文（导出件在 app 内是文本预览） ====================
+· 这一条不靠浏览器：results.js:79 把 docShell 的 html 用 esc() 塞进 #rzPrev 当纯文本，results.js:328/:353 的 <img> 只存在于另存为 .html 之后那份文档里，屏上没有那一枚。
+· 读数存证（源码原文，逐字节从盘上读）：
+  results.js:79 → + '<div id="rzPrev" style="border:1px solid var(--color-line);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:var(--fs-2);color:var(--col
+  results.js:328 → var pics = (n.photos && n.photos.length) ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">' + n.photos.
+
+=== probe34 结束 ===

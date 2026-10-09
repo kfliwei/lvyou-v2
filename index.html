@@ -492,10 +492,25 @@
 (function(){
   try{
     if(localStorage.getItem('tn_onboarded')!=='1') return;
+    /* 「上次备份」有两个真出口：本机导出备份（settings 的 expBackup 写 tn_lastBackup）与
+       WebDAV 上传成功（sync-webdav 写 tn_webdav_last={ts,ok,msg}）。从前这条只读前者，
+       于是开了自动同步的人每次冷启都会看到「数据只在本机，建议备份一次」——这句对他就是假的。
+       取两者里较近的一次，判定才是「距上次备份」。 */
     var last=+localStorage.getItem('tn_lastBackup')||0;
+    try{
+      var w=JSON.parse(localStorage.getItem('tn_webdav_last')||'null');
+      if(w&&w.ok===true&&w.ts>last) last=w.ts;
+    }catch(e){}
     if(Date.now()-last>30*864e5){
       var d=document.createElement('div');
-      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:9500;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:var(--fs-4);display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
+      /* z 从前是 9500，正落在随手记那一族浮层中间（.tn-list 9000 / .tn-panel 9001 /
+         .tn-quotes 9005 / .tn-guide 9006 / .tn-editpage 9010 / .tn-viewer 9900 全是 inset:0
+         的不透明全屏层），一条首页提示于是盖在编辑页上：实测「加照片」64×44 完好，
+         中心点 elementsFromPoint[0] 却是这条 div（真值 tools/out/b33-probe-editpage.txt:13；那句「真鼠标点下去
+         #tnEditFile 收到 0 次 click」当时只是顺着命中链推的，反向腿 tools/out/probe33-prefix.js 把这条的
+         inline z 临时覆盖回 9500 量成了读数：tools/out/b33-probe-prefix.txt:9 click=0，:15 恢复 8000 后 click=1）。
+         降到这一族之下就结构性不可能遮挡，不必在六处开屏各挂一次「摘条子」的钩子。 */
+      d.style.cssText='position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:8000;background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:13px 16px;font-size:var(--fs-4);display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.3)';
       d.innerHTML='<span style="flex:1">距上次备份已超 30 天，数据只在本机，建议备份一次。</span><button id="bkGo" style="flex:0 0 auto;border:0;border-radius:999px;background:var(--color-primary);color:var(--bg);padding:8px 16px;font-size:var(--fs-4);cursor:pointer">去备份</button>';
       document.body.appendChild(d);
       document.getElementById('bkGo').onclick=function(){ d.remove(); location.href='settings.html'; };

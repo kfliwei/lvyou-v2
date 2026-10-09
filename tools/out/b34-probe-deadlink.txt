@@ -1,0 +1,52 @@
+==================== 腿 0 自校准 ====================
+· 库里 4 篇，其中不带坐标的 1 篇（期望 4 与 1）
+
+==================== 腿 ① 插桩：?id=s2 全页 list() 调用序列 ====================
+· 插桩本身是否生效：生效（抓到 4 次调用）
+   #0 n=0 readyState=loading ｜ v.list (<anonymous>:15:32) <- travel-map.html?id=s2:708:97 <- travel-map.html?id=s2:708:404
+   #1 n=4 readyState=interactive ｜ v.list (<anonymous>:15:32) <- refresh (travel-map.html?id=s2:427:27) <- window.TravelNotes._onReady (travel-map.html?id=
+   #2 n=4 readyState=interactive ｜ v.list (<anonymous>:15:32) <- renderTimeline (travel-map.html?id=s2:582:25) <- refresh (travel-map.html?id=s2:504:3)
+   #3 n=4 readyState=interactive ｜ v.list (<anonymous>:15:32) <- travel-map.html?id=s2:813:33
+· 解析期（readyState=loading）发生的调用 1 次，条数：[0]
+· 命中深链那一处（:708 旧形状或 locateDeepNote 新形状）的调用 1 次，看到的条数：[0] ｜ 形状：["解析期:708"]
+· 判据：条数为 0 ⇒ 那个 for/find 一次都没进过，深链是 no-op；条数为全量 ⇒ 找得到那篇。
+· 读码对账（源码原文，逐字节从盘上读）：
+  travel-map.html:708 → (function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<n
+  travel-map.html:810 → window.TravelNotes._onReady = function(){ refresh(); };
+  travel-map.html:812 → TravelNotes.init({});
+  travel-notes.js:2378 → list: function () { return notes.slice(); },
+  travel-notes.js:2341 → loadNotes(function () {
+
+==================== 腿 ② 效果：?id=s2 载入完成后（s2 应在 40.11,113.13） ====================
+· 统计条那行字："游记 4 篇 · 地点 3 处"
+· 地图中心/缩放：{"lat":39.5993,"lng":113.3459,"zoom":8}
+· 顺带读数（这条链本来说明跳详情）：{"viewer":false,"popup":false}
+· 期望（改前）：那行字是「游记 4 篇 · 地点 3 处」这一类常态读数，不是「已定位：…」；中心是全体 fitBounds 的结果，跟 s2 那一点无关。
+· 页面报错 0 条
+
+==================== 腿 ③ 正向对照：?lat=&lng=&name= 必须 flyTo 并改那行字 ====================
+· 统计条那行字："已定位：云冈石窟"
+· 地图中心/缩放：{"lat":40.1113,"lng":113.1371,"zoom":13}
+· 这一条绿才说明 :710 那套 flyTo + #statMain 回执在本环境是通的，于是 ② 的静默只能归给 :708「解析期读空数组」，不能赖环境。
+· 页面报错 0 条
+
+==================== 腿 ④ 缺坐标那篇：?id=s4 读成什么 ====================
+· 统计条那行字："游记 4 篇 · 地点 3 处"
+· 地图中心/缩放：{"lat":39.5993,"lng":113.3459,"zoom":8}
+· 深链那处调用看到的条数：[0]（这一条与 ② 同因，写在这里是给修法留的前后对照）
+· 这一档即便把解析期改成载入后再找，也仍要落一句可读回执：命中了但地图上没有那一点，不能和用户点进来的期望之间留一片空白。
+
+==================== 腿 ⑤ id 不存在：?id=nope 读成什么 ====================
+· 统计条那行字："游记 4 篇 · 地点 3 处"
+· 地图中心/缩放：{"lat":39.5993,"lng":113.3459,"zoom":8}
+· 这一档和 ④ 是同一条纪律的两端：找不到那篇也要说出来，回执不许只有「定位成功」一种。
+· 页面报错 0 条
+
+==================== 腿 ⑥ 手打的坏串：?id=%zz ====================
+· 统计条那行字："游记 4 篇 · 地点 3 处"
+· 页面报错 0 条（这一条是给修法里那句 try 用的：外面传进来的串，decodeURIComponent 会抛 URIError，抛了就等于把载入回调整条打断）
+
+==================== 附：全站 ?id= 的入口清单（谁在往这条链上送人） ====================
+· 引用「travel-map.html?id=」的落点 3 处：me.html:257 | me.html:262 | search.html:216
+
+=== probe34-deadlink 结束 ===

@@ -26,6 +26,9 @@
   .prov{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:var(--fs-2);background:var(--color-bg-soft);color:var(--color-muted)}
   .prov.on{background:var(--color-primary);color:var(--bg);font-weight:600}
   .rec{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--color-line);font-size:var(--fs-4)}
+  /* 这一行现在是入口（批次 34），按入口的样子给反馈：指针 + 按下态。高度不在这里写，走 design.css 那条 44 地板单点。 */
+  .rec{cursor:pointer}
+  .rec:active{background:var(--color-bg-soft)}
   .rec:first-of-type{border-top:0}
   .rec .dot{width:7px;height:7px;border-radius:50%;background:var(--color-primary);flex:0 0 auto}
   .rec .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -249,10 +252,19 @@
     ].map(function(m){ return '<div class="st"><b>' + m[1] + '</b><span>' + m[0] + '</span></div>'; }).join('');
     var ALL=[['北京','京'],['天津','津'],['河北','冀'],['山西','晋'],['内蒙古','蒙'],['辽宁','辽'],['吉林','吉'],['黑龙江','黑'],['上海','沪'],['江苏','苏'],['浙江','浙'],['安徽','皖'],['福建','闽'],['江西','赣'],['山东','鲁'],['河南','豫'],['湖北','鄂'],['湖南','湘'],['广东','粤'],['广西','桂'],['海南','琼'],['重庆','渝'],['四川','川'],['贵州','黔'],['云南','滇'],['西藏','藏'],['陕西','陕'],['甘肃','甘'],['青海','青'],['宁夏','宁'],['新疆','新'],['香港','港'],['澳门','澳'],['台湾','台']];
     document.getElementById('meProvs').innerHTML = ALL.map(function(p){ return '<span class="prov' + (provs[p[0]] ? ' on' : '') + '">' + p[1] + '</span>'; }).join('');
-    var recent = notes.slice().sort(function(a,b){ return b.ts - a.ts; }).slice(0,4);
-    document.getElementById('meRecent').innerHTML = recent.length ? recent.map(function(n){
-      return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc(TravelNotes.dayText(n)) + '</span></div>';
+    var recent = notes.slice().sort(function(a,b){ return (b.ts||0) - (a.ts||0); }).slice(0,4);
+    /* 「最近记录」从前是一排纯 div：点了不跳转、也不打开那篇游记（§3 第 5 条）。
+       出口跟 search.html:216 同一形状——整行 data-go 跳 travel-map.html?id=，
+       排序跟着打上 `||0`：原式 b.ts-a.ts 撞没填时间戳那篇返回 NaN，顺序交给引擎，
+       「最近」两个字就成了谎（本行是 §7 登记的那 18 行裸减法里第一条被浏览器证据点名的）。 */
+    var box = document.getElementById('meRecent');
+    box.innerHTML = recent.length ? recent.map(function(n){
+      return '<div class="rec" role="button" tabindex="0" aria-label="打开这篇游记" data-go="travel-map.html?id=' + encodeURIComponent(n.id||'') + '"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><span class="d">' + esc(TravelNotes.dayText(n)) + '</span></div>';
     }).join('') : '<div style="font-size:var(--fs-3);color:var(--color-muted);padding:6px 0">还没有游记，去景点点「语音记录」开始</div>';
+    box.querySelectorAll('.rec').forEach(function(it){
+      it.onclick=function(){ location.href=it.dataset.go; };
+      it.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); location.href=it.dataset.go; } };
+    });
     if (window.Expense) { renderTrips(); renderYear(); }
   }
   render();

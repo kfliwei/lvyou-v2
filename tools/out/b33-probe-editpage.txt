@@ -1,0 +1,20 @@
+· 开列表后在场：.tn-list=true .tn-item=0 [data-a=edit]=0
+· 切时间线后：.tn-item=1 [data-a=edit]=1
+· 点编辑：clicked:edit
+· 编辑页在场=true display=flex #tnEditAddPhoto=true
+· #tnEditAddPhoto rect=248,544 64×44 中心点=[280,566]
+  所在行：div rect=16,543 296×46
+  该行 outerHTML：<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><input id="tnEditTags" placeholder="标签（空格分隔）" value="木塔" style="margin:0;flex:1"><
+  同排兄弟：
+    input#tnEditTags rect=16,543 224×46 display=block flex=1 1 0%
+    button#tnEditAddPhoto rect=248,544 64×44 display=flex flex=0 1 auto
+    input#tnEditFile rect=0,0 0×0 display=none flex=0 1 auto
+  中心点 elementsFromPoint（深→浅）：
+    [0] div rect=14,561 300×58 pos=fixed z=9500 pointer-events=auto
+    [1] button#tnEditAddPhoto rect=248,544 64×44 pos=static z=auto pointer-events=auto
+    [2] div rect=16,543 296×46 pos=static z=auto pointer-events=auto
+    [3] div.body rect=0,59 328×585 pos=static z=auto pointer-events=auto
+    [4] div.tn-editpage rect=0,0 328×723 pos=fixed z=9010 pointer-events=auto
+    [5] div.tags rect=57,564 238×21 pos=static z=auto pointer-events=auto
+  .tn-editpage .body 滚动：scrollH=585 clientH=585 scrollTop=0
+  未捕获报错：0 条

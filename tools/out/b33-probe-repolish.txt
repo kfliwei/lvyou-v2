@@ -1,0 +1,11 @@
+· #tnQuote rect=60×32 父容器=tn-acts / display=flex / alignItems=center
+· computed：{"minH":"auto","h":"32.25px","disp":"flex","padT":"5.625px","padB":"5.625px","box":"border-box","fs":"13.125px","lh":"normal"}
+· 命中规则 5 条（只列带尺寸类声明的）：
+   [http://127.0.0.1:8179/design.css] *  →  padding-top:0px | padding-bottom:0px | box-sizing:border-box
+   [http://127.0.0.1:8179/design.css] body .tn-panel .tn-acts button  →  min-height:auto | display:inline-flex | align-items:center | padding-top:0.375rem | padding-bottom:0.375rem | font-size:var(--fs-5)
+   [http://127.0.0.1:8179/design.css] body .tn-pill, body .tn-viewtab, body .tn-repolish, body .tn-tagbar button, body .tn-guide .bar .spk, body .tn-style button, body .tn-editpage .body button, body .tn-item .tg button, body .tn-cfm .tc-btns button  →  min-height:44px | display:inline-flex | align-items:center
+   [（注入的 <style>）] .tn-acts button  →  min-height:46px | font-size:var(--fs-6) | flex:1 1 0%
+   [（注入的 <style>）] .tn-acts button  →  min-height:48px | flex:0 1 auto
+· 同族对照：[".tn-save 0×0 minH=0px disp=none",".tn-polish=不在场","#tnPolish 0×0 minH=0px disp=none",".tn-acts 288×32 minH=0px disp=flex","#tnQuote 60×32 minH=auto disp=flex"]
+
+=== probe33-repolish 跑完 ===

@@ -1,0 +1,37 @@
+名言层 display=flex
+· seg rect=0,52 328×52
+    取点 49,78 → 顶层=button#tnTabNote.on（自己的）
+    取点 164,78 → 顶层=div.tn-seg（自己的）
+    取点 279,78 → 顶层=button#tnTabExp（自己的）
+· searchRow rect=0,53 328×54
+    取点 49,80 → 顶层=button#tnTabNote.on（别人的）
+    取点 164,80 → 顶层=div.tn-seg（别人的）
+    取点 279,80 → 顶层=button#tnTabExp（别人的）
+· searchInput rect=16,63 248×40
+    取点 53,83 → 顶层=button#tnTabNote.on（别人的）
+    取点 140,83 → 顶层=button#tnTabNote.on（别人的）
+    取点 227,83 → 顶层=button#tnTabExp（别人的）
+· clearBtn rect=272,63 40×40
+    取点 278,83 → 顶层=button#tnTabExp（别人的）
+    取点 292,83 → 顶层=button#tnTabExp（别人的）
+    取点 306,83 → 顶层=button#tnTabExp（别人的）
+· backBtn rect=16,8 36×36
+    取点 21,26 → 顶层=button#tnQuoteBack.tn-x（自己的）
+    取点 34,26 → 顶层=button#tnQuoteBack.tn-x（自己的）
+    取点 47,26 → 顶层=button#tnQuoteBack.tn-x（自己的）
+· quoteCard rect=16,139 296×109
+    取点 60,193 → 顶层=div.qa（自己的）
+    取点 164,193 → 顶层=div.qa（自己的）
+    取点 268,193 → 顶层=div.qa（自己的）
+
+#tnQuotes 祖先链（谁创建层叠上下文）：
+  [建上下文] div#tnQuotes.tn-quotes  pos=fixed z=9005  0,0 328×723
+  [建上下文] div.tn-foot  pos=relative z=2  0,645 328×78
+  [建上下文] div.tn-panel.has-exp.is-idle  pos=fixed z=9001  0,0 328×723
+               body  pos=static z=auto  0,0 328×723
+               html  pos=static z=auto  0,0 328×723
+.tn-seg 祖先链：
+  [建上下文] div.tn-seg  pos=relative z=3  0,52 328×52
+  [建上下文] div.tn-panel.has-exp.is-idle  pos=fixed z=9001  0,0 328×723
+               body  pos=static z=auto  0,0 328×723
+               html  pos=static z=auto  0,0 328×723

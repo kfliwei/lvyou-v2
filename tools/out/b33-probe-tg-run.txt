@@ -1,0 +1,23 @@
+· .tg 容器：宽度=237.6（clientW=238 scrollW=238） 卡片宽=271.6
+  display=flex flex-wrap=wrap gap=6px justify=flex-start
+  六枚宽度反推合计=210（+5×gap 应≈容器宽）
+   编辑  rect=35×44 纯文字宽=24 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+   复制  rect=35×44 纯文字宽=24 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+   卡片  rect=35×44 纯文字宽=24 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+   MD  rect=35×44 纯文字宽=21 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+   文档  rect=35×44 纯文字宽=24 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+   删除  rect=35×44 纯文字宽=24 font=12.1875px pad=4px/4px flex=1 1 0% min-width=auto
+· 命中 .tg 族的规则（sheet=STYLE 表示 travel-notes.js 注入的那份）：
+   LINK  body .tn-item .tg  →  display: flex; gap: 6px; justify-content: flex-start; margin-top: 0.75rem; padding-top: 0.625rem; border-top: 1px solid var(--color-line);
+   LINK  body .tn-item .tg button  →  flex: 1 1 0%; padding: 0px 4px; border: 0px; background: none; border-radius: 0px; font-size: var(--fs-4); font-weight: 500; color: var(--color-primary-dark); cursor: pointer; position: relative; white-space: nowrap; let
+   LINK  body .tn-item .tg button::after  →  content: ""; position: absolute; left: 0px; bottom: calc(50% - 12px); height: 1.5px; width: 100%; background: currentcolor; transform-origin: left center; transition: transform var(--duration-normal) var(--ease-standard)
+   LINK  body .tn-item .tg button.danger  →  color: var(--color-primary-dark);
+   LINK  body .tn-item .tg button.danger::after  →  background: var(--color-primary-dark);
+   LINK  body .tn-pill, body .tn-viewtab, body .tn-repolish, body .tn-tagbar button, body .tn-guide .bar .spk, body .tn-style button, body .tn-editpage .body button, body .tn-item .tg button, body .tn-cfm .tc-btns button  →  min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+   STYLE  .tn-item .tg  →  display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap;
+   STYLE  .tn-item .tg button  →  flex: 1 1 0%; min-height: 40px; padding: 0px 4px; border: 1px solid var(--ln); background: var(--sf2); border-radius: 3px; font-size: var(--fs-3); font-weight: 700; color: var(--b7); cursor: pointer; transition: var(--tf
+   STYLE  .tn-item .tg button:active  →  transform: scale(0.96);
+   STYLE  .tn-item .tg button.danger  →  background: transparent; color: var(--color-primary);
+· 试演（临时 min-width:44px，不写进产品码）：行数=2 每行枚数=[4,2] 各枚宽=[55,55,55,55,116,116] .tg 高=104 卡片高=214 横向溢出=false
+· 卡片数=2 各自高=[164,164]（视口 723，列表区高=723）
+· 未捕获报错：0 条

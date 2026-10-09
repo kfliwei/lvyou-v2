@@ -1,0 +1,36 @@
+
+==================== 腿 ① 备份提醒条：z:8000 之后「看得见」与「不压人」两都要 ====================
+· 无浮层：rect=14,561 300×58  computed z=8000 position=fixed
+  中心点顶命中=div#bootSplash 是它自己或其后代=false｜在取景框内=true｜「去备份」钮在场=true（截下的 12s 计时器条数=1）
+  ❗ 降过头：无浮层时它自己都命中不到，功能等于被埋
+  · .tn-list(9000) 在场时中心点顶命中=div.tn-listbody 还是这条 div=false（该层 z=8000） ✅
+  · .tn-panel(9001) 在场时中心点顶命中=b 还是这条 div=false（该层 z=8000） ✅
+  · .tn-editpage(9010) 在场时中心点顶命中=div.body 还是这条 div=false（该层 z=8000） ✅
+  编辑页里那条 div 还在 DOM=true
+  · #tnEditAddPhoto rect=248,544 64×44 中心点=280,566
+    [0] button#tnEditAddPhoto rect=248,544 64×44 pos=static z=auto pointer-events=auto
+    [1] div rect=16,543 296×46 pos=static z=auto pointer-events=auto
+    [2] div.body rect=0,59 328×585 pos=static z=auto pointer-events=auto
+    [3] div.tn-editpage rect=0,0 328×723 pos=fixed z=9010 pointer-events=auto
+    [4] div.tn-body rect=0,114 328×519 pos=relative z=2 pointer-events=auto
+  · 真鼠标点中心之后 #tnEditFile 收到 click=1 次（改前恒 0：那一点被 div 吃了） ✅
+  · 判定的四档（同一份代码，只换 localStorage）：
+    ✅ 两键全无（新用户） → 期望「弹」读到「弹(8000)」
+    ✅ WebDAV 成功且新鲜 → 期望「不弹」读到「不弹」
+    ✅ WebDAV 失败（ok:false） → 期望「弹」读到「弹(8000)」
+    ✅ WebDAV 成功但已 90 天 → 期望「弹」读到「弹(8000)」
+  未捕获报错：0 条
+
+==================== 腿 ② #tnQuotes：搬出 .tn-foot(z:2) 之后，真鼠标点得到自己吗 ====================
+· 祖先链：div#tnQuotes.tn-quotes(z=9005,pos=fixed) → body(z=auto,pos=static) → html(z=auto,pos=static)
+  直接住 body=true｜computed z=9005
+· 打开后 #tnQuoteHint 文案（$X(qq,…) 改线的第一处证据）：「已按当前地点「云冈石窟」检索，可修改关键词」 ✅
+  · #tnQuoteClear rect=268,71 44×44 中心点顶命中=svg ✅
+  · #tnQuoteBack rect=16,8 44×44 中心点顶命中=button#tnQuoteBack.tn-x ✅
+  · #tnQuoteSearch rect=16,71 244×44 中心点顶命中=input#tnQuoteSearch ✅
+· 污染之后（点之前）：搜索框=「云冈」 结果条数=4
+· 真鼠标点 #tnQuoteClear 中心（290,93）之后：{"value":"","expOn":false,"panelExpense":false,"quotesShown":true} ✅
+· 真鼠标点 #tnQuoteBack 之后：#tnQuotes display=none（期望 none） .tn-panel display=flex（期望 flex） 面板中部顶命中=div#tnPrompt.tn-prompt ✅
+· 结果项「凿石开山，因岩结构，真容巨壮，世法所」 rect=16,151 296×153 顶命中=span.at ✅
+  真点之后正文长度=35 浮层提示=「已追加名言 · 正文已有内容，可点「整理一下」生」
+  未捕获报错：0 条

@@ -318,10 +318,22 @@ const SEED = () => {
   ok('D20b 复制那条文本仍带着坐标（§45 的保留支，不许跟着卡面一起砍）',
     /39\.5606,\s*114\.0862/.test(TXT), JSON.stringify(String(TXT).slice(0, 70)));
 
+  /* ---------- 四b 批次 33-D：这一屏的日期行要带时分（只走 dayText 会收成裸日号，同程的早晚看着是同一天） ---------- */
+  await page.goto(P('story.html'), { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await sleep(1800);
+  const SC46 = await page.evaluate(() => {
+    const c = document.querySelector('.story-card .sc-date');
+    const s = document.getElementById('snSub');
+    return { card: c ? (c.textContent || '').trim() : '(无 .sc-date)', sub: s ? (s.textContent || '').trim() : '(无 #snSub)' };
+  });
+  ok('D23 旅程故事页的日卡与翻页条都读出「日 · 时分」（种子首站 = ' + DAY + ' · 14:23）',
+    /^\d{4}-\d{2}-\d{2} · \d{2}:\d{2}$/.test(SC46.card) && /\d{2}:\d{2}$/.test(SC46.sub),
+    JSON.stringify(SC46).slice(0, 130));
+
   ok('D21 全程零页面报错（把库引进别的页面、换读数出口最容易在这里红）',
     errs.length === 0, errs.slice(0, 3).join(' | '));
 
-  ok('D22 判据条数 ≥ 24（这一节自己也是会被删的）', checks >= 24, 'checks=' + checks + '（本条自身是第 ' + (checks + 1) + ' 条）');
+  ok('D22 判据条数 ≥ 25（这一节自己也是会被删的）', checks >= 25, 'checks=' + checks + '（本条自身是第 ' + (checks + 1) + ' 条）');
 
   lines.push('=== smoke-date: ' + checks + ' 项，失败 ' + fails + ' ===');
   console.log('=== smoke-date: ' + checks + ' 项，失败 ' + fails + ' ===');

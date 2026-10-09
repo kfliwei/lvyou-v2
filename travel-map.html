@@ -704,8 +704,26 @@ function zoomPhoto(src){
 }
 
 // 统计条：可收起 / 展开
-// URL ?id= 直达定位某条游记（首页搜索栏点击进入）：仅 flyTo 定位到节点，不自动弹详情大图
-(function(){var m=location.search.match(/[?&]id=([^&]+)/);if(m){var id=m[1];var nts=TravelNotes.list();for(var i=0;i<nts.length;i++){if(nts[i].id===id){setTimeout(function(){var nn=nts[i];if(map&&nn.lat!=null){map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nn.title||nn.siteName||'这篇游记');}},500);break;}}}})();
+// URL ?id= 直达定位某条游记（首页搜索栏 / search.html:216 / me.html「最近记录」都往这条链上送人）：仅 flyTo 定位到节点，不自动弹详情大图
+// 必须在游记载入完成之后再找那一篇：改前这段自执行函数在**脚本解析期**就调 TravelNotes.list()，
+// 而 list() 返回的 notes 由 IndexedDB 异步灌入，init() 还要到 :830 才被调用，那一刻恒为 0 篇，
+// for 循环一次都没进过——不 flyTo、不改那行字、也不说为什么（实测 tools/out/b34-probe-deadlink.txt:10「解析期:708 条数 [0]」，
+// :20/:21 效果读数仍是全体 fitBounds；同页 :728 那条不依赖 notes 的 ?lat= 链在同一环境里能 flyTo 并回执，见 :27/:28，
+// 所以静默不是环境不通，是这条链压根没跑到）。
+var _deepId=(location.search.match(/[?&]id=([^&]+)/)||[])[1]||'';
+function locateDeepNote(){
+  if(!_deepId) return;
+  var id=_deepId; try{ id=decodeURIComponent(_deepId); }catch(e){}   /* 手写/外来链接里的坏 % 串不许把 _onReady 打断 */
+  _deepId='';                       /* 一次性：之后保存再触发 _onReady 也不该再抢一次 flyTo */
+  var sm=document.getElementById('statMain');
+  var nn=TravelNotes.list().filter(function(x){return x.id===id;})[0];
+  /* 三种落点各说一句：没找到、找到了但地图上没那一点、找到了并定位。从前这三档全是同一句沉默 */
+  if(!nn){ if(sm) sm.textContent='没找到那篇游记，可能已经被删除了'; return; }
+  var nm=nn.title||nn.siteName||'这篇游记';
+  if(nn.lat==null||nn.lng==null){ if(sm) sm.textContent='「'+nm+'」没有坐标，地图上定位不了'; return; }
+  if(map&&map.flyTo) map.flyTo(gxy(nn.lat,nn.lng),Math.max(map.getZoom(),13),{duration:.8});
+  if(sm) sm.textContent='已定位：'+nm;
+}
 // URL ?lat=&lng=&name= 定位任意景点（旅行画像「去看看」跳转）：flyTo + 顶部提示
 (function(){var ml=location.search.match(/[?&]lat=([-.\d]+)[&]lng=([-.\d]+)/);if(ml){var nm=(location.search.match(/[?&]name=([^&]*)/)||[])[1]||'';setTimeout(function(){try{var g=gxy(+ml[1],+ml[2]);if(map){map.flyTo(g,Math.max(map.getZoom(),13),{duration:.8});var sm=document.getElementById('statMain');if(sm)sm.textContent='已定位：'+(nm?decodeURIComponent(nm):'这个景点');}}catch(e){}},500);}})();
 
@@ -807,7 +825,7 @@ function shareTrack(){
   }
   trackPickerEl.style.display='block';
 }
-window.TravelNotes._onReady = function(){ refresh(); };
+window.TravelNotes._onReady = function(){ refresh(); locateDeepNote(); };
 window.TravelNotes._afterSave = function(){ refresh(); };
 TravelNotes.init({});
 setTimeout(()=>{ if(TravelNotes.list().length) map.invalidateSize(); },300);

@@ -26,7 +26,7 @@
   .story-card .sc-meta{font-size:var(--fs-3);color:var(--color-muted);margin-top:5px}
   .story-card .sc-txt{font-family:var(--font-serif);font-size:var(--fs-5);line-height:1.9;color:var(--color-ink-soft);margin-top:10px;white-space:pre-wrap}
   .story-card .sc-pics{display:flex;gap:6px;margin-top:10px;overflow-x:auto}
-  .story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto}
+  .story-card .sc-pics img{width:90px;height:90px;object-fit:cover;border-radius:10px;flex:0 0 auto;cursor:pointer}
   .story-card .sc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .story-card .sc-tags span{font-size:var(--fs-2);color:var(--color-primary-dark);background:var(--color-primary-soft);padding:2px 9px;border-radius:999px}
   .story-empty{padding:70px 20px;text-align:center;color:var(--color-muted)}
@@ -34,7 +34,7 @@
   .story-empty b{display:block;font-family:var(--font-serif);font-size:var(--fs-8);font-weight:400;color:var(--color-ink);margin-bottom:8px}
   .story-empty span{font-size:var(--fs-4);line-height:1.8}
   .story-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:80;display:flex;align-items:center;gap:10px;width:min(calc(100% - 24px),440px);background:var(--glass-bar);border:1px solid var(--edge-hair-soft);border-radius:999px;padding:8px 14px;box-shadow:var(--shadow-float);backdrop-filter:var(--blur-bar);-webkit-backdrop-filter:var(--blur-bar)}
-  .story-nav .sn-btn{width:40px;height:40px;border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+  .story-nav .sn-btn{border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
   .story-nav .sn-btn:disabled{opacity:.35;cursor:not-allowed}
   .story-nav .sn-info{flex:1;text-align:center;min-width:0}
   .story-nav .sn-info b{font-family:var(--font-serif);font-weight:400;font-size:var(--fs-5);color:var(--color-ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -120,6 +120,11 @@ function renderSel(){
     return '<option value="'+i+'">'+TravelNotes.dayText(t.notes[0])+' ~ '+TravelNotes.dayText(t.notes[t.notes.length-1])+'（'+t.notes.length+' 篇）</option>';
   }).join('');
 }
+/* 批次33-D：这一屏的日期行要带时分。批次 31 把显示收成单点之后，日卡和翻页条只剩 dayText，
+   同一程里「早上落笔」和「深夜补记」看着是同一天——旅程叙事最需要的正是这个先后。
+   拼串仍只从两个单点出口读（dayText 给日、fmtClock 给时分），不开第三份解析；
+   这个定义本身含 2 次单点调用，下面两处调用点改调它 ⇒ §46 登记的 story.html 计数仍是 4。 */
+function dayClock(n){ return [TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · '); }
 function render(){
   notes=(window.TravelNotes?TravelNotes.list():[]);
   trips=groupTrips(notes.filter(function(n){return n.lat!=null&&n.lng!=null;}));
@@ -136,10 +141,10 @@ function render(){
   var _op='<div class="vrow"><span class="vtitle">'+esc(String(_f.siteName||_f.title||'此程').slice(0,10))+'</span>'
     +'<p class="vlead">自这里落笔 · 共 '+cards.length+' 站 · 跨 '+_days+' 天</p></div>';
   box.innerHTML=_op+cards.map(function(n,i){
-    var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p){return '<img loading="lazy" decoding="async" src="'+esc(p)+'" onerror="window.UI&&UI.imgFail(this)">';}).join('')+'</div>':'';
+    var pics=(n.photos&&n.photos.length)?'<div class="sc-pics">'+n.photos.map(function(p,pi){return '<img loading="lazy" decoding="async" src="'+esc(p)+'" onerror="window.UI&&UI.imgFail(this)" onclick="TravelNotes.zoomPhotoIdx(\x27'+n.id+'\x27,'+pi+')" alt="">';}).join('')+'</div>':'';
     var tags=(n.tags&&n.tags.length)?'<div class="sc-tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
     return '<div class="story-card" data-i="'+i+'">'
-      +'<div class="sc-date">'+esc(TravelNotes.dayText(n))+'</div>'
+      +'<div class="sc-date">'+esc(dayClock(n))+'</div>'
       +'<div class="sc-place">'+esc(n.title||n.siteName||'未命名')+'</div>'
       +'<div class="sc-meta">'+esc(n.siteName||'')+(n.weather?' · '+esc(n.weather):'')+'</div>'
       +'<div class="sc-txt">'+esc(n.text||n.raw)+'</div>'+pics+tags+'</div>';
@@ -166,7 +171,7 @@ function drawRoute(upto){
 function updateNav(i){
   var n=cards[i]; if(!n) return;
   document.getElementById('snTitle').textContent=(n.title||n.siteName||'未命名');
-  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+TravelNotes.dayText(n);
+  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+dayClock(n);
   document.getElementById('snPrev').disabled=(i<=0);
   document.getElementById('snNext').disabled=(i>=cards.length-1);
 }

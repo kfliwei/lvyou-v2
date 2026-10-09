@@ -1,0 +1,35 @@
+
+==================== 腿 ① 提醒条 z：9500（造出来的改前）vs 8000（现场） ============
+· #tnEditAddPhoto rect=248,544 64×44 中心点=280,566｜提醒条 computed z=8000（inline 就是 8000，现场值＝33-C 已降到 8000） 条 rect=14,561 300×58
+  · 造出来的改前 z=9500（computed z=9500）条 rect=14,561 300×58 是否罩住那个中心点=true
+    [0] div rect=14,561 300×58 pos=fixed z=9500 · 就是那条提醒条 pointer-events=auto
+    [1] button#tnEditAddPhoto rect=248,544 64×44 pos=static z=auto pointer-events=auto
+    [2] div rect=16,543 296×46 pos=static z=auto pointer-events=auto
+    [3] div.body rect=0,59 328×585 pos=static z=auto pointer-events=auto
+  → 真鼠标点下去 #tnEditFile 收到 click=0 次（顶命中是那条 bar=true → 这一档期望 0） ✅
+  · 现场 z=8000（把 inline 恢复成它自己的原值）（computed z=8000）条 rect=14,561 300×58 是否罩住那个中心点=true
+    [0] button#tnEditAddPhoto rect=248,544 64×44 pos=static z=auto pointer-events=auto
+    [1] div rect=16,543 296×46 pos=static z=auto pointer-events=auto
+    [2] div.body rect=0,59 328×585 pos=static z=auto pointer-events=auto
+    [3] div.tn-editpage rect=0,0 328×723 pos=fixed z=9010 pointer-events=auto
+  → 真鼠标点下去 #tnEditFile 收到 click=1 次（顶命中是那条 bar=false → 这一档期望 1） ✅
+  未捕获报错：0 条
+
+==================== 腿 ② #tnQuotes：住在 .tn-foot（造出来的改前）vs 住 body（现场） ============
+  （刚搬完：.tn-quotes 份数=1 getElementById 的父级=div.tn-foot 逐份=div.tn-foot#tnQuotes）
+  · 造出来的改前：搬回 .tn-foot（父级 z:2 建上下文）
+    搬动成功=true｜当前直接父级=div.tn-foot｜点之前档位残留已清（expOn=false panelExpense=false）
+    祖先链：div#tnQuotes.tn-quotes(z=9005,pos=fixed) → div.tn-foot(z=2,pos=relative) → div.tn-panel.has-exp.is-idle(z=9001,pos=fixed) → body(z=auto,pos=static) → html(z=auto,pos=static)
+    #tnQuoteClear 44×44 中心点=290,93 顶命中=button#tnTabExp（别人的）
+    [0] button#tnTabExp rect=167,70 147×44 pos=static z=auto pointer-events=auto
+    [1] div.tn-seg rect=0,62 328×52 pos=relative z=3 pointer-events=auto
+    [2] svg rect=281,86 14×14 pos=static z=auto pointer-events=auto
+    [3] button#tnQuoteClear.tn-x rect=268,71 44×44 pos=static z=auto pointer-events=auto
+    真点之后：{"value":"云冈","expOn":true,"panelExpense":true,"quotesShown":true} ✅ 复现改前那种「清钮没赢、档被切走」
+  （刚搬完：.tn-quotes 份数=1 getElementById 的父级=body 逐份=body#tnQuotes）
+  · 现场：住 body
+    搬动成功=true｜当前直接父级=body｜点之前档位残留已清（expOn=false panelExpense=false）
+    祖先链：div#tnQuotes.tn-quotes(z=9005,pos=fixed) → body(z=auto,pos=static) → html(z=auto,pos=static)
+    #tnQuoteClear 44×44 中心点=290,93 顶命中=svg（自己的）
+    真点之后：{"value":"","expOn":false,"panelExpense":false,"quotesShown":true} ✅ 清钮赢、档位没动、浮层还在
+  未捕获报错：0 条
