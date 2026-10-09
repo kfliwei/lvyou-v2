@@ -608,9 +608,9 @@ function renderDay(){
   var list=dayMap[selDay].slice().sort(function(a,b){return a.ts-b.ts;});
   var items=list.map(function(n){
     var tags=(n.tags&&n.tags.length)?'<div class="tags">'+n.tags.map(function(t){return '<span>#'+esc(t)+'</span>';}).join('')+'</div>':'';
-    var thumbs=(n.photos&&n.photos.length)?'<div class="thumbs">'+n.photos.slice(0,4).map(function(p){return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)">';}).join('')+'</div>':'';
+    var thumbs=(n.photos&&n.photos.length)?'<div class="thumbs">'+n.photos.slice(0,4).map(function(p,pi){return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="'+esc(p)+'" onclick="TravelNotes.zoomPhotoIdx(\x27'+n.id+'\x27,'+pi+')" alt="">';}).join('')+'</div>':'';
     return '<div class="md-item"><h3>'+esc(n.title||n.siteName||'未命名')+'</h3>'+
-      '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'+
+      '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'+
       '<div class="txt">'+esc(n.text||n.raw)+'</div>'+tags+thumbs+'</div>';
   }).join('');
   var moods=Object.keys(MOOD_ICON);

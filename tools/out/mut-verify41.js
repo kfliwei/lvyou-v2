@@ -37,14 +37,17 @@ const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 
-/* 独占锁：同一时间只许一张变异网动树 */
-const LOCK = path.join(ROOT, 'tools', 'out', '.mut41.lock');
-if (fs.existsSync(LOCK)) {
-  console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）');
-  process.exit(2);
-}
-fs.writeFileSync(LOCK, String(process.pid));
+/* 独占锁：同一时间只许一张变异网动树。认所有 .mut*.lock，不认自己那一个名字：
+   本族各网的快照都含 tools/verify.js（还常含 README.md 与同一批产品文件），并发跑会各自从自己的
+   启动快照回写——后还原那张把前一张刚还原的内容一并抹掉，树停在中间态而两边都报「全过」。
+   取锁用 flag 'wx'（存在即失败），把「同时启动」那一格也堵掉。 */
+const OUTDIR = path.join(ROOT, 'tools', 'out');
+const LOCK = path.join(OUTDIR, '.mut41.lock');
 function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
+try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
+catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
+const BUSY = fs.readdirSync(OUTDIR).filter(x => /^\.mut\d+\.lock$/.test(x) && x !== '.mut41.lock');
+if (BUSY.length) { unlock(); console.log('中止：' + OUTDIR + ' 里还有别的变异网锁 ' + BUSY.join('、') + '（快照与本网重叠，并发跑两边读数全废）'); process.exit(2); }
 
 const LOG = process.env.MUT_LOG || '';
 const LOGP = LOG ? (path.isAbsolute(LOG) ? LOG : path.join(ROOT, LOG)) : '';

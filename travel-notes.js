@@ -1734,7 +1734,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     var pics = (n.photos && n.photos.length) ? '<div class="pics">' + n.photos.map(function (p, pi) { return '<img loading="lazy" decoding="async" onerror="window.UI&&UI.imgFail(this)" src="' + esc(p) + '" onclick="TravelNotes.zoomPhotoIdx(\x27' + n.id + '\x27,' + pi + ')" alt="">'; }).join('') + '</div>' : '';
     var aud = n.audio ? '<audio controls preload="none" src="' + esc(n.audio) + '"></audio>' : '';
     var tags = (n.tags && n.tags.length) ? '<div class="tags">' + n.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
-    it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:var(--fs-3);color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
+    it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class="tn-site">· ' + esc(n.siteName) + '</span>' : '') + (n.weather ? ' <span style="font-size:var(--fs-3);color:#e67e22">' + esc(n.weather) + '</span>' : '') + '</h4><div class="tm">' + esc(n.date) + '</div><div class="tx">' + esc(n.text || n.raw) + '</div>' + tags + aud + pics + '<div class="tg">' +
       '<button data-a="edit">编辑</button><button data-a="copy">复制</button><button data-a="card">卡片</button><button data-a="md">MD</button><button data-a="doc">文档</button><button data-a="del" class="danger">删除</button></div>';
     it.querySelector('[data-a=edit]').onclick = function () { openEdit(n.id); };
     it.querySelector('[data-a=card]').onclick = function () { genCard(n); };
@@ -1922,7 +1922,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       var tags = (n.tags && n.tags.length) ? '<div style="margin:8px 0">' + n.tags.map(function (t) { return '<span style="display:inline-block;background:#f2d5d0;color:var(--color-primary);border-radius:999px;font-size:var(--fs-3);padding:3px 10px;margin-right:6px">#' + esc(t) + '</span>'; }).join('') + '</div>' : '';
       return '<div style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:18px;margin-bottom:16px">' +
         '<h2 style="margin:0 0 4px;font-size:var(--fs-9);color:#26241f">' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span style="font-size:var(--fs-4);color:#6b665c">· ' + esc(n.siteName) + '</span>' : '') + '</h2>' +
-        '<div style="color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) : '') + '</div>' +
+        '<div style="color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
         pics + tags +
         '<div style="white-space:pre-wrap;line-height:1.8;font-size:var(--fs-5);color:#333">' + esc(n.text || n.raw) + '</div></div>';
     }).join('');
@@ -2213,7 +2213,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
     ctx.fillText(n.siteName, 70, 220);
     ctx.fillStyle = 'rgba(255,255,255,.85)';
     ctx.font = '30px sans-serif';
-    ctx.fillText(n.date + (n.lat != null ? '  ·  ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : ''), 70, 285);
+    ctx.fillText(n.date, 70, 285);
     ctx.strokeStyle = 'rgba(255,255,255,.4)';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(70, 330); ctx.lineTo(1010, 330); ctx.stroke();
@@ -2270,7 +2270,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
           className: '', iconSize: [22, 22], iconAnchor: [11, 20]
         })
       });
-      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span>' + pic + '<div style="white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px">' + esc(n.text || n.raw) + '</div><div style="color:#6b665c;font-size:var(--fs-2);margin-top:6px">' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) + (n.style ? ' · ' + n.style : '') + '</div></div>', { maxWidth: 280 });
+      m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif"><b>' + esc(n.title || n.siteName) + '</b> <span style="color:#6b665c;font-size:var(--fs-2)">' + esc(n.date) + '</span>' + pic + '<div style="white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px">' + esc(n.text || n.raw) + '</div>' + (n.style ? '<div style="color:#6b665c;font-size:var(--fs-2);margin-top:6px">' + esc(n.style) + '</div>' : '') + '</div>', { maxWidth: 280 });
       if (window.UI) { UI.markerLabel(m, (n.title || n.siteName || '随手记') + '，' + (n.date || '') + '，点击查看全文'); UI.markerKeys(m, function () { m.openPopup(); }); }
       m.addTo(layer);
     });

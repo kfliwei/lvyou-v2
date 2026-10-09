@@ -319,7 +319,7 @@
   /* ---------- 随手记 ---------- */
   function spotRec(lat, lng) {
     var m = L.marker([lat, lng], { icon: L.divIcon({ html: '<div style="font-size:22px;line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))">' + TI('mic', 22) + '</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 22] }) }).addTo(map);
-    m.bindPopup('<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div><div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div><div class="pfoot"><button class="addtrip tnvo" onclick="window.__tnSpot(' + lat + ',' + lng + ')">' + TI('mic', 13) + '在此语音记录</button></div></div>', { maxWidth: 260, className: 'trippop', autoPan: true }).openPopup();
+    m.bindPopup('<div class="pop"><div class="pscroll"><b>途经点随手记</b><div class="pm pa">在此以 GPS 位置语音记录一段见闻，保存后成为游记节点。</div></div><div class="pfoot"><button class="addtrip tnvo" onclick="window.__tnSpot(' + lat + ',' + lng + ')">' + TI('mic', 13) + '在此语音记录</button></div></div>', { maxWidth: 260, className: 'trippop', autoPan: true }).openPopup();
     m.on('popupclose', function () { if (map.hasLayer(m)) map.removeLayer(m); });
     if (window.UI) { UI.markerLabel(m, '途经点随手记'); UI.markerKeys(m, function () { m.openPopup(); }); }
   }

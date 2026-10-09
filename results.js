@@ -330,7 +330,7 @@
       var q = pickQuote(n.siteName || n.title || '');
       var quoteHtml = q ? '<div class="q">「' + esc(q.t) + '」——' + esc(q.a) + '</div>' : '';
       return '<div class="card"><h2>' + esc(n.title || n.siteName) + '</h2>'
-        + '<div class="m">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div>'
+        + '<div class="m">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
         + pics + tags + '<div class="t">' + esc(n.text || n.raw) + '</div>' + quoteHtml + '</div>';
     }).join('');
     var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), stats + cards);

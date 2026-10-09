@@ -1,0 +1,9 @@
+=== probe45-aria-blind · 尺来自 verify.js 现场 eval（REND45/SCAN45/ws45 各 1 份，无手抄）===
+取用片段长度=625 字符，首行「const REND45 = ['<div', '<span', '<p ', '<p>', '<b>', '<li',」
+① aria-label 拼坐标那一行: sites=1 labeled=0 offscreen=1 越界=0
+   分类结论=★ 被放行（当成「不在屏上的键」）——源码腿对这一格永久沉默
+② 反证 · 卡面 innerHTML 拼坐标那一行: sites=1 offscreen=0 越界=1
+   逮住了（同一把尺、同一个样本集，所以 ① 的沉默不是尺坏，是口径的洞）
+③ 根目录 104 个 .js/.html：含 lat+lng+toFixed 的行 25 行，其中写进 aria-label/title/alt 的 0 行
+   现状口径：这一格现在干净（0 命中）。这条「干净」的证据是数出来的，不是假设的；一旦有人补上带坐标的 aria-label，源码腿这一族不会红，红的是浏览器腿 CO12。
+=== probe45-aria-blind 完 ===

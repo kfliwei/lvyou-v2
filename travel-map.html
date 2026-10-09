@@ -257,7 +257,6 @@
   .ms-audio audio{flex:1;height:36px}
   .ms-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
   .ms-tags span{font-size:var(--fs-2);color:var(--color-primary-dark);background:var(--color-primary-soft);border-radius:999px;padding:3px 10px;font-weight:600}
-  .ms-loc{margin-top:3px;font-size:var(--fs-2);color:var(--color-muted);letter-spacing:.04em}
   .ms-close{position:absolute;right:12px;top:10px;width:44px;height:44px;border:0;border-radius:50%;background:var(--color-bg-soft);color:var(--color-muted);font-size:var(--fs-5);cursor:pointer;z-index:6}
   @keyframes node-breathe{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.8}}
 
@@ -680,11 +679,9 @@ function openMemSheet(n){
   const photosHtml=(n.photos&&n.photos.length)?'<div class="ms-photos">'+n.photos.map(x=>'<img loading="lazy" decoding="async" src="'+x+'" onclick="zoomPhoto(this.src)" onerror="window.UI&&UI.imgFail(this)">').join('')+'</div>':'';
   const audioHtml=n.audio?'<div class="ms-audio"><span style="font-size:var(--fs-4);color:var(--color-primary-dark);font-weight:600">▶ 原声</span><audio controls preload="none" src="'+n.audio+'"></audio></div>':'';
   const tagsHtml=(n.tags&&n.tags.length)?'<div class="ms-tags">'+n.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'';
-  const locHtml=n.lat!=null?'<div class="ms-loc">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';
   /* 照片排在正文之前：它是这篇里最该一眼看见的东西，也是「卡片还有下文」的最好暗示 */
   fillSheet('<div class="ms-place">'+place+'</div>'
     +'<div class="ms-time">'+time+'</div>'
-    +locHtml
     +photosHtml
     +(story?'<div class="ms-story">'+story+'</div>':'')
     +audioHtml

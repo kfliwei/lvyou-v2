@@ -83,6 +83,53 @@ const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
   ok('心情已持久化', /😀/.test(after.stored), after.stored.slice(0, 60));
   ok('持久化后日历格回显走图标', after.calSvg && !/[\u{1F000}-\u{1FAFF}]/u.test(after.calText), 'cal=' + JSON.stringify(after.calText));
 
+  /* 批次 30-E · 日卡缩略图（review.html 那一处曾经只拼了 onerror、没拼 src）
+     为什么必须走到「真解码出像素」：查 src 属性在场，抓不到「拼上了但拼错」；
+     而查 naturalWidth 会连带把「路径不存在」「img-test/ 没进壳」一起抓到。
+     这条判据是点出来的，不是空跑——必须先找到一个真的有照片的日子。 */
+  const picked = await p.evaluate(() => {
+    var cells = Array.prototype.slice.call(document.querySelectorAll('#calGrid .cal-cell.has'));
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].click();
+      if (document.querySelectorAll('#dayBox .md-item .thumbs img').length) {
+        return { i: i, day: cells[i].getAttribute('data-d'), tried: i + 1, total: cells.length };
+      }
+    }
+    return { none: true, tried: cells.length, total: cells.length };
+  });
+  ok('找到「有照片的那一天」（缩略图判据不许在零张卡上空跑）', !picked.none,
+    picked.none ? '翻了 ' + picked.tried + ' 个有记录的日期都没有 .thumbs img' : 'day=' + picked.day + '（第 ' + picked.tried + '/' + picked.total + ' 个）');
+  if (!picked.none) {
+    await wait(900);   /* src 在场 ≠ 图解码完成：naturalWidth 要等文件真读出来 */
+    const th = await p.evaluate(() => {
+      var imgs = Array.prototype.slice.call(document.querySelectorAll('#dayBox .md-item .thumbs img'));
+      return {
+        n: imgs.length,
+        noSrc: imgs.filter(im => !(im.getAttribute('src') || '').trim()).length,
+        decoded: imgs.filter(im => im.naturalWidth > 0).length,
+        zoom: imgs.filter(im => /zoomPhotoIdx/.test(im.getAttribute('onclick') || '')).length,
+        first: imgs.length ? imgs[0].getAttribute('src') : ''
+      };
+    });
+    ok('日卡缩略图每枚都带 src 属性', th.n > 0 && th.noSrc === 0, 'img=' + th.n + ' 缺src=' + th.noSrc);
+    ok('日卡缩略图真解码出像素（naturalWidth>0）', th.n > 0 && th.decoded === th.n, 'decoded=' + th.decoded + '/' + th.n);
+    ok('日卡缩略图每枚都接了放大出口', th.zoom === th.n, 'zoom=' + th.zoom + '/' + th.n);
+    await p.evaluate(() => { var im = document.querySelector('#dayBox .md-item .thumbs img'); if (im) im.click(); });
+    await wait(500);
+    const vw = await p.evaluate(() => {
+      var im = document.querySelector('#tvImg');
+      return {
+        open: !!document.querySelector('.tn-viewer'),
+        src: im ? im.getAttribute('src') : '',
+        w: im ? im.naturalWidth : 0,
+        x: !!document.querySelector('#tvX')
+      };
+    });
+    ok('点缩略图真打开看图器，且就是点的那一张', vw.open && !!vw.src && vw.src === th.first && vw.w > 0,
+      'open=' + vw.open + ' src=' + vw.src + ' 缩略图src=' + th.first + ' w=' + vw.w);
+    ok('看图器自带关闭钮', vw.x, 'x=' + vw.x);
+  }
+
   const real = errs.filter(e => !/Failed to load resource|net::|ERR_|manifest\.webmanifest|tile/i.test(e));
   ok('全程无 JS 报错', real.length === 0, real.slice(0, 3).join(' | '));
 

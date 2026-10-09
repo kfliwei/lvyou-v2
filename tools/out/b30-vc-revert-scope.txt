@@ -1,0 +1,96 @@
+=== 批次30 范围证明·倒回改前跑（树=HEAD，基线=10-08 15:52 那套）
+start 2026-10-09 07:26:23
+PASS review.seed.390x844.png  diff 0.00%
+NOTE album.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+NOTE travel-map.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS expense.ledger.390x844.png  diff 0.00%
+PASS trip.ledger.390x844.png  diff 0.00%
+PASS me.ledger.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1040ms(<2500，3 次中位；样本 1436/928/1040) 元素=DIV | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 744ms(<2500，3 次中位；样本 744/848/488) 元素=? | CLS 0.0009(<0.05，取最大)
+---
+耗时 74.7s（7 张，报告 tools/out/visual-report.json）
+比对 7 张: 7 PASS, 0 FAIL
+
+=== 第二腿：相关页空库态 × 6 视口
+PASS review.320x640.png  diff 0.00%
+PASS review.328x723.png  diff 0.00%
+PASS review.390x844.png  diff 0.00%
+PASS review.452x995.png  diff 0.00%
+PASS review.768x1024.png  diff 0.00%
+PASS review.1440x900.png  diff 0.00%
+NOTE travel-map.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.320x640.png  diff 0.00%
+NOTE travel-map.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.328x723.png  diff 0.00%
+NOTE travel-map.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.390x844.png  diff 0.00%
+NOTE travel-map.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.452x995.png  diff 0.00%
+NOTE travel-map.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.768x1024.png  diff 0.00%
+NOTE travel-map.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.1440x900.png  diff 0.00%
+NOTE node-manager.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.320x640.png  diff 0.00%
+NOTE node-manager.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.328x723.png  diff 0.00%
+NOTE node-manager.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.390x844.png  diff 0.00%
+NOTE node-manager.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.452x995.png  diff 0.00%
+NOTE node-manager.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.768x1024.png  diff 0.00%
+NOTE node-manager.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS node-manager.1440x900.png  diff 0.00%
+NOTE topic.320x640.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.320x640.png  diff 0.00%
+NOTE topic.328x723.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.328x723.png  diff 0.00%
+NOTE topic.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.390x844.png  diff 0.00%
+NOTE topic.452x995.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.452x995.png  diff 0.00%
+NOTE topic.768x1024.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.768x1024.png  diff 0.00%
+NOTE topic.1440x900.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS topic.1440x900.png  diff 0.00%
+PASS index.320x640.png  diff 0.00%
+PASS index.328x723.png  diff 0.00%
+PASS index.390x844.png  diff 0.00%
+PASS index.452x995.png  diff 0.00%
+PASS index.768x1024.png  diff 0.00%
+PASS index.1440x900.png  diff 0.00%
+PASS explore-map.320x640.png  diff 0.00%
+PASS explore-map.328x723.png  diff 0.00%
+PASS explore-map.390x844.png  diff 0.00%
+PASS explore-map.452x995.png  diff 0.00%
+PASS explore-map.768x1024.png  diff 0.00%
+PASS explore-map.1440x900.png  diff 0.00%
+PASS album.320x640.png  diff 0.00%
+PASS album.328x723.png  diff 0.00%
+PASS album.390x844.png  diff 0.00%
+PASS album.452x995.png  diff 0.00%
+PASS album.768x1024.png  diff 0.00%
+PASS album.1440x900.png  diff 0.00%
+PASS story.320x640.png  diff 0.00%
+PASS story.328x723.png  diff 0.00%
+PASS story.390x844.png  diff 0.00%
+PASS story.452x995.png  diff 0.00%
+PASS story.768x1024.png  diff 0.00%
+PASS story.1440x900.png  diff 0.00%
+PASS planner.320x640.png  diff 0.00%
+PASS planner.328x723.png  diff 0.00%
+PASS planner.390x844.png  diff 0.00%
+PASS planner.452x995.png  diff 0.00%
+PASS planner.768x1024.png  diff 0.00%
+PASS planner.1440x900.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1124ms(<2500，3 次中位；样本 1720/1124/1092) 元素=H1 | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 916ms(<2500，3 次中位；样本 988/916/560) 元素=? | CLS 0.0009(<0.05，取最大)
+---
+耗时 340.8s（54 张，报告 tools/out/visual-report.json）
+比对 54 张: 54 PASS, 0 FAIL
+end 2026-10-09 07:33:20

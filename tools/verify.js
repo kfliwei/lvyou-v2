@@ -182,28 +182,46 @@ const EMOJI_MARK = 'emoji-ok:';
   }
 }
 
-/* 11. 图片加载闸门（P0-2）：任何 <img 输出点必须懒加载 + 出错兜底，永不破图。
+/* 11. 图片加载闸门（P0-2）。从 design.css 真解析 token 值再算，不抄数字——
    - 每个含 `<img` 的行必须带 loading="lazy"；确属首屏 LCP 要提前加载的，在同一行注 `img-eager-ok: 理由`
      （沿用 §7 的显式登记思路：豁免必须留名，不许匿名通过）。
    - 每个 `<img` 必须带 onerror（品牌占位/切换占位类），裸挂远端图无兜底 = FAIL。
+   - 每个 `<img` 必须带 src（批次 30-E 补的）。这一支原先没有，正因为它只查那两个「防御属性」，
+     就把「压根没把 src 拼进串」这一族放过去了：图永远空白，而 onerror 会真的触发、UI.imgFail
+     把框变成占位，症状长得像「图挂了」而不是「没给图」，读代码的人扫一眼看到 onerror 还在就翻篇了。
+     review.html 的日卡缩略图就是这么漏的（42 个 `<img` 行里唯一一处），2026-10-09 用户在手机上发现。
+   - 扫描器自己要有正向对照：先证明「漏 src 那种形状它抓得到」，否则「零违规」可能是它瞎了。
    - 比例系统 token（--ar-list/--ar-cover/--ar-square/--img-scrim）与 .imgbox/.img-fallback 必须在 design.css 定义，
      产品 CSS 不再手写 4/3、16/9 字面量。 */
 {
   let bad = 0;
   const IMG_FILES = fs.readdirSync('.').filter(x => /\.(js|html)$/.test(x) && !/^test-/.test(x) && x !== 'icons-demo.html');
-  let imgTotal = 0, lazyOk = 0, errOk = 0, registered = 0;
-  const lazyBad = [], errBad = [];
+  let imgTotal = 0, lazyOk = 0, errOk = 0, srcOk = 0, registered = 0;
+  const lazyBad = [], errBad = [], srcBad = [];
+  const HAS_SRC = l => /src=/.test(l);
+  /* 自校准两条：缺 src 的合成行必须被抓，带 src 的合成行不许误抓（抓反了的话这条规则等于没有） */
+  if (HAS_SRC('<img loading="lazy" decoding="async" onerror="x">')) { console.log('图片闸门 FAIL: src 扫描器自校准失败——漏 src 的合成行没被抓到'); bad++; }
+  if (!HAS_SRC('<img loading="lazy" decoding="async" onerror="x" src="a.svg">')) { console.log('图片闸门 FAIL: src 扫描器自校准失败——带 src 的合成行被误抓'); bad++; }
   for (const f of IMG_FILES) {
     fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
       if (!line.includes('<img')) return;
       imgTotal++;
+      /* 先查 src：它不在豁免分支里，img-eager-ok 只豁免 lazy，不豁免「没给图」 */
+      if (HAS_SRC(line)) srcOk++; else srcBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60));
       if (line.includes('img-eager-ok:')) { registered++; if (!/onerror=/.test(line)) errBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60)); return; }
       if (/loading="lazy"/.test(line)) lazyOk++; else lazyBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60));
       if (/onerror=/.test(line)) errOk++; else errBad.push(f + ':' + (i + 1) + '  ' + line.trim().slice(0, 60));
     });
   }
+  /* 分母对账：扫到的每一行 <img 都必须走到 src 判据。对不上＝有一族被跳过（push 被摘、豁免分支写错），
+     那种闸门会「打印了红但没计数」——屏上看得见红字，退出码照样绿，等于没装。 */
+  if (srcOk + srcBad.length !== imgTotal) {
+    console.log('图片闸门 FAIL: src 检出分母对不上——扫到 ' + imgTotal + ' 行 <img，只有 ' + (srcOk + srcBad.length) + ' 行走到 src 判据');
+    bad++;
+  }
   lazyBad.forEach(l => console.log('图片闸门 FAIL（缺 loading="lazy" 或未登记 img-eager-ok）: ' + l));
   errBad.forEach(l => console.log('图片闸门 FAIL（缺 onerror 占位兜底）: ' + l));
+  srcBad.forEach(l => console.log('图片闸门 FAIL（缺 src——缩略图只会是个空框，且 onerror 把它伪装成「图挂了」）: ' + l));
   const dcss = fs.readFileSync('design.css', 'utf8');
   ['--ar-list:', '--ar-cover:', '--ar-square:', '--img-scrim:'].forEach(t => {
     if (!dcss.includes(t)) { console.log('图片闸门 FAIL: design.css 缺比例 token ' + t); bad++; }
@@ -217,8 +235,8 @@ const EMOJI_MARK = 'emoji-ok:';
       }
     });
   }
-  console.log('图片闸门: <img 输出点 ' + imgTotal + '，lazy ' + (lazyOk + registered) + '，兜底 ' + (errOk + registered) + '，登记豁免 ' + registered);
-  fail += bad + lazyBad.length + errBad.length;
+  console.log('图片闸门: <img 输出点 ' + imgTotal + '，src ' + srcOk + '，lazy ' + (lazyOk + registered) + '，兜底 ' + (errOk + registered) + '，登记豁免 ' + registered);
+  fail += bad + lazyBad.length + errBad.length + srcBad.length;
 }
 
 /* 12. 对比度审计（P0-4 · WCAG AA）。从 design.css 真解析 token 值再算，不抄数字——
@@ -5969,6 +5987,202 @@ function stripBlockComments(s) {
 
   console.log('足迹页底部堆叠与让位闸门: ' + A44.length + ' 条代码锚点（一条基线 + 实测档位单点 + 两态都量 + 四个落点 + resize 那一层（窗口自己变形也得重排）+ 胶囊带地点名与 aria 同句 + 让位一个几何函数（band<120 守卫 / dy>=1 门坎 / 记账 / flyTo 落定补一次 / 挂与摘成对）+ 填内容一个入口（已开着只换内容）+ 两条「还有下文」的出口（ms-clip 随 scrollTop 生灭、h-clipped 用 mask）+ 那一排不写 align-items（44px 的一致高度是默认 stretch 从同排 .tl-trip 传下来的隐式依赖）+ 胶囊自己那行要有 min-height 声明（这排的可点高度实际由三条机制一起撑：这行声明、同排 stretch、BUTTON 让 Chromium 扣的内部 44px 下限——锚只钉得住声明那一层，几何那条腿是 TM04）+ 卡片高认可视区 + 专题地图那一支同形的四件 + 版权条那层要带 .leaflet-container 才赢得过 vendor + 浏览器腿四条脚手架纪律（刀断 / 只挪一次 / hex↔rgb 换算 / 真机档 328×723））+ 十五族期望 0（时间线 150／卡片 212／卡片 max-height 不认可视区／开卡反号 [0,-180]／关卡猜数 [0,180]／sheetHeight 硬编码助手／panSheetBy 两条腿／渐隐条压毛玻璃 token／专题两支的 -160 与 +160／带 duration 的平移／版权条那 94px／单类写的底色／按主题各抄一份的底色／胶囊只靠 padding 撑高（改前那一行根本没有 min-height））各配正向对照 + 三项内置动态对账（坐在基线外的 bottom:calc 逐行扫原文：' + BT44.sites + ' 行含它、越界 ' + BT44.out.length + ' 行，扫描器先拿合成两行自校准；map.panBy( 两支各 2／3 处，抬与还同一笔账；拼串闭合配平先拿改前原件自校准（坏 1／好 0）再扫两支真源，实得越界 0 处）+ 一条自指纪律（flat44/view44 定义行必须走共享剥刀与不剥文档那一支，两处贴着长注释的新代码旁各钉一枚现场哨兵）+ 浏览器腿 TM01–TM37 齐备检（TM36b 单列一条）与条数守卫；A44 表长 ' + A44.length + ' 条、ZERO44 表长 ' + ZERO44.length + ' 条，抬阈值类变异要取当前长度 + 1；变异自测见 tools/out/mut-verify44.js');
   fail += bad44;
+}
+
+
+/* ============ §45 卡面裸经纬度闸门（批次 30-A） ============
+   用户点单（2026-10-08，选择题答复逐字）：「经纬度那一串（S1-2）在界面上怎么处置？」→「卡面删掉」。
+   同一题里另一支口径同样是指令：「界面卡面只留地点名；复制/分享文本与带『坐标』标签的管理/导出元信息行保留」。
+   所以这一节两条腿都要有：正向锚钉「该留的还留着」，期望 0 那一族钉「卡面那串真没了」。
+   只钉一支的闸门会鼓励下一刀砍过头——把 toFixed 全删干净，源码更清爽，而「地点」计数变成「每篇一个地点」、
+   复制出来的文本少一行、开卡后地图不知道该把哪儿抬进可视带。
+
+   这一族的历史（本节的条数为什么是这个形状）：
+     ① 我最初报「6 个显示点」，实测 8 处；这一节开工前又扫出 node-manager.html 两处详情面板 + 一处添加地点弹窗，
+        合计 11 处。前两次漏的根因相同：窄文件名单 + 窄模式——`(+s.lat).toFixed(5)` 带括号那种形状，
+        要求 lat 紧接 toFixed 的 grep 数不到。所以 ③ 那一条动态扫描器一律走 readdirSync('.') 全量，不抄名单。
+     ② node-manager 那两处按用户的口径属于「管理面」，坐标在那里是有用的元信息，缺的是「这串数字是什么」的交代，
+        不是数字本身；于是本批给它们补了「坐标 ·」前缀，与 md-manager 的 rows.push(['坐标', …])、
+        vault.js 导出文档的 <p class="meta">坐标 · … 同族。弹窗那一处（添加/编辑地点）本来就有 pin 图标与
+        「高德坐标」注记，是这一行的功能主体，原样保留。
+     ③ travel-notes.js 地图 popup 那一行原本还把 n.style 直接拼进 HTML（未转义），删坐标时顺手补上 esc()。 */
+{
+  let bad45 = 0;
+  const F45 = m => { bad45++; console.log('FAIL §45 卡面裸经纬度闸门: ' + m); };
+  const ws45 = s => s.replace(/\s+/g, ' ').trim();
+  const flat45 = s => ws45(stripBlockComments(s));
+  const cnt45 = (s, n) => s.split(n).length - 1;
+  const rd45 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view45 = f => /\.md$/.test(f) ? ws45(rd45(f)) : flat45(rd45(f));
+
+  const FILES45 = ['results.js', 'review.html', 'travel-notes.js', 'travel-map.html', 'topic-common.js',
+    'node-manager.html', 'md-manager.html', 'vault.js', 'tools/smoke-coord.js', 'README.md'];
+  const V45 = {};
+  FILES45.forEach(f => {
+    if (!fs.existsSync(f)) { F45('缺 ' + f); V45[f] = ''; return; }
+    V45[f] = view45(f);
+  });
+
+  /* ⓪ 自指纪律：读源码这件事自己先自校准。
+        本节的改前原串天然要在注释与表里抄一遍，产品文件里又有 .html（页内 <style>/<script> 带 /* *\/ 注释），
+        所以 html 这一支必须剥——不剥的话「期望 0」会被注释里的登记串读成非 0（红，看得见）；
+        危险方向是反过来的那一支：真代码被当成注释吞掉，住在这一带的期望 0 会静默满足。
+        于是两处改动旁边各钉一枚现场哨兵：读不到＝这一带又变成盲窗。 */
+  {
+    const DEF45 = (rd45('tools/verify.js').match(/^[ \t]*const flat45 = [^\n]*/m) || [''])[0];
+    if (DEF45.indexOf('stripBlockComments') < 0) F45('§45 的 flat45 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF45.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L45 = (rd45('tools/verify.js').match(/^[ \t]*const view45 = [^\n]*/m) || [''])[0];
+    if (L45.indexOf('.md$') < 0) F45('view45 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L45.slice(0, 60) || '整行没数到') + '）：README 的登记串里天生要写这族的形状，文档侧的锚会当场读 0');
+    [['travel-notes.js', "it.querySelector('[data-a=copy]').onclick"], ['travel-map.html', "fillSheet('<div class=\"ms-place\">'"]].forEach(function (p) {
+      if (V45[p[0]].indexOf(p[1]) < 0) F45('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在' + p[0] + ' 本批改掉的那几行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：改后的卡面形状 + 三处「坐标是功能不是装饰」的保留点 */
+  const A45 = [
+    ['results.js', "+ '<div class=\"m\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '纪念册卡片那一行只有日期与天气（改前尾巴上还挂着「 · 39.5606, 114.0862」）'],
+    ['review.html', "'<div class=\"meta\">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'", 1, 'review 日卡的 .meta 同形状（改前那一串挤在同一行末尾，读起来像调试输出）'],
+    ['travel-notes.js', "'</h4><div class=\"tm\">' + esc(n.date) + '</div><div class=\"tx\">'", 1, '随手记列表卡（renderItem 两个视图共用）：这一行改前还带着「 · 」与那串数，坐标没了之后那个悬空的连接符也要一起走'],
+    ['travel-notes.js', "'<div style=\"color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'", 1, '导出文档的卡面同一口径（这一处是「文档」，用户没让它带坐标；带坐标的是 vault.js 那条明写「坐标 ·」的元信息行）'],
+    ['travel-notes.js', 'ctx.fillText(n.date, 70, 285);', 1, '海报 canvas 那行只写日期：siteName 在它上面几行已单独绘制，画布上那串数是噪声'],
+    ['travel-notes.js', "(n.style ? '<div style=\"color:#6b665c;font-size:var(--fs-2);margin-top:6px\">' + esc(n.style) + '</div>' : '')", 1, '地图 popup 的尾行现在是风格而不是坐标；这一串同时钉住 esc(n.style)——改前那里是裸拼的 n.style，删坐标时顺手补的转义不许退回去'],
+    ['travel-notes.js', "var txt = (n.title || n.siteName || '游记') + '\\n' + (n.date || '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '')", 1, '复制/分享那条文本仍带坐标（用户口径里明写的保留支；浏览器腿 CO07 真点一次复制读回来）'],
+    ['travel-map.html', "fillSheet('<div class=\"ms-place\">'+place+'</div>'", 2, '两处填内容入口（聚合列表与单篇）都只写地点名——只钉一处等于另一处没人守'],
+    ['travel-map.html', "if(map) map.flyTo(gxy(n.lat,n.lng)", 2, '坐标换成定位还在用（胶囊那条路径与列表点开那条路径）：删的是读数，不是那个点'],
+    ['topic-common.js', '<b>途经点随手记</b><div class="pm pa">', 1, '专题地图途经点 popup：改前那里是 <div class="pm">lat, lng</div>，一句话的说明被坐标挤到下一档'],
+    ['node-manager.html', "'<div class=\"is-coord\">坐标 · ' + (+s.lat).toFixed(5)", 1, '系统地点详情面板：管理面保留那串数，但必须交代它是什么（本批补的前缀）'],
+    ['node-manager.html', "'<div class=\"is-coord\">坐标 · ' + (+u.lat).toFixed(5)", 1, '自建地点详情面板同一口径（两支一起改，不许修一处留一处）'],
+    ['node-manager.html', "'<div class=\"nm-coord\" style=\"margin-bottom:6px\">'+TI('pin', 12)", 1, '添加/编辑地点弹窗那一处原样保留：那行右边就贴着「移动位置 ›」，坐标是这一行的主体而不是噪声'],
+    ['md-manager.html', "rows.push(['坐标', n.lat.toFixed(4) + ', ' + n.lng.toFixed(4)]);", 1, '数据管理表的元信息行（带「坐标」这一列名），口径里明写的保留支'],
+    ['vault.js', "'<p class=\"meta\">坐标 · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) + '</p>'", 1, '导出 Markdown 的元信息行同一支'],
+    ['tools/smoke-coord.js', 'const VW = 328, VH = 723;', 1, '浏览器腿量的必须是用户那块屏（§37 口径）：档位挪回 452，CO11 那条「那个点要落在卡片之上」就落在一块不存在的屏上测'],
+    ['tools/smoke-coord.js', "document.getElementById('tnViewTime')", 1, '时间视图那一支的切换动作在场：renderItem 是两个视图共用的，只验聚合那一支＝另一支没人守（本批六条红就是这么来的）'],
+    ['tools/smoke-coord.js', "document.querySelector('#tnListBody .tn-trip-head')", 1, '旅程卡默认折叠，不真点展开就读到 0 张卡：判据会绿得毫无意义（空跑）'],
+  ];
+  A45.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F45('A45 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V45)) { F45('A45 登记了 §45 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt45(V45[f], needle);
+    if (n !== exp) F45(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批删掉的十处形状，各配一条正向对照（那个 0 不是证据，除非同一把刀能在原件上读出 1）。
+        串取自 git HEAD 的对应行（tools/out/probe45-anchor-preflight.js 逐条对过：现 0／HEAD 1）。 */
+  const ZERO45 = [
+    ['results.js', "+ '<div class=\"m\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div>'",
+      "var h='<div class=\"card\">' + '<div class=\"m\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div>' + '</div>';",
+      '纪念册卡面又把那串数接在天气后面（用户报的 S1-2 原件之一）'],
+    ['review.html', "'<div class=\"meta\">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'",
+      "return '<div class=\"md-item\"><h3>'+esc(n.title)+'</h3>'+'<div class=\"meta\">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+(n.lat!=null?' · '+n.lat.toFixed(4)+', '+n.lng.toFixed(4):'')+'</div>'+'</div>';",
+      'review 日卡同形回归：这一页在手机上是要给人看的，不是给调试用的'],
+    ['travel-notes.js', "'</h4><div class=\"tm\">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class=\"tx\">'",
+      "it.innerHTML = '<h4>' + esc(n.title) + '</h4><div class=\"tm\">' + esc(n.date) + ' · ' + (n.lat != null ? '' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : '') + '</div><div class=\"tx\">' + '</div>';",
+      '列表卡 .tm 又回去写那串数（注意改前还有个悬空的 \' · \'：坐标缺失的记录只剩一个点）'],
+    ['travel-notes.js', "'<div style=\"color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) : '') + '</div>'",
+      "cards += '<div class=\"card\">' + '<div style=\"color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px\">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + (n.lat != null ? ' · ' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) : '') + '</div>' + '</div>';",
+      '导出文档的卡面回到 5 位小数（这一族三处各写各的位数：4 位、5 位、4 位，本来就是没人对账的结果）'],
+    ['travel-notes.js', "ctx.fillText(n.date + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : ''), 70, 285);",
+      "ctx.fillText(n.date + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) : ''), 70, 285);",
+      '海报那行又把坐标画在日期后面：分享出去的图上多一串没人读的数'],
+    ['travel-notes.js', "'</div><div style=\"color:#6b665c;font-size:var(--fs-2);margin-top:6px\">' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) + (n.style ? ' · ' + n.style : '') + '</div></div>'",
+      "m.bindPopup('<div>' + esc(n.text) + '</div><div style=\"color:#6b665c;font-size:var(--fs-2);margin-top:6px\">' + n.lat.toFixed(5) + ', ' + n.lng.toFixed(5) + (n.style ? ' · ' + n.style : '') + '</div></div>');",
+      '地图 popup 的尾行回到坐标——那串数在 popup 里既不复制也不可点，纯噪声'],
+    ['travel-map.html', "const locHtml=n.lat!=null?'<div class=\"ms-loc\">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':'';",
+      "function openMemSheet(n){ const locHtml=n.lat!=null?'<div class=\"ms-loc\">'+n.lat.toFixed(4)+', '+n.lng.toFixed(4)+'</div>':''; fillSheet(locHtml); }",
+      '抽屉里那行专门的坐标 div 回来了（批次 29 之后 .ms-loc 那条 CSS 已删，这一行会裸着渲染成一串无样式数字）'],
+    ['travel-map.html', '+locHtml',
+      "fillSheet('<div class=\"ms-place\">'+place+'</div>'+locHtml+'<div class=\"ms-time\">'+time+'</div>');",
+      '拼串里还挂着那个变量：即使 locHtml 的定义被删干净，这一行会当场抛 ReferenceError，抽屉整块开不起来'],
+    ['travel-map.html', '.ms-loc{',
+      "  .ms-loc{margin-top:3px;font-size:var(--fs-2);color:var(--color-muted)}",
+      '死规则又被写回来：落点已经不存在，留着它的后果是下一个人以为那行还该有内容'],
+    ['topic-common.js', '<div class="pm">\' + lat.toFixed(5) + \', \' + lng.toFixed(5) + \'</div><div class="pm pa">',
+      "m.bindPopup('<div class=\"pop\"><b>途经点随手记</b><div class=\"pm\">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div><div class=\"pm pa\">说明</div></div>');",
+      '专题地图的途经点 popup 回到坐标占第一行、说明被挤到第二行（与 travel-map 同批修的第四支）'],
+  ];
+  ZERO45.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F45('ZERO45 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V45)) { F45('ZERO45 登记了 §45 没读的文件「' + f + '」：' + why); return; }
+    if (cnt45(V45[f], needle) !== 0) F45(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt45(flat45(ctrl), needle) < 1) F45('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置动态扫描：卡面拼裸坐标这一族的「形状」而不是「这十行」。
+        为什么必须有一条扫全树的：这一批的普查数字一路是 6 → 8 → 11，两次都漏在同一件事上——
+        只数登记过的文件与模式。登记表守得住已知的十个落点，守不住第十一个页面。
+        判据（现场标定 tools/out/probe45-scan-rule.js）：一行同时含 lat、lng、.toFixed( → 坐标被格式化过，
+        要么显示要么当键；含「坐标」二字 → 它交代了来意，放行；不含任何渲染信号 → 键／URL／缓存，放行；
+        剩下的就是「拼进 HTML/canvas 又没说这是坐标」＝红。 */
+  const REND45 = ['<div', '<span', '<p ', '<p>', '<b>', '<li', '<td', 'innerHTML', 'fillText(', 'bindPopup(', 'textContent', 'rows.push('];
+  const SCAN45 = src => {
+    const r = { sites: 0, labeled: 0, offscreen: 0, out: [] };
+    src.split('\n').forEach(function (ln, i) {
+      if (ln.indexOf('.toFixed(') < 0) return;
+      if (!/lat/i.test(ln) || !/lng/i.test(ln)) return;
+      r.sites++;
+      if (ln.indexOf('坐标') >= 0) { r.labeled++; return; }
+      if (!REND45.some(k => ln.indexOf(k) >= 0)) { r.offscreen++; return; }
+      r.out.push('第 ' + (i + 1) + ' 行  ' + ws45(ln).slice(0, 104));
+    });
+    return r;
+  };
+  let var45scan = { files: 0, sites: 0, labeled: 0, offscreen: 0, bare: 0 };
+  {
+    const CAL45 = SCAN45(
+      "  it.innerHTML = '<h4>x</h4><div class=\"tm\">' + esc(n.date) + ' · ' + n.lat.toFixed(4) + ', ' + n.lng.toFixed(4) + '</div>';\n" +
+      "  if (n.lat != null) rows.push(['坐标', n.lat.toFixed(4) + ', ' + n.lng.toFixed(4)]);\n" +
+      "  const k = n.lat.toFixed(4)+','+n.lng.toFixed(4);\n");
+    if (CAL45.sites !== 3 || CAL45.out.length !== 1 || CAL45.out[0].indexOf('class="tm"') < 0)
+      F45('§45 的扫描器自己失准（三行合成样本应 sites=3／越界 1 且是卡面那一行，实得 sites=' + CAL45.sites + ' 越界=' + JSON.stringify(CAL45.out) + '）：扫描器红了，下面那个「全树 0」不是证据');
+    const FILES45ALL = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+    let CS45 = 0, CL45 = 0, CO45 = 0;
+    const BARE45 = [];
+    FILES45ALL.forEach(function (f) {
+      const r = SCAN45(rd45(f));
+      CS45 += r.sites; CL45 += r.labeled; CO45 += r.offscreen;
+      r.out.forEach(o => BARE45.push(f + ':' + o));
+    });
+    if (BARE45.length) F45('卡面上出现裸坐标串（' + BARE45.length + ' 处：' + BARE45.join(' ｜ ') + '）：口径是「卡面删掉、界面只留地点名」；要留就带「坐标」二字交代来意，或走复制/导出那条不是卡面的出口');
+    if (CS45 < 20) F45('全站「同时含 lat/lng/toFixed」的行只剩 ' + CS45 + ' 处（实测 25）：扫描口径本身漂了（判据被改窄或文件没数到），这一条一失准，上面那个「越界 0」就变成空断言');
+    if (CL45 !== 5) F45('带「坐标」标签的保留点从 5 处变成 ' + CL45 + ' 处（登记：md-manager.html 的 rows.push([\'坐标\',…])、vault.js 导出 md 的 <p class="meta">坐标 · …、node-manager.html 两块详情面板与添加/编辑地点弹窗）：少了是那一支的坐标被顺手删了（它是功能不是装饰），多了是新落点没登记');
+    if (CO45 < 15) F45('不在屏上的坐标行（去重键／缓存键／URL 参数／复制文本）从 20 处掉到 ' + CO45 + ' 处：这一族是「删卡面不许删功能」那条口径的正面证据，不许跟着卡面一起砍');
+    var45scan = { files: FILES45ALL.length, sites: CS45, labeled: CL45, offscreen: CO45, bare: BARE45.length };
+  }
+
+  /* ④ 浏览器腿齐备检：CO01–CO21 逐条在场（少一条就少一个证据），条数守卫的阈值也要钉住 */
+  {
+    const S45 = V45['tools/smoke-coord.js'];
+    for (let i = 1; i <= 21; i++) {
+      const lab = "ok('CO" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt45(S45, lab) !== 1) F45('tools/smoke-coord.js 里 CO' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt45(S45, lab) + '）：这一节的立论是「删的与留的都要在屏上读到」，删一条就少一个证据，改编号会让 §45 的齐备检集体失效');
+    }
+    if (cnt45(S45, 'checks >= 20') !== 1) F45('条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 21 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 20');
+    if (cnt45(S45, "const BARE_SRC = '\\\\d{1,3}\\\\.\\\\d{3,}") !== 1) F45('浏览器腿那把裸坐标正则不在场或被复制成两份：CO03/CO05/CO09/CO12/CO15/CO18 那六条「读不到」全靠它，屏上那一格与属性那一格共用同一把刀，而它一旦漂了就只能靠 CO19 那条反证才发现');
+    if (cnt45(S45, "ok('CO19 反证") !== 1) F45('CO19 那条合成坏样本不在场：没有它，这一节的六个「读不到」可能只是正则瞎了');
+    if (cnt45(S45, "ok('CO13 反证") !== 1) F45('CO13 那条属性腿的反证不在场：CO12 那个「全页属性 0 命中」没有它就不是证据');
+    {
+      const LAB45 = S45.match(/ok\('(CO\d+)[ ]/g) || [];
+      const MAXN45 = LAB45.reduce((m, s) => Math.max(m, Number(/CO(\d+)/.exec(s)[1])), 0);
+      const SEG45 = (rd45('tools/verify.js').split('④ 浏览器腿齐备检')[1] || '');
+      const BOUND45 = (SEG45.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND45 === undefined) F45('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND45) !== MAXN45) F45('④ 齐备检的循环上限是 ' + BOUND45 + '，而 smoke-coord 里真实最大编号是 CO' + MAXN45 + '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V45['README.md'].indexOf('§45') < 0) F45('README.md 的 verify 清单没提 §45（新闸门不写进 README 就等于没装）');
+
+  console.log('卡面裸坐标闸门: ' + A45.length + ' 条代码锚点（改后卡面五处「只留日期/地点名」+ 两处填内容与两处 flyTo 都只钉一遍的形状 + popup 那行的 esc(n.style) + 三处带「坐标」标签的保留点 + 复制文本那条保留支 + 途经点 popup + 浏览器腿三条形状锚（真机档 328×723／切时间视图那一支／展开折叠的旅程卡——少了任何一条，那一支判据就在一块不存在的屏上或 0 张卡上空跑）+ 十族期望 0（results／review／列表卡／导出文档／海报 fillText／地图 popup／抽屉 locHtml 与其拼串与那条死 CSS／专题 popup）各配正向对照 + 三项内置动态对账（全量 readdir ' + var45scan.files + ' 个根目录文件：坐标行 ' + var45scan.sites + '、带标签保留 ' + var45scan.labeled + '、不在屏上的键与 URL ' + var45scan.offscreen + '、越界 ' + var45scan.bare + '，扫描器先拿三行合成样本自校准）+ 一条自指纪律（flat45/view45 定义行必须走那把共享剥刀与不剥文档那一支，两处改动旁各钉一枚现场哨兵）+ 浏览器腿 CO01–CO21 齐备检与条数守卫（含两枚反证锚：屏上那一格 CO19、属性那一格 CO13）；A45 表长 ' + A45.length + ' 条、ZERO45 表长 ' + ZERO45.length + ' 条，抬阈值类变异要取当前长度 + 1；锚点 preflight 见 tools/out/probe45-anchor-preflight.js，变异自测见 tools/out/mut-verify45.js');
+  fail += bad45;
 }
 
 

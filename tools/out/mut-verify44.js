@@ -44,14 +44,17 @@ const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 
-/* 独占锁：同一时间只许一张变异网动树 */
-const LOCK = path.join(ROOT, 'tools', 'out', '.mut44.lock');
-if (fs.existsSync(LOCK)) {
-  console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）');
-  process.exit(2);
-}
-fs.writeFileSync(LOCK, String(process.pid));
+/* 独占锁：同一时间只许一张变异网动树。
+   这张网认所有 .mut*.lock，不认自己那一个名字：本网的快照含 travel-map.html／topic-common.js／tools/verify.js／README.md，
+   而 mut-verify45 的快照含同一批（外加 results/review/travel-notes/…）。两张各锁自己的文件名的话，
+   并发跑会各自从自己的启动快照回写——后还原的那张把前一张的还原一并抹掉，树停在中间态而两边读数都显示「全过」。 */
+const OUTDIR44 = path.join(ROOT, 'tools', 'out');
+const LOCK = path.join(OUTDIR44, '.mut44.lock');
 function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
+try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
+catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
+const BUSY44 = fs.readdirSync(OUTDIR44).filter(f => /^\.mut\d+\.lock$/.test(f) && f !== '.mut44.lock');
+if (BUSY44.length) { unlock(); console.log('中止：' + OUTDIR44 + ' 里还有别的变异网锁 ' + BUSY44.join('、') + '（快照与本网重叠，并发跑两边读数全废）'); process.exit(2); }
 
 const LOG = process.env.MUT_LOG || '';
 const LOGP = LOG ? (path.isAbsolute(LOG) ? LOG : path.join(ROOT, LOG)) : '';
@@ -300,9 +303,9 @@ t('M47 只把那行 min-height 改回 35（整行形状还在，退的是那个�
 /* ⑤ 两条结构性无视野（源码腿必须全绿，浏览器腿必须红在那一条判据上）＋那 44px 的退化三件套（M46/M47/G02）：
      这一族第一轮是 silentB，查明「44 由三条机制一起撑」之后补了两枚源码锚，于是它们改由源码腿红——
      留下的教训：锚钉得住声明与形状，钉不住「另两条机制还在顶着」的几何；TM04 量真实矩形那条不能撤。 */
-gBoth('G01 照片排回正文之后（本批刻意改的次序；A44 钉的是那一行在场，不钉谁在前——期望红在 TM18）', 'travel-map.html',
-  ["    +locHtml\n    +photosHtml\n    +(story?'<div class=\"ms-story\">'+story+'</div>':'')",
-    "    +locHtml\n    +(story?'<div class=\"ms-story\">'+story+'</div>':'')\n    +photosHtml"],
+gBoth('G01 照片排回正文之后（本批刻意改的次序；A44 钉的是那一行在场，不钉谁在前——期望红在 TM18）〔批次 30-A 删掉 +locHtml 后这串的 from 已重取现值：改前那版含 +locHtml，预检会当场报「命中 0 处」而不是静默漏过〕', 'travel-map.html',
+  ["    +photosHtml\n    +(story?'<div class=\"ms-story\">'+story+'</div>':'')",
+    "    +(story?'<div class=\"ms-story\">'+story+'</div>':'')\n    +photosHtml"],
   'TM18');
 t('M46 胶囊那一行整行退回改前形状（那一行根本没有 min-height，只靠 padding:9px 撑高——TM04 改前读数 35/35/35 就是这么来的）', 'travel-map.html',
   [['    flex:none;display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;',

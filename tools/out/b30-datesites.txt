@@ -1,0 +1,51 @@
+### A 桶：记录的日期直接拼上屏（S1-3 的落点）：24 行，10 个文件
+—— album-edit.html（2 行）
+  238  + '<div class="main"><b>' + esc(n.title || n.siteName || '未命名') + '</b><span>' + esc((n.date || '') + (n.weather ? ' ·
+  259  caption: (n.date || '') + (n.weather ? ' · ' + n.weather : ''),
+—— md-manager.html（4 行）
+  424  '<div class="meta"><span>' + esc((n.date || '').slice(0, 10) || '') + '</span><span class="dot"></span><span>' + words
+  450  if (n.date) rows.push(['日期', n.date.slice(0, 10)]);
+  470  '<div class="art-meta">' + esc((n.date || '').slice(0, 10) || '') + (n.siteName && n.siteName !== n.title ? ' · ' + es
+  655  if (n.date) rows.push(['日期', n.date]);
+—— me.html（1 行）
+  254  return '<div class="rec"><span class="dot"></span><span class="t">' + esc(n.title || n.siteName || '未命名') + '</span><s
+—— planner.js（1 行）
+  2089  h += '<div class="note"><h2>' + esc(n.title || n.siteName || '某处') + '</h2><div class="muted">' + esc(n.date || '') + 
+—— results.js（2 行）
+  333  + '<div class="m">' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
+  352  + '<div class="m">首次探访 ' + esc(n.date) + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>'
+—— review.html（3 行）
+  513  return '<div class="md-item"><h3>' + esc(n.title || n.siteName || '未命名') + ' <span style="font-size:var(--fs-3);color:
+  514  '<div class="meta">' + esc(n.date || '') + (n.weather ? ' · ' + esc(n.weather) : '') + '</div>' +
+  613  '<div class="meta">'+esc(n.date)+(n.weather?' · '+esc(n.weather):'')+'</div>'+
+—— search.html（1 行）
+  216  out+='<div class="item" data-go="travel-map.html?id='+encodeURIComponent(n.id||'')+'"><span class="dot" style="backgro
+—— story.html（2 行）
+  140  +'<div class="sc-date">'+esc(n.date||'')+'</div>'
+  167  document.getElementById('snSub').textContent='第 '+(i+1)+' / '+cards.length+' 站 · '+((n.date||'').slice(0,10));
+—— travel-notes.js（7 行）
+  267  var place = latest ? ((latest.site || latest.city || '在路上') + ' · ' + (latest.date || '')) : '';
+  1593  m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:160px;font-family:&quot;Noto Sans SC&quot;,sa
+  1737  it.innerHTML = '<h4>' + esc(n.title || n.siteName) + (n.siteName && n.title && n.title !== n.siteName ? ' <span class=
+  1925  '<div style="color:var(--color-muted);font-size:var(--fs-3);margin-bottom:8px">' + esc(n.date) + (n.weather ? ' · ' + 
+  2126  var txt = (n.title || n.siteName || '游记') + '\n' + (n.date || '') + (n.lat != null ? ' · ' + n.lat.toFixed(4) + ', ' +
+  2216  ctx.fillText(n.date, 70, 285);
+  2273  m.bindPopup('<div style="font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto 
+—— vault.js（1 行）
+  392  n.date ? '<p class="meta">日期 · ' + escH(n.date) + '</p>' : '',
+### B 桶：整机时刻（locale/档位问题，不是归一问题）：9 行，5 个文件
+—— index.html（1 行）
+  471  document.getElementById('seasonTitle').textContent = (new Date().getMonth() + 1) + ' 月，去哪？';
+—— planner.js（1 行）
+  2290  return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + e
+—— results.js（3 行）
+  336  var html = docShell('我的旅行纪念册', s.count + ' 篇游记 · ' + s.days + ' 天 · ' + prov + ' / ' + city + ' · ' + range + ' · 生成于 
+  356  var html = docShell('个人旅行图鉴', '探访 ' + Object.keys(seen).length + ' 处 · ' + prov + ' / ' + city + ' · ' + range + ' · 生
+  402  var html = docShell(title, prov + ' / ' + city + ' · ' + range + ' · 生成于 ' + new Date().toLocaleDateString(), '<div cl
+—— travel-map.html（3 行）
+  652  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+St
+  676  const time=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' · '+St
+  778  ctx.fillText(new Date().toLocaleDateString()+' 制 · 古建地图集',110,1290);
+—— travel-notes.js（1 行）
+  1930  '<div style="background:linear-gradient(135deg,#1f3634,#162725);color:#fff;padding:32px 20px;text-align:center"><h1 st
+=== 普查读数：A 24 行 / B 9 行；另有 15 行已经走归一键 noteDay ===

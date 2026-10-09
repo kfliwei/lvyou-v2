@@ -740,7 +740,7 @@
       '<div class="is-place">' + esc(s.label || s.name) + ' <span style="font-size:var(--fs-2);color:var(--color-muted);vertical-align:2px">系统地点 · 已存在</span></div>' +
       '<div class="is-loc">' + esc(s.theme + ' · ' + [s.region, s.city].filter(Boolean).join(' · ')) + '</div>' +
       (s.desc ? '<div class="is-desc">' + esc(s.desc) + '</div>' : '') +
-      '<div class="is-coord">' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
+      '<div class="is-coord">坐标 · ' + (+s.lat).toFixed(5) + ', ' + (+s.lng).toFixed(5) + '</div>' +
       '<div class="is-acts">' +
       '<button class="is-btn ic" onclick="window.NM.sysWish(' + s.__i + ')">' + (window.Wish && Wish.isWished(s) ? TI('check', 12) + '已想去' : TI('plus', 12) + '想去') + '</button>' +
       '<button class="is-btn ic" onclick="window.NM.sysRecord(' + s.__i + ')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11 a7 7 0 0 0 14 0 M12 18 v3"/></svg>语音记录</button>' +
@@ -764,7 +764,7 @@
       '<div class="is-loc">' + esc(loc) + '</div>' +
       (u.desc ? '<div class="is-desc">' + esc(u.desc) + '</div>' : '') +
       (u.tags && u.tags.length ? '<div class="is-tags">' + u.tags.map(function (t) { return '<span>#' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
-      '<div class="is-coord">' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
+      '<div class="is-coord">坐标 · ' + (+u.lat).toFixed(5) + ', ' + (+u.lng).toFixed(5) + '</div>' +
       '<div class="is-acts">' +
       '<button class="is-btn" onclick="window.NM.edit(\'' + u.id + '\')">编辑</button>' +
       '<button class="is-btn ic" onclick="window.NM.toggleWish(\'' + u.id + '\')">' + (wished ? TI('check', 12) + '已想去' : TI('plus', 12) + '想去') + '</button>' +

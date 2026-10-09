@@ -1,0 +1,63 @@
+=== mut-verify45 · 靶子 57 条（红 52／抹登记 1／静默 4），预检 全过 ===
+基准 verify §45 全绿 ✓
+基准 verify 图片闸门全绿 ✓（图片闸门: <img 输出点 42，src 42，lazy 42，兜底 42，登记豁免 0）
+基准 smoke-coord 判据全绿 ✓（21 条）
+OK   R01 纪念册卡面把那串数接回天气后面（用户报的 S1-2 原件原地复活）  → 裸经纬度闸门: results.js 里出现「+ '<div class="m">' + esc(n.date) + (n.weather ?」：纪念册
+OK   R02 没登记过的形状：「首次探访」那一行插回坐标（登记表守得住抄下来的十串，守不住第十  → 裸经纬度闸门: 卡面上出现裸坐标串（1 处：results.js:第 352 行  + '<div class="m">首次探访 ' + esc(n.d
+OK   R03 review 日卡的 .meta 尾巴挂回那串数  → 裸经纬度闸门: review.html 里出现「'<div class="meta">'+esc(n.date)+(n.weather?' · 」：re
+OK   R04 随手记列表卡的 .tm 写回坐标（连那个悬空的「 · 」一起回来）  → 裸经纬度闸门: travel-notes.js 里出现「'</h4><div class="tm">' + esc(n.date) + ' · ' + 
+OK   R05 导出文档的卡面回到 5 位小数（这一族本来就三处各写各的位数）  → 裸经纬度闸门: travel-notes.js 里出现「'<div style="color:var(--color-muted);font-size:
+OK   R06 海报 canvas 把坐标画回日期后面（登记过的那一串）  → 裸经纬度闸门: travel-notes.js 里出现「ctx.fillText(n.date + (n.lat != null ? ' · ' + n
+OK   R07 海报那一行换成没登记的拼法（另一种位数）——只有 REND45 里的 fillT  → 裸经纬度闸门: 卡面上出现裸坐标串（1 处：travel-notes.js:第 2216 行  ctx.fillText(n.date + ' · ' 
+OK   R08 地图 popup 的尾行回到坐标（不走登记的那一串，另一种拼法）  → 裸经纬度闸门: 卡面上出现裸坐标串（1 处：travel-notes.js:第 2273 行  m.bindPopup('<div style="fon
+OK   R09 popup 那一行把 esc(n.style) 退回裸拼（本批删坐标时顺手补的转  → 裸经纬度闸门: travel-notes.js 里「(n.style ? '<div style="color:#6b665c;font-size:va
+OK   R10 复制文本里那串数被砍掉（口径明写的保留支：删的是卡面显示，不是那条出口）  → 裸经纬度闸门: travel-notes.js 里「var txt = (n.title || n.siteName || '游记') + '\n' +
+OK   R11 抽屉里那行专门的坐标 div 回来了（.ms-loc 的 CSS 本批已删，这一  → 裸经纬度闸门: travel-map.html 里出现「const locHtml=n.lat!=null?'<div class="ms-loc">'
+OK   R12 拼串里还挂着那个变量（定义删干净了、这一行没删：当场 ReferenceErro  → 裸经纬度闸门: travel-map.html 里出现「+locHtml」：拼串里还挂着那个变量：即使 locHtml 的定义被删干净，这一行会当场抛 
+OK   R13 死规则 .ms-loc 又被写回来（落点已不在，留着它的后果是下一个人以为那行还  → 裸经纬度闸门: travel-map.html 里出现「.ms-loc{」：死规则又被写回来：落点已经不存在，留着它的后果是下一个人以为那行还该有内容
+OK   R14 抽屉 ms-time 尾巴上挂一串新形状（③ armed 版：渲染信号 <div  → 裸经纬度闸门: 卡面上出现裸坐标串（1 处：travel-map.html:第 684 行  +'<div class="ms-time">'+time
+OK   R15 开卡后飞的那个点换成写死的经纬度（「坐标换成定位还在用」那一支：删的是读数不是那  → 裸经纬度闸门: travel-map.html 里「if(map) map.flyTo(gxy(n.lat,n.lng)」实得 1，期望 2：坐标换成定
+OK   R16 专题地图途经点 popup 回到「坐标占第一行、说明挤第二行」（与 travel  → 裸经纬度闸门: topic-common.js 里「<b>途经点随手记</b><div class="pm pa">」实得 0，期望 1：专题地图途经点
+OK   R17 系统地点详情面板摘掉「坐标 ·」前缀（管理面那串数要有交代；这一条同时证明「坐标  → 裸经纬度闸门: 带「坐标」标签的保留点从 5 处变成 4 处（登记：md-manager.html 的 rows.push(['坐标',…])、vaul
+OK   R18 自建地点详情面板那一支摘掉前缀（两支一起改的口径，不许修一处留一处）  → 裸经纬度闸门: node-manager.html 里「'<div class="is-coord">坐标 · ' + (+u.lat).toFixed
+OK   R19 添加/编辑地点弹窗那一行整条删掉（那一行的主体就是坐标：右边贴着「移动位置 ›」  → 裸经纬度闸门: node-manager.html 里「'<div class="nm-coord" style="margin-bottom:6px"
+OK   R20 数据管理表那一行 rows.push([‘坐标’,…]) 删掉（口径明写的保留支  → 裸经纬度闸门: md-manager.html 里「rows.push(['坐标', n.lat.toFixed(4) + ', ' + n.lng.t
+OK   R21 导出 Markdown 的元信息行删掉（同一支：少了它就是「坐标被顺手删了」而不  → 裸经纬度闸门: vault.js 里「'<p class="meta">坐标 · ' + n.lat.toFixed(4) + ', ' + 」实得 0
+OK   R22 flat45 退回不剥注释（共享剥刀一坏，注释里抄的改前原串就被当成代码在场）  → 裸经纬度闸门: §45 的 flat45 定义行没走那把共享剥刀（现场读到的那一行：  const flat45 = s => ws45(s);）：注释
+OK   R23 view45 的定义行退回「文档也剥注释」（README 的登记串里天生要写这族  → 裸经纬度闸门: view45 的定义行退回「文档也剥注释」那一支（现场读到的那一行：  const view45 = f => flat45(rd45(
+OK   R24 盲区哨兵的 needle 漂一个字符（少一个尖括号：哨兵写坏＝这一带今天读不读得  → 裸经纬度闸门: 盲区哨兵：「fillSheet('<div class="ms-place"'」在 flat 里读不到了（它就贴在travel-map.
+OK   R25 A45 有一条少写「期望次数」字段（解构错位，那条锚等于没跑）  → 裸经纬度闸门: A45 有一条不是「[文件, 串, 期望次数, 原因]」四元组：["results.js","+ '<div class=\"m\">'
+OK   R26 A45 有一条期望次数从 2 抬到 3（锚还在、数不对：条数锚若是抄来的死数就不  → 裸经纬度闸门: travel-map.html 里「fillSheet('<div class="ms-place">'+place+'</div>'」
+OK   R27 A45 登记了 §45 没读的文件（锚钉在没人读的字符串上＝永久绿灯）  → 裸经纬度闸门: A45 登记了 §45 没读的文件「md-managerzz.html」：数据管理表的元信息行（带「坐标」这一列名），口径里明写的保留支
+OK   R28 ZERO45 有一条少写「正向对照源码」字段（期望 0 只剩个名字，对照没处配）  → 裸经纬度闸门: ZERO45 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：["results.js","+ '<div class=\"
+OK   R29 把一条正向对照的小数位改一个（对照串里再没有那串 needle：那个 0 就不再  → 裸经纬度闸门: 「+ '<div class="m">' + esc(n.date) + (n.weather ?」这条期望 0 的正向对照失效了（上面
+OK   R30 把「死规则 .ms-loc{」那条期望 0 的 needle 换成页内那条真规则  → 裸经纬度闸门: travel-map.html 里出现「.ms-place{」：死规则又被写回来：落点已经不存在，留着它的后果是下一个人以为那行还该有内
+OK   R31 扫描器自校准的「必须被逮住」期望被挪成 0（把好串当成坏串、坏串当成好串：下面那  → 裸经纬度闸门: §45 的扫描器自己失准（三行合成样本应 sites=3／越界 1 且是卡面那一行，实得 sites=3 越界=["第 1 行  it.
+OK   R32 把自校准的第一行样本换成「键」那一行（两条键、零条越界：越界那一支从此没人验刀，  → 裸经纬度闸门: §45 的扫描器自己失准（三行合成样本应 sites=3／越界 1 且是卡面那一行，实得 sites=3 越界=[]）：扫描器红了，下面
+OK   R33 坐标行的分母挪高（现场 25 行永远够不到 45，扫描口径漂了也不说话）  → 裸经纬度闸门: 全站「同时含 lat/lng/toFixed」的行只剩 25 处（实测 25）：扫描口径本身漂了（判据被改窄或文件没数到），这一条一失准
+OK   R34 带「坐标」标签那族的期望从 5 改成 30（少了是那一支被顺手删、多了是新落点没  → 裸经纬度闸门: 带「坐标」标签的保留点从 5 处变成 5 处（登记：md-manager.html 的 rows.push(['坐标',…])、vaul
+OK   R35 「不在屏上的键与 URL」下限挪高（这一族是「删卡面不许删功能」的正面证据，挪高  → 裸经纬度闸门: 不在屏上的坐标行（去重键／缓存键／URL 参数／复制文本）从 20 处掉到 20 处：这一族是「删卡面不许删功能」那条口径的正面证据，不
+OK   R36 「含坐标二字就放行」改成恒真（所有坐标行都算交代过来意：labeled 从 5   → 裸经纬度闸门: 带「坐标」标签的保留点从 5 处变成 25 处（登记：md-manager.html 的 rows.push(['坐标',…])、vau
+OK   R37 「不在屏上就放行」整条摘掉（去重键／缓存键／URL 全成越界：判据自己淹死在 2  → 裸经纬度闸门: 卡面上出现裸坐标串（20 处：index.html:第 346 行  var sites = new Set(all.filter(fu
+OK   R38 readdir 收窄成只扫 .html（.js 那一支的坐标行整族消失：名单式扫  → 裸经纬度闸门: 全站「同时含 lat/lng/toFixed」的行只剩 10 处（实测 25）：扫描口径本身漂了（判据被改窄或文件没数到），这一条一失准
+OK   R39 浏览器腿齐备检的循环上限从 21 收到 18（少守 3 条而它自己永远不会红）  → 裸经纬度闸门: ④ 齐备检的循环上限是 18，而 smoke-coord 里真实最大编号是 CO21：上限比编号小＝有几条判据没人守（收窄一格就少守一条
+OK   R40 摘掉 CO05 一条判据（源码腿的齐备检必须喊：删一条就少一个屏上证据）  → 裸经纬度闸门: tools/smoke-coord.js 里 CO05 这条判据不是恰 1 处（实得 0）：这一节的立论是「删的与留的都要在屏上读到」，
+OK   R41 把 CO06 改名成 CO06b（判据还在但按编号认领不到了）  → 裸经纬度闸门: tools/smoke-coord.js 里 CO06 这条判据不是恰 1 处（实得 0）：这一节的立论是「删的与留的都要在屏上读到」，
+OK   R42 摘掉 CO13 那条属性腿的反证（CO12 那个「全页属性 0 命中」没有它就不  → 裸经纬度闸门: CO13 那条属性腿的反证不在场：CO12 那个「全页属性 0 命中」没有它就不是证据
+OK   R43 摘掉 CO19 那条屏上反证（把遮挡做回来闸门必须红——这一条自己也是会被删的）  → 裸经纬度闸门: CO19 那条合成坏样本不在场：没有它，这一节的六个「读不到」可能只是正则瞎了
+OK   R44 浏览器腿那把裸坐标正则把小数位从 3 位挪到 6 位（六处「读不到」当场变成「正  → 裸经纬度闸门: 浏览器腿那把裸坐标正则不在场或被复制成两份：CO03/CO05/CO09/CO12/CO15/CO18 那六条「读不到」全靠它，屏上那一
+OK   R45 条数守卫阈值从 20 挪到 8（删 13 条判据照样绿）  → 裸经纬度闸门: 条数守卫（本闸门自己也会被删）不在了或阈值被挪：判据是 21 条，而 ok() 在自增前求值，所以表达式写的是 checks >= 20
+OK   R46 真机档退回 452×995（量的就不是用户那块屏，§37 口径）  → 裸经纬度闸门: tools/smoke-coord.js 里「const VW = 328, VH = 723;」实得 0，期望 1：浏览器腿量的必须是
+OK   R47 不再切到时间视图（renderItem 两支共用，只验一支＝另一支没人守：本批六  → 裸经纬度闸门: tools/smoke-coord.js 里「document.getElementById('tnViewTime')」实得 0，期望
+OK   R48 抹掉 README 里 §45 的登记（摘登记要抹**全部出现**：那一行里 §  → 裸经纬度闸门: README.md 的 verify 清单没提 §45（新闸门不写进 README 就等于没装）
+OK   R49 把「找旅程卡那一句」换成 null（A45 钉的是那行 querySelecto  → 裸经纬度闸门: tools/smoke-coord.js 里「document.querySelector('#tnListBody .tn-trip-
+OK   I01 review 日卡缩略图退回缺 src 的原件（用户报的那一条：空框 + 点了没  → 图片闸门 FAIL（缺 src——缩略图只会是个空框，且 onerror 把它伪装成「图挂了」）: review.html:611  var thumbs=(n.photos&&n.photos.le
+OK   I02 src 判据恒真（42 行全都算「带 src」，包括压根没给图那一行）——两条自  → 图片闸门 FAIL: src 扫描器自校准失败——漏 src 的合成行没被抓到
+OK   I03 src 判据恒假（反向对照：正向对照失效也要红，否则「两条自校准」只有一条有牙）  → 图片闸门 FAIL: src 扫描器自校准失败——带 src 的合成行被误抓
+OK   I04 漏检不记账（两处：产品那一行缺 src + 扫描器只 srcOk++ 不把漏的记  → 图片闸门 FAIL: src 检出分母对不上——扫到 42 行 <img，只有 41 行走到 src 判据
+OK   G01 review 的坐标去重键换成标题（源码腿：坐标行 25→24、不在屏上 20→  → 源码腿 0 红，浏览器腿红在 CO16（共 1 条红）
+OK   G02 抽屉那一行插一串没登记的坐标 + 摘掉扫描器 REND45 里的 <div 信号  → 源码腿 0 红，浏览器腿红在 CO09（共 1 条红）
+OK   G03 坐标挂进胶囊的 aria-label（读屏版的卡面：那一行没有任何渲染信号，③   → 源码腿 0 红，浏览器腿红在 CO12（共 1 条红）
+OK   G04 摘掉「展开折叠旅程卡」那一次点击（A45 那句 querySelector 锚还  → 源码腿 0 红，浏览器腿红在 CO01（共 3 条红）
+=== mut-verify45: 57 条靶子 → 红对 53／静默对 4／异常 0 ===
+注意：网里的 G 类重跑过 smoke-coord，读数文件可能已被覆盖，跑完要在干净树上复跑 tools/smoke-coord.js 盖回基准。
