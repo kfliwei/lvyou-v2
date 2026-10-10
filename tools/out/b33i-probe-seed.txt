@@ -1,0 +1,21 @@
+NOTE review.seed.390x844.png — 地板 1400ms 之后取景又等了 265ms（布局已稳定）
+PASS review.seed.390x844.png  diff 0.00%
+NOTE album.seed.390x844.png — 地板 1400ms 之后取景又等了 520ms（布局已稳定）
+PASS album.seed.390x844.png  diff 0.00%
+NOTE story.seed.390x844.png — 地板 1400ms 之后取景又等了 265ms（布局已稳定）
+PASS story.seed.390x844.png  diff 0.00%
+NOTE travel-map.seed.390x844.png — 地板 5000ms 之后取景又等了 265ms（布局已稳定）
+NOTE travel-map.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.seed.390x844.png  diff 0.00%
+NOTE expense.ledger.390x844.png — 地板 5000ms 之后取景又等了 264ms（布局已稳定）
+PASS expense.ledger.390x844.png  diff 0.00%
+NOTE trip.ledger.390x844.png — 地板 5000ms 之后取景又等了 254ms（布局已稳定）
+PASS trip.ledger.390x844.png  diff 0.00%
+NOTE me.ledger.390x844.png — 地板 5000ms 之后取景又等了 273ms（布局已稳定）
+PASS me.ledger.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 996ms(<2500，3 次中位；样本 1508/996/908) 元素=H1 | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 628ms(<2500，3 次中位；样本 2056/552/628) 元素=? | CLS 0.0009(<0.05，取最大)
+ARCHIVE 本跑报告 + 红帧（diff／当前帧）按时刻留档 1 个文件 → tools\out\visual-archive\2026-10-10-14-28-06（固定文件名那份下一跑即覆盖，这份不会）
+---
+耗时 77.9s（7 张，报告 tools/out/visual-report.json）
+比对 7 张: 7 PASS, 0 FAIL

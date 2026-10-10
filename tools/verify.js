@@ -2359,18 +2359,63 @@ const EMOJI_MARK = 'emoji-ok:';
     if (iRed < 0 || iDiff < 0 || iEvid < 0) F25('红态收尾三行找不全（落帧@' + iRed + ' FAIL@' + iDiff + ' EVID@' + iEvid + '），顺序对账失去依据');
     else if (!(iRed < iDiff && iDiff < iEvid)) F25('留帧/FAIL 回执/EVID 回执顺序变了（落帧@' + iRed + ' FAIL@' + iDiff + ' EVID@' + iEvid + '）——EVID 说的是「那张红帧已经落盘」，它不许排在留帧之前');
   }
+  /* 取景先等地板再等「布局稳定」+ 每跑证据按时刻归档（批次 33-I 的两条腿，都长在同一个文件里）。
+     起因同一条：固定毫秒数不是判据。me.html 在游记库 ready 后整体重画一遍，那一发 21.37% 的红
+     是地板（5000ms）用完了而重画还没落在截图之前；而红帧本体的 report／diff 图是固定文件名，
+     下一跑同名覆盖，归因只剩日志（tools/out/b33g-baseline-readonly.txt:128 与 :1 那份对比）。
+     这里钉的是实现形状：地板那条等待仍在（33-I 只加不减——不会比基线更早截屏）、稳定判据被真的调用、
+     签名里既量尺寸又量文本（只量尺寸会漏「同一行换了个数字」，只量文本会漏「高度变了字没变」）、
+     没稳定也要可见（NOTE 回执 + 报告里的 settled 字段，不许静默换成掷硬币）、
+     归档的三份文件各一次、时间只取一个来源（ranAt 与目录名同源）、顺序是「先写报告再归档」。 */
+  if (cnt25(VC, 'const STABLE_POLL = 250;') !== 1) F25('取景轮询间隔不是单点（期望恰 1 处 const STABLE_POLL = 250）——下面那条「等过头也要印 NOTE」的判据就拿不到基准了');
+  if (cnt25(VC, 'const STABLE_MAX = 8000;') !== 1) F25('取景的稳定上限不是单点（期望恰 1 处 const STABLE_MAX = 8000）——上限没了就是「永远等下去」，跑批会卡死在某一张态上');
+  if (cnt25(VC, 'async function waitStable(pg)') !== 1) F25('布局稳定判据 waitStable 定义不见了（实测 ' + cnt25(VC, 'async function waitStable(pg)') + ' 处）——取景退回「只看固定毫秒」，33-G 那一发红照样复发');
+  const STB = 'const stab = await waitStable(pg);';
+  if (cnt25(VC, STB) !== 1) F25('waitStable 的调用不是恰 1 处（实测 ' + cnt25(VC, STB) + '）——定义在场而没人调用，等于这条判据没装');
+  if (cnt25(VC, 'await new Promise(r => setTimeout(r, SETTLE));') !== 1) F25('地板那次固定等待不见了（SETTLE 还在但不再等）——33-I 的口径是「只加不减」，减掉地板就是比基线更早截屏');
+  if (cnt25(VC, "document.getElementsByTagName('*').length") !== 1) F25('布局签名里的「全树元素数」不见了——「整体重画」那一类主要就是换节点，签名少了它就读不到');
+  if (cnt25(VC, 'h = Math.imul(h, 16777619);') !== 1) F25('布局签名里的文本 FNV 哈希不见了（实测 ' + cnt25(VC, 'h = Math.imul(h, 16777619);') + '）——只量尺寸与长度会漏「同一行里换了个数字」，票数补字那一类正好是这种');
+  if (cnt25(VC, 'settled: stab.ok') !== 1) F25('报告里没带 settled 字段——取景没稳定这件事不许只存在于当时那块屏幕上');
+  if (cnt25(VC, 'if (!stab.ok || stab.ms > 2 * STABLE_POLL) {') !== 1) F25('NOTE 的触发判据不是那一条（期望恰 1 处 !stab.ok || stab.ms > 2 * STABLE_POLL）——摘掉 !stab.ok 那一半，「到上限仍未稳定」就再也不印回执；把阈值降回一轮轮询，109 张每张都印 NOTE，真信号淹在噪声里');
+  if (cnt25(VC, "console.log('NOTE ' + tag + ' — 地板 '") !== 1) F25('取景多等／没到稳定时没印 NOTE 回执（到上限仍未稳定必须可见，否则「等稳」和「掷硬币」在日志里长得一模一样）');
+  if (cnt25(VC, 'const settleUnstable = [], settleLong = [];') !== 1) F25('取景的两个计数器不见了（等过头／没稳住）——NOTE 只在不正常时印，所以必须另有一行全量读数证明这条腿在跑');
+  if (cnt25(VC, "console.log('取景: ' + testN") !== 1) F25('收尾没印取景全量读数（期望恰 1 处 console.log(\'取景: \' + testN…）——那「这条腿跑过」就只剩 report 里的字段');
+  {
+    const iFloor = VC.indexOf('await new Promise(r => setTimeout(r, SETTLE));');
+    const iStab = VC.indexOf(STB);
+    if (iFloor < 0 || iStab < 0) F25('地板与稳定判据找不全（地板@' + iFloor + ' 判据@' + iStab + '），顺序对账失去依据');
+    else if (iFloor > iStab) F25('等布局稳定排在地板之前（判据@' + iStab + ' < 地板@' + iFloor + '）——先稳后等，截屏时机还是那副老样子');
+  }
+  if (cnt25(VC, "const AR = path.join(ROOT, 'tools', 'out', 'visual-archive');") !== 1) F25('归档目录不是单点（期望恰 1 处 const AR = …visual-archive…）');
+  if (cnt25(VC, 'const RAN_AT = new Date().toISOString();') !== 1) F25('这一跑的时刻不是单点（期望恰 1 处 const RAN_AT）——报告里的 ranAt 与归档目录名必须同源，各写一遍时间总有一天对不上');
+  if (cnt25(VC, 'ranAt: RAN_AT,') !== 1) F25('报告里的 ranAt 没取自那个单点（还是 new Date() 现场造的）——归档目录名与报告时刻就成了两套时间');
+  if (cnt25(VC, "fs.copyFileSync(REPORT, path.join(runDir, 'visual-report.json'));") !== 1) F25('本跑报告没按时刻归档（copyFileSync(REPORT…) 不是恰 1 处）——固定文件名那份下一跑即覆盖');
+  if (cnt25(VC, 'if (fs.existsSync(dP)) { fs.copyFileSync(dP, path.join(runDir, r.state)); arN++; }') !== 1) F25('红态的 diff 图没归档——「那一屏究竟哪几行位移」又只剩日志');
+  if (cnt25(VC, 'if (fs.existsSync(cP)) { fs.copyFileSync(cP, path.join(runDir, path.basename(cP))); arN++; }') !== 1) F25('红态的当前帧没归档——33-G 补的「红帧无条件落当前帧」在下一跑还是会被同名抹掉');
+  if (cnt25(VC, "console.log('ARCHIVE 本跑报告") !== 1) F25('归档没印 ARCHIVE 回执（留了档却没在 stdout 登记落在哪个目录，等于下一轮还是要猜）');
+  {
+    const iRep = VC.indexOf('fs.writeFileSync(REPORT,');
+    const iArc = VC.indexOf("fs.copyFileSync(REPORT, path.join(runDir, 'visual-report.json'));");
+    if (iRep < 0 || iArc < 0) F25('写报告与归档找不全（写@' + iRep + ' 归档@' + iArc + '），顺序对账失去依据');
+    else if (iRep > iArc) F25('归档排在写报告之前（归档@' + iArc + ' < 写@' + iRep + '）——那拷进去的是上一跑的旧报告，这一跑的永远没了');
+  }
   const GI25 = rd25('.gitignore');
   if (cnt25(GI25, 'tools/out/visual-baseline-prev/') !== 1) F25('.gitignore 里 visual-baseline-prev/ 的忽略不是恰 1 处（实测 ' + cnt25(GI25, 'tools/out/visual-baseline-prev/') + '）——109 张二进制会混进 git status，而它跟 visual-baseline/ 是**两个目录名**，前一条规则盖不住它');
+  if (cnt25(GI25, 'tools/out/visual-archive/') !== 1) F25('.gitignore 里 visual-archive/ 的忽略不是恰 1 处（实测 ' + cnt25(GI25, 'tools/out/visual-archive/') + '）——同上一条的教训：归档是**第三个目录名**，前两条规则都盖不住它，一旦漏掉每次跑批往 git status 里塞几十 MB 二进制');
   if (rd25('README.md').indexOf('LCP 中位') < 0) F25('README.md 没登记性能预算的采样口径（改口径不写进 README 就等于没改，下一个人还会拿单次读数当真相）');
   if (rd25('README.md').indexOf('#nmTip') < 0) F25('README.md 的视觉闸门口径没登记 #nmTip 这一类（新名单不写进 README 就等于没装）');
   if (rd25('README.md').indexOf('.ui-tilewarn') < 0) F25('README.md 的视觉闸门口径没登记 .ui-tilewarn 这一类');
   if (rd25('README.md').indexOf('visual-baseline-prev') < 0) F25('README.md 没登记「--update 改拍前先整批留档」这条口径（闸门改了口径，不写进 README 就等于没装）');
   if (rd25('README.md').indexOf('红态当前帧自动留档') < 0) F25('README.md 没登记「只读跑批的红态当前帧自动留档」这条口径（同上：口径变了不写进 README 就等于没改）');
+  if (rd25('README.md').indexOf('取景先等地板再等布局稳定') < 0) F25('README.md 没登记「取景先等地板再等布局稳定」这条口径（33-I 第一条腿：改取景口径不写进 README 就等于没改，下一个人还会以为 SETTLE 就是判据）');
+  if (rd25('README.md').indexOf('每一跑的证据按时刻归档') < 0) F25('README.md 没登记「每一跑的证据按时刻归档」这条口径（33-I 第二条腿，同上一条：新档期不登记就等于没装）');
   console.log('像素基线闸门: 摘除名单整串相等（' + n25 + ' 个选择器）且摘除动作真走它；只认 .ui-toast 的旧写法零残留；' +
     '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；' +
     '性能预算取 3 次采样的 LCP 中位 + CLS 最大（单次采样是掷硬币）；' +
     '改拍前逐张留档到 visual-baseline-prev/ 且 ARCHIVE 排在 fs.writeFileSync(baseF, buf) 之前（基线本体不入库，覆盖即不可回）、该目录在 .gitignore 里单独一条；' +
-    '红态当前帧无条件落盘（curF 单点 + .cur.png 只拼一次 + 报告带 curFrame + stdout 带 EVID，顺序 留帧→FAIL→EVID）；README 已登记');
+    '红态当前帧无条件落盘（curF 单点 + .cur.png 只拼一次 + 报告带 curFrame + stdout 带 EVID，顺序 留帧→FAIL→EVID）；' +
+    '取景先等地板（SETTLE 那行仍在）再等布局稳定（waitStable 单点 + 签名含全树元素数与文本 FNV + 报告带 settled + NOTE 只在超两轮轮询或未稳时印 + 收尾一行取景全量计数，顺序 地板→判据）；' +
+    '每一跑按时刻归档（AR/RAN_AT 单点 + ranAt 同源 + 报告/diff/当前帧三份各一次 + stdout 带 ARCHIVE，顺序 写报告→归档），归档目录在 .gitignore 里单独一条；README 已登记');
   fail += bad25;
 }
 

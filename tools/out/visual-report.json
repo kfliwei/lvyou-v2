@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-10T13:41:47.416Z",
+  "ranAt": "2026-10-10T14:52:37.062Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -12,701 +12,919 @@
   ],
   "states": 109,
   "fail": 0,
-  "elapsedSec": 700.2,
+  "elapsedSec": 528.3,
   "results": [
     {
       "state": "index.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "index.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 261
     },
     {
       "state": "index.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "index.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 257
     },
     {
       "state": "index.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "index.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 273
     },
     {
       "state": "topic.320x640.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 266
     },
     {
       "state": "topic.328x723.png",
       "status": "PASS",
       "diffPct": 0.001,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "topic.390x844.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "topic.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 266
     },
     {
       "state": "topic.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "topic.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 283
     },
     {
       "state": "search.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 257
     },
     {
       "state": "search.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "search.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "search.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "search.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "search.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 256
     },
     {
       "state": "wishlist.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 275
     },
     {
       "state": "wishlist.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "wishlist.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "wishlist.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "wishlist.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 253
     },
     {
       "state": "wishlist.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 254
     },
     {
       "state": "review.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "review.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 279
     },
     {
       "state": "review.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "review.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 261
     },
     {
       "state": "review.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 271
     },
     {
       "state": "review.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "settings.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 275
     },
     {
       "state": "settings.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 272
     },
     {
       "state": "settings.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 269
     },
     {
       "state": "settings.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 262
     },
     {
       "state": "settings.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "settings.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 256
     },
     {
       "state": "me.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "me.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "me.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 258
     },
     {
       "state": "me.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "me.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "me.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "trip.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 269
     },
     {
       "state": "trip.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "trip.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "trip.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "trip.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "trip.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 283
     },
     {
       "state": "expense.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "expense.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 272
     },
     {
       "state": "expense.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "expense.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 258
     },
     {
       "state": "expense.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 272
     },
     {
       "state": "expense.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 256
     },
     {
       "state": "node-manager.320x640.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 263
     },
     {
       "state": "node-manager.328x723.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 264
     },
     {
       "state": "node-manager.390x844.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "node-manager.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "node-manager.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 263
     },
     {
       "state": "node-manager.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "album.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 257
     },
     {
       "state": "album.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 271
     },
     {
       "state": "album.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 273
     },
     {
       "state": "album.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 275
     },
     {
       "state": "album.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "album.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 258
     },
     {
       "state": "album-edit.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 254
     },
     {
       "state": "album-edit.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "album-edit.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "album-edit.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "album-edit.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "album-edit.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 266
     },
     {
       "state": "story.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "story.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "story.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 262
     },
     {
       "state": "story.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 266
     },
     {
       "state": "story.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 264
     },
     {
       "state": "story.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "planner.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 264
     },
     {
       "state": "planner.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 260
     },
     {
       "state": "planner.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "planner.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "planner.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "planner.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "md-manager.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "md-manager.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "md-manager.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 257
     },
     {
       "state": "md-manager.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 270
     },
     {
       "state": "md-manager.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 278
     },
     {
       "state": "md-manager.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 274
     },
     {
       "state": "explore-map.320x640.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 267
     },
     {
       "state": "explore-map.328x723.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 257
     },
     {
       "state": "explore-map.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 275
     },
     {
       "state": "explore-map.452x995.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "explore-map.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 259
     },
     {
       "state": "explore-map.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.1
+      "limitPct": 0.1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "travel-map.320x640.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 254
     },
     {
       "state": "travel-map.328x723.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 263
     },
     {
       "state": "travel-map.390x844.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "travel-map.452x995.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 253
     },
     {
       "state": "travel-map.768x1024.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "travel-map.1440x900.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.1,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 268
     },
     {
       "state": "review.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 269
     },
     {
       "state": "album.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 526
     },
     {
       "state": "story.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 265
     },
     {
       "state": "travel-map.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.05,
-      "toastsRemoved": 1
+      "toastsRemoved": 1,
+      "settled": true,
+      "settleExtraMs": 255
     },
     {
       "state": "expense.ledger.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 271
     },
     {
       "state": "trip.ledger.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 275
     },
     {
       "state": "me.ledger.390x844.png",
       "status": "PASS",
       "diffPct": 0,
-      "limitPct": 0.05
+      "limitPct": 0.05,
+      "settled": true,
+      "settleExtraMs": 256
     },
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1232,
+      "lcpMs": 1084,
       "lcpSamples": [
-        2132,
-        1232,
-        1120
+        1700,
+        1084,
+        1056
       ],
-      "lcpEl": "H1",
+      "lcpEl": "DIV",
       "cls": 0
     },
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 1180,
+      "lcpMs": 556,
       "lcpSamples": [
-        1180,
-        1080,
-        1796
+        2212,
+        540,
+        556
       ],
       "lcpEl": "?",
       "cls": 0.0009

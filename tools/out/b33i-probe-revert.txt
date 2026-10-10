@@ -1,0 +1,13 @@
+PASS me.320x640.png  diff 0.00%
+PASS me.328x723.png  diff 0.00%
+PASS me.390x844.png  diff 0.00%
+PASS me.452x995.png  diff 0.00%
+PASS me.768x1024.png  diff 0.00%
+PASS me.1440x900.png  diff 0.00%
+PASS 性能预算 index.html — LCP 988ms(<2500，3 次中位；样本 1596/988/924) 元素=A | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 940ms(<2500，3 次中位；样本 2164/900/940) 元素=? | CLS 0.0009(<0.05，取最大)
+ARCHIVE 本跑报告 + 红帧（diff／当前帧）按时刻留档 1 个文件 → tools\out\visual-archive\2026-10-10-14-35-01（固定文件名那份下一跑即覆盖，这份不会）
+---
+取景: 6 张里 等过两轮轮询以上 0 张（无）· 到上限 8000ms 仍未稳定 0 张（无）
+耗时 58.4s（6 张，报告 tools/out/visual-report.json）
+比对 6 张: 6 PASS, 0 FAIL

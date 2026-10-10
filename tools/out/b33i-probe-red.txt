@@ -1,0 +1,18 @@
+FAIL me.320x640.png  diff 0.58% > 0.1%  → tools/out/visual-diff/me.320x640.png
+EVID me.320x640.png — 当前帧已自动留档 → tools\out\visual-diff\me.320x640.cur.png（三张并排看：基线 / 这一张 / diff）
+FAIL me.328x723.png  diff 0.50% > 0.1%  → tools/out/visual-diff/me.328x723.png
+EVID me.328x723.png — 当前帧已自动留档 → tools\out\visual-diff\me.328x723.cur.png（三张并排看：基线 / 这一张 / diff）
+FAIL me.390x844.png  diff 0.36% > 0.1%  → tools/out/visual-diff/me.390x844.png
+EVID me.390x844.png — 当前帧已自动留档 → tools\out\visual-diff\me.390x844.cur.png（三张并排看：基线 / 这一张 / diff）
+FAIL me.452x995.png  diff 0.27% > 0.1%  → tools/out/visual-diff/me.452x995.png
+EVID me.452x995.png — 当前帧已自动留档 → tools\out\visual-diff\me.452x995.cur.png（三张并排看：基线 / 这一张 / diff）
+FAIL me.768x1024.png  diff 0.18% > 0.1%  → tools/out/visual-diff/me.768x1024.png
+EVID me.768x1024.png — 当前帧已自动留档 → tools\out\visual-diff\me.768x1024.cur.png（三张并排看：基线 / 这一张 / diff）
+PASS me.1440x900.png  diff 0.09%
+PASS 性能预算 index.html — LCP 1140ms(<2500，3 次中位；样本 1604/1140/1052) 元素=DIV | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 1012ms(<2500，3 次中位；样本 1200/1012/968) 元素=? | CLS 0.0009(<0.05，取最大)
+ARCHIVE 本跑报告 + 红帧（diff／当前帧）按时刻留档 11 个文件 → tools\out\visual-archive\2026-10-10-14-33-38（固定文件名那份下一跑即覆盖，这份不会）
+---
+取景: 6 张里 等过两轮轮询以上 0 张（无）· 到上限 8000ms 仍未稳定 0 张（无）
+耗时 59.0s（6 张，报告 tools/out/visual-report.json）
+比对 6 张: 1 PASS, 5 FAIL

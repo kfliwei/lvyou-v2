@@ -1,0 +1,16 @@
+PASS review.seed.390x844.png  diff 0.00%
+NOTE album.seed.390x844.png — 地板 1400ms 之后取景又等了 535ms（布局已稳定）
+PASS album.seed.390x844.png  diff 0.00%
+PASS story.seed.390x844.png  diff 0.00%
+NOTE travel-map.seed.390x844.png — 截图前摘除 1 条短命 toast（不进基线）
+PASS travel-map.seed.390x844.png  diff 0.00%
+PASS expense.ledger.390x844.png  diff 0.00%
+PASS trip.ledger.390x844.png  diff 0.00%
+PASS me.ledger.390x844.png  diff 0.00%
+PASS 性能预算 index.html — LCP 1044ms(<2500，3 次中位；样本 1736/936/1044) 元素=A | CLS 0.0000(<0.05，取最大)
+PASS 性能预算 topic.html — LCP 1276ms(<2500，3 次中位；样本 1276/1388/572) 元素=? | CLS 0.0009(<0.05，取最大)
+ARCHIVE 本跑报告 + 红帧（diff／当前帧）按时刻留档 1 个文件 → tools\out\visual-archive\2026-10-10-14-30-51（固定文件名那份下一跑即覆盖，这份不会）
+---
+取景: 7 张里 等过两轮轮询以上 1 张（album.seed.390x844.png 535ms）· 到上限 8000ms 仍未稳定 0 张（无）
+耗时 75.7s（7 张，报告 tools/out/visual-report.json）
+比对 7 张: 7 PASS, 0 FAIL

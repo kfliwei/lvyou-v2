@@ -61,6 +61,36 @@ const KEEP = argv.includes('--keep-current');
 const curF = tag => path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png');
 const onlyPages = argv.filter(a => !a.startsWith('--'));
 
+/* 取景的「布局稳定」判据（批次 33-I）：地板 SETTLE 只保证「至少等了这么久」，不保证画面已经停了。
+   签名取五件——文档高／文档宽／全树元素数／body.innerText 长度／那份文本的 FNV 哈希：
+   只量尺寸会漏「同一行里换了个数字」（票数补字那一类），只量文本会漏「高度变了字没变」。
+   读签名这件事本身不许把整趟跑批搞崩：evaluate 抛错（页面正好在换上下文）就当「这一拍没读到」，
+   继续下一次轮询，最差走到上限后标 settled:false。 */
+const STABLE_POLL = 250;
+const STABLE_MAX = 8000;
+async function waitStable(pg) {
+  const sig = async () => {
+    try {
+      return await pg.evaluate(() => {
+        const d = document.documentElement;
+        const t = (document.body && document.body.innerText) || '';
+        let h = 2166136261;
+        for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return [d.scrollHeight, d.scrollWidth, document.getElementsByTagName('*').length, t.length, h >>> 0].join('x');
+      });
+    } catch (e) { return null; }
+  };
+  const t0 = Date.now();
+  let prev = await sig();
+  while (Date.now() - t0 < STABLE_MAX) {
+    await new Promise(r => setTimeout(r, STABLE_POLL));
+    const now = await sig();
+    if (now !== null && now === prev) return { ok: true, ms: Date.now() - t0 };
+    if (now !== null) prev = now;
+  }
+  return { ok: false, ms: Date.now() - t0 };
+}
+
 /* 状态清单：page → 视口列表。地图页不再有宽阈值（拦掉请求后它和普通页一样确定，理由见下方阈值注释）。
  * 两种数据态：
  *   空库态（默认）——全新浏览器档案，localStorage/IDB 皆空，抓的是"新用户第一眼"；
@@ -186,6 +216,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu', '--force-device-scale-factor=2'] });
   const pages = onlyPages.length ? onlyPages : PAGES;
   let failN = 0, baseN = 0, testN = 0;
+  const settleUnstable = [], settleLong = [];
   const manifestOld = readManifest();
   const manifest = (manifestOld && manifestOld.files) ? Object.assign({}, manifestOld.files) : {};
   const report = [];
@@ -294,6 +325,19 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
        也是异步补字，1.4s 赌的是"库还没回来"，那截图拍到的就是重画前后两个版本之一。 */
     const SETTLE = (p === 'topic.html' || p === 'explore-map.html' || p === 'travel-map.html' || st.kind === 'ledger') ? 5000 : 1400;
     await new Promise(r => setTimeout(r, SETTLE));
+    /* 地板之后还要等「布局稳定」才截屏（批次 33-I）。固定毫秒数本身不是判据：
+       me.html 会在游记库（IndexedDB）ready 后整体重画一遍，那一发 21.37% 的红就是地板 5s 用完了、
+       重画还没落在截图之前（tools/out/b33g-baseline-readonly.txt:128；同一棵树复跑 109/109）。
+       只加不减地板＝不会比基线更早截屏，只会「画面还在动的那些态」更晚截。
+       判据＝连续两次读到的布局签名相同；到上限仍不稳定就照常截屏，但在 stdout 印 NOTE
+       并在报告里标 settled:false（取景没稳定这件事必须可见，不许静默换成掷硬币）。 */
+    const stab = await waitStable(pg);
+    if (!stab.ok) settleUnstable.push(tag);
+    else if (stab.ms > 2 * STABLE_POLL) settleLong.push(tag + ' ' + stab.ms + 'ms');
+    if (!stab.ok || stab.ms > 2 * STABLE_POLL) {
+      console.log('NOTE ' + tag + ' — 地板 ' + SETTLE + 'ms 之后取景又等了 ' + stab.ms + 'ms（' +
+        (stab.ok ? '布局已稳定' : '到上限 ' + STABLE_MAX + 'ms 仍未稳定，照样截屏并在报告里标 settled:false') + '）');
+    }
     /* 装饰层覆盖断言：钉 reduced-motion 换来的是静帧渲染路径，如果那条路径哪天失效
        （staticFrame 没调用、canvas 尺寸塌成 0），基线会安静地少一层像素、闸门照样绿。这里补一刀。 */
     if (p === 'index.html') {
@@ -370,7 +414,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
        留着才有「红的是哪一屏」的直接读数；判定本身一个字节都不动。 */
     const keepCur = KEEP || !ok;
     if (!KEEP && !ok) fs.writeFileSync(curF(tag), buf);   /* 带 --keep-current 时截图后已落过盘，这里只补「红且没带那个开关」 */
-    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined, curFrame: keepCur ? path.relative(ROOT, curF(tag)) : undefined });
+    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined, settled: stab.ok, settleExtraMs: stab.ms, curFrame: keepCur ? path.relative(ROOT, curF(tag)) : undefined });
     if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
     else {
       console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag);
@@ -425,12 +469,37 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
   const ms = Date.now() - t0;
   /* 单页跑不动改写清单与总报告（只覆盖本次涉及的页，避免半截 --update 把别的基线登记丢掉） */
   if (UPDATE && !onlyOne) writeManifest(manifest);
+  const RAN_AT = new Date().toISOString();
   fs.writeFileSync(REPORT, JSON.stringify({
-    ranAt: new Date().toISOString(), mode: UPDATE ? 'update' : 'check',
+    ranAt: RAN_AT, mode: UPDATE ? 'update' : 'check',
     scope: onlyOne ? onlyPages : 'all', viewports: VIEWPORTS.map(v => v[0] + 'x' + v[1]),
     states: testN, fail: failN, elapsedSec: +(ms / 1000).toFixed(1), results: report
   }, null, 2));
+  /* 每一跑的报告与红帧本体按时刻归档（批次 33-I）。tools/out/visual-report.json 与
+     tools/out/visual-diff/*.png 都是固定文件名，下一跑直接同名覆盖——33-G 那次 21.37% 的红
+     就是这么只剩日志、拿不到「旧那一屏究竟哪几行位移」的（tools/out/b33g-baseline-readonly.txt:128）。
+     归档只留「这一跑的完整报告 + 判定为红的那几张（diff 与当前帧）」：绿态那些 0.00% 的 diff 图
+     本来就是一整片灰（pixelmatch 判 0 差异），109 张全留等于每跑往盘上扔几十 MB 的空证据；
+     真要看某一屏的并排三张，带 --keep-current 重跑那一态比翻归档快。
+     目录名取自报告里的 ranAt（同一来源，不各写一遍时间）；归档目录不入库，见 .gitignore。 */
+  const AR = path.join(ROOT, 'tools', 'out', 'visual-archive');
+  fs.mkdirSync(AR, { recursive: true });
+  let runDir = path.join(AR, RAN_AT.slice(0, 19).replace(/[:T]/g, '-'));
+  if (fs.existsSync(runDir)) runDir = runDir + '-' + process.pid;
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.copyFileSync(REPORT, path.join(runDir, 'visual-report.json'));
+  let arN = 1;
+  report.filter(r => r.status === 'FAIL' && r.state && r.state.indexOf('perf.') !== 0).forEach(r => {
+    const dP = path.join(DIFF, r.state), cP = curF(r.state);
+    if (fs.existsSync(dP)) { fs.copyFileSync(dP, path.join(runDir, r.state)); arN++; }
+    if (fs.existsSync(cP)) { fs.copyFileSync(cP, path.join(runDir, path.basename(cP))); arN++; }
+  });
+  console.log('ARCHIVE 本跑报告 + 红帧（diff／当前帧）按时刻留档 ' + arN + ' 个文件 → ' + path.relative(ROOT, runDir) + '（固定文件名那份下一跑即覆盖，这份不会）');
   console.log('---');
+  /* 取景给一行全量读数，不靠数 NOTE 行数：一张态最少要走一轮轮询才比得出签名（~250ms 是这条腿的
+     固定成本），逐态印 NOTE 会把「等过头／没稳住」这个真信号淹在噪声里，所以 NOTE 只在超出两轮
+     轮询或没稳住时才印，这里补一行总体计数——它让「这条腿真的在跑」每次跑批都可见。 */
+  console.log('取景: ' + testN + ' 张里 等过两轮轮询以上 ' + settleLong.length + ' 张（' + (settleLong.join('；') || '无') + '）· 到上限 ' + STABLE_MAX + 'ms 仍未稳定 ' + settleUnstable.length + ' 张（' + (settleUnstable.join('；') || '无') + '）');
   console.log('耗时 ' + (ms / 1000).toFixed(1) + 's（' + testN + ' 张，报告 tools/out/visual-report.json）');
   console.log(UPDATE ? (onlyOne ? '单页更新：' + baseN + ' 张基线已覆盖（清单未改写，跑全量 --update 才入库指纹）' : '基线已更新: ' + baseN + ' 张，清单已写入 ' + path.relative(ROOT, MANIFEST))
     : ('比对 ' + testN + ' 张: ' + (testN - failN) + ' PASS, ' + failN + ' FAIL' + (baseN ? ', 新建基线 ' + baseN : '')));

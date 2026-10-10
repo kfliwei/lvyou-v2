@@ -40,6 +40,9 @@ tools/archive/
 tools/out/visual-baseline/
 tools/out/visual-diff/
 tools/out/visual-baseline-prev/
+# 每一跑的报告与红帧按时刻归档（tools/visual-check.js 的 33-I 那条腿）：只在本机留证据，
+# 一次跑批最多几十 MB 二进制，入库会让 git status 变成翻二进制；要留的那一份按惯例单独 git add
+tools/out/visual-archive/
 # 历史散点截图（无日期目录，非本轮物证）；带日期的物证目录 tools/out/shots/<日期>/ 逐个 git add
 tools/out/shots/after/
 tools/out/shots/before/
