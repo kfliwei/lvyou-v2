@@ -7620,5 +7620,287 @@ function stripBlockComments(s) {
 }
 
 
+/* ============ §51 字族三档与注入串同名覆盖闸门（批次 35-B） ============
+   用户点单（逐字）：「全面审核 项目的功能和UI视觉的完整性、实用性和操作便利性」→ 审核报告 §4 第 5 条
+   「全站硬写桌面字体名，手机上一种都不命中」。35-A 地基实测（tools/out/b35a-census.txt，HEAD 那份）
+   数到 33 处／7 个文件，本批复测改成 39 处／7 个文件——差的 6 处是「窄文件名单 + 窄模式」漏的
+   （带括号写法 (+s.lat).toFixed 那一族同因），所以这一节的扫描器走全量 readdir，不抄名单。
+   落地分三档（口径由用户选定，不是我以为好看的分法）：
+     ① 应用内 DOM：硬写桌面名一律改接 var(--font-serif)/var(--font-sans)（9 处，令牌化）。
+     ② canvas 出图：ctx.font 只认**字面族名**，写 var() 是无效值 → 整条 font 被丢（连字号一起丢）
+        → 落 UA 默认 10px。所以这一档不许接令牌，只许写 "TRACE Serif"（15 处），且动笔前必须过
+        UI.fontsReady()：font-display 管不到 canvas，字库没就位就把兜底字**永久烤进 PNG**
+        （35-A 实测同一串字两团墨 3425／2689）。
+     ③ 独立导出件 / SVG：那些文档不载 design.css，@font-face 不在场，写死桌面名是唯一办法
+        （11 处／10 条点名表，进白名单不进修复）。
+   另一条根因不在字体名里，而在 :root：travel-notes.js 的注入串重声明了 17 枚与 design.css 同名的令牌，
+   后来者胜 ⇒ 面板一出现就把全站那 17 枚换成面板的米白皮。修法＝面板改用 --tnp-* 私有名（值一个没改
+   ⇒ 外观不变），design.css 那 16 枚别名（唯一读者就是这个面板）随之成死码摘除。
+   **诚实口径**：35-A 的像素腿实测「补上那一枚 <style> 前后 pixelmatch 差 0 个像素」——泄漏在令牌层为真，
+   当场没有承重元素吃到它。所以 ③(c) 那把「同名 = 0」的尺子守的是**结构**（同名覆盖不许回潮），
+   不是「修好了一次视觉事故」；把它说成后者就是谎报战果。
+
+   为什么这条只能由源码腿 + 浏览器腿两条一起守：
+     · 源码腿数得出「② 档每一行含 TRACE Serif」「③ 档点名表还在」「注入串与 design.css 同名 0 枚」，
+       但它看不见「同名令牌在 :root 上谁胜」「字库没 load 时画出来的是兜底字」「保险丝把出图整个吃掉」。
+     · 最后一条尤其反直觉：把 fontsReady 改成永不 resolve，屏上不报错，只是「点了没反应」——
+       那是本批**新增的一种静默失效**，只能真点一次并数 fillText 发生没发生（腿 FO14/FO17/FO20）。
+
+   本节钉四件事：
+     ① 正向锚：三档各自的实现行 + fontsReady 单点（失败一律 resolve 放行）+ 三个出图口各调一次
+        + 面板私名与暗色档那一支 + ③ 档那三个文件各自的桌面名行。
+     ② 期望 0（各配 git show HEAD 原串正向对照）：旧同名令牌声明／旧桌面名 canvas 行／① 档那两行
+        硬写／已删死码回来了／导出行退回「没有 fontsReady」。
+     ③ 内置扫描三把，每把先自校准：白名单五桶之外的绕过＝0（T1）；② 档逐条必须含品牌族，
+        不含的只许点名表那 1 条；注入串与 design.css 的同名令牌＝0。
+     ④ 浏览器腿 FO00–FO21 齐备检 + 条数守卫 + 循环上限对账 + 两把反向对照（泄漏翻面、UA 默认档）。 */
+{
+  let bad51 = 0;
+  const F51 = m => { bad51++; console.log('FAIL §51 字族三档与注入串闸门: ' + m); };
+  const ws51 = s => s.replace(/\s+/g, ' ').trim();
+  const flat51 = s => ws51(stripBlockComments(s));
+  const cnt51 = (s, n) => s.split(n).length - 1;
+  const rd51 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view51 = f => /\.md$/.test(f) ? ws51(rd51(f)) : flat51(rd51(f));
+
+  const FILES51 = ['travel-notes.js', 'design.css', 'ui.js', 'poster.js', 'travel-map.html', 'results.js',
+    'planner.js', 'vault.js', 'album.js', 'tools/smoke-font.js', 'tools/out/probe35b-census.js', 'README.md'];
+  const V51 = {};
+  FILES51.forEach(f => {
+    if (!fs.existsSync(f)) { F51('缺 ' + f); V51[f] = ''; return; }
+    V51[f] = view51(f);
+  });
+
+  /* ⓪ 自指纪律（同 §45–§50 那一支）：期望 0 全住在「改前原串还写在注释里」的带外，
+        于是本节的注释里大量抄了改前原串（桌面名、旧令牌名），flat51 必须剥掉它们才不会把自己读成红。 */
+  {
+    const DEF51 = (rd51('tools/verify.js').match(/^[ \t]*const flat51 = [^\n]*/m) || [''])[0];
+    if (DEF51.indexOf('stripBlockComments') < 0) F51('§51 的 flat51 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF51.slice(0, 56) || '整行没数到，连定义都漂了') + '）：本节注释里抄的改前桌面名原串会被当成代码在场');
+    const L51 = (rd51('tools/verify.js').match(/^[ \t]*const view51 = [^\n]*/m) || [''])[0];
+    if (L51.indexOf('.md$') < 0) F51('view51 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L51.slice(0, 60) || '整行没数到') + '）：README 与审核报告要写「② 档不许接令牌 var(--font-*)」这类带 /* */ 味道的原话，文档侧的锚会当场读 0');
+    [["travel-notes.js", "--tnp-bg:#f6f1e5;"], ["ui.js", "function fontsReady() {"], ["design.css", "--tnp-"]].forEach(function (p) {
+      if (p[0] === 'design.css') {
+        if (V51['design.css'].indexOf('var(--tnp-') >= 0) F51('design.css 里出现了 var(--tnp-…）：面板私名只许住在面板自己那侧，宿主页读它就等于把「面板的皮渗进全站」重新接上一条线（改名这一族只能单向）');
+        return;
+      }
+      if (V51[p[0]].indexOf(p[1]) < 0) F51('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+    const RAW51 = rd51('design.css');
+    if (RAW51.indexOf('随批次 35-B 摘除') < 0) F51('design.css 那 19 行别名块换成的一行说明不见了：注释会被 flat 视图吃掉，所以这条专读原物——它是「为什么这族别名可以摘」唯一的现场交代（唯一读者＝面板注入串，那一族已改 --tnp-*）');
+  }
+
+  /* ① 正向锚点 */
+  const A51 = [
+    /* —— ② 档：canvas 只认字面族名，且动笔前必须过字库 —— */
+    ["poster.js", "ctx.font = '600 64px \"TRACE Serif\",serif';", 1, '海报标题那一笔必须是字面品牌族：接 var(--font-serif) 是无效值，整条 font 被丢，出来的是 UA 默认 10px（腿 FO12 现场量过）'],
+    ["poster.js", "if (window.UI && window.UI.fontsReady) window.UI.fontsReady().then(go, go);", 1, '动笔前排在字库后面，且失败照样放行（reject 那一支也 go）：font-display 管不到 canvas，兜底字会被永久烤进 PNG'],
+    ["travel-notes.js", "ctx.font = 'bold 64px \"TRACE Serif\",serif';", 1, '分享卡标题：改前是裸 sans-serif（git show HEAD:travel-notes.js:2265），也就是品牌字从来没上过卡片'],
+    ["travel-notes.js", "ctx.font = 'bold 46px \"TRACE Serif\",serif';", 1, '分享卡地点名那一笔'],
+    ["travel-notes.js", "ctx.font = '32px \"TRACE Serif\",serif';", 1, '分享卡正文那一笔'],
+    ["travel-notes.js", "ctx.font = '30px sans-serif';", 1, '日期档设计内留 generic（②档里唯一一枚不许接品牌族）：这一枚进点名表，扫描器读到它不算绕过——没人点名的话「不含品牌族 = 0」那把尺子会当场红，然后被人整把关掉'],
+    ["travel-notes.js", "if (window.UI && window.UI.fontsReady) window.UI.fontsReady().then(go, go);", 1, '卡片那一路也排在字库后面（那颗「卡」钮才是出口，直调 genCard 测不到）'],
+    ["travel-map.html", "ctx.font='bold 66px \"TRACE Serif\",serif';", 1, '轨迹卡标题：② 档第三个出图口'],
+    ["travel-map.html", "if(window.UI&&window.UI.fontsReady) window.UI.fontsReady().then(go,go);", 1, '同一个闸门在这一页也挂着（三处出图口＝poster.js / travel-notes.js / travel-map.html，少一处就是那一支还在烤兜底字）'],
+    /* —— fontsReady 单点 —— */
+    ["ui.js", "function fontsReady() {", 1, '锁字库这件事只有一个实现：三处各抄一遍就会有一处漏 await'],
+    ["ui.js", "if (!document.fonts || !document.fonts.load) return Promise.resolve(false);", 1, '没有这套 API 时返回 false 而不是抛：抛了就把出图整个吃掉，用户看到的是「点了没反应」'],
+    ["ui.js", "document.fonts.load('400 24px \"TRACE Serif\"'),", 1, '两个字重都要取：卡片与轨迹卡用的是粗体，只取 400 的话 700 那一档照样可能在没就位时落笔'],
+    ["ui.js", "document.fonts.load('700 24px \"TRACE Serif\"')", 1, '同上，粗体那一发'],
+    ["ui.js", "} catch (e) { return Promise.resolve(false); }", 1, '同步抛错也归到「读不到」那一档放行，不外抛'],
+    ["ui.js", "trapFocus: trapFocus, fontsReady: fontsReady };", 1, '导出行必须在场：三处出图口吃的是 window.UI.fontsReady，没导出就等于闸门从没挂上'],
+    /* —— 面板私名（守根因那一侧的「留」）—— */
+    ["travel-notes.js", ":root{--tnp-fd:\"LXGW WenKai\",\"Kaiti SC\",serif;", 1, '面板的字族令牌也走私名：改前这一枚叫 --fd，与 design.css 同名（HEAD:design.css:275 那行别名），谁后加载谁赢'],
+    ["travel-notes.js", "--tnp-bg:#f6f1e5;", 1, '面板纸色走私名：改前是 --bg，而 --bg 在 design.css 是**全站语义映射**（:75 --bg:var(--color-bg)），108 个读取点跟着换皮'],
+    ["travel-notes.js", ":root.theme-dark{--tnp-bg:var(--color-bg);", 1, '暗色档那一支必须让位给全站真令牌：改名只改名字，这一枚「跟着全站走」的语义不能一起改掉（腿 FO07 量的是它真生效）'],
+    ["design.css", "--bg:var(--color-bg);", 1, '全站那一枚 --bg 还在（它是语义映射，不是本批摘掉的别名族）：这条正向对照钉住「摘的是别名一族，不是把 --bg 也摘了」——第一版预检就是这么越界假红过 82 处'],
+    /* —— ③ 档：导出件保留桌面名，各点名一处 —— */
+    ["results.js", "function docShell(title, subtitle, body) {", 1, '打印友好路书那份独立 HTML 还在（它不载 design.css，@font-face 不在场，写死桌面名是唯一办法）'],
+    ["results.js", "&quot;Songti SC&quot;,serif", 2, '③ 档那一族的桌面名是**登记过的设计内**（.cover h1 与 .stat b）：这条计数掉到 0 就是有文件开始载 design.css 了，那时这一档应当改接令牌并同步本节'],
+    ["planner.js", "\"PingFang SC\",\"Microsoft YaHei\",sans-serif", 1, '向导导出件自己那套桌面名（同 ③ 档口径）'],
+    ["vault.js", "\"PingFang SC\",\"Microsoft YaHei\",sans-serif", 1, 'vault 导出 HTML 的 body 字体（③ 档）'],
+    ["travel-notes.js", "\"PingFang SC\",\"Microsoft YaHei\",sans-serif", 1, '另存游记 HTML 的 body（③ 档：那一份文档是独立存的，宿主页的令牌不在场）'],
+    ["album.js", 'font-family="Songti SC, serif"', 1, 'SVG 里那一枚：SVG 的 font-family 是属性不是 CSS 声明，@font-face 不载进来时同样只能写死（③ 档）'],
+    /* —— 浏览器腿的形状 —— */
+    ['tools/smoke-font.js', 'const PANEL_BG = \'#f6f1e5\';', 1, '腿里那个纸色必须是从注入串派生的常量：写成第二份真值就会出现「产品改了值、腿还断旧值」'],
+    ['tools/smoke-font.js', "window.__INK = function (font) {", 1, '墨量这把刀住在页面里：puppeteer 只序列化第一个函数参数，嵌套参数里的函数不会被还原（第一版就是这么红的）'],
+    ['tools/smoke-font.js', 'FR.bad === FR.ua && FR.bad !== FR.fb && FR.bad !== FR.brand', 1, 'FO12 的判据是「等于 UA 默认那一档」：这一条我自己写错过一次（写成「落回 64px 兜底族」），实测是整条 font 被丢、连字号一起丢'],
+    ['tools/smoke-font.js', 'window.UI.fontsReady = () => new Promise(function () {});', 3, '永不落定那一发在三个出图口各打一次（FO14 轨迹卡／FO17 海报／FO20 分享卡片）：少一处就是那一路的「排在字库后面」没人反证——这一族的症状是「点了没反应」，源码腿看不见'],
+    ['tools/smoke-font.js', "window.UI.fontsReady = () => Promise.reject(new Error('no font'));", 1, 'reject 那一档必须照样落笔：保险丝不许把出图整个吃掉（这是本批新增的静默失效形状）'],
+    ['tools/smoke-font.js', "document.querySelector('#tnListBody [data-a=card]')", 4, '卡片那一路走真鼠标点那颗钮（genCard 没导出，直调就是假绿）：四处分明是「等它出现 / 确认在场 / 点它 / 卡住时再点它」，少于 4 处就是有那一档又改成直调了'],
+    ['tools/smoke-font.js', 'checks >= 22', 1, '条数守卫（本闸门自己也会被删）：判据 23 条，ok() 在自增前求值所以表达式写 22'],
+    ['tools/smoke-font.js', "const ALIAS17 = ['--fd', '--fb', '--b6', '--b7', '--b9', '--a3', '--d3', '--bg', '--sf', '--sf2', '--ln', '--i9', '--i7', '--i5', '--sm', '--tf', '--tn'];", 1, '腿里那 17 枚同名令牌要逐枚钉住，不能只钉「ALIAS17.length !== 17」那一行：名单自己少一枚时那行守卫照样成立（变异网 T08 第一次就是这么静默的），于是 FO01/FO02 那个「旧名读取 0 枚」是数给一个短了的名单看的'],
+    /* —— 普查探针与本节同源 —— */
+    ['tools/out/probe35b-census.js', "['travel-notes.js', 2278]", 1, '② 档留 generic 那枚在探针与本节各登记一次，两边必须同时改：只改一边就会出现「探针绿、闸门红」或反过来'],
+  ];
+  A51.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F51('A51 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V51)) { F51('A51 登记了 §51 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt51(V51[f], needle);
+    if (n !== exp) F51(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批改掉的旧写法各配正向对照，串取自 git show HEAD 的真行原文
+        （HEAD:travel-notes.js:332/2265、HEAD:design.css:268/275、HEAD:poster.js:133、
+          HEAD:travel-map.html:770/772、HEAD:results.js:105/139、HEAD:ui.js:510） */
+  const ZERO51 = [
+    ["travel-notes.js", "--bg:#f6f1e5;", "    --bg:#f6f1e5;--sf:#fbf8f1;--sf2:#efe8d8;--ln:#e4dbc6;",
+      '面板回到在 :root 上声明全站那枚 --bg：注入串比宿主页后加载，后来者胜 ⇒ 面板一出现，全站吃 --bg 的地方一起换成面板的米白皮。这就是本批的根因，改名 --tnp-bg 是唯一的修法'],
+    ["travel-notes.js", ":root{--fd:", "  var CSS = '\\:root{--fd:\"LXGW WenKai\",\"Kaiti SC\",serif;",
+      '面板重新占用 --fd 这个公共名字：design.css 里它是全站别名（HEAD:275 --fd:var(--font-serif)），两处同名就是两处覆盖'],
+    ["design.css", "--b7:var(--color-ink);", "  --b7:var(--color-ink);        /* 旧黛青700 → 墨 */",
+      '那族别名回来了：唯一的读者是面板注入串，而它现在读 --tnp-b7。留着同名空壳不只是死码——它给「面板在 :root 上覆盖全站令牌」这一类 bug 留门（摘除那一行说明写在 design.css 注释里，由 ⓪ 那把专读原物的哨兵守着）'],
+    ["poster.js", "ctx.font = '600 64px \"Songti SC\",\"Noto Serif SC\",serif';", "    ctx.font = '600 64px \"Songti SC\",\"Noto Serif SC\",serif';",
+      '海报标题退回桌面名：那两台机器上一个都不命中（一加 Ace 6T / ColorOS），出的每张 PNG 都是整机字体，而包内那套宋体从头到尾没上过屏'],
+    ["travel-map.html", "ctx.font='bold 66px \"LXGW WenKai\",serif';", "  ctx.fillStyle=th.fg;ctx.font='bold 66px \"LXGW WenKai\",serif';ctx.textAlign='center';",
+      '轨迹卡标题退回「LXGW WenKai」：那是桌面才有的字族名，手机上永远落不到它'],
+    ["travel-map.html", "ctx.font='30px \"Noto Serif SC\",serif';", "  ctx.font='30px \"Noto Serif SC\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;",
+      '② 档另一枚退回公开字族名：包内子集注册的名字是 TRACE Serif，写 Noto Serif SC 等于绕过自己内嵌的那套字'],
+    ["results.js", "function shareCanvas(title, subtitle, body, theme) {", "  function shareCanvas(title, subtitle, body, theme) {",
+      '已删的死码回来了：全站零调用者（35-A 现场数过），留着它就有第二套「看起来像出图口」的代码不挂 fontsReady，下一个改字体的人会改错那一处'],
+    ["results.js", "function wrapText(ctx, text, x, y, maxW, lh) {", "  function wrapText(ctx, text, x, y, maxW, lh) {",
+      '同上：它只被 shareCanvas 调用，那条路整个是死的'],
+    ["ui.js", "trapFocus: trapFocus };", "  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt, sheet: sheet, markerLabel: markerLabel, markerKeys: markerKeys, trapFocus: trapFocus };",
+      '导出表里没有 fontsReady：三处出图口那句 window.UI.fontsReady 就永远是 undefined，闸门看起来装了、其实一发作没有（而且 §19 钉的是这一行的连续串，所以新增键只能放行尾）'],
+  ];
+  ZERO51.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F51('ZERO51 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V51)) { F51('ZERO51 登记了 §51 没读的文件「' + f + '」：' + why); return; }
+    if (cnt51(V51[f], needle) !== 0) F51(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt51(flat51(ctrl), needle) < 1) F51('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置扫描三把，每把先拿合成样本自校准再读现场 */
+  let var51 = { files: 0, hits: 0, T1: 0, T2: 0, T2gen: 0, T3: 0, noBrand: 0, same: 0, gate: {} };
+  const BRAND = 'TRACE Serif';
+  const BUCK = { TOKEN_DEF: 0, WIRED: 0, INHERIT: 0, MONO: 0, SYS: 0 };
+  /* ③ 档点名表（那些文档不载 design.css，写死桌面名是唯一办法）*/
+  const T3 = [['results.js', 132], ['results.js', 134], ['results.js', 139], ['results.js', 145],
+    ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 1984],
+    ['vault.js', 400], ['album.js', 262]];
+  const T2GEN = [['travel-notes.js', 2278]];
+  const inT = (T, f, n) => T.some(x => x[0] === f && x[1] === n);
+
+  /* (a) 白名单尺子：五桶 + 两张点名表之外，一条都不许剩 */
+  {
+    if (T3.length !== 10) F51('③ 档点名表长 ' + T3.length + ' 条／期望 10（表自己缩水，下面那个「T3 命中数」就成了空断言）');
+    if (T2GEN.length !== 1) F51('② 档留 generic 的点名表长 ' + T2GEN.length + ' 条／期望 1');
+    const TOKEN_DEF = ln => /@font-face/.test(ln);
+    const WIRED = val => /var\(--(font-[a-z]+|tnp-f[db])[,)]/.test(val);
+    const INHERIT = val => /^inherit$/.test(val);
+    const MONO = val => /monospace|Consolas|SFMono|Menlo/i.test(val) && !/Songti|PingFang|YaHei|Noto|LXGW|Kaiti|STSong/.test(val);
+    const SYS = val => /^(system-ui|-apple-system|sans-serif|serif)(\s*,\s*(system-ui|-apple-system|sans-serif|serif))*$/.test(val.trim());
+    const CAL_BAD = { val: '"Songti SC",serif', ln: '  x{font-family:"Songti SC",serif}' };
+    if (TOKEN_DEF(CAL_BAD.ln) || WIRED(CAL_BAD.val) || INHERIT(CAL_BAD.val) || MONO(CAL_BAD.val) || SYS(CAL_BAD.val)) {
+      F51('白名单那把尺子失准：合成那条硬写桌面名的行被五桶之一放行了，于是下面「绕过 = 0」只是尺子瞎');
+    }
+    const CAL_OK = 'var(--tnp-fd)';
+    if (!WIRED(CAL_OK)) F51('白名单那把尺子反向失准：面板私有名 var(--tnp-fd) 没被 WIRED 放行——① 档合法接线会被整批判成绕过，然后这把刀被人关掉');
+
+    const FILES = fs.readdirSync('.').filter(f => /\.(js|html|css)$/.test(f) && fs.statSync(f).isFile());
+    var51.files = FILES.length;
+    if (FILES.length < 100) F51('根目录只扫到 ' + FILES.length + ' 个 js/html/css：分母掉成这样＝readdir 或过滤条件被动过，这把尺子不再覆盖全产品面');
+    const bypass = [];
+    FILES.forEach(function (f) {
+      rd51(f).split(/\r?\n/).forEach(function (ln0, i) {
+        const ln = ln0.trim();
+        let m;
+        const VAL = '((?:&[a-z]+;|[^;}])+)';
+        const push = (kind, val) => {
+          const n = i + 1;
+          if (TOKEN_DEF(ln) || WIRED(val) || INHERIT(val) || MONO(val) || SYS(val)) return;
+          if (inT(T3, f, n)) { var51.T3++; return; }
+          if (kind === 'canvas') {
+            var51.T2++;
+            if (inT(T2GEN, f, n)) { var51.T2gen++; return; }
+            if (ln.indexOf(BRAND) < 0) var51.noBrand++;
+            return;
+          }
+          bypass.push(f + ':' + n + ' ' + kind + ' ' + val.slice(0, 44));
+        };
+        let re = new RegExp('font-family\\s*:\\s*' + VAL, 'g');
+        while ((m = re.exec(ln))) push('css', m[1].trim());
+        re = new RegExp('font-family\\s*=\\s*"([^"]*)"', 'g');
+        while ((m = re.exec(ln))) push('attr', m[1].trim());
+        re = /\.font\s*=\s*(.+)$/;
+        if (re.test(ln)) push('canvas', (ln.match(re) || ['', ''])[1].trim());
+      });
+    });
+    var51.T1 = bypass.length;
+    if (bypass.length) F51('白名单之外还剩 ' + bypass.length + ' 处硬写桌面名（① 档未收口）：' + bypass.slice(0, 6).join(' ｜ ') + '——手机上一种都不命中，用户看到的永远是整机字体，而包内那套宋体白进了一次包');
+    if (var51.noBrand) F51('② 档 canvas 落笔里有 ' + var51.noBrand + ' 处的字面族名不含 "' + BRAND + '"（点名表那 ' + T2GEN.length + ' 枚已排除）：canvas 只认字面族名，写桌面名或写 var() 都一样出不来品牌字');
+    if (var51.T2gen !== T2GEN.length) F51('② 档点名表里那些行现在读到的不是 ' + T2GEN.length + ' 枚而是 ' + var51.T2gen + ' 枚：说明 travel-notes.js 那一行挪了位置或改了形状，表与本节要一起改（表不跟着改，下一次扫描会把设计内那一枚读成绕过）');
+    if (var51.T3 < T3.length) F51('③ 档点名表 ' + T3.length + ' 条里现场只命中 ' + var51.T3 + ' 处：那几行被改形状或挪走了——③ 档要么继续保留桌面名（并更新本表），要么它开始载 design.css 了（那就该改接令牌）');
+    var51.hits = var51.T1 + var51.T2 + var51.T3;
+  }
+
+  /* (b) 三个出图口真的各挂一次闸门 */
+  {
+    const G = {
+      'poster.js': cnt51(V51['poster.js'], 'window.UI.fontsReady().then(go, go)'),
+      'travel-notes.js': cnt51(V51['travel-notes.js'], 'window.UI.fontsReady().then(go, go)'),
+      'travel-map.html': cnt51(V51['travel-map.html'], 'window.UI.fontsReady().then(go,go)'),
+    };
+    var51.gate = G;
+    Object.keys(G).forEach(function (f) {
+      if (G[f] !== 1) F51(f + ' 里 fontsReady().then(go, go) 实得 ' + G[f] + '，期望 1：这一族出图口的口径是「动笔前排在字库后面一次」，0 处＝那一支还在烤兜底字，2 处＝有人在一条路上 await 两次（多出来的那一发只会让出图更慢，不会有第二种症状，所以最难被发现）');
+    });
+    const DEF51b = ['ui.js', 'poster.js', 'travel-notes.js', 'travel-map.html'].reduce((a, f) => a + cnt51(V51[f], 'function fontsReady('), 0);
+    if (DEF51b !== 1) F51('fontsReady 的定义在四个相关文件里读到 ' + DEF51b + ' 处，期望 1（只许 ui.js 一份实现）：各页自己抄一份，就会有一份漏 await 或漏 resolve 兜底');
+  }
+
+  /* (c) 守根因那一把：注入串与 design.css 的同名令牌数必须为 0 */
+  {
+    const DECL = /--[a-z][a-z0-9-]*\s*:/g;
+    const names = s => new Set((s.match(DECL) || []).map(x => x.split(':')[0]));
+    const dcNames = names(rd51('design.css'));
+    const tnNames = names(rd51('travel-notes.js'));
+    const CAL = names(':root{--bg:#f6f1e5;--surface:#f6f1e5;}');
+    let sameCal = 0;
+    CAL.forEach(n => { if (dcNames.has(n)) sameCal++; });
+    if (sameCal < 2) F51('同名那把尺子失准：把两枚「design.css 里确实在声明」的名字（--bg 与 --surface）合成进注入串，本该撞上 ≥2 枚，实得 ' + sameCal + '——那两枚在 design.css 里读不到了，下面那句「同名 = 0」就不是证据（选这两枚而不是改前的 --fd，是因为 --fd 那一族别名本批已摘出 design.css，它自己不再在场）');
+    const same = [];
+    tnNames.forEach(n => { if (dcNames.has(n)) same.push(n); });
+    var51.same = same.length;
+    if (same.length) F51('travel-notes.js 注入串与 design.css 同名令牌 ' + same.length + ' 枚（' + same.slice(0, 17).join(' ') + '）：注入串比宿主页后加载，:root 上后来者胜 ⇒ 面板一出现就把全站那几枚换成面板的皮。这一枚是「泄漏」的根因，不是风格问题（诚实口径：35-A 像素腿实测补上那枚 <style> 前后 pixelmatch 差 0 像素，泄漏在令牌层为真但当场无承重消费者；本条守的是结构不许回潮，不宣称修好了一次视觉事故）');
+    const tnp = (rd51('travel-notes.js').match(/--tnp-[a-z0-9]+/g) || []);
+    if (!tnp.length) F51('注入串里一枚 --tnp-* 私有名都读不到：改名那一族整体没了（上面那条同名 = 0 大概是因为注入串自己也没了）');
+  }
+
+  /* ④ 浏览器腿齐备检：FO00–FO21 逐条在场 + 循环上限对账 */
+  {
+    const S51 = V51['tools/smoke-font.js'];
+    for (let i = 0; i <= 21; i++) {
+      const lab = "ok('FO" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt51(S51, lab) !== 1) F51('tools/smoke-font.js 里 ' + lab.trim() + ' 这条判据不是恰 1 处（实得 ' + cnt51(S51, lab) + '）：这一节断的是「同名谁胜 + 出图排在字库后面」，删一条就少一个证据，改编号会让 §51 的齐备检集体失效');
+    }
+    if (cnt51(S51, "ok('FO22 ") !== 1) F51('FO22（条数守卫）不在场：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转');
+    if (cnt51(S51, 'ALIAS17.length !== 17') !== 1) F51('腿里那张 17 枚名单的长度守卫没了：名单自己缩水时，那个「旧名读取 0 处」会变成空断言（这把尺子在本批真的先读空过一次）');
+    {
+      const LAB51 = S51.match(/ok\('(FO\d+)[ ]/g) || [];
+      const MAXN51 = LAB51.reduce((m, s) => Math.max(m, Number(/FO(\d+)/.exec(s)[1])), -1);
+      const SEG51 = (rd51('tools/verify.js').split('④ 浏览器腿齐备检：FO00')[1] || '');
+      const BOUND51 = (SEG51.match(/for \(let i = 0; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND51 === undefined) F51('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND51) !== MAXN51 - 1) F51('④ 齐备检的循环上限是 ' + BOUND51 + '，而这条腿里真实最大编号是 FO' + MAXN51 + '：FO22 是条数守卫（写在最后一条），所以上限该是最大编号减 1；上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V51['README.md'].indexOf('§51') < 0) F51('README.md 的 verify 清单没提 §51（新闸门不写进 README 就等于没装）');
+  if (V51['README.md'].indexOf('smoke-font') < 0) F51('README.md 没登记 tools/smoke-font.js 这条腿');
+
+  console.log('字族三档与注入串闸门: ' + A51.length + ' 条代码锚点（② 档三个出图口各「字面品牌族 + 排在字库后面」／fontsReady 单点四件（无 API 落 false、400 与 700 两个字重、同步抛错也放行、导出行放行尾）／面板私名三枚与暗色档那一支让位全站 --color-bg／③ 档五个文件各自的桌面名（登记为设计内）／腿的私有名派生常量与页内那把刀·UA 默认档判据·' + cnt51(V51['tools/smoke-font.js'], 'window.UI.fontsReady = () => new Promise(function () {});') + ' 处卡住字库·reject 照样落笔·真鼠标点那颗「卡」钮·条数守卫／探针与闸门同名的那张留-generic 点名表）+ ' + ZERO51.length + ' 族期望 0（注入串同名 --bg/--fd 两枚／design.css 那族别名一行／poster 与 travel-map 三枚桌面名 ctx.font／已删的 shareCanvas 与 wrapText／导出表里没有 fontsReady 的旧行）各配 HEAD 原串正向对照 + 三把内置扫描全量对账（白名单五桶之外根目录 ' + var51.files + ' 个 js/html/css 里绕过 ' + var51.T1 + ' 处、② 档 canvas ' + var51.T2 + ' 处其中不含品牌族 ' + var51.noBrand + ' 处、③ 档命中 ' + var51.T3 + '／表 ' + T3.length + ' 条、留 generic ' + var51.T2gen + '／表 ' + T2GEN.length + ' 条；三个出图口的闸门计数 ' + JSON.stringify(var51.gate) + ' 且 fontsReady 定义全站 1 份；注入串与 design.css 同名令牌 ' + var51.same + ' 枚——这一枚就是根因），每把都先拿合成样本自校准（绕过行必须被抓住／var(--tnp-fd) 必须被放行／改前那两枚必须与 design.css 撞上）+ 一条自指纪律（flat51/view51 定义行走那把共享剥刀与不剥文档那一支，哨兵里有一条专读 design.css 原物的「为什么摘掉」注释，因为注释会被 flat 吃掉）+ 浏览器腿 FO00–FO21 齐备检与条数守卫（FO06 反向对照现场插一条同名 :root 覆盖把读数翻过来，FO12 断「等于 UA 默认那一档」而不是「落回兜底族」——这两处是我自己先写错、实测才纠正的，判据本身也要有牙；FO14/FO17/FO20 用永不落定的 fontsReady 反证「闸门真装了」，那种静默失效源码腿读不出来）；A51 表长 ' + A51.length + ' 条、ZERO51 表长 ' + ZERO51.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b35a-census.txt（并集口径 39 处／7 个文件＝T1 9＋T2 19＋T3 11，审核报告 §4 第 5 条当时写的 33 处是逐类采样漏了两档，本批已按并集回写）与本节文件头那条诚实口径（像素腿 0 漂移），改后读数见 tools/out/b35b-census.txt、tools/out/b35b-smoke-font.txt 与 tools/out/b35b-inject.txt，变异自测见 tools/out/mut-verify51.js');
+  fail += bad51;
+}
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

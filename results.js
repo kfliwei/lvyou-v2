@@ -75,7 +75,7 @@
   function saveDoc(name, html) {
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9400;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:var(--color-surface);border:1px solid var(--color-line);border-top:1px solid var(--color-primary);border-radius:16px 16px 0 0;box-shadow:var(--shadow-float);display:block';
-    d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:var(--color-ink)">' + esc(name) + ' <button class="ui-modal-x" id="rzX" aria-label="关闭">' + TI('close', 14) + '</button></div>'
+    d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:var(--font-display);font-size:var(--fs-8);color:var(--color-ink)">' + esc(name) + ' <button class="ui-modal-x" id="rzX" aria-label="关闭">' + TI('close', 14) + '</button></div>'
       + '<div id="rzPrev" style="border:1px solid var(--color-line);border-radius:12px;max-height:40vh;overflow-y:auto;font-size:var(--fs-2);color:var(--color-muted);padding:12px;white-space:pre-wrap;background:var(--color-surface)">' + esc(html.slice(0, 2000)) + (html.length > 2000 ? '…（共 ' + html.length + ' 字符）' : '') + '</div>'
       + '<button id="rzSave" class="btn-primary" style="width:100%;margin-top:12px">保存文档</button>'
       + '<button id="rzCopy" class="btn-secondary" style="width:100%;margin-top:8px">复制 HTML</button>';
@@ -100,51 +100,6 @@
         flash('已下载');
       }
     };
-  }
-  /* 长图分享（canvas 生成） */
-  function shareCanvas(title, subtitle, body, theme) {
-    var t = theme || 0;
-    var themes = [
-      { bg: ['#2E3B42', '#20201D', '#1A1A18'], fg: '#FAF8F3', accent: 'rgba(200,109,75,.08)' },
-      { bg: ['#A9563B', '#8F4A33', '#7D3A28'], fg: '#FAF8F3', accent: 'rgba(250,248,243,.10)' },
-      { bg: ['#F0EDE5', '#E6E1D7', '#D8D4CB'], fg: '#20201D', accent: 'rgba(200,109,75,.07)' }
-    ];
-    var th = themes[t % themes.length];
-    var W = 1080, H = Math.max(1440, 720 + body.length * 0.62);
-    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    var ctx = cv.getContext('2d');
-    var g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, th.bg[0]); g.addColorStop(.5, th.bg[1]); g.addColorStop(1, th.bg[2]);
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = th.accent;
-    for (var i = 0; i < 9; i++) { ctx.beginPath(); ctx.arc(120 + i * 120, 300 + (i % 3) * 380, 90, 0, Math.PI * 2); ctx.fill(); }
-    ctx.textAlign = 'center';
-    ctx.fillStyle = th.fg; ctx.font = 'bold 60px "Songti SC",serif';
-    wrapText(ctx, title, W / 2, 150, W - 120, 78);
-    ctx.font = '26px "Noto Serif SC",serif'; ctx.globalAlpha = .75;
-    ctx.fillText(subtitle, W / 2, 220);
-    ctx.globalAlpha = 1;
-    ctx.textAlign = 'left';
-    ctx.font = '28px "Noto Serif SC",serif'; ctx.lineHeight = 1.7;
-    wrapText(ctx, body, 100, 300, W - 200, 48);
-    var dataUrl = cv.toDataURL('image/png');
-    if (window.AndroidVoice && window.AndroidVoice.saveImage) {
-      window.__tnImgSaved = function (r) { flash(r === 'err' ? '保存失败' : '长图已保存：Download/' + r); };
-      try { AndroidVoice.saveImage(title + '.png', dataUrl); } catch (e) { flash('保存不可用'); }
-    } else {
-      var a = document.createElement('a'); a.href = dataUrl; a.download = title + '.png'; a.click();
-      flash('长图已生成');
-    }
-  }
-  function wrapText(ctx, text, x, y, maxW, lh) {
-    var chars = String(text).split('');
-    var line = '';
-    for (var i = 0; i < chars.length; i++) {
-      var test = line + chars[i];
-      if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, y); line = chars[i]; y += lh; }
-      else line = test;
-    }
-    if (line) { ctx.fillText(line, x, y); }
   }
   /* 统计游记（可传入过滤后的 notes） */
   function summarize(notesIn) {
@@ -241,7 +196,7 @@
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
     d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:var(--shadow-float);max-height:88vh;overflow-y:auto">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-9);color:#20201D;margin-bottom:4px">' + icon + ' ' + label + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-display);font-size:var(--fs-9);color:#20201D;margin-bottom:4px">' + icon + ' ' + label + '</div>'
       + '<div style="font-size:var(--fs-4);color:#7D7970;margin-bottom:14px">选择范围后生成，支持按省 / 市 / 时间筛选</div>'
       + '<div style="font-size:var(--fs-3);color:#6A675E;margin-bottom:6px">省份（可多选跳过则不限）</div>'
       + '<select id="fp" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:10px">'
@@ -258,7 +213,7 @@
       + '<input type="date" id="fto" placeholder="结束日期" style="flex:1;min-width:0;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 8px;background:#fff;color:#20201D">'
       + '</div>'
       + '<div id="fcount" style="font-size:var(--fs-3);color:#6A675E;margin-bottom:12px">共 <b style="color:#AE5738">' + all.length + '</b> 篇</div>'
-      + '<button id="fgo" style="width:100%;height:48px;border:0;border-radius:12px;background:#AE5738;color:#fff;font-size:var(--fs-6);font-weight:700;cursor:pointer;font-family:&quot;Songti SC&quot;,serif">生成' + label + '</button>'
+      + '<button id="fgo" style="width:100%;height:48px;border:0;border-radius:12px;background:#AE5738;color:#fff;font-size:var(--fs-6);font-weight:700;cursor:pointer;font-family:var(--font-display)">生成' + label + '</button>'
       + '</div>';
     document.body.appendChild(d);
     function close(){ d.remove(); }
@@ -379,7 +334,7 @@
       var d = el('div', 'rz-dlg');
       d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
       d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:var(--shadow-float)">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:4px">生成旅程故事</div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-display);font-size:var(--fs-8);color:#20201D;margin-bottom:4px">生成旅程故事</div>'
         + '<div style="font-size:var(--fs-3);color:#7D7970;margin-bottom:12px">' + notes.length + ' 篇游记 · ' + prov + ' / ' + city + ' · ' + range + '</div>'
         + '<div id="sbody" style="margin-top:12px;max-height:44vh;overflow-y:auto;line-height:1.9;font-size:var(--fs-5);color:#333;white-space:pre-wrap;display:none"></div>'
         + '<div id="sact" style="display:none;margin-top:12px;gap:8px">'
@@ -458,7 +413,7 @@
     var d = el('div', 'rz-dlg');
     d.style.cssText = 'position:fixed;inset:0;z-index:9450;background:rgba(32,32,29,.5);display:flex;align-items:center;justify-content:center;padding:20px';
     d.innerHTML = '<div class="rz-panel" style="background:#FAF8F3;border-radius:18px;max-width:440px;width:100%;padding:20px;box-shadow:var(--shadow-float);max-height:88vh;overflow-y:auto">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button class="ui-modal-x" id="ix" aria-label="关闭">' + TI('close', 14) + '</button></div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-display);font-size:var(--fs-8);color:#20201D;margin-bottom:14px">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button class="ui-modal-x" id="ix" aria-label="关闭">' + TI('close', 14) + '</button></div>'
       + '<div style="font-size:var(--fs-4);color:#7D7970;margin-bottom:8px">告诉我你想怎么走，基于真实景点生成每日行程：</div>'
       + '<input id="idays" type="number" min="1" max="15" value="3" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="游玩天数">'
       + '<input id="ipref" style="width:100%;height:44px;border:1px solid var(--edge-hair-soft);border-radius:12px;font-size:var(--fs-5);padding:0 12px;background:#fff;color:#20201D;margin-bottom:8px" placeholder="偏好，如：唐构+彩塑 / 石窟 / 轻松的">'

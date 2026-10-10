@@ -1,9 +1,7 @@
 {
-  "ranAt": "2026-10-10T01:25:19.785Z",
-  "mode": "update",
-  "scope": [
-    "album.html"
-  ],
+  "ranAt": "2026-10-10T04:11:00.142Z",
+  "mode": "check",
+  "scope": "all",
   "viewports": [
     "320x640",
     "328x723",
@@ -12,18 +10,691 @@
     "768x1024",
     "1440x900"
   ],
-  "states": 6,
+  "states": 109,
   "fail": 0,
-  "elapsedSec": 51.6,
+  "elapsedSec": 547.4,
   "results": [
+    {
+      "state": "index.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "index.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "topic.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "topic.328x723.png",
+      "status": "PASS",
+      "diffPct": 0.001,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "topic.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "topic.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "topic.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "topic.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "search.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "search.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "wishlist.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "review.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "settings.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "me.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "trip.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "expense.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "node-manager.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "node-manager.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "node-manager.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "node-manager.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "node-manager.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "node-manager.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "album.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "album-edit.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "story.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "planner.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "md-manager.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "explore-map.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1
+    },
+    {
+      "state": "travel-map.320x640.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "travel-map.328x723.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "travel-map.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "travel-map.452x995.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "travel-map.768x1024.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "travel-map.1440x900.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.1,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "review.seed.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "album.seed.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "story.seed.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "travel-map.seed.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05,
+      "toastsRemoved": 1
+    },
+    {
+      "state": "expense.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "trip.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
+    {
+      "state": "me.ledger.390x844.png",
+      "status": "PASS",
+      "diffPct": 0,
+      "limitPct": 0.05
+    },
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1228,
+      "lcpMs": 1112,
       "lcpSamples": [
-        1276,
-        1032,
-        1228
+        1344,
+        1112,
+        884
       ],
       "lcpEl": "H1",
       "cls": 0
@@ -31,11 +702,11 @@
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 936,
+      "lcpMs": 912,
       "lcpSamples": [
-        2336,
-        604,
-        936
+        1124,
+        912,
+        508
       ],
       "lcpEl": "?",
       "cls": 0.0009

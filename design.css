@@ -264,25 +264,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --ease-pop:cubic-bezier(.34,1.42,.48,1);
   --ring-ember:0 0 0 4px rgba(200,109,75,.14);
 
-  /* ---- 旧变量名兼容别名（travel-notes.js 名言面板等历史代码引用） ---- */
-  --b7:var(--color-ink);        /* 旧黛青700 → 墨 */
-  --b6:var(--color-primary-dark);/* 旧黛青600 → 陶土深 */
-  --a3:var(--color-line-strong); /* 旧金描边 → 强线条 */
-  --ln:var(--color-line);        /* 旧 line → 线条 */
-  --i9:var(--color-ink);         /* 旧 ink900 → 墨 */
-  --i7:var(--color-ink-soft);    /* 旧 ink700 → 墨软 */
-  --i5:var(--color-muted);       /* 旧 ink500 → muted */
-  --fd:var(--font-serif);        /* 旧 display → 衬线 */
-  --fb:var(--font-sans);         /* 旧 body → 无衬线 */
-  --sf2:var(--color-bg-soft);    /* 旧 surface2 → 米白软 */
-  --sm:var(--shadow-soft);
-
-  --b9:var(--color-ink);         /* 旧黛青900 → 墨 */
-  --d3:var(--color-primary);     /* 旧 danger/cinnabar → 主色 */
-  --sf:var(--color-surface);     /* 旧 surface → 卡面 */
-  --tf:var(--font-sans);         /* 旧 text-font → 无衬线 */
-  --tn:var(--font-serif);        /* 旧 title-font → 衬线 */
-  --sm:var(--shadow-soft);       /* 旧 shadow-sm → 软阴影 */
+  /* 旧变量名兼容别名一族（--b7/--b6/…/--tf/--tn，含重复的 --sm）随批次 35-B 摘除：唯一的读者是 travel-notes.js 注入串，那一族已改 --tnp-* 私有名；留着同名空壳，等于给「面板在 :root 上覆盖全站令牌」这一类 bug 留门 */
   --ease-soft:cubic-bezier(.25,.8,.25,1);
   --duration-fast:var(--motion-fast);
   --duration-normal:var(--motion-normal);

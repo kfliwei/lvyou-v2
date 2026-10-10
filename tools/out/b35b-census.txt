@@ -1,0 +1,39 @@
+扫描根目录 106 个 .js/.html/.css；font-family / ctx.font 命中 503 行
+合法桶：@font-face 2｜var 接线 465｜inherit 2｜等宽 6｜纯 generic 1
+【T1 应用内 DOM 硬写桌面名】0 处／期望 0
+【T2 canvas 出图】15 处／3 个文件，其中字面族名不含 "TRACE Serif" 的 0 处／期望 0
+  poster.js:133 '600 64px "TRACE Serif",serif';
+  poster.js:135 '26px "TRACE Serif",serif';
+  poster.js:199 '600 44px "TRACE Serif",serif';
+  poster.js:201 '20px "TRACE Serif",serif';
+  poster.js:211 '22px "TRACE Serif",serif';
+  poster.js:225 '22px "TRACE Serif",serif';
+  poster.js:235 '600 40px "TRACE Serif",serif';
+  travel-map.html:777 'bold 66px "TRACE Serif",serif';ctx.textAlign='center';
+  travel-map.html:779 '30px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.globalAlp
+  travel-map.html:794 '30px "TRACE Serif",serif';ctx.textAlign='center';
+  travel-map.html:798 '34px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.textAlign
+  travel-map.html:801 '28px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.globalAlp
+  travel-notes.js:2273 'bold 64px "TRACE Serif",serif';
+  travel-notes.js:2275 'bold 46px "TRACE Serif",serif';
+  travel-notes.js:2284 '32px "TRACE Serif",serif';
+【T2 设计内留 generic】1 处（点名表 1 条）
+  travel-notes.js:2278 '30px sans-serif';
+【T3 独立导出件 / SVG】11 处（点名表 10 条）／5 个文件
+  album.js:262 [attr] Songti SC, serif
+  planner.js:2040 [css] "PingFang SC","Microsoft YaHei",sans-serif
+  planner.js:2041 [css] "Songti SC",serif
+  planner.js:2041 [css] "Songti SC",serif
+  planner.js:2042 [css] "Songti SC",serif
+  results.js:132 [css] "PingFang SC","Microsoft YaHei",sans-serif
+  results.js:134 [css] "Songti SC",serif
+  results.js:139 [css] "Songti SC",serif
+  results.js:145 [css] "Noto Serif SC",serif
+  travel-notes.js:1984 [css] "PingFang SC","Microsoft YaHei",sans-serif">' +
+  vault.js:400 [css] "PingFang SC","Microsoft YaHei",sans-serif
+等宽档明细：design.css:1381 icons-demo.html:1 map.css:1053 md-manager.html:79 md-manager.html:86 node-manager.html:57
+纯 generic 明细：icons-demo.html:1→system-ui
+✓ 正向对照：合成行「font-family:"Songti SC",serif」确实落进 T1（T1=0 是有牙的读数，不是空集）
+✓ 反向对照：var(--tnp-fd) 落进 WIRED（改名后的面板私有名不算绕过）
+旧名 var() 读取：travel-notes.js（17 枚）+ design.css（16 枚别名）＝0 处 ✓
+design.css 声明 204 枚／注入串声明去重 17 枚／同名 0 枚

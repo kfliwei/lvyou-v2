@@ -1,0 +1,46 @@
+注入串跨行 305 行（travel-notes.js:330-634），合并后 37026 字符
+:root 族块内自定义属性声明 32 条
+
+名字        design.css同名  串内引用      tn.js其他处    全站引用      判定
+--fd      是             25        1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--fb      是             18        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b6      是             19        1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b7      是             10        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b8      否             0         0           0         死声明（串外串内都没人用）
+--b9      是             2         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--a5      否             0         0           0         死声明（串外串内都没人用）
+--a3      是             15        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--d3      是             2         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--bg      是             22        0           99        覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）  站外={"album-edit.html":3,"album.html":3,"album.js":1,"design.css":28,"ai-trip-planner-full-v1.html":1,"architecture-review-2026-08-12.html":1,"architecture-review-2026-08-13.html":1,"audit-2026-08-16.html":1,"audit-functional-2026-08-16.html":1,"audit-functional-completeness-2026-08-19.html":1,"audit-query-2026-08-16.html":1,"code-audit-2026-08-14.html":1,"feature-ux-review-2026-08-13.html":1,"ia-ux-review-2026-08-13.html":1,"planner-audit-2026-08-15.html":1,"reality-audit-2026-08-15.html":1,"spa-route-plan.html":1,"spec-vs-implementation-review-2026-08-13.html":1,"uiux-usability-review-2026-08-13.html":1,"usability-optimization-changelog-2026-08-13.html":1,"user-perspective-review-2026-08-14.html":1,"index.html":3,"map.css":13,"md-manager.html":4,"me.html":2,"nav.js":1,"node-manager.html":3,"planner.html":1,"planner.js":3,"poster.js":2,"review.html":3,"search.html":2,"settings.html":1,"test-data.html":3,"topic-common.js":1,"travel-map.html":4,"wishlist.html":1}
+--sf      是             9         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--sf2     是             6         1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--ln      是             25        1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i9      是             13        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i7      是             4         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i5      是             16        3           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--sm      是             8         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--md      否             0         0           0         死声明（串外串内都没人用）
+--lg      否             0         0           0         死声明（串外串内都没人用）
+--tf      是             13        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--tn      是             2         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--bg      是             22        0           99        覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）  站外={"album-edit.html":3,"album.html":3,"album.js":1,"design.css":28,"ai-trip-planner-full-v1.html":1,"architecture-review-2026-08-12.html":1,"architecture-review-2026-08-13.html":1,"audit-2026-08-16.html":1,"audit-functional-2026-08-16.html":1,"audit-functional-completeness-2026-08-19.html":1,"audit-query-2026-08-16.html":1,"code-audit-2026-08-14.html":1,"feature-ux-review-2026-08-13.html":1,"ia-ux-review-2026-08-13.html":1,"planner-audit-2026-08-15.html":1,"reality-audit-2026-08-15.html":1,"spa-route-plan.html":1,"spec-vs-implementation-review-2026-08-13.html":1,"uiux-usability-review-2026-08-13.html":1,"usability-optimization-changelog-2026-08-13.html":1,"user-perspective-review-2026-08-14.html":1,"index.html":3,"map.css":13,"md-manager.html":4,"me.html":2,"nav.js":1,"node-manager.html":3,"planner.html":1,"planner.js":3,"poster.js":2,"review.html":3,"search.html":2,"settings.html":1,"test-data.html":3,"topic-common.js":1,"travel-map.html":4,"wishlist.html":1}
+--sf      是             9         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--sf2     是             6         1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--ln      是             25        1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i9      是             13        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i7      是             4         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--i5      是             16        3           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b7      是             10        0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b9      是             2         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--b6      是             19        1           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+--d3      是             2         0           0         覆盖全站令牌 + 串内自用 ⇒ 改本地名（不能摘）
+
+与 design.css 同名（＝注入串覆盖全站值）的共 28 条：--fd --fb --b6 --b7 --b9 --a3 --d3 --bg --sf --sf2 --ln --i9 --i7 --i5 --sm --tf --tn --bg --sf --sf2 --ln --i9 --i7 --i5 --b7 --b9 --b6 --d3
+其中站外确有使用者（改这些会动到别的页面）：--bg(99) --bg(99)
+其中串内自己也在用（不能直接摘）：--fd(25) --fb(18) --b6(19) --b7(10) --b9(2) --a3(15) --d3(2) --bg(22) --sf(9) --sf2(6) --ln(25) --i9(13) --i7(4) --i5(16) --sm(8) --tf(13) --tn(2) --bg(22) --sf(9) --sf2(6) --ln(25) --i9(13) --i7(4) --i5(16) --b7(10) --b9(2) --b6(19) --d3(2)
+
+自校准：
+  ① 已知覆盖项 --bg collide=true outUse=99 ｜ --fd collide=true outUse=0  ⇒ 过
+  ② 不存在的名字 --zz-not-a-token 在 design.css 集合里=false 全站引用=0  ⇒ 过
+  ③ design.css 声明过的自定义属性名共 220 个
+  ④ 站外受检文件数=127（travel-notes.js 已排除）

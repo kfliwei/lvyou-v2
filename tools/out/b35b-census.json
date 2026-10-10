@@ -1,0 +1,198 @@
+{
+ "T1": [],
+ "T2": [
+  {
+   "f": "poster.js",
+   "n": 133,
+   "kind": "canvas",
+   "val": "'600 64px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '600 64px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 135,
+   "kind": "canvas",
+   "val": "'26px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '26px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 199,
+   "kind": "canvas",
+   "val": "'600 44px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '600 44px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 201,
+   "kind": "canvas",
+   "val": "'20px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '20px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 211,
+   "kind": "canvas",
+   "val": "'22px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '22px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 225,
+   "kind": "canvas",
+   "val": "'22px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '22px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "poster.js",
+   "n": 235,
+   "kind": "canvas",
+   "val": "'600 40px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '600 40px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "travel-map.html",
+   "n": 777,
+   "kind": "canvas",
+   "val": "'bold 66px \"TRACE Serif\",serif';ctx.textAlign='center';",
+   "ln": "ctx.fillStyle=th.fg;ctx.font='bold 66px \"TRACE Serif\",serif';ctx.textAlign='center';"
+  },
+  {
+   "f": "travel-map.html",
+   "n": 779,
+   "kind": "canvas",
+   "val": "'30px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;",
+   "ln": "ctx.font='30px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;"
+  },
+  {
+   "f": "travel-map.html",
+   "n": 794,
+   "kind": "canvas",
+   "val": "'30px \"TRACE Serif\",serif';ctx.textAlign='center';",
+   "ln": "ctx.font='30px \"TRACE Serif\",serif';ctx.textAlign='center';"
+  },
+  {
+   "f": "travel-map.html",
+   "n": 798,
+   "kind": "canvas",
+   "val": "'34px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';",
+   "ln": "ctx.font='34px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';"
+  },
+  {
+   "f": "travel-map.html",
+   "n": 801,
+   "kind": "canvas",
+   "val": "'28px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;",
+   "ln": "ctx.font='28px \"TRACE Serif\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;"
+  },
+  {
+   "f": "travel-notes.js",
+   "n": 2273,
+   "kind": "canvas",
+   "val": "'bold 64px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = 'bold 64px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "travel-notes.js",
+   "n": 2275,
+   "kind": "canvas",
+   "val": "'bold 46px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = 'bold 46px \"TRACE Serif\",serif';"
+  },
+  {
+   "f": "travel-notes.js",
+   "n": 2284,
+   "kind": "canvas",
+   "val": "'32px \"TRACE Serif\",serif';",
+   "ln": "ctx.font = '32px \"TRACE Serif\",serif';"
+  }
+ ],
+ "T2gen": [
+  {
+   "f": "travel-notes.js",
+   "n": 2278,
+   "kind": "canvas",
+   "val": "'30px sans-serif';",
+   "ln": "ctx.font = '30px sans-serif';"
+  }
+ ],
+ "T3": [
+  {
+   "f": "album.js",
+   "n": 262,
+   "kind": "attr",
+   "val": "Songti SC, serif",
+   "ln": "return '<text x=\"' + p.x.toFixed(1) + '\" y=\"' + (p.y + dy).toFixed(1) + '\" font-size=\"11\" fill=\"#4C4A45\" font-family=\"Songti SC, serif\" text-anchor=\"middle\">' + esc(String(p.name).slice(0, 6)) + '</text>';"
+  },
+  {
+   "f": "planner.js",
+   "n": 2040,
+   "kind": "css",
+   "val": "\"PingFang SC\",\"Microsoft YaHei\",sans-serif",
+   "ln": "'body{font-family:\"PingFang SC\",\"Microsoft YaHei\",sans-serif;max-width:640px;margin:0 auto;padding:24px 20px;color:#26241F;line-height:1.85;background:#F6F3EC}' +"
+  },
+  {
+   "f": "planner.js",
+   "n": 2041,
+   "kind": "css",
+   "val": "\"Songti SC\",serif",
+   "ln": "'h1{font-family:\"Songti SC\",serif;font-weight:400;font-size:26px}h2{font-family:\"Songti SC\",serif;font-weight:400;font-size:17px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +"
+  },
+  {
+   "f": "planner.js",
+   "n": 2041,
+   "kind": "css",
+   "val": "\"Songti SC\",serif",
+   "ln": "'h1{font-family:\"Songti SC\",serif;font-weight:400;font-size:26px}h2{font-family:\"Songti SC\",serif;font-weight:400;font-size:17px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +"
+  },
+  {
+   "f": "planner.js",
+   "n": 2042,
+   "kind": "css",
+   "val": "\"Songti SC\",serif",
+   "ln": "'.muted{color:#8C877D;font-size:13px}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:\"Songti SC\",serif;margin:12px 0}' +"
+  },
+  {
+   "f": "results.js",
+   "n": 132,
+   "kind": "css",
+   "val": "&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif",
+   "ln": "+ '<style>body{margin:0;background:#F7F5EF;font-family:&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif}'"
+  },
+  {
+   "f": "results.js",
+   "n": 134,
+   "kind": "css",
+   "val": "&quot;Songti SC&quot;,serif",
+   "ln": "+ '.cover h1{margin:0;font-size:30px;font-family:&quot;Songti SC&quot;,serif}'"
+  },
+  {
+   "f": "results.js",
+   "n": 139,
+   "kind": "css",
+   "val": "&quot;Songti SC&quot;,serif",
+   "ln": "+ '.stat b{display:block;font-size:26px;color:#AE5738;font-family:&quot;Songti SC&quot;,serif}'"
+  },
+  {
+   "f": "results.js",
+   "n": 145,
+   "kind": "css",
+   "val": "&quot;Noto Serif SC&quot;,serif",
+   "ln": "+ '.q{margin:8px 0 0;font-size:var(--fs-4);color:#8a6408;font-family:&quot;Noto Serif SC&quot;,serif;border-left:3px solid #AE5738;padding-left:10px}'"
+  },
+  {
+   "f": "travel-notes.js",
+   "n": 1984,
+   "kind": "css",
+   "val": "&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif\">' +",
+   "ln": "var html = '<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>我的旅行游记</title><style>@media print{body{background:#fff!important}div{box-shadow:none!important;border:1px solid #ddd!important}h1{color:#333!important;background:none!important;padding:20px 0!important}}@media(max-width:600px){div{padding:12px!important}h2{font-size:var(--fs-7)!important}}</style></head><body style=\"margin:0;background:#f6f1e5;font-family:&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif\">' +"
+  },
+  {
+   "f": "vault.js",
+   "n": 400,
+   "kind": "css",
+   "val": "\"PingFang SC\",\"Microsoft YaHei\",sans-serif",
+   "ln": "'<style>body{max-width:720px;margin:0 auto;padding:32px 20px 60px;font-family:\"PingFang SC\",\"Microsoft YaHei\",sans-serif;color:#2c2c29;line-height:1.8;background:#faf8f3}h1{font-size:26px;margin:0 0 10px;color:#1f3634}.meta{color:#8a857a;font-size:var(--fs-4);margin:3px 0}.story{white-space:pre-wrap;margin:22px 0;font-size:var(--fs-7)}img{max-width:100%;border-radius:10px;display:block;margin:10px 0}figure{margin:0 0 18px}figcaption{color:#8a857a;font-size:var(--fs-3);text-align:center;margin-top:4px}audio{width:100%;margin:10px 0}h2{font-size:var(--fs-8);margin:26px 0 6px;color:#1f3634}.dim{color:#a09a8e;font-size:var(--fs-4)}</style></head><body>' +"
+  }
+ ]
+}

@@ -67,7 +67,7 @@ window.FootprintPoster = (function () {
     ink: { bg: ['#2E3B42', '#20201D', '#14130F'], deco: 'rgba(200,109,75,.07)', title: '#FAF8F3', sub: '#C8C0B2', grid: 'rgba(250,248,243,.05)', track: 'rgba(200,109,75,.85)', dotFill: 'rgba(250,248,243,.95)', dotStroke: '#C86D4B', statBg: 'rgba(250,248,243,.06)', statV: '#FAF8F3', statK: '#C8C0B2', badgeBg: 'rgba(200,109,75,.16)', badgeT: '#E8B49A', foot: '#8F8A80' },
     carto: { bg: ['#F7F2E7', '#EFE7D4', '#E7DCC4'], deco: 'rgba(169,86,59,.08)', title: '#26241F', sub: '#8C7B66', grid: 'rgba(169,86,59,.12)', track: 'rgba(169,86,59,.9)', dotFill: '#FFFDF8', dotStroke: '#A9563B', statBg: 'rgba(169,86,59,.07)', statV: '#26241F', statK: '#8C7B66', badgeBg: 'rgba(169,86,59,.12)', badgeT: '#A9563B', foot: '#8C7B66' }
   };
-  function generate(landscape, themeName) {
+  function renderPoster(landscape, themeName) {
     var th = THEMES[themeName] || THEMES.ink;
     var all = (window.TravelNotes ? TravelNotes.list() : []).slice()
       .sort(function (a, b) { return a.ts - b.ts; });
@@ -130,9 +130,9 @@ window.FootprintPoster = (function () {
     /* 标题 */
     ctx.textAlign = 'center';
     ctx.fillStyle = th.title;
-    ctx.font = '600 64px "Songti SC","Noto Serif SC",serif';
+    ctx.font = '600 64px "TRACE Serif",serif';
     ctx.fillText('我的旅行足迹', W / 2, TY);
-    ctx.font = '26px "Noto Serif SC",serif';
+    ctx.font = '26px "TRACE Serif",serif';
     ctx.globalAlpha = .7; ctx.fillStyle = th.sub;
     ctx.fillText(year + ' · 行迹 TRACE', W / 2, TY2);
     ctx.globalAlpha = 1;
@@ -196,9 +196,9 @@ window.FootprintPoster = (function () {
       else ctx.rect(x - boxW / 2 + 6, statY - 14, boxW - 12, 118);
       ctx.fill();
       ctx.fillStyle = th.statV;
-      ctx.font = '600 44px "Songti SC",serif';
+      ctx.font = '600 44px "TRACE Serif",serif';
       ctx.fillText(String(s.v), x, statY + 42);
-      ctx.font = '20px "Noto Serif SC",serif';
+      ctx.font = '20px "TRACE Serif",serif';
       ctx.globalAlpha = .65; ctx.fillStyle = th.statK;
       ctx.fillText(s.k, x, statY + 82);
       ctx.globalAlpha = 1;
@@ -208,7 +208,7 @@ window.FootprintPoster = (function () {
     var shorts = Object.keys(provs).map(shortProv).filter(Boolean);
     var bx = landscape ? (W - Math.min(shorts.length, 12) * 46 - 60) : (W / 2 - (Math.min(shorts.length, 12) * 46 - 12) / 2);
     var by = landscape ? 236 : (H - 250);
-    ctx.font = '22px "Noto Serif SC",serif';
+    ctx.font = '22px "TRACE Serif",serif';
     shorts.slice(0, 12).forEach(function (s) {
       ctx.fillStyle = th.badgeBg;
       ctx.beginPath();
@@ -222,7 +222,7 @@ window.FootprintPoster = (function () {
 
     /* ---- 落款 + 印章 ---- */
     ctx.globalAlpha = .5; ctx.fillStyle = th.foot;
-    ctx.font = '22px "Noto Serif SC",serif';
+    ctx.font = '22px "TRACE Serif",serif';
     ctx.fillText('行迹 TRACE · 走过的路都算数', W / 2, footY);
     ctx.globalAlpha = 1;
 
@@ -232,7 +232,7 @@ window.FootprintPoster = (function () {
     ctx.strokeStyle = '#C86D4B'; ctx.lineWidth = 3;
     ctx.strokeRect(-34, -34, 68, 68);
     ctx.fillStyle = '#C86D4B';
-    ctx.font = '600 40px "Songti SC",serif';
+    ctx.font = '600 40px "TRACE Serif",serif';
     ctx.fillText('迹', 0, 13);
     ctx.restore();
 
@@ -240,6 +240,14 @@ window.FootprintPoster = (function () {
     var styleName = { carto: '制图', paper: '纸感' }[themeName] || '';
     var title = (landscape ? '足迹海报横版 ' : '足迹海报' + (styleName ? '·' + styleName + ' ' : ' ')) + year;
     previewPoster(title, dataUrl);
+  }
+  /* 出图口先锁字库再动笔：ctx.font 只认字面族名，且 font-display 管不到 canvas——
+     字库没就位就 fillText，兜底字会永久烤进 PNG（批次 35-A 实测两团墨 3425／2689）。
+     读不到字库时照旧放行：出一张兜底字的图，比点下去没反应好。见 ui.js fontsReady。 */
+  function generate(landscape, themeName) {
+    function go() { renderPoster(landscape, themeName); }
+    if (window.UI && window.UI.fontsReady) window.UI.fontsReady().then(go, go);
+    else go();
   }
   return { generate: generate };
 })();

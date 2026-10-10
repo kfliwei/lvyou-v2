@@ -755,6 +755,13 @@ const TRACK_THEMES=[
   { id:'paper', name:'宣纸', bg:['#f2ecdd','#e9e2cd','#dfd6bc'], fg:'#26241f', accent:'rgba(168,50,42,.07)', line:'rgba(168,50,42,.85)' }
 ];
 function renderTrack(themeId){
+  /* 出图口先锁字库再动笔：ctx.font 只认字面族名，font-display 管不到 canvas，
+     字库没就位就把兜底字永久烤进 PNG。读不到字库照样放行。见 ui.js fontsReady。 */
+  function go(){ drawTrackCard(themeId); }
+  if(window.UI&&window.UI.fontsReady) window.UI.fontsReady().then(go,go);
+  else go();
+}
+function drawTrackCard(themeId){
   const notes=TravelNotes.list();
   const ordered=notes.filter(n=>n.lat!=null&&n.lng!=null).sort((a,b)=>a.ts-b.ts);
   if(ordered.length<2){UI.toast('至少需要 2 个游记节点才能生成轨迹卡');return;}
@@ -767,9 +774,9 @@ function renderTrack(themeId){
   ctx.fillStyle=g;ctx.fillRect(0,0,1080,1440);
   ctx.fillStyle=th.accent;
   for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(140+i*130,260+(i%2)*320,90,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle=th.fg;ctx.font='bold 66px "LXGW WenKai",serif';ctx.textAlign='center';
+  ctx.fillStyle=th.fg;ctx.font='bold 66px "TRACE Serif",serif';ctx.textAlign='center';
   ctx.fillText('我的旅程轨迹',540,150);
-  ctx.font='30px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;
+  ctx.font='30px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;
   ctx.fillText(ordered.length+' 个节点 · '+new Set(notes.map(n=>TravelNotes.noteDay(n)).filter(Boolean)).size+' 日',540,200);
   ctx.globalAlpha=1;
   const lats=ordered.map(n=>n.lat),lngs=ordered.map(n=>n.lng);
@@ -784,14 +791,14 @@ function renderTrack(themeId){
     const x=X(n.lng),y=Y(n.lat);
     ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);ctx.fillStyle=th.fg;ctx.fill();
     ctx.lineWidth=4;ctx.strokeStyle=i===0?'#2ecc71':'#a8322a';ctx.stroke();
-    ctx.font='30px "Noto Serif SC",serif';ctx.textAlign='center';
+    ctx.font='30px "TRACE Serif",serif';ctx.textAlign='center';
     ctx.fillText(i===0?'起点':(i===ordered.length-1?'终点':'记'),x,y-34);
   });
   const s=ordered[0],e=ordered[ordered.length-1];
-  ctx.font='34px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';
+  ctx.font='34px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';
   ctx.fillText('起点 · '+(s.title||s.siteName),110,1160);
   ctx.fillText('终点 · '+(e.title||e.siteName),110,1215);
-  ctx.font='28px "Noto Serif SC",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;
+  ctx.font='28px "TRACE Serif",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;
   ctx.fillText(TravelNotes.nowDayText()+' 制 · 古建地图集',110,1290);
   ctx.globalAlpha=1;
   const dataUrl=cv.toDataURL('image/png');

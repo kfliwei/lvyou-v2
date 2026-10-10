@@ -490,6 +490,21 @@
     return /(^|[^m])s$/.test(t) ? n * 1000 : n;
   }
   function scrollBehavior() { return reducedMotion() ? 'auto' : 'smooth'; }
+  /* canvas 出图前锁品牌字（批次 35-B）。两件事必须一起成立，缺一不可：
+     1) ctx.font 只认字面族名，写 var(--font-*) 是无效值 → 整条 font 被丢弃，落 UA 默认；
+     2) font-display 只管 CSS 排版，管不到 canvas——字库没就位就 fillText，兜底字会被
+        **永久烤进 PNG**。批次 35-A 实测：同一串中文，品牌族墨量 3425 / 兜底 2689，两张不同的图。
+     所以出图口必须 await 这一把，而不是「顺手在 CSS 里写了 block 就以为安全」。
+     失败一律放行：字库读不到时，出一张兜底字的图比点半天没反应好。 */
+  function fontsReady() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve(false);
+    try {
+      return Promise.all([
+        document.fonts.load('400 24px "TRACE Serif"'),
+        document.fonts.load('700 24px "TRACE Serif"')
+      ]).then(function (list) { return !!(list && list.length); }, function () { return false; });
+    } catch (e) { return Promise.resolve(false); }
+  }
   /* View Transition 包装：减动效 / 老内核 / file:// 不支持时直接改 DOM，绝不拦导航也绝不报错。
      连着切两次阶段时前一个转场会被 abort（AbortError: Transition was skipped），这是预期行为，
      必须就地吞掉，否则它变成未捕获的 promise 拒绝，在壳里以「页面报错」的形式冒出来
@@ -507,7 +522,7 @@
     } catch (e) { fn(); return null; }
   }
 
-  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt, sheet: sheet, markerLabel: markerLabel, markerKeys: markerKeys, trapFocus: trapFocus };
+  window.UI = { toast: toast, confirm: confirm, nudge: nudge, compressImage: compressImage, tileWarn: tileWarn, esc: esc, imgFail: imgFail, imgBox: imgBox, siteImg: siteImg, badge: badge, offlineBar: offlineBar, errorBox: errorBox, reducedMotion: reducedMotion, motionMs: motionMs, scrollBehavior: scrollBehavior, vt: vt, sheet: sheet, markerLabel: markerLabel, markerKeys: markerKeys, trapFocus: trapFocus, fontsReady: fontsReady };
 
   /* 载入即安装离线条（幂等，见 __uiOfflineBarOn）；引 ui.js 的每个页面自动获得离线态，无需逐页接线 */
   if (typeof document !== 'undefined') {
