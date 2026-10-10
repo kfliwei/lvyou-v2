@@ -284,11 +284,13 @@ async function main() {
     localStorage.setItem('tn_webdav', JSON.stringify(c));
     return new Promise(function (res) { window.WebDAV.push(function (e, r) { res({ err: e && e.message, ok: !e && r.status }); }); });
   }, cfgWrong);
-  check('密码错时 push 报「账号或密码不对」而不是裸 HTTP', /账号或密码不对/.test(badPush.err || ''), badPush.err);
+  check('密码错时 push 报「账号或密码被拒绝（401）」并点名应用密码，而不是裸 HTTP', /账号或密码被拒绝（401）/.test(badPush.err || '') && /应用密码/.test(badPush.err || ''), badPush.err);
   check('失败信息里不含任何口令内容', String(badPush.err).indexOf('wrongpass') < 0 && String(badPush.err).indexOf('rightpass') < 0, badPush.err);
 
-  /* 真机形态：服务器带 Basic 挑战时 WebView 拿不到 401 状态码，只会看到网络层失败 →
-     网络错误文案必须把「账号或密码被拒」说出来（指向一个必然拒绝连接的端口来触发） */
+  /* 指向一个必然连不上的端口来触发网络层失败。批次 36 的复测（tools/out/b36-probe-webdav.txt）推翻了
+     这一支原来的立论「带 Basic 挑战时拿不到 401」：headless Chrome 15ms 就交付 401，带挑战那一档归
+     §50 的 W05 守。真机上壳侧 handler.cancel() 之后确实可能只剩网络层失败，所以这句必须带出口，
+     而出口由探活决定（可达 → 先查凭据；不可达 → 这台设备打不开这个地址）。 */
   const dead = await page.evaluate(function (c) {
     localStorage.setItem('tn_webdav', JSON.stringify(c));
     return new Promise(function (res) { window.WebDAV.push(function (e, r) { res({ err: e && e.message }); }); });

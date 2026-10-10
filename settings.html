@@ -42,6 +42,9 @@
   .wd-line.ok{color:var(--color-primary-dark)}
   .wd-line.err{color:var(--color-danger,#B34A3F)}
   .wd-sep{height:1px;background:var(--color-line);margin:14px 0}
+  .wd-help{font-size:var(--fs-3);color:var(--color-ink-soft);line-height:1.7;margin:-4px 0 10px;font-family:var(--font-sans)}
+  .wd-presets{margin-bottom:12px}
+  .wd-presets button{min-height:44px}
   .data-acts button:disabled{opacity:.45}
   body{padding-bottom:80px}
 
@@ -268,7 +271,11 @@
       </div>
       <div class="row">
         <div class="row-label">密码</div>
-        <input id="wdPass" type="password" autocomplete="off" placeholder="坚果云等平台请用「应用密码」">
+        <input id="wdPass" type="password" autocomplete="off" placeholder="坚果云要填「应用密码」，不是登录密码">
+      </div>
+      <div class="wd-help" id="wdHelp">坚果云的密码栏不能填登录密码：在网页版点头像 → 账户信息 → 安全选项 → 添加应用，单独生成一串「应用密码」再填进来（Nextcloud、群晖同理，都叫应用密码 / 授权码）。填对了「测试连接」会回 HTTP 207；被拒就是这一行没填对，不是手机办不到。</div>
+      <div class="chips wd-presets">
+        <button type="button" id="wdPresetJg">坚果云：填标准地址</button>
       </div>
       <div class="data-acts">
         <button class="btn-secondary" id="wdTestBtn">测试连接</button>
@@ -393,6 +400,11 @@
     }
     function boot() {
       if (!window.WebDAV || !window.Backup) return;
+      /* 地址这一发不靠用户手写：坚果云的 WebDAV 根是固定的，少一段 /dav/ 就一路 404/401 */
+      $('wdPresetJg').onclick = function () {
+        $('wdUrl').value = 'https://dav.jianguoyun.com/dav/';
+        line('wdResult', '地址已填好。账号填登录邮箱，密码必须用网页版生成的「应用密码」。');
+      };
       $('wdTestBtn').onclick = function () {
         var f = form();
         if (!/^https?:\/\//i.test(f.url)) { line('wdResult', '服务地址要写成 https://… 的完整 WebDAV 根地址', 'err'); return; }

@@ -1,9 +1,15 @@
 /* ============================================================
  * sync-webdav.js — WebDAV 云同步（批次 8 / P1-4）
  * ------------------------------------------------------------
- * 纯 JS 实现：APK 壳 WebView 开了 setAllowUniversalAccessFromFileURLs(true)，
- * file:// 页面上的跨源 fetch 直连可用，不需要 Java 桥。浏览器侧受 CORS 约束，
- * 验证走 --disable-web-security 或同源反代。
+ * 纯 JS 实现（没有 Java 桥）：APK 壳在 MainActivity 里开了 setAllowUniversalAccessFromFileURLs(true)，
+ * file:// 页面上的跨源 fetch 才有直连的可能；浏览器侧受 CORS 约束，验证走 --disable-web-security 或同源反代。
+ * 「真机上到底通不通」本文件不替壳背书：唯一一条真机反馈停在凭据那一步（坚果云填了登录密码），
+ * 再往后的链路没人走到过。所以失败文案只报本机测得出的事实（能不能摸到那台服务器），把「被拒」写成
+ * 一条做得动的动作，不写成环境的死刑。
+ * 认证挑战的形状（实测 tools/out/b36-probe-webdav.txt）：服务器回「401 + WWW-Authenticate: Basic」时，
+ * headless Chrome 15ms 就把 401 交给了页面，不挂起——旧注释那句「带挑战 8s 不返回」是错的，已废。
+ * 而壳侧 onReceivedHttpAuthRequest 走 handler.cancel()（Android 文档：取消后按默认错误页处理），
+ * 所以真机上凭据被拒更可能报成网络错误而不是 401：netHint 的探活分支就是给这一发兜底的。
  *
  * 配置只存本机 localStorage：
  *   tn_webdav          = { url, user, pass, dir }   ← 含口令，严禁进备份（见 backup.js NEVER）
@@ -28,6 +34,7 @@
   var CFG_KEY = 'tn_webdav', AUTO_KEY = 'tn_webdav_autosync', LAST_KEY = 'tn_webdav_last';
   var FILE_NAME = 'trace-full-backup.json';
   var TIMEOUT = 30000;
+  var REACH_TIMEOUT = 8000;
   var AUTO_DEBOUNCE = 30000;
 
   function ls(k, v) {
@@ -80,22 +87,40 @@
   }
   function offline() { return navigator.onLine === false; }
 
-  function withTimeout(promise) {
+  function withTimeout(promise, ms) {
     return new Promise(function (res, rej) {
       var done = false;
-      var t = setTimeout(function () { if (!done) { done = true; rej(new Error('请求超时（' + (TIMEOUT / 1000) + 's）')); } }, TIMEOUT);
+      var limit = ms || TIMEOUT;
+      var t = setTimeout(function () { if (!done) { done = true; rej(new Error('请求超时（' + (limit / 1000) + 's）')); } }, limit);
       promise.then(function (r) { done = true; clearTimeout(t); res(r); },
         function (e) { done = true; clearTimeout(t); rej(e); });
     });
   }
-  /* 实测（2026-10-04）：服务器回「401 + WWW-Authenticate: Basic」时，Chromium 会去弹认证框，
-   * 没有 UI 可弹的环境下请求一直挂着（探针：不带挑战 20ms 拿到 401；带挑战 8s 不返回）。
-   * 真机 WebView 没实现 onReceivedHttpAuthRequest，同样拿不到 401 状态码，只能看到网络层失败，
-   * 所以网络错误/超时的文案必须把「账号或密码被拒」这个可能性说出来。 */
-  function netHint(c, raw) {
-    var msg = String(raw || '');
-    var m = /超时/.test(msg) ? msg : '连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）';
-    if (c && (c.user || c.pass)) m += '；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）';
+  /* 一句话里必须留一个用户做得动的动作。旧版那句把被拒推给「认证框在本机弹不出」，是一条死胡同（原串见
+   * git 与 README 的批次 8 那条登记）：它既不描述壳的实际行为（MainActivity 实现了
+   * onReceivedHttpAuthRequest，走 handler.cancel()），又把真因盖住——坚果云填登录密码必然 401。
+   * 真机上有人就是停在那句话上，之后再没点过「测试连接」。 */
+  var APP_PW = '坚果云 / Nextcloud / 群晖要填在网页版单独生成的「应用密码」，不是登录密码';
+
+  /* 探活只回答「这台设备摸不摸得到那台服务器」，不回答凭据对不对。
+   * 不带凭据的 no-cors GET = 简单请求：不发预检、不要 CORS、opaque 响应也算「到了」。
+   * 打根路径而不是 /dav/：坚果云的 /dav/ 对无凭据请求回 401 + WWW-Authenticate（会撞认证框），
+   * 根路径回 403 不带挑战——实测见 tools/out/b36-probe-webdav.txt 与 b36-probe-nutstore.txt。
+   * 探不出来（离线 / 地址畸形）返回 null，此时结论必须中性：不许把 null 读成「不可达」。 */
+  function reach(c) {
+    if (offline()) return Promise.resolve(null);
+    var m = /^(https?:\/\/[^/?#]+)/i.exec(String(c && c.url || ''));
+    if (!m) return Promise.resolve(null);
+    return withTimeout(fetch(m[1] + '/', { mode: 'no-cors', cache: 'no-store' }), REACH_TIMEOUT)
+      .then(function () { return true; }, function () { return false; });
+  }
+  function netHint(c, reached) {
+    var m = reached === true
+      ? '能连上这台服务器，但这发请求没拿到响应：先按「账号或密码被拒绝」来查'
+      : reached === false
+        ? '连不上这台服务器：这台设备打不开这个地址（先看有没有网，再核对地址）'
+        : '连不上 WebDAV 服务：这一发没测出这台设备能不能到那台服务器，先再点一次「测试连接」重试';
+    if (c && (c.user || c.pass)) m += '。' + APP_PW;
     return m;
   }
   function send(c, method, url, body, extra) {
@@ -103,7 +128,11 @@
     var init = { method: method, headers: headers(c, extra || {}), cache: 'no-store' };
     if (body != null) init.body = body;
     return withTimeout(fetch(url, init)).catch(function (e) {
-      throw new Error(netHint(c, /Failed to fetch|NetworkError|Load failed|CORS/i.test(String(e && e.message)) ? '' : e && e.message));
+      var msg = String((e && e.message) || e);
+      if (!/超时|Failed to fetch|NetworkError|Load failed|CORS/i.test(msg)) throw e;
+      return reach(c).then(function (reached) {
+        throw new Error((/超时/.test(msg) ? '等满 ' + (TIMEOUT / 1000) + ' 秒没响应：' : '') + netHint(c, reached));
+      });
     });
   }
 
@@ -125,12 +154,13 @@
       cb({ ok: false, msg: redact(e.message) });
     });
   }
-  /* 401/403 单独成句，见 send() 里对 Chromium 认证框的说明 */
+  /* 401/403 单独成句，且必须当场给出口：这一发在 APK 里能不能拿到状态码取决于壳（见 send 上方注释），
+     拿不到时走 netHint 的探活分支，两条路都点名「应用密码」，不许有一条只说到此为止。 */
   function httpHint(status) {
-    if (status === 401 || status === 403) return '账号或密码不对（' + status + '）';
+    if (status === 401 || status === 403) return '账号或密码被拒绝（' + status + '）：' + APP_PW;
     if (status === 404) return '目录不存在（404），先点「上传到云端」会自动创建';
     if (status === 409) return '上级目录不存在（409），先点「上传到云端」会自动创建';
-    return '服务器返回 HTTP ' + status;
+    return '服务器返回 HTTP ' + status + '，先再点一次「测试连接」重试；还是这样就拿这个号码去找网盘那边';
   }
 
   /* ---------- 404/409 → 逐级 MKCOL 建目录，只重试一次 ---------- */
@@ -159,7 +189,7 @@
      裸 push = 采集 + 整包覆盖，产品代码里一个调用者都不许有，只给 tools/ 的验证脚本走传输链路。 */
   function putEnv(c, env, cb) {
     var body;
-    try { body = Backup.serialize(env); } catch (e) { record(false, e.message); cb(e); return; }
+    try { body = Backup.serialize(env); } catch (e) { record(false, redact(e.message)); cb(e); return; }
     var url = fileUrl(c);
     function put() { return send(c, 'PUT', url, body, { 'Content-Type': 'application/json; charset=utf-8' }); }
     put().then(function (r) {

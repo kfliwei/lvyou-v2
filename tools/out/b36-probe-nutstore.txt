@@ -1,0 +1,54 @@
+$ # 批次 36-A · 坚果云 WebDAV 端点的真实形状（无凭据，curl 逐发；2026-10-10 本机，代理未参与——直连 443 拿到了 nginx 的头）
+
+$ for m in OPTIONS GET PROPFIND; do curl -s -m 12 -D - -X $m "https://dav.jianguoyun.com/dav/" -H "Origin: http://127.0.0.1"; done
+=== OPTIONS https://dav.jianguoyun.com/dav/ (无凭据) ===
+HTTP/1.1 401 Unauthorized
+Server: nginx
+Date: Fri, 09 Oct 2026 22:11:52 GMT
+Content-Length: 0
+Connection: keep-alive
+Keep-Alive: timeout=60
+Pragma: no-cache
+Cache-Control: no-cache
+WWW-Authenticate: Basic realm="nutstore"
+
+=== GET https://dav.jianguoyun.com/dav/ (无凭据) ===
+HTTP/1.1 401 Unauthorized
+Server: nginx
+Date: Fri, 09 Oct 2026 22:11:52 GMT
+Content-Length: 0
+Connection: keep-alive
+Keep-Alive: timeout=60
+Pragma: no-cache
+Cache-Control: no-cache
+WWW-Authenticate: Basic realm="nutstore"
+
+=== PROPFIND https://dav.jianguoyun.com/dav/ (无凭据) ===
+HTTP/1.1 401 Unauthorized
+Server: nginx
+Date: Fri, 09 Oct 2026 22:11:52 GMT
+Content-Length: 0
+Connection: keep-alive
+Keep-Alive: timeout=60
+Pragma: no-cache
+Cache-Control: no-cache
+WWW-Authenticate: Basic realm="nutstore"
+
+$ for p in "/" "/dav/" "/favicon.ico" "/health"; do curl -s -o /dev/null -m 10 -w "%{http_code} WWW-Authenticate=[%header{WWW-Authenticate}]\n" "https://dav.jianguoyun.com$p"; done
+/ 403 WWW-Authenticate=[]
+/dav/ 401 WWW-Authenticate=[Basic realm="nutstore"]
+/favicon.ico 410 WWW-Authenticate=[]
+/health 410 WWW-Authenticate=[]
+
+读法（这一份决定了修法，不是随手记录）：
+  1. 坚果云对 /dav/ 的任何方法都回「401 + WWW-Authenticate: Basic」——连预检用的 OPTIONS 也挑战，
+     所以「浏览器直连 WebDAV 时被 CORS 预检卡住」这件事在这里不是猜测：预检拿不到 2xx + ACAO 就是过不去。
+     APK 里这一发能不能过去，取决于壳的 setAllowUniversalAccessFromFileURLs 是否真的让 file:// 免掉了 CORS，
+     本机没有设备，不替它背书。
+  2. 「无凭据探活」这条第二条腿只能打根路径：根路径回 403 且不挑战，no-cors GET 一发干净的「摸得到吗」。
+     打 /dav/ 会让探活本身撞进它要诊断的那个认证框。
+  3. 坚果云没有可当探活的免认证内容端点（/favicon.ico、/health 回 410），所以「到了但没内容」
+     和「域名解析不了」只能靠 promise 成不成来分——no-cors 拿不到状态码，这正好够用。
+  4. 挑战头恒在 = 凭据不对时页面拿不到「401」这种明确读数（壳里 handler.cancel() 之后更像网络错误）。
+     这与旧注释「带挑战 8s 不返回」不是一回事：headless Chrome 实测 15ms 就把 401 交给页面，
+     见 tools/out/b36-probe-webdav.txt 的 D3。

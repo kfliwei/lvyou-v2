@@ -43,11 +43,15 @@ function start(opts, cb) {
     req.on('end', function () {
       hits.push({ method: req.method, path: path, hasAuth: !!req.headers.authorization });
       if (req.method === 'OPTIONS') { cors(res); res.writeHead(204); res.end(); return; }
+      /* dropMethods：把这些方法的连接当场掐断。要复现的不是「401」而是「页面根本拿不到状态码」——
+       * APK 壳的 onReceivedHttpAuthRequest 走 handler.cancel()，凭据被拒在真机上更像网络层失败，
+       * 桩只会回 401 的话，netHint 那条分支永远测不到（实测见 tools/out/b36-probe-webdav.txt）。 */
+      if (opts.dropMethods && opts.dropMethods.indexOf(req.method) >= 0) { req.socket.destroy(); return; }
       if (!authed(req)) {
         cors(res);
-        /* 默认不带 WWW-Authenticate：探针实测（tools/out/probe 一次性取证，2026-10-04）Chromium 遇到
-         * 「401 + Basic 挑战」会去弹认证框，无 UI 环境下请求一直挂着，测试就得白等 30s。
-         * 需要复现真机行为时传 requireChallenge:true（坚果云 / Nextcloud 都会带挑战头）。 */
+        /* 挑战头开关：坚果云 / Nextcloud 都会带（curl 实测见 tools/out/b36-probe-nutstore.txt）。
+         * 2026-10-10 复测推翻了这里原来那条「无 UI 环境下请求一直挂着」的旧注释：headless Chrome
+         * 遇到带挑战的 401，15ms 就把状态码交给了页面，不挂起——所以下面这条腿跑得通。 */
         var h = {};
         if (opts.requireChallenge) h['WWW-Authenticate'] = 'Basic realm="stub"';
         res.writeHead(401, h);

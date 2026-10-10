@@ -1,0 +1,42 @@
+=== 批次 36-A · WebDAV 失败路径实测 ===
+桩：8791 = 401 不带挑战；8792 = 401 带 WWW-Authenticate: Basic（坚果云形状）
+产品 TIMEOUT = 30000ms；探针单发保险丝 = 45000ms
+
+— ① 无挑战这一档：正确凭据 / 错误凭据 ——
+  无挑战 + 对
+    耗时 17ms · ok=true status=207
+    cb.msg = 连接成功（HTTP 207）
+    页面 #wdResult = 
+    页面 #wdStatus = 还没有配置同步服务。
+  无挑战 + 错
+    耗时 10ms · ok=false status=401
+    cb.msg = 账号或密码不对（401）
+    页面 #wdResult = 
+    页面 #wdStatus = 上次同步 10-10 06:15：连接成功（HTTP 207）
+
+— ② 带挑战这一档（真机那一发就是这个形状）：正确凭据 / 错误凭据 ——
+  带挑战 + 对
+    耗时 10ms · ok=true status=207
+    cb.msg = 连接成功（HTTP 207）
+    页面 #wdResult = 
+    页面 #wdStatus = 上次同步 10-10 06:15：账号或密码不对（401）
+  带挑战 + 错
+    耗时 15ms · ok=false status=401
+    cb.msg = 账号或密码不对（401）
+    页面 #wdResult = 
+    页面 #wdStatus = 上次同步 10-10 06:15：连接成功（HTTP 207）
+
+— 定性（三条判据自己算，不靠人眼比对上面四段）—
+  D1 无挑战+错 能拿到 status 401 = true（拿得到才说明 httpHint(401) 不是死分支）
+  D2 带挑战+对 仍然成功 = true，耗时 10ms（挑战只发生在被拒时，正确凭据不受影响）
+  D3 带挑战+错 的读数：ok=false status=401 耗时 15ms → 有回调
+  D3 那句话：账号或密码不对（401）
+    ⇒ 401 被挑战吞掉（status 读不到）＝false
+    ⇒ 用户在这一发上先干等 0s，再看到一句没有出口的话
+
+— ③ 第二条腿能不能立：坚果云根路径不带挑战，能不能当「这台设备可达吗」的探针 —
+  {"坚果云根路径":{"url":"https://dav.jianguoyun.com/","reached":true,"type":"opaque","status":0,"ms":1663},"坚果云dav路径":{"url":"https://dav.jianguoyun.com/dav/","reached":true,"type":"opaque","status":0,"ms":455},"不存在的域名":{"url":"https://nonexistent-host-9x7zz.example/","reached":false,"err":"Failed to fetch","ms":190}}
+
+— ④ 桩服务器收到的请求序列（看有没有多发一发 OPTIONS 预检）—
+  无挑战桩：OPTIONS[裸] → PROPFIND[带凭据] → OPTIONS[裸] → PROPFIND[带凭据]
+  带挑战桩：OPTIONS[裸] → PROPFIND[带凭据] → OPTIONS[裸] → PROPFIND[带凭据]

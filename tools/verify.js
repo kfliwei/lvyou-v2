@@ -7297,6 +7297,311 @@ function stripBlockComments(s) {
   fail += bad49;
 }
 
+/* ============ §50 云同步失败路径的出口闸门（批次 36） ============
+   用户点单（逐字）：「云存储好看不能用。经过坚果云测试，说有个弹窗不支持app，然后就不能用了」。
+   这一节管的不是「WebDAV 通不通」，而是「失败的时候那句人话里还剩不剩一个用户做得动的动作」。
+
+   地基实测（改前，tools/out/b36-probe-webdav.txt，真 Chrome + 三档桩）：
+     · 用户看到的那句话是我们自己写的：sync-webdav.js 的 netHint() 里挂着「…它会要求弹窗认证，App 内弹
+       不出来」，网盘从没回过这一句（原文见 git show HEAD:sync-webdav.js 与 README 批次 8 那条登记）。
+     · 旧注释立的那条「带 401 + Basic 挑战时 Chromium 会挂到超时」被这一批复测推翻：带挑战且凭据错，
+       15ms 就把 401 交给页面；带挑战且凭据对，10ms 成功。所以「挑战会吞掉状态码」不能当修法依据，
+       httpHint(401) 也不是死分支——这一条单独钉成腿的 W05，不许有人拿它再改回去。
+     · 但真机确实可能拿不到状态码：壳侧 MainActivity 的 onReceivedHttpAuthRequest 走 handler.cancel()，
+       Android 语义是「取消后按默认错误页处理」，凭据被拒更可能报成网络层失败。这一发本机没法证，
+       所以给「网络形状的失败」补了第二条腿：no-cors 探活，只回答「这台设备摸不摸得到那台服务器」。
+     · 探活必须打根路径：坚果云 /dav/ 对无凭据请求回 401 + WWW-Authenticate（会撞上它自己要诊断的那个
+       认证框），根路径回 403 不带挑战——curl 原文见 tools/out/b36-probe-nutstore.txt。
+   改后（常驻腿 tools/out/b36-smoke-webdav.txt）：三条分支各说一句人话、每句点名「应用密码」，
+   「上次同步」那条本机记录（自动上传失败的唯一落点）同样带出口，可见文案零口令原文。
+   仍未定性的一发：真机 APK 上凭据正确时坚果云到底通不通，取决于 setAllowUniversalAccessFromFileURLs
+   是否真的让 file:// 免掉 CORS/预检。本机没有设备，本节不替壳背书，只保证「就算不通，那句也留了下一步」。
+   定案办法：用「应用密码」在装机版上点一次「测试连接」，读数二选一。
+
+   本节钉四件事：
+     ① 失败文案的每一支都要有出口：netHint 三个分支逐条要求自带动作、且不许命中死话句式；
+        httpHint 的 401/403 与兜底那支必须点名 APP_PW 或给出重试那一手（旧两句都到此为止）。
+     ② 探活那一路的形状：no-cors、不带凭据、只打根路径、自带 8s 短保险丝、且只有一个调用者。
+     ③ 失败原文必须过 redact() 才走到用户眼前（URL 里可能带 user:pass），全文只许登记一处例外。
+     ④ 产品与腿之间那根线：预设地址与 W09 断言的那一串必须逐字相同；W01–W14 齐备检 + 条数守卫。 */
+{
+  let bad50 = 0;
+  const F50 = m => { bad50++; console.log('FAIL §50 云同步失败出口闸门: ' + m); };
+  const ws50 = s => s.replace(/\s+/g, ' ').trim();
+  const flat50 = s => ws50(stripBlockComments(s));
+  const cnt50 = (s, n) => s.split(n).length - 1;
+  const rd50 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view50 = f => /\.md$/.test(f) ? ws50(rd50(f)) : flat50(rd50(f));
+
+  const FILES50 = ['sync-webdav.js', 'settings.html', 'tools/webdav-stub.js',
+    'tools/smoke-webdav.js', 'tools/smoke-backup.js', 'README.md'];
+  const V50 = {};
+  FILES50.forEach(f => {
+    if (!fs.existsSync(f)) { F50('缺 ' + f); V50[f] = ''; return; }
+    V50[f] = view50(f);
+  });
+
+  /* ⓪ 自指纪律（同 §45/§46/§47/§48/§49 那一支）：本节的期望 0 全住在「改前原串还写在注释里」的那一带
+        （sync-webdav.js 文件头那一段就是干这个的），于是在三处改动旁边各钉一枚现场哨兵。 */
+  {
+    const DEF50 = (rd50('tools/verify.js').match(/^[ \t]*const flat50 = [^\n]*/m) || [''])[0];
+    if (DEF50.indexOf('stripBlockComments') < 0) F50('§50 的 flat50 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF50.slice(0, 56) || '整行没数到，连定义都漂了') + '）：注释里抄的改前原串会被当成代码在场');
+    const L50 = (rd50('tools/verify.js').match(/^[ \t]*const view50 = [^\n]*/m) || [''])[0];
+    if (L50.indexOf('.md$') < 0) F50('view50 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L50.slice(0, 60) || '整行没数到') + '）：README 的批次 8 那条登记天生要写那句死话的原文，文档侧的锚会当场读 0');
+    [["sync-webdav.js", "var APP_PW ="], ['settings.html', 'id="wdHelp"'], ["tools/webdav-stub.js", "opts.dropMethods"]].forEach(function (p) {
+      if (V50[p[0]].indexOf(p[1]) < 0) F50('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点：三档出口文案 + 出口单点 + 探活实现 + 设置页那三件 + 桩的两档形状 + 常驻腿的形状 */
+  const A50 = [
+    ["sync-webdav.js", "var APP_PW = '坚果云 / Nextcloud / 群晖要填在网页版单独生成的「应用密码」，不是登录密码';", 1, '出口只写一次、几处共用：改成分支各抄一句，就会有一支漏掉它（本批用户报的那件事正是「唯一那句没有出口」）'],
+    ["sync-webdav.js", "if (status === 401 || status === 403) return '账号或密码被拒绝（' + status + '）：' + APP_PW;", 1, '401/403 那一支必须当场点名应用密码——旧那句「账号或密码不对（401）」到此为止，用户下一步只能猜'],
+    ["sync-webdav.js", "return '服务器返回 HTTP ' + status + '，先再点一次「测试连接」重试；还是这样就拿这个号码去找网盘那边';", 1, '兜底那一支从前只报一个号码：号码不是出口，「先重试一次，再拿这个号码去找网盘」才是'],
+    ["sync-webdav.js", "if (c && (c.user || c.pass)) m += '。' + APP_PW;", 1, '三条分支合流后统一接出口：写在每条分支里就会有漏网的一支'],
+    ["sync-webdav.js", "? '能连上这台服务器，但这发请求没拿到响应：先按「账号或密码被拒绝」来查'", 1, '探活说「可达」时的结论：这发没拿到响应最像凭据被拒（壳 handler.cancel() 之后正是这个形状），不许再写成环境的死刑'],
+    ["sync-webdav.js", "? '连不上这台服务器：这台设备打不开这个地址（先看有没有网，再核对地址）'", 1, '探活说「不可达」时说的是这台设备到不到，不赖给账号'],
+    ["sync-webdav.js", ": '连不上 WebDAV 服务：这一发没测出这台设备能不能到那台服务器，先再点一次「测试连接」重试';", 1, '探不出来的那一档必须中性：把 null 读成「打不开」就是拿没测到的东西当证据'],
+    ["sync-webdav.js", "function reach(c) {", 1, '探活是独立一件事：它只回答可达性，不回答凭据对不对'],
+    ["sync-webdav.js", "if (offline()) return Promise.resolve(null);", 1, '离线时不许把「没探」当成「探到不可达」——离线本身已经由 send() 说了（腿 W12 盯着那句）'],
+    ["sync-webdav.js", "if (!m) return Promise.resolve(null);", 1, '地址畸形时同样返回 null 走中性那一档，不是就地抛'],
+    ["sync-webdav.js", "return withTimeout(fetch(m[1] + '/', { mode: 'no-cors', cache: 'no-store' }), REACH_TIMEOUT)", 1, "no-cors 才是简单请求：不发预检、不要 ACAO、opaque 响应也算「到了」；带凭据或普通 GET 会撞上认证框/CORS，探活自己先失败"],
+    ["sync-webdav.js", "var REACH_TIMEOUT = 8000;", 1, '探活自带一根短保险丝：共用那根 30s 的话，用户要干等 60s 才看到第二句话'],
+    ["sync-webdav.js", "function withTimeout(promise, ms) {", 1, '超时是一个实现不是两份拷贝（ms 缺省仍落回 TIMEOUT）'],
+    ["sync-webdav.js", "var limit = ms || TIMEOUT;", 1, '缺省档不许挪：请求那一路的 30s 口径归 §16 管，这一节只加一根备用保险丝'],
+    ["sync-webdav.js", "if (!/超时|Failed to fetch|NetworkError|Load failed|CORS/i.test(msg)) throw e;", 1, '只有网络形状的失败才去探活：编程错误（TypeError 之类）原样抛出，不许被人话盖住——这一行是「别把 bug 说成网盘的错」唯一的守卫'],
+    ["sync-webdav.js", "throw new Error((/超时/.test(msg) ? '等满 ' + (TIMEOUT / 1000) + ' 秒没响应：' : '') + netHint(c, reached));", 1, '原文不外抄（旧版把 Chromium 那句 "Failed to fetch" 直接拼进人话）：等了多久由我们自己说'],
+    ["sync-webdav.js", "if (offline()) return Promise.reject(new Error('当前离线，稍后再试'));", 1, '离线那句只说离线，不绕到密码那支去'],
+    /* —— settings.html：把「应用密码怎么取」写在脸上，再加一颗地址预设钮 —— */
+    ['settings.html', 'placeholder="坚果云要填「应用密码」，不是登录密码"', 1, '口令框那一行自己就说清是与不是（旧那句只说「请用应用密码」，没说去哪拿）'],
+    ['settings.html', '<div class="wd-help" id="wdHelp">', 1, '取法说明常驻，不用等失败才看见'],
+    ['settings.html', '被拒就是这一行没填对，不是手机办不到。', 1, '这一句把归属说清楚：填错，不是这台设备不行（用户那句「弹窗不支持 app 然后就不能用了」就是没人给他这个判断）'],
+    ['settings.html', '<button type="button" id="wdPresetJg">坚果云：填标准地址</button>', 1, '地址不靠手写：少一段 /dav/ 就一路 404/401'],
+    ['settings.html', "$('wdPresetJg').onclick = function () {", 1, '那颗钮真接了线（不是屏上一块能看不能点的东西，§49 那一族同因）'],
+    ['settings.html', "$('wdUrl').value = 'https://dav.jianguoyun.com/dav/';", 1, '填的是坚果云 WebDAV 根（带 /dav/）；这条与腿里 W09 断言的那串由 ③(c) 逐字对账'],
+    ["settings.html", "line('wdResult', '地址已填好。账号填登录邮箱，密码必须用网页版生成的「应用密码」。');", 1, '点完要有回执，且回执接着说下一步'],
+    ['settings.html', '.wd-presets button{min-height:44px}', 1, '新入口不许是新的低值钮（§39 那一族触控地板）'],
+    ['settings.html', '.wd-help{font-size:var(--fs-3)', 1, '说明文字走字号阶梯，不是页内魔法数字'],
+    /* —— 桩：拿不到状态码那一发的形状 —— */
+    ["tools/webdav-stub.js", "if (opts.dropMethods && opts.dropMethods.indexOf(req.method) >= 0) { req.socket.destroy(); return; }", 1, '这一支复现的是「页面根本拿不到状态码」，不是 401：没有它，netHint 那条探活分支永远测不到'],
+    ["tools/webdav-stub.js", "if (opts.requireChallenge) h['WWW-Authenticate'] = 'Basic realm=\"stub\"';", 1, '坚果云形状那一档保留开关：W05 靠它钉住「带挑战也能拿到 401」这条实测结论'],
+    /* —— 常驻浏览器腿的形状 —— */
+    ['tools/smoke-webdav.js', 'const VW = 328, VH = 723;', 1, '必须量用户那块屏（§37 口径）'],
+    ["tools/smoke-webdav.js", "localStorage.setItem('tn_onboarded', '1');", 1, '不打这个标记，首启引导蒙层会吃掉真鼠标点击'],
+    ["tools/smoke-webdav.js", "await page.click('#wdTestBtn');", 1, '判据必须由真鼠标点出来：改前探针直调 WebDAV.test() 时四发的 #wdResult 全是空的（tools/out/b36-probe-webdav.txt 那几行「页面 #wdResult =」）——直调就是假绿'],
+    ["tools/smoke-webdav.js", "await page.click('#wdPresetJg');", 1, '那颗新钮也走真鼠标'],
+    ["tools/smoke-webdav.js", "e.textContent.indexOf('正在连接') !== 0;", 1, '等的是「那句话落定」，不是睡固定毫秒'],
+    ["tools/smoke-webdav.js", "dropMethods: ['PROPFIND']", 1, '掐连接桩在这一腿里挂着：它对应的正是 APK 壳 cancel() 之后用户看到的那一发'],
+    ["tools/smoke-webdav.js", 'requireChallenge: true', 1, '带挑战桩在这一腿里挂着（坚果云形状）'],
+    ['tools/smoke-webdav.js', 'const P_DEAD = 8799;', 1, '什么都不听的那一档：这台设备摸不到那台服务器'],
+    ["tools/smoke-webdav.js", "h.method === 'GET' && h.path === '/' && !h.hasAuth", 1, '探活的落点由桩侧读数证明，不是由代码看起来对证明'],
+    ["tools/smoke-webdav.js", "L.ok === false && /应用密码/.test(L.msg || '')", 1, 'W07 读的是 tn_webdav_last 那条记录：点「测试连接」不刷新 #wdStatus，读那一行等于读不到（曾是哑靶）'],
+    ["tools/smoke-webdav.js", "const leaky = [PASS, WRONG].filter", 1, '口令泄露那一条用 indexOf 家族而不是 new RegExp：旧写法 PASS 单字母加 USER 里的点号，等于没检查'],
+    ['tools/smoke-webdav.js', 'await page.setOfflineMode(true);', 1, '离线那一发单独量：它必须说离线，不许绕到账号密码'],
+    ["tools/smoke-webdav.js", "url: 'ftp://probe.invalid/'", 1, 'netHint 第三档（探不出来）按钮走不到，用直调反证一次：不反证就没人守那句'],
+    ["tools/smoke-webdav.js", "var t = setTimeout(function () { res({ msg: '(没有回调)' }); }, 20000);", 1, '直调那一发要有自己的保险丝：静默分支变成整腿挂住，红字都读不到'],
+    ['tools/smoke-webdav.js', 'checks >= 14', 1, '条数守卫（本闸门自己也会被删）：判据 15 条，ok() 在自增前求值所以表达式写 14'],
+    /* —— 旧那条 §16 时代的腿跟着改口径 —— */
+    ["tools/smoke-backup.js", "/账号或密码被拒绝（401）/.test(badPush.err || '') && /应用密码/.test(badPush.err || '')", 1, '文案改了，这条腿跟着改断言：留着旧正则要么长红要么被顺手删掉，两种都是丢掉一条已经存在的证据'],
+    ["tools/smoke-backup.js", "/连不上/.test(dead.err || '') && /密码/.test(dead.err || '')", 1, '连不上的那一支仍然要求句里点到密码——这条不许被削弱'],
+  ];
+  A50.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F50('A50 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V50)) { F50('A50 登记了 §50 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt50(V50[f], needle);
+    if (n !== exp) F50(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：本批改掉的旧写法各配正向对照，串取自 git show HEAD:sync-webdav.js / HEAD:settings.html /
+        HEAD:tools/smoke-backup.js 的真行原文。 */
+  const ZERO50 = [
+    ["sync-webdav.js", "m += '；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）';",
+      "    if (c && (c.user || c.pass)) m += '；也可能是账号或密码被服务器拒绝（它会要求弹窗认证，App 内弹不出来）';",
+      '那句死话回来了：它既不描述壳的实际行为（壳实现了 onReceivedHttpAuthRequest 并 cancel），又把真因（坚果云要应用密码）整个盖住。真机上用户就是停在这句话上，之后再没点过第二次'],
+    ["sync-webdav.js", "'连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）'",
+      "    var m = /超时/.test(msg) ? msg : '连不上 WebDAV 服务（网络不通、地址写错，或服务器不允许浏览器直连）';",
+      '把「可能是这环境不允许直连」重新当成首选结论：那是拿没测过的东西当证据，而且它没有下一步'],
+    ["sync-webdav.js", "function netHint(c, raw) {",
+      "  function netHint(c, raw) {",
+      'netHint 回到只认原始错误串的形状：没有 reached 这个入参，三条分支就合成一句，可达与不可达再也分不出来'],
+    ["sync-webdav.js", "return '账号或密码不对（' + status + '）';",
+      "    if (status === 401 || status === 403) return '账号或密码不对（' + status + '）';",
+      '401 那一支退回只有号码没有出口：用户听到「不对」，但不知道哪里不对、该换成什么'],
+    ["sync-webdav.js", "throw new Error(netHint(c, /Failed to fetch|NetworkError|Load failed|CORS/i.test(String(e && e.message)) ? '' : e && e.message));",
+      "      throw new Error(netHint(c, /Failed to fetch|NetworkError|Load failed|CORS/i.test(String(e && e.message)) ? '' : e && e.message));",
+      '网络层失败不发探活那一发：把上游原始错误串直接拼给人看（里面可能是带 user:pass 的 URL），还一次都没测过可达性'],
+    ["sync-webdav.js", "rej(new Error('请求超时（' + (TIMEOUT / 1000) + 's）')); } }, TIMEOUT);",
+      "      var t = setTimeout(function () { if (!done) { done = true; rej(new Error('请求超时（' + (TIMEOUT / 1000) + 's）')); } }, TIMEOUT);",
+      'withTimeout 退回只有一根 30s 保险丝：探活那发跟着等 30s，失败路径总共 60s，用户等到的是「卡住了」而不是一句话'],
+    ["sync-webdav.js", "record(false, e.message); cb(e);",
+      "    try { body = Backup.serialize(env); } catch (e) { record(false, e.message); cb(e); return; }",
+      '失败原文不过 redact 就写进 tn_webdav_last：这一条会显示在 #wdStatus 上，而任何一条带 URL 的错误都可能含口令'],
+    ['settings.html', 'placeholder="坚果云等平台请用「应用密码」"',
+      '        <input id="wdPass" type="password" autocomplete="off" placeholder="坚果云等平台请用「应用密码」">',
+      '口令框退回那句「请用应用密码」：它没说去哪拿，也没说填错会怎样——而这条正是本批那台设备上真实踩到的坑'],
+    ["tools/smoke-backup.js", "/账号或密码不对/",
+      "  check('密码错时 push 报「账号或密码不对」而不是裸 HTTP', /账号或密码不对/.test(badPush.err || ''), badPush.err);",
+      '腿里守着已经改掉的那句话：产品改了、腿还在等旧文案，这条腿就长期红，然后被人当噪声忽略'],
+  ];
+  ZERO50.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F50('ZERO50 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V50)) { F50('ZERO50 登记了 §50 没读的文件「' + f + '」：' + why); return; }
+    if (cnt50(V50[f], needle) !== 0) F50(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt50(flat50(ctrl), needle) < 1) F50('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③ 内置扫描：四把，都先拿合成样本自校准再读现场。 */
+  let var50 = { dead: 0, files50: 0, arms: 0, armBad: 0, msgSites: 0, msgBad: 0, reach: {}, preset: {} };
+
+  /* (a) 死话句式的全量扫描：产品面上（根目录 *.js/*.html）一句都不许有，含注释。
+        为什么要连注释一起扫：这一批的根因就是「写在注释里的那条错误理论」流进了用户看得见的句子；
+        tools/ 与 docs 除外——常驻腿必须把这批句式抄在判据里才测得出产品没写。 */
+  {
+    const DEAD50 = ['弹不出来', '做不到', '不允许浏览器直连', '此环境不支持', '无解', '直连可用，不需要 Java 桥'];
+    const RE50D = new RegExp(DEAD50.join('|'), 'g');
+    const calN = (('样本一 ' + '它会要求弹窗认证，App 里弹不出来' + '\n' + '样本二 这台设备做不到' + '\n' +
+      '样本三 服务器不允许浏览器直连' + '\n' + '样本四 此环境不支持该功能' + '\n' + '样本五 这条路无解' + '\n' +
+      '样本六 file:// 页面上的跨源 fetch 直连可用，不需要 Java 桥').match(RE50D) || []).length;
+    if (calN !== 6) F50('死话句式那把刀自校准失准（合成六行、每行一枚，应读 6，实得 ' + calN + '）：刀一瞎，下面那句「产品面 0 命中」就只是刀瞎');
+    const ROOT50 = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+    var50.files50 = ROOT50.length;
+    if (ROOT50.length < 60) F50('根目录只扫到 ' + ROOT50.length + ' 个 js/html：产品面扫描的分母掉成这样＝readdir 或过滤条件被动过，这一把不再覆盖全产品');
+    const hits50 = [];
+    ROOT50.forEach(function (f) {
+      rd50(f).split(/\r?\n/).forEach(function (L, i) {
+        const mm = L.match(RE50D);
+        if (mm) hits50.push(f + ':' + (i + 1) + '「' + mm.join('/') + '」');
+      });
+    });
+    var50.dead = hits50.length;
+    if (hits50.length) F50('产品面上读到 ' + hits50.length + ' 处死话句式（' + hits50.slice(0, 6).join(' ｜ ') + '）：这一族的判据不是「措辞不好看」，是用户看完那句话之后还会不会点第二次——批次 36 的起因就是一个人看完就没再点');
+    if (DEAD50.indexOf('App 内') >= 0) F50('黑名单里出现了裸的「App 内」：产品面有八处合法用法（请在手机 App 内使用语音功能 / 照片请在 App 内查看 之类，都带下一步），加进去会把合法句判红，然后整把刀被人关掉');
+  }
+
+  /* (b) netHint 三个分支逐条要求「自带动作」：这一节的核心不变式 */
+  {
+    const ACT50 = /(先|再|查|核对|填|点|看|试|生成|找)/;
+    const DEAD50R = /弹不出来|做不到|App 内|不允许浏览器直连|此环境不支持|无解/;
+    function arms50(body) {
+      return (body.match(/'([^']{12,})'/g) || []).map(s => s.slice(1, -1)).filter(s => /[\u4e00-\u9fff]{4,}/.test(s));
+    }
+    function bad50arms(body) {
+      return arms50(body).filter(s => !ACT50.test(s) || DEAD50R.test(s));
+    }
+    const CAL50B = "function netHint(c, reached) { var m = reached === true ? '这一发没成，先查这里再看那边' : reached === false ? '这台设备办不到这件事，谁也帮不了你' : '连不上 WebDAV 服务：这一发没测出这台设备能不能到那台服务器，先再点一次「测试连接」重试'; return m; }";
+    if (arms50(CAL50B).length !== 3) F50('出口句式那把刀自校准失准（合成三个分支应读 3 句，实得 ' + arms50(CAL50B).length + '）：读不到分支就等于没检查');
+    if (bad50arms(CAL50B).length !== 1) F50('出口句式那把刀反向自校准失准（合成样本里第二支「这台设备办不到这件事」必须被抓到，实得 ' + bad50arms(CAL50B).length + ' 处）：漏了它，真代码里那句没出口的分支照样过');
+    /* 分支数的期望只写这一次。上一版把 3 同时抄在条件和文案里，把条件抬成 4 时红字仍印「期望 3」，
+       等于闸门印了一句谎（S16 就是这么被归成异常的）。加一支分支就改这里。 */
+    const ARMS50 = 3;
+    const raw50b = rd50('sync-webdav.js').split(/\r?\n/);
+    const s50b = raw50b.findIndex(L => L.indexOf('function netHint(c, reached) {') >= 0);
+    let e50b = -1;
+    for (let i = s50b + 1; i < raw50b.length; i++) { if (raw50b[i].trim() === '}') { e50b = i; break; } }
+    if (s50b < 0 || e50b < 0) F50('读不到 netHint 的两头（起始 @' + s50b + '／结束 @' + e50b + '）：这一支当场失明，③(b) 的逐条要求不作数');
+    else {
+      const body = flat50(raw50b.slice(s50b, e50b + 1).join('\n'));
+      var50.arms = arms50(body).length;
+      var50.armBad = bad50arms(body).length;
+      if (var50.arms !== ARMS50) F50('netHint 里读到 ' + var50.arms + ' 句分支文案，期望 ' + ARMS50 + '（可达／不可达／探不出来）：少一支就是有那一档又回到同一句含糊话，多一支是没给新分支配出口');
+      if (var50.armBad) F50('netHint 里有 ' + var50.armBad + ' 支没有出口（命中死话句式或一个动词都没有）：' + bad50arms(body).join(' ｜ '));
+      if (cnt50(body, "m += '。' + APP_PW") !== 1) F50('netHint 合流处那句统一接出口读不到（实得 ' + cnt50(body, "m += '。' + APP_PW") + '）：三分支各自说完就 return，谁都不会再提应用密码');
+    }
+  }
+
+  /* (c) 探活那一路的形状 + 产品与腿之间那根线（预设地址逐字相同） */
+  {
+    const T50 = V50['sync-webdav.js'];
+    var50.reach = {
+      def: cnt50(T50, 'function reach(c) {'),
+      call: cnt50(T50, 'reach(c).then('),
+      nocors: cnt50(T50, "mode: 'no-cors'"),
+      rt: cnt50(T50, 'REACH_TIMEOUT'),
+      hdr: cnt50(T50, 'headers(c'),
+    };
+    if (var50.reach.def !== 1) F50('reach 的定义读到 ' + var50.reach.def + ' 处，期望 1');
+    if (var50.reach.call !== 1) F50('reach(c).then( 读到 ' + var50.reach.call + ' 处，期望 1（唯一调用者＝send 的失败支）：多一处就是有人在成功路径上也发探活，白跑一发');
+    if (var50.reach.nocors !== 1) F50("no-cors 那处读到 " + var50.reach.nocors + ' 处，期望 1：普通 GET 要 CORS、带 Authorization 还要预检，探活自己就会先失败');
+    if (var50.reach.rt !== 2) F50('REACH_TIMEOUT 读到 ' + var50.reach.rt + ' 处，期望 2（定义 + 使用）：只剩定义＝那发回到共用 30s 保险丝');
+    const raw50c = rd50('sync-webdav.js').split(/\r?\n/);
+    const s50c = raw50c.findIndex(L => L.indexOf('function reach(c) {') >= 0);
+    let e50c = -1;
+    for (let i = s50c + 1; i < raw50c.length; i++) { if (raw50c[i].trim() === '}') { e50c = i; break; } }
+    if (s50c < 0 || e50c < 0) F50('读不到 reach 的两头（@' + s50c + '／@' + e50c + '）：下面那几项关于「裸请求」的判据不作数');
+    else {
+      const b = flat50(raw50c.slice(s50c, e50c + 1).join('\n'));
+      if (/Authorization|headers\(/.test(b)) F50('reach() 里出现了凭据或自定义头（' + (b.match(/Authorization|headers\(/) || [''])[0] + '）：带上它们就不再是简单请求，浏览器要先发预检、服务器一挑战就把探活自己卡住——这条腿就再也回答不了「可达吗」');
+      if (b.indexOf("+ '/'") < 0) F50('reach() 不再拼根路径（读到的那一段：' + b.slice(0, 80) + '）：打 /dav/ 就会撞上它自己要诊断的那个认证框（curl 实测 tools/out/b36-probe-nutstore.txt）');
+      if (b.indexOf('https?') < 0) F50('reach() 里那段取 origin 的正则没了：不取 origin 就直接拼路径，畸形地址会被拼成一条奇怪的 URL，探活结论跟着失真');
+    }
+    const P50 = (/wdUrl'\)\.value = '([^']+)'/ .exec(V50['settings.html']) || [])[1];
+    const L50p = (/pre\.url === '([^']+)'/ .exec(V50['tools/smoke-webdav.js']) || [])[1];
+    var50.preset = { product: P50 || null, leg: L50p || null };
+    if (!P50) F50('从 settings.html 里抽不到那颗预设钮填的地址（正则没命中＝那一行被改写形状了）：这条对账当场失明');
+    if (!L50p) F50('从 tools/smoke-webdav.js 里抽不到 W09 断言的地址：这条对账当场失明');
+    if (P50 && L50p && P50 !== L50p) F50('产品填的地址与腿断言的地址不一致（产品 ' + P50 + ' ／ 腿 ' + L50p + '）：那条腿现在守的是另一件事，产品那串就算写错也照样绿');
+  }
+
+  /* (d) 失败原文必须过 redact：逐行数 e.message 的落点，例外只许登记那一处 */
+  {
+    const lines50 = rd50('sync-webdav.js').split(/\r?\n/);
+    const isSite = L => /e\.message|e && e\.message/.test(L);
+    const isBad = L => isSite(L) && L.indexOf('redact(') < 0;
+    const CAL50D = ["cb({ ok: false, msg: redact(e.message) });", "cb({ ok: false, msg: e.message });"];
+    if (CAL50D.filter(isBad).length !== 1 || CAL50D.filter(isSite).length !== 2) F50('redact 那把刀自校准失准（两行合成样本应「读到 2 处、抓到 1 处」，实得 ' + CAL50D.filter(isSite).length + '/' + CAL50D.filter(isBad).length + '）：抓不到就等于下面那句 0 是假的');
+    const sites = lines50.filter(isSite);
+    const bads = lines50.filter(isBad);
+    var50.msgSites = sites.length;
+    var50.msgBad = bads.length;
+    const ONLY50 = "var msg = String((e && e.message) || e);";
+    if (bads.length !== 1 || bads[0].indexOf(ONLY50) < 0) F50('不经 redact 就拿到错误原文的落点现在有 ' + bads.length + ' 处（' + bads.map(s => s.trim().slice(0, 46)).join(' ｜ ') + '），登记的例外只有 send() 里那一行「只用于分类、不外抄原文」：多一处就是有哪句话把上游原文（可能含 user:pass 的 URL）直接摆到用户眼前');
+    if (cnt50(V50['sync-webdav.js'], 'redact(') < 7) F50('redact( 的落点掉到 ' + cnt50(V50['sync-webdav.js'], 'redact(') + ' 处：这一族的出口是「每条失败路径都过一遍脱敏」，少一处就少一条守着的腿');
+  }
+
+  /* ④ 浏览器腿齐备检：W01–W14 逐条在场 + 条数守卫 + 循环上限对账 */
+  {
+    const S50 = V50['tools/smoke-webdav.js'];
+    for (let i = 1; i <= 14; i++) {
+      const lab = "ok('W" + (i < 10 ? '0' + i : '' + i) + ' ';
+      if (cnt50(S50, lab) !== 1) F50('tools/smoke-webdav.js 里 W' + (i < 10 ? '0' + i : i) + ' 这条判据不是恰 1 处（实得 ' + cnt50(S50, lab) + '）：这一节的立论是「失败时落的那一句必须真点出来才作数」，删一条就少一个证据，改编号会让 §50 的齐备检集体失效');
+    }
+    if (cnt50(S50, "ok('W15 ") !== 1) F50('W15（条数守卫）不在场：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转出来的');
+    if (cnt50(S50, 'checks >= 14') !== 1) F50('条数守卫不在了或阈值被挪：判据是 15 条，ok() 在自增前求值，所以表达式写的是 checks >= 14');
+    /* 这张表钉整行，不钉「const NO_EXIT」那六个字。上一版钉六个字，变异网 T05 把它改名带缩窄
+       （NO_EXIT_Q = /弹不出来|做不到/）照样命中 1，于是「表被掏空」两腿都不红＝假绿灯。
+       改名、缩窄、掏空都会让这一条当场红；表里的自校准那一半也钉住，摘掉它同样红。 */
+    if (cnt50(S50, 'const NO_EXIT = /弹不出来|做不到|App 内|不允许浏览器直连|此环境不支持|无解/') !== 1 || cnt50(S50, 'const NO_EXIT_OK =') !== 1) {
+      F50('W06 那张死话句式表（整行）或它自己的「有牙」自校准不在了：句式表现读 ' +
+        cnt50(S50, 'const NO_EXIT = /弹不出来|做不到|App 内|不允许浏览器直连|此环境不支持|无解/') +
+        '／自校准现读 ' + cnt50(S50, 'const NO_EXIT_OK =') +
+        '（两个都要恰 1）：这一腿断的是「没说死话」，那张表就是它的判据；判据被掏空成两条或改个名，等于这一腿只断「有出口」而没人守后半句');
+    }
+    {
+      const LAB50 = S50.match(/ok\('(W\d+)[ ]/g) || [];
+      const MAXN50 = LAB50.reduce((m, s) => Math.max(m, Number(/W(\d+)/.exec(s)[1])), 0);
+      const SEG50 = (rd50('tools/verify.js').split('④ 浏览器腿齐备检：W01')[1] || '');
+      const BOUND50 = (SEG50.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND50 === undefined) F50('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND50) !== MAXN50 - 1) F50('④ 齐备检的循环上限是 ' + BOUND50 + '，而这条腿里真实最大编号是 W' + MAXN50 + '：W15 是条数守卫（写在最后一条），所以上限该是最大编号减 1；上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+  }
+
+  if (V50['README.md'].indexOf('§50') < 0) F50('README.md 的 verify 清单没提 §50（新闸门不写进 README 就等于没装）');
+  if (V50['README.md'].indexOf('smoke-webdav') < 0) F50('README.md 没登记 tools/smoke-webdav.js 这条腿');
+
+  console.log('云同步失败出口闸门: ' + A50.length + ' 条代码锚点（APP_PW 出口单点／httpHint 的 401·403 与兜底两支各带下一步／netHint 三分支逐句／reach 探活实现五件（离线落 null、畸形地址落 null、no-cors 打根路径、8s 短保险丝、原文不外抄）／withTimeout 参数化且缺省档不挪／只有网络形状才探活／settings 口令框与 #wdHelp 取法与那颗地址预设钮（接线·填值·回执·44 地板·字号阶梯）／桩的 dropMethods 与 requireChallenge 两档／常驻腿的真鼠标点入口·等落定不等固定毫秒·桩侧裸 GET 读数·tn_webdav_last 判据·indexOf 口令对账·离线档·直调反证与其保险丝·条数守卫／smoke-backup 两条跟着改口径的断言）+ 九族期望 0（那句「App 内弹不出来」／「不允许浏览器直连」／netHint(c, raw) 旧签名／只报号码的 401／不外抄原文也没探活的旧 throw／只有一根 30s 保险丝的 withTimeout／不过 redact 的 record／旧 placeholder 那句／腿里守旧文案的正则）各配 HEAD 原串正向对照 + 四把内置扫描全量对账（产品面 ' + var50.files50 + ' 个根目录 js/html 的死话句式（含注释那一视图）现读 ' + var50.dead + ' 处，并明写「裸 App 内」为什么不能进黑名单；netHint 三分支逐句要求自带动作（现读 ' + var50.arms + ' 支、没出口 ' + var50.armBad + ' 支）；探活那一路 def／唯一调用者／no-cors／REACH_TIMEOUT／无凭据五件计数（' + JSON.stringify(var50.reach) + '）加「产品填的地址＝腿 W09 断言的地址」逐字对账（' + JSON.stringify(var50.preset) + '）；e.message 落点 ' + var50.msgSites + ' 处、不经 redact 的只许登记那 1 处（现读 ' + var50.msgBad + '）），每把都先拿合成样本自校准 + 一条自指纪律（flat50/view50 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 W01–W14 齐备检与条数守卫（W07 从「读 #wdStatus」改成读 tn_webdav_last，因为点测试连接不刷新那一行——曾是哑靶；W14 用直调反证 netHint 第三档，因为按钮那条路被 settings 的 https 正则挡死；W06 那张死话句式表钉**整行**并连它自己的「有牙」自校准一起数——上一版只钉「const NO_EXIT」六个字，改名带缩窄照样命中 1，是变异网 T05 抓出来的假绿灯；netHint 的分支数只写一次 ARMS50，条件与文案同一个来源——抄两遍会有一遍说谎，这是 S16 抓出来的）；A50 表长 ' + A50.length + ' 条、ZERO50 表长 ' + ZERO50.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b36-probe-webdav.txt（含带挑战那一发 15ms 交付 401 这条推翻旧注释的实测），坚果云真实形状见 tools/out/b36-probe-nutstore.txt，改后读数见 tools/out/b36-smoke-webdav.txt 与 tools/out/b36-smoke-backup-rerun.txt（53 PASS / 0 FAIL），变异自测见 tools/out/mut-verify50.js');
+  fail += bad50;
+}
+
 
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);
