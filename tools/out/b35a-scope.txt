@@ -1,0 +1,102 @@
+320×640  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 0 / 819200 = 0.0000%  sha 060d04fc209d268e/060d04fc209d268e
+    严格不等像素 0，连通块 0 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 0 / 819200 = 0.0000%  sha 060d04fc209d268e/cde953baf67e33c0
+    严格不等像素 4011，连通块 15 枚，≥24 像素 15 枚
+      块: 782 像素 x=153-200 y=426-449
+      块: 424 像素 x=128-152 y=426-449
+      块: 398 像素 x=104-127 y=426-448
+      块: 371 像素 x=212-236 y=911-934
+      块: 365 像素 x=261-284 y=911-934
+      块: 282 像素 x=308-323 y=1119-1147
+      块: 265 像素 x=158-177 y=912-932
+      块: 258 像素 x=301-330 y=1134-1160
+328×723  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 1 / 948576 = 0.0001%  sha 38b3f52879cf19c9/eccb4cfe6bc9647d
+    严格不等像素 35，连通块 15 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 0 / 948576 = 0.0000%  sha 38b3f52879cf19c9/b894d5e09b978036
+    严格不等像素 4011，连通块 15 枚，≥24 像素 15 枚
+      块: 782 像素 x=153-200 y=426-449
+      块: 424 像素 x=128-152 y=426-449
+      块: 398 像素 x=104-127 y=426-448
+      块: 371 像素 x=212-236 y=911-934
+      块: 365 像素 x=261-284 y=911-934
+      块: 282 像素 x=316-331 y=1285-1313
+      块: 265 像素 x=158-177 y=912-932
+      块: 258 像素 x=309-338 y=1300-1326
+390×844  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 0 / 1316640 = 0.0000%  sha e39bf7547db4bade/e39bf7547db4bade
+    严格不等像素 0，连通块 0 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 0 / 1316640 = 0.0000%  sha e39bf7547db4bade/7be2db96ac48cb49
+    严格不等像素 6256，连通块 1149 枚，≥24 像素 22 枚
+      块: 458 像素 x=182-207 y=396-420
+      块: 457 像素 x=130-155 y=395-420
+      块: 438 像素 x=104-129 y=396-419
+      块: 430 像素 x=219-245 y=804-828
+      块: 406 像素 x=156-181 y=395-420
+      块: 379 像素 x=271-296 y=804-828
+      块: 283 像素 x=378-393 y=1525-1553
+      块: 257 像素 x=371-400 y=1540-1566
+452×995  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 3 / 1798960 = 0.0002%  sha 739158d8ec66eb46/42c9c94d628eedea
+    严格不等像素 21，连通块 8 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 0 / 1798960 = 0.0000%  sha 739158d8ec66eb46/3f4e0b16b8dfe61e
+    严格不等像素 6097，连通块 19 枚，≥24 像素 19 枚
+      块: 595 像素 x=192-219 y=411-438
+      块: 575 像素 x=133-161 y=411-438
+      块: 553 像素 x=104-132 y=411-438
+      块: 526 像素 x=233-261 y=837-864
+      块: 525 像素 x=263-291 y=1507-1534
+      块: 497 像素 x=162-190 y=411-438
+      块: 494 像素 x=291-319 y=837-864
+      块: 282 像素 x=440-455 y=1823-1851
+768×1024  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 0 / 3145728 = 0.0000%  sha 277ebf68242027e6/277ebf68242027e6
+    严格不等像素 0，连通块 0 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 0 / 3145728 = 0.0000%  sha 277ebf68242027e6/5ddd86d4250e6fd8
+    严格不等像素 5016，连通块 20 枚，≥24 像素 20 枚
+      块: 458 像素 x=390-415 y=396-420
+      块: 457 像素 x=338-363 y=395-420
+      块: 438 像素 x=312-337 y=396-419
+      块: 430 像素 x=427-453 y=804-828
+      块: 418 像素 x=463-488 y=1443-1467
+      块: 406 像素 x=364-389 y=395-420
+      块: 379 像素 x=479-504 y=804-828
+      块: 282 像素 x=756-771 y=1885-1913
+1440×900  命中 <style> 1 枚：:root{;;--b6:var(--color-primary);--b7:#1f3634
+    --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK 
+    --fb "Noto Sans SC","PingFang SC"," → 'SF Pro Display','SF Pro Text'
+    --bg #f6f1e5→#f6f1e5   --sf(皮肤,不该动) #fbf8f1→#fbf8f1
+  exact：pixelmatch(0.02) 0 / 5184000 = 0.0000%  sha f51f780e7c578125/f51f780e7c578125
+    严格不等像素 0，连通块 0 枚，≥24 像素 0 枚
+    [整枚摘·上界] --fd "LXGW WenKai","Kaiti SC",serif → 'TRACE Serif','Noto Serif CJK   --bg #f6f1e5→#F7F5EF
+  whole：pixelmatch(0.02) 35 / 5184000 = 0.0007%  sha f51f780e7c578125/f11a0657a4c77959
+    严格不等像素 23324，连通块 1057 枚，≥24 像素 38 枚
+      块: 3754 像素 x=1701-1970 y=180-1185
+      块: 3675 像素 x=909-1139 y=180-1185
+      块: 1990 像素 x=921-1958 y=1207-1223
+      块: 1758 像素 x=1917-1970 y=1227-1739
+      块: 1755 像素 x=909-962 y=1228-1739
+      块: 938 像素 x=971-1908 y=161-161
+      块: 677 像素 x=1141-1419 y=1181-1184
+      块: 677 像素 x=1421-1699 y=1181-1184

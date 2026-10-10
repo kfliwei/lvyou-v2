@@ -1,0 +1,275 @@
+[
+ {
+  "f": "album.js",
+  "n": 262,
+  "kind": "attr",
+  "val": "Songti SC, serif",
+  "ln": "return '<text x=\"' + p.x.toFixed(1) + '\" y=\"' + (p.y + dy).toFixed(1) + '\" font-size=\"11\" fill=\"#4C4A45\" font-family=\"Songti SC, serif\" text-anchor=\"middle\">' + esc(String(p.name).slice(0, 6)) + '</text>';"
+ },
+ {
+  "f": "planner.js",
+  "n": 2040,
+  "kind": "css",
+  "val": "\"PingFang SC\",\"Microsoft YaHei\",sans-serif",
+  "ln": "'body{font-family:\"PingFang SC\",\"Microsoft YaHei\",sans-serif;max-width:640px;margin:0 auto;padding:24px 20px;color:#26241F;line-height:1.85;background:#F6F3EC}' +"
+ },
+ {
+  "f": "planner.js",
+  "n": 2041,
+  "kind": "css",
+  "val": "\"Songti SC\",serif",
+  "ln": "'h1{font-family:\"Songti SC\",serif;font-weight:400;font-size:26px}h2{font-family:\"Songti SC\",serif;font-weight:400;font-size:17px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +"
+ },
+ {
+  "f": "planner.js",
+  "n": 2041,
+  "kind": "css",
+  "val": "\"Songti SC\",serif",
+  "ln": "'h1{font-family:\"Songti SC\",serif;font-weight:400;font-size:26px}h2{font-family:\"Songti SC\",serif;font-weight:400;font-size:17px;border-left:3px solid #AE5738;padding-left:10px;margin:26px 0 8px}' +"
+ },
+ {
+  "f": "planner.js",
+  "n": 2042,
+  "kind": "css",
+  "val": "\"Songti SC\",serif",
+  "ln": "'.muted{color:#8C877D;font-size:13px}.story{background:#FFFDF8;border:1px solid #E3DED2;padding:14px;border-radius:12px;font-family:\"Songti SC\",serif;margin:12px 0}' +"
+ },
+ {
+  "f": "poster.js",
+  "n": 133,
+  "kind": "canvas",
+  "val": "600 64px",
+  "ln": "ctx.font = '600 64px \"Songti SC\",\"Noto Serif SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 135,
+  "kind": "canvas",
+  "val": "26px",
+  "ln": "ctx.font = '26px \"Noto Serif SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 199,
+  "kind": "canvas",
+  "val": "600 44px",
+  "ln": "ctx.font = '600 44px \"Songti SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 201,
+  "kind": "canvas",
+  "val": "20px",
+  "ln": "ctx.font = '20px \"Noto Serif SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 211,
+  "kind": "canvas",
+  "val": "22px",
+  "ln": "ctx.font = '22px \"Noto Serif SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 225,
+  "kind": "canvas",
+  "val": "22px",
+  "ln": "ctx.font = '22px \"Noto Serif SC\",serif';"
+ },
+ {
+  "f": "poster.js",
+  "n": 235,
+  "kind": "canvas",
+  "val": "600 40px",
+  "ln": "ctx.font = '600 40px \"Songti SC\",serif';"
+ },
+ {
+  "f": "results.js",
+  "n": 78,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "d.innerHTML = '<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:var(--color-ink)\">' + esc(name) + ' <button class=\"ui-modal-x\" id=\"rzX\" aria-label=\"关闭\">' + TI('close', 14) + '</button></div>'"
+ },
+ {
+  "f": "results.js",
+  "n": 122,
+  "kind": "canvas",
+  "val": "bold 60px",
+  "ln": "ctx.fillStyle = th.fg; ctx.font = 'bold 60px \"Songti SC\",serif';"
+ },
+ {
+  "f": "results.js",
+  "n": 124,
+  "kind": "canvas",
+  "val": "26px",
+  "ln": "ctx.font = '26px \"Noto Serif SC\",serif'; ctx.globalAlpha = .75;"
+ },
+ {
+  "f": "results.js",
+  "n": 128,
+  "kind": "canvas",
+  "val": "28px",
+  "ln": "ctx.font = '28px \"Noto Serif SC\",serif'; ctx.lineHeight = 1.7;"
+ },
+ {
+  "f": "results.js",
+  "n": 177,
+  "kind": "css",
+  "val": "&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif",
+  "ln": "+ '<style>body{margin:0;background:#F7F5EF;font-family:&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif}'"
+ },
+ {
+  "f": "results.js",
+  "n": 179,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "+ '.cover h1{margin:0;font-size:30px;font-family:&quot;Songti SC&quot;,serif}'"
+ },
+ {
+  "f": "results.js",
+  "n": 184,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "+ '.stat b{display:block;font-size:26px;color:#AE5738;font-family:&quot;Songti SC&quot;,serif}'"
+ },
+ {
+  "f": "results.js",
+  "n": 190,
+  "kind": "css",
+  "val": "&quot;Noto Serif SC&quot;,serif",
+  "ln": "+ '.q{margin:8px 0 0;font-size:var(--fs-4);color:#8a6408;font-family:&quot;Noto Serif SC&quot;,serif;border-left:3px solid #AE5738;padding-left:10px}'"
+ },
+ {
+  "f": "results.js",
+  "n": 244,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "+ '<div style=\"display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-9);color:#20201D;margin-bottom:4px\">' + icon + ' ' + label + '</div>'"
+ },
+ {
+  "f": "results.js",
+  "n": 261,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif\">生成' + label + '</button>'",
+  "ln": "+ '<button id=\"fgo\" style=\"width:100%;height:48px;border:0;border-radius:12px;background:#AE5738;color:#fff;font-size:var(--fs-6);font-weight:700;cursor:pointer;font-family:&quot;Songti SC&quot;,serif\">生成' + label + '</button>'"
+ },
+ {
+  "f": "results.js",
+  "n": 382,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "+ '<div style=\"display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:4px\">生成旅程故事</div>'"
+ },
+ {
+  "f": "results.js",
+  "n": 461,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "+ '<div style=\"display:flex;justify-content:space-between;align-items:center;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);color:#20201D;margin-bottom:14px\">定制路书' + (topicLabel ? ' · ' + topicLabel : '') + ' <button class=\"ui-modal-x\" id=\"ix\" aria-label=\"关闭\">' + TI('close', 14) + '</button></div>'"
+ },
+ {
+  "f": "travel-map.html",
+  "n": 770,
+  "kind": "canvas",
+  "val": "bold 66px",
+  "ln": "ctx.fillStyle=th.fg;ctx.font='bold 66px \"LXGW WenKai\",serif';ctx.textAlign='center';"
+ },
+ {
+  "f": "travel-map.html",
+  "n": 772,
+  "kind": "canvas",
+  "val": "30px",
+  "ln": "ctx.font='30px \"Noto Serif SC\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.8;"
+ },
+ {
+  "f": "travel-map.html",
+  "n": 787,
+  "kind": "canvas",
+  "val": "30px",
+  "ln": "ctx.font='30px \"Noto Serif SC\",serif';ctx.textAlign='center';"
+ },
+ {
+  "f": "travel-map.html",
+  "n": 791,
+  "kind": "canvas",
+  "val": "34px",
+  "ln": "ctx.font='34px \"Noto Serif SC\",serif';ctx.fillStyle=th.fg;ctx.textAlign='left';"
+ },
+ {
+  "f": "travel-map.html",
+  "n": 794,
+  "kind": "canvas",
+  "val": "28px",
+  "ln": "ctx.font='28px \"Noto Serif SC\",serif';ctx.fillStyle=th.fg;ctx.globalAlpha=.75;"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 1648,
+  "kind": "css",
+  "val": "&quot;Noto Sans SC&quot;,sans-serif\"><b>' + esc(n.title || n.siteName) + '</b> <span style=\"color:#6b665c",
+  "ln": "m.bindPopup('<div style=\"font-size:var(--fs-5);line-height:1.7;min-width:160px;font-family:&quot;Noto Sans SC&quot;,sans-serif\"><b>' + esc(n.title || n.siteName) + '</b> <span style=\"color:#6b665c;font-size:var(--fs-2)\">' + esc(dayText(n)) + '</span><br>' + (n.weather ? esc(n.weather) + '<br>' : '') + esc((n.text || n.raw).slice(0, 140)) + (n.audio ? '<audio controls preload=\"none\" src=\"' + esc(n.audio) + '\" style=\"width:100%;margin-top:6px;height:32px\"></audio>' : '') + '</div>');"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 1984,
+  "kind": "css",
+  "val": "&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif\">' +",
+  "ln": "var html = '<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>我的旅行游记</title><style>@media print{body{background:#fff!important}div{box-shadow:none!important;border:1px solid #ddd!important}h1{color:#333!important;background:none!important;padding:20px 0!important}}@media(max-width:600px){div{padding:12px!important}h2{font-size:var(--fs-7)!important}}</style></head><body style=\"margin:0;background:#f6f1e5;font-family:&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif\">' +"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2265,
+  "kind": "canvas",
+  "val": "bold 64px sans-serif",
+  "ln": "ctx.font = 'bold 64px sans-serif';"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2267,
+  "kind": "canvas",
+  "val": "bold 46px sans-serif",
+  "ln": "ctx.font = 'bold 46px sans-serif';"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2270,
+  "kind": "canvas",
+  "val": "30px sans-serif",
+  "ln": "ctx.font = '30px sans-serif';"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2276,
+  "kind": "canvas",
+  "val": "32px sans-serif",
+  "ln": "ctx.font = '32px sans-serif';"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2328,
+  "kind": "css",
+  "val": "&quot;Noto Sans SC&quot;,sans-serif\"><b>' + esc(n.title || n.siteName) + '</b> <span style=\"color:#6b665c",
+  "ln": "m.bindPopup('<div style=\"font-size:var(--fs-5);line-height:1.7;min-width:190px;max-width:260px;font-family:&quot;Noto Sans SC&quot;,sans-serif\"><b>' + esc(n.title || n.siteName) + '</b> <span style=\"color:#6b665c;font-size:var(--fs-2)\">' + esc(dayText(n)) + '</span>' + pic + '<div style=\"white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-top:4px\">' + esc(n.text || n.raw) + '</div>' + (n.style ? '<div style=\"color:#6b665c;font-size:var(--fs-2);margin-top:6px\">' + esc(n.style) + '</div>' : '') + '</div>', { maxWidth: 280 });"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2516,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "head.innerHTML = '<span style=\"display:inline-grid;place-items:center;width:30px;height:30px;border:1.5px solid var(--color-primary);border-radius:8px;color:var(--color-primary);font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-5);transform:rotate(-4deg);flex:0 0 auto\">记</span>' +"
+ },
+ {
+  "f": "travel-notes.js",
+  "n": 2517,
+  "kind": "css",
+  "val": "&quot;Songti SC&quot;,serif",
+  "ln": "'<div style=\"flex:1;min-width:0\"><b style=\"display:block;font-family:&quot;Songti SC&quot;,serif;font-size:var(--fs-8);font-weight:600;color:var(--color-ink);letter-spacing:.03em\">记录地点</b>' +"
+ },
+ {
+  "f": "vault.js",
+  "n": 400,
+  "kind": "css",
+  "val": "\"PingFang SC\",\"Microsoft YaHei\",sans-serif",
+  "ln": "'<style>body{max-width:720px;margin:0 auto;padding:32px 20px 60px;font-family:\"PingFang SC\",\"Microsoft YaHei\",sans-serif;color:#2c2c29;line-height:1.8;background:#faf8f3}h1{font-size:26px;margin:0 0 10px;color:#1f3634}.meta{color:#8a857a;font-size:var(--fs-4);margin:3px 0}.story{white-space:pre-wrap;margin:22px 0;font-size:var(--fs-7)}img{max-width:100%;border-radius:10px;display:block;margin:10px 0}figure{margin:0 0 18px}figcaption{color:#8a857a;font-size:var(--fs-3);text-align:center;margin-top:4px}audio{width:100%;margin:10px 0}h2{font-size:var(--fs-8);margin:26px 0 6px;color:#1f3634}.dim{color:#a09a8e;font-size:var(--fs-4)}</style></head><body>' +"
+ }
+]

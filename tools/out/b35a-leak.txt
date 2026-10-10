@@ -1,0 +1,51 @@
+== A. 同一页只多注入一枚 <style>（面板不弹）：像素归因
+   改前  --bg=#F7F5EF  body背景=rgb(247, 245, 239)  <style>数=4  含--fd的style=false  面板在DOM=false
+   改后  --bg=#f6f1e5  body背景=rgb(247, 245, 239)  <style>数=5  含--fd的style=true  面板在DOM=true（ensureUI→ok）
+   逐条：--fd 变 | --fb 变 | --bg 变 | --sm 变 | --tf 变
+   pixelmatch(0.02): {"w":780,"h":1688,"n":0,"pct":0}   两图 sha 539f3e1066769dc1 / 44e2b8852ca21a2b
+   ⇒ 唯一的变量就是那枚 <style>（页面没有弹面板、没有点任何控件、时钟与随机数全钉死）
+
+== B. 17 个基线页逐页读 body 背景色（谁已被注入串换过纸色）
+   index.html          style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   me.html             style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   settings.html       style含--fd=是  --bg=#f6f1e5  body=rgb(247, 245, 239)  <link>数=1
+   story.html          style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=2
+   topic.html          style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=3
+   planner.html        style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=2
+   review.html         style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=2
+   search.html         style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   trip.html           style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   expense.html        style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   checklist.html      style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   album.html          style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   album-edit.html     style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   travel-map.html     style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=2
+   node-manager.html   style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=3
+   md-manager.html     style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=1
+   wishlist.html       style含--fd=否  --bg=#F7F5EF  body=rgb(247, 245, 239)  <link>数=3
+
+== C. 字族像素对照（canvas 画同一串中文，比位图）
+   品牌族 var(--font-serif)              墨迹像素=  3425  位图摘要(djb2)=761e451b/12314
+   泄漏族 --fd（改后）                       墨迹像素=  2689  位图摘要(djb2)=13d20a18/11610
+   ① 档字面 "Songti SC",serif            墨迹像素=  2689  位图摘要(djb2)=13d20a18/11610
+   ① 档字面 "Noto Sans SC",sans-serif    墨迹像素=  4551  位图摘要(djb2)=6f82ff83/11514
+   负对照 TRACE Serif（应==品牌族）            墨迹像素=  3425  位图摘要(djb2)=761e451b/12314
+   UA serif                           墨迹像素=  2689  位图摘要(djb2)=13d20a18/11610
+   UA sans-serif                      墨迹像素=  4551  位图摘要(djb2)=6f82ff83/11514
+   正对照 monospace（应与众不同）               墨迹像素=  2689  位图摘要(djb2)=13d20a18/11610
+
+   两两比位图（摘要相同＝同一套字）：
+   同图    品牌族 var(--font-serif)  vs  负对照 TRACE Serif（应==品牌族）
+   不同图  品牌族 var(--font-serif)  vs  泄漏族 --fd（改后）
+   不同图  品牌族 var(--font-serif)  vs  ① 档字面 "Songti SC",serif
+   同图    UA serif  vs  泄漏族 --fd（改后）
+   同图    UA sans-serif  vs  ① 档字面 "Noto Sans SC",sans-serif
+   不同图  正对照 monospace（应与众不同）  vs  品牌族 var(--font-serif)
+
+   自校准（两把都过才许读上面的账）：
+   · 负对照: 品牌族 vs 单写 'TRACE Serif' 应同图 → 过
+   · 正对照: 品牌族 vs monospace 应不同图 → 过
+   · 八档去重后摘要种类数 = 3（= 1 说明这把尺子压根没在量字族）
+
+   注：这一档在 Windows Chrome 上量。手机上 Songti SC/Kaiti SC/LXGW WenKai/PingFang SC 同样不命中，
+   而 Microsoft YaHei 在 Windows 命中、Android 不命中 ⇒ 手机侧的差异只会≥本机读数，不会更小。

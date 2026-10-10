@@ -1,0 +1,76 @@
+== 0. 前置：页内注册的 @font-face 族名（证明品牌字族在场，不是「库里没这枚字」）
+   FontFaceSet size=2 → TRACE Serif 400 | TRACE Serif 700
+   fonts/NotoSerifSC-400.woff2 在场? 是（1506904 字节）；已同步进壳 assets? 是
+   fonts/NotoSerifSC-700.woff2 在场? 是（1557276 字节）；已同步进壳 assets? 是
+
+== 1. 开面板「之前」documentElement 上的别名解析值（design.css 那套）
+   --fd  = 'TRACE Serif','Noto Serif CJK SC','Songti SC','STSong','Source Han Serif SC','SimSun',serif
+   --fb  = 'SF Pro Display','SF Pro Text','PingFang SC','HarmonyOS Sans','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif
+   --tf  = 'SF Pro Display','SF Pro Text','PingFang SC','HarmonyOS Sans','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif
+   --tn  = 'TRACE Serif','Noto Serif CJK SC','Songti SC','STSong','Source Han Serif SC','SimSun',serif
+   --bg  = #F7F5EF
+   --sf  = #FFFFFF
+   --sf2 = #F0EDE5
+   --ln  = rgba(32,32,29,.09)
+   --i9  = #20201D
+   --i7  = #4C4A45
+   --i5  = #6A675E
+   --sm  = 0 1px 2px rgba(33,26,19,.04),0 12px 30px -14px rgba(33,26,19,.14)
+   --b6  = #96472F
+   --b7  = #20201D
+   --d3  = #AE5738
+   --a3  = rgba(32,32,29,.15)
+
+== 2. 开面板（TravelNotes.openPanel → buildUI() 才 append 那份 <style>）
+   openPanel → ok；面板节点 .tn-panel 在场? true
+   head 里 <style> 共 5 枚，含 `--fd:` 定义的：#3(36093 字符)；「含 --fd 的那枚是不是 head 最后一个 style」= false
+   design.css 是外链 <link>，不进上面这个计数 ⇒ 顺序判据要读的是「注入串排在所有链接样式之后」，见上面枚数与 #id
+
+== 3. 开面板「之后」同一批别名（逐条标 变/不变）
+   变  --fd  = "LXGW WenKai","Kaiti SC",serif
+   变  --fb  = "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif
+   变  --tf  = 150ms ease
+   变  --tn  = 320ms cubic-bezier(.2,.9,.3,1)
+   变  --bg  = #f6f1e5
+   变  --sf  = #fbf8f1
+   变  --sf2 = #efe8d8
+   变  --ln  = #e4dbc6
+   变  --i9  = #26241f
+   变  --i7  = #3d3a33
+   变  --i5  = #6b665c
+   变  --sm  = 0 1px 3px rgba(60,50,30,.07)
+   变  --b6  = #AE5738
+   变  --b7  = #1f3634
+   变  --d3  = #8b8171
+   变  --a3  = #b8860b
+   → 16 个别名里 16 个被这份注入串改写（整份文档级，不只面板内）
+
+== 4. computed font-family 的实际读数（面板里的标题族 vs 面板外用同族的地方）
+   .tn-title                                      → "TRACE Serif", "Noto Serif CJK SC", "Songti SC", STSong, "Source Han Serif SC", SimSun, serif   [16px / 400]
+   .tn-now__place                                 → "TRACE Serif", "Noto Serif CJK SC", "Songti SC", STSong, "Source Han Serif SC", SimSun, serif   [35.1px / 400]
+   .tn-item h4                                    → (不在场)
+   body                                           → "PingFang SC", "HarmonyOS Sans", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif   [16px / 400]
+   造一枚 font-family:var(--fd)（面板外，挂 body）          → "LXGW WenKai", "Kaiti SC", serif   [14px / undefined]
+
+== 5. 宽度对照：同一串文本、24px / 700 / nowrap，量字族是否真的换了
+   文本『留下这一刻鹳雀楼九月二十六日』× 24px / 700（14 字）
+     342.56 px  泄漏族的解析值 getComputedStyle(:root).--fd   ← 族串: "LXGW WenKai","Kaiti SC",serif
+        336 px  design.css 品牌族 var(--font-serif)   ← 族串: 'TRACE Serif','Noto Serif CJK SC','Songti SC','STSong','Source Han Serif SC','SimSun',serif
+     342.56 px  ① 档字面族 "Songti SC",serif（results.js 那五处弹层头部用的）   ← 族串: "Songti SC",serif
+        336 px  ① 档字面族 "Noto Sans SC",sans-serif（travel-notes.js 两处 popup）   ← 族串: "Noto Sans SC",sans-serif
+        336 px  负对照 TRACE Serif（应 == var(--font-serif)）   ← 族串: 'TRACE Serif'
+     342.56 px  正对照 monospace（必须与其它都不同）   ← 族串: monospace
+        336 px  正对照 sans-serif   ← 族串: sans-serif
+        336 px  --fb 泄漏族解析值   ← 族串: "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif
+        336 px  --fb 品牌族 var(--font-sans)   ← 族串: 'SF Pro Display','SF Pro Text','PingFang SC','HarmonyOS Sans','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif
+
+   判读：
+   · 尺子有效? monospace 342.56 vs 品牌衬线 336 → 差 6.56 px（必须明显非 0）
+   · 负对照有效? TRACE Serif 336 vs var(--font-serif) 336 → 差 0.00 px（必须为 0，否则噪声会冒充差异）
+   · --fd 中招了吗? 泄漏族 342.56 vs 品牌族 336 → 差 6.56 px（换了字）
+   · --fb 中招了吗? 泄漏族 336 vs 品牌族 336 → 差 0.00 px
+
+== 6. 本机环境注记（读数的适用边界）
+   本机 = Windows Chrome。这批名字里 Songti SC／Kaiti SC／LXGW WenKai／PingFang SC 在 Windows 与 Android 都不命中，
+   但 Microsoft YaHei 在 Windows **命中**、在 Android 不命中 ⇒ 「sans 一族差异小」这条读数在手机上只会更差，不会更好。
+   页面未捕获异常: 无

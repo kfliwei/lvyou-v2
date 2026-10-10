@@ -1,0 +1,51 @@
+扫描根目录 106 个 .js/.html/.css；font-family / ctx.font 命中 506 行
+合法桶：@font-face 定义 2 行｜已接 var(--font-*)/--fd/--fb（含带兜底写法）456 行｜inherit 2 行｜等宽档 6 行｜纯 generic/system-ui 1 行
+绕过品牌字族 = 39 处 / 7 个文件（审核报告 §4 第 5 条写的是 33 处 / 7 个文件）
+
+【T1】9 处 / 2 个文件
+  results.js:78 [css] "Songti SC",serif
+  results.js:244 [css] "Songti SC",serif
+  results.js:261 [css] "Songti SC",serif">生成' + label + '</button>'
+  results.js:382 [css] "Songti SC",serif
+  results.js:461 [css] "Songti SC",serif
+  travel-notes.js:1648 [css] "Noto Sans SC",sans-serif"><b>' + esc(n.title || n.siteName) + '</
+  travel-notes.js:2328 [css] "Noto Sans SC",sans-serif"><b>' + esc(n.title || n.siteName) + '</
+  travel-notes.js:2516 [css] "Songti SC",serif
+  travel-notes.js:2517 [css] "Songti SC",serif
+
+【T2】19 处 / 4 个文件
+  poster.js:133 [canvas] 600 64px
+  poster.js:135 [canvas] 26px
+  poster.js:199 [canvas] 600 44px
+  poster.js:201 [canvas] 20px
+  poster.js:211 [canvas] 22px
+  poster.js:225 [canvas] 22px
+  poster.js:235 [canvas] 600 40px
+  results.js:122 [canvas] bold 60px
+  results.js:124 [canvas] 26px
+  results.js:128 [canvas] 28px
+  travel-map.html:770 [canvas] bold 66px
+  travel-map.html:772 [canvas] 30px
+  travel-map.html:787 [canvas] 30px
+  travel-map.html:791 [canvas] 34px
+  travel-map.html:794 [canvas] 28px
+  travel-notes.js:2265 [canvas] bold 64px sans-serif
+  travel-notes.js:2267 [canvas] bold 46px sans-serif
+  travel-notes.js:2270 [canvas] 30px sans-serif
+  travel-notes.js:2276 [canvas] 32px sans-serif
+
+【T3】11 处 / 5 个文件
+  album.js:262 [attr] Songti SC, serif
+  planner.js:2040 [css] "PingFang SC","Microsoft YaHei",sans-serif
+  planner.js:2041 [css] "Songti SC",serif
+  planner.js:2041 [css] "Songti SC",serif
+  planner.js:2042 [css] "Songti SC",serif
+  results.js:177 [css] "PingFang SC","Microsoft YaHei",sans-serif
+  results.js:179 [css] "Songti SC",serif
+  results.js:184 [css] "Songti SC",serif
+  results.js:190 [css] "Noto Serif SC",serif
+  travel-notes.js:1984 [css] "PingFang SC","Microsoft YaHei",sans-serif">' +
+  vault.js:400 [css] "PingFang SC","Microsoft YaHei",sans-serif
+
+等宽档明细（S3 登记为设计内，不算绕过）：design.css:1399 icons-demo.html:1 map.css:1053 md-manager.html:79 md-manager.html:86 node-manager.html:57
+纯 generic 明细：icons-demo.html:1→system-ui
