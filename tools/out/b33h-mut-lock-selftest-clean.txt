@@ -1,0 +1,7 @@
+PASS 甲 本模块的筛子能看见带字母的锁名 .mut-selftest.lock
+PASS 乙 老写法 /^\.mut\d+\.lock$/ 看不见它（49 组穿筛的来源）
+PASS 丙 别人持锁时 acquire() 退出 2（实际 exit=2，输出首行 "中止：F:\\MyAi\\trace\\lvyou-v2\\tools\\out 里已有变异网的锁 .mut-selftest.lock（快照与本网重叠，并发跑两边读数全废）"）
+PASS 丙之二 拒跑那一张没有顺手删掉别人的锁
+PASS 丙之三 拒跑那一张没有留下自己的锁
+PASS 丁 锁名已被占（非自己那枚）时 flag wx 直接失败退出 2，且原占位文件还在（实际 exit=2）
+=== mut-lock 自测：四条都成立 ===

@@ -19,6 +19,7 @@ const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-usable.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 const G24 = '边缘点闸门 FAIL';
 const VF = 'tools/verify.js';
 const SM = 'tools/smoke-usable.js';

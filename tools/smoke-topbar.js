@@ -464,6 +464,54 @@ const load = async (p, file, ms) => {
       x[2] === '13px' && x[3] === 'grid' && x[4] === true),
     JSON.stringify(icq));
 
+  /* ============ C3. 首启引导那一屏（批次 33-G） ============
+     index.html 不在 BAR_PAGES 那 13 页里，而它自己的 IIFE 写的是「localStorage 里有
+     tn_onboarded 就 return」——上面 K34/K35 的种子恰恰把它设成 '1'，所以整条腿从来没挂载过这屏。
+     这一条反过来清掉那个键，量蒙层里那两枚交互件的真 rect。
+     改前实测「跳过 ›」= 60.2×34（328 与 320 两档同值，tools/out/b33g-obskip.txt），
+     比 44 地板差 10，而像素基线也把这屏排除在外（visual-check.js 提前打 tn_onboarded=1）。
+     .ob-dot 是 8×8 的进度指示点（<span>，非交互，设计如此），不参与地板判定——地基探针第一版
+     把它算成「低于地板」，那是探针自己在说谎。 */
+  const OB_CLEAR = () => { try { localStorage.removeItem('tn_onboarded'); } catch (e) {} };
+  const obRead = () => {
+    const one = el => {
+      const b = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      const hit = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+      return [Math.round(b.width), Math.round(b.height), cs.minHeight,
+        (hit === el || (hit && el.contains(hit))) === true];
+    };
+    const skip = document.querySelector('.ob-skip');
+    const out = { mounted: !!document.querySelector('.ob-mask'),
+      nSkip: skip ? 1 : 0,
+      btns: Array.from(document.querySelectorAll('.ob-btn')).map(one) };
+    if (skip) {
+      out.skip = one(skip);
+      /* 无牙自校准：inline 34 必须真的压过 design.css 那条单点。读不到 34 就说明这一档量的
+         不是几何而是别的什么，下面的「≥44」就不算证据（K34 同口径）。 */
+      skip.style.minHeight = '34px';
+      out.cal34 = Math.round(skip.getBoundingClientRect().height);
+      skip.style.minHeight = '';
+      out.calBack = Math.round(skip.getBoundingClientRect().height);
+    }
+    try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {}
+    return out;
+  };
+  const obq = {};
+  for (const vp of [V328, V320]) {
+    const p = await newPage(browser, vp, OB_CLEAR);
+    await load(p, 'index.html', 2200);
+    obq[vp.width] = await p.evaluate(obRead);
+    obq[vp.width].__errs = p.__errs;
+    await p.close();
+  }
+  ok('K36 首启引导蒙层里那两枚交互件真 rect 全 ≥44 且中心点命中自己（328/320 两档；design.css 的 body .ob-skip,body .ob-btn 是唯一尺寸写点——注入串里写回不带 body 前缀的尺寸本腿读不到，那是 §39 SKIN39 的视野；而单点被删或被改成 34，本腿当场红）',
+    obq[328].mounted && obq[320].mounted &&
+    obq[328].nSkip === 1 && obq[328].btns.length >= 1 &&
+    [328, 320].every(w => obq[w].skip && obq[w].skip[1] >= 44 && obq[w].skip[2] === '44px' && obq[w].skip[3] === true) &&
+    [328, 320].every(w => obq[w].btns.length >= 1 && obq[w].btns.every(b => b[1] >= 44 && b[2] === '44px' && b[3] === true)) &&
+    obq[328].cal34 === 34 && obq[328].calBack >= 44,
+    JSON.stringify([obq[328].skip, obq[328].btns, obq[328].cal34, obq[320].skip]));
+
   /* ============ D3. 顶栏一族分母之外的那一页（K08 的盲区） ============ */
   /* BAR_PAGES 那 13 页里没有 topic.html，所以 K08「barH>70 只许 wishlist」从没量过专题页。
      批次 25-B 把标题下限收到 7em 之后，专题页在 328/320 放不下「返回+标题+随手记+游记」，
@@ -487,13 +535,13 @@ const load = async (p, file, ms) => {
 
   /* ============ E. 全程零报错 + 条数守卫 ============ */
   const NOISE = /Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch|favicon/i;
-  const real = allErrs.concat((pn.__errs || []), (tm328.__errs || []), (tm452.__errs || []), (pw.__errs || []), (ps.__errs || []), (pty.__errs || []), (pt.__errs || []), (pck.__errs || []), (pal.__errs || []), (tq320.__errs || []), (tq390.__errs || []), (pnq[328].__errs || []), (pnq[320].__errs || []), (pme33e.__errs || [])).filter(e => !NOISE.test(e));
+  const real = allErrs.concat((pn.__errs || []), (tm328.__errs || []), (tm452.__errs || []), (pw.__errs || []), (ps.__errs || []), (pty.__errs || []), (pt.__errs || []), (pck.__errs || []), (pal.__errs || []), (tq320.__errs || []), (tq390.__errs || []), (pnq[328].__errs || []), (pnq[320].__errs || []), (pme33e.__errs || []), (obq[328].__errs || []), (obq[320].__errs || [])).filter(e => !NOISE.test(e));
   ok('K29 全程零真实页面报错（几何收口不许把任何一页改崩）',
     real.length === 0, real.slice(0, 3).join(' | ') || '0 条');
   const EXPECT = [];
-  for (let i = 0; i <= 35; i++) EXPECT.push('K' + String(i).padStart(2, '0'));
-  ok('K30 条数与齐备检：K00–K35 除自身外全部执行且 ≥35 条（少一条或改名成 K15x 都要红——§31 那课：判据齐备检只认前缀会自己消失）',
-    EXPECT.every(e => e === 'K30' || ran.indexOf(e) >= 0) && new Set(ran).size >= 35,
+  for (let i = 0; i <= 36; i++) EXPECT.push('K' + String(i).padStart(2, '0'));
+  ok('K30 条数与齐备检：K00–K36 除自身外全部执行且 ≥36 条（少一条或改名成 K15x 都要红——§31 那课：判据齐备检只认前缀会自己消失）',
+    EXPECT.every(e => e === 'K30' || ran.indexOf(e) >= 0) && new Set(ran).size >= 36,
     '执行 ' + new Set(ran).size + ' 条 / 期望 ' + (EXPECT.length - 1) + ' 条' +
       (EXPECT.filter(e => e !== 'K30' && ran.indexOf(e) < 0).length ? ' 缺 ' + EXPECT.filter(e => e !== 'K30' && ran.indexOf(e) < 0).join(',') : ''));
 

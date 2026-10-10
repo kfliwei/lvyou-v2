@@ -5,14 +5,14 @@
  *
  * 这一批为什么需要这张网：§39 的立论是「同一族几何被写了四遍，谁后加载谁说了算」，
  * 所以它钉的不是值而是**出处唯一**——三类判据各有各的假绿法：
- *   ① 字面量锚（A39 82 条）：needle 被改名/整族换名 → 0 命中；条数守卫与分母锚（.topbar /
+ *   ① 字面量锚（A39 88 条）：needle 被改名/整族换名 → 0 命中；条数守卫与分母锚（.topbar /
  *      id="infoSheet" / html 份数）专防这一类，M09／M31／M44 打的就是这三只门；
- *      条数守卫的阈值是**跟着锚点表长度抬的**（M51）：这张表 25-B 从 60 长到 64、33-E 又长到 82，
- *      原来那个「抬到 61 必红」的变异就此打不红了——阈值取自早先的计数，锚一加长守卫就自己失效，
+ *      条数守卫的阈值是**跟着锚点表长度抬的**（M51）：这张表 25-B 从 60 长到 64、33-E 长到 82、
+ *      33-G 长到 88，原先那个「抬到 61 必红」的变异就此打不红了——阈值取自早先的计数，锚一加长守卫就自己失效，
  *      这是 §34 那一课的第二种形状（上一批栽在采样计数上，这一批栽在表长度上）；
- *   ② 规则体零尺寸抽取（SKIN39 十八族）：如果 GEO39 那把尺子本身坏掉，18 族的「0 条违规」
+ *   ② 规则体零尺寸抽取（SKIN39 廿一族）：如果 GEO39 那把尺子本身坏掉，这些族的「0 条违规」
  *      立刻全体恒真——M46 把 GEO39 换成永不匹配的正则，必须被 BADSKIN 反向对照打红；
- *   ③ 期望 0 十六族：needle 写坏（对不上真实改前形态）就是「拿一个不存在的串证明它不存在」，
+ *   ③ 期望 0 十八族：needle 写坏（对不上真实改前形态）就是「拿一个不存在的串证明它不存在」，
  *      M50 只改 needle 一个字符，正向对照必须当场喊「这个 0 不是证据」。
  * M48／M49 两条打红的是**守卫自己**（四元组形状不整即红、不再静默解构错位），照 §27/§38 的写法。
  *
@@ -32,6 +32,23 @@
  *   M67 smoke-topbar 的 `const PN_SEL` 改名——K34 的名单抽不出来的那一刻，闸门必须当场喊，
  *       不许「零枚矮于 44」在空名单上恒绿。
  *
+ * 批次 33-G 新增的九条（M68–M76）打的是**第三处两腿都无视野的屏**：首启引导蒙层。
+ *   这一族的特殊性在于「盲区是双向的」，所以靶也成对：
+ *     M68 design.css 那条 `body .ob-skip,body .ob-btn{min-height:44px}` 漂回 34——① 那一族的老路；
+ *     M69 把改前那处页内 `min-height:44px` 塞回 index.html 的注入串——**值是对的**，照样要红，
+ *         而且它对浏览器腿是盲的（0-1-0 打不过单点的 0-1-1，画面仍是 44），只有 ZERO39 那条认得；
+ *     M70 同一个串里给选择器加 `body ` 前缀——同特异度＋后加载＝真覆盖，这一半两腿都有视野，
+ *         所以 mut-smoke39 的 B 族同时打它；
+ *     M71 把 `class="ob-skip"` 改名——调用点没了而判据还在，「零枚矮于 44」就是一个没有任何被测
+ *         对象的绿（§38 那一课的第三种形状，本批在 K34 的名单、K36 的调用点上各配一根）；
+ *     M72 把 `if(localStorage.getItem('tn_onboarded')) return;` 改写——蒙层根本不挂载，
+ *         K36 量到的是「没有样本」而不是「够 44」：**取样前置**也是分母；
+ *     M73 摘掉 smoke-topbar 里清 tn_onboarded 的那一行——这一条同时红两根锚（A39 与 ⑥ 的恰 1 处），
+ *         钉 removeItem 而不是钉 OB_CLEAR 那个名字：改名要绿，行为没了要红；
+ *     M74 K36 改名成 K36x（齐备检「缺 K36」必须响，§31 那一课在本批的第三次发作）；
+ *     M75／M76 打的是**成双那两根**：`i <= 36` 与 `size >= 36` 各降一档。只抬编号不抬阈值（或反之），
+ *         新加的那条判据就没人查它在不在——本批加 K36 时两根都抬过，所以两根都得能红。
+ *
  * G01／G02 是**设计内静默**：G01 往 map.css 追加一条 `button.act,button.act.sec{min-height:24px}` 的覆写，
  * §39 的字面量锚一根没动（那两条被锚的规则原样在），区段检也不看 map.css——源码腿必须全绿。
  * 触控高度只有浏览器腿能抓（K01 顶栏内逐个量 rect、K02 扫 40 一族残留、K32 量 computed）。
@@ -40,7 +57,7 @@
  * 标签永久消失，这件事只有 K33 在 390 档量 .act-label 的高度看得见。
  * 这两条是给「存在性锚守不住形状」留的证据，不是漏跑。
  *
- * 用法: MUT_LOG=tools/out/b25b-mut-verify39.js.txt node tools/out/mut-verify39.js
+ * 用法: MUT_LOG=tools/out/b33g-mut-verify39.txt node tools/out/mut-verify39.js
  * **不要与别的变异网或像素基线并行**：变异打的就是 smoke-topbar 要量的那几页；
  * 也不要在本网跑着的时候编辑这些文件——还原用的是启动时的快照，会把并发编辑一并抹掉。
  */
@@ -49,17 +66,9 @@ const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 
-/* 独占锁：同一时间只许一张变异网动树。认所有 .mut*.lock，不认自己那一个名字：
-   本族各网的快照都含 tools/verify.js（还常含 README.md 与同一批产品文件），并发跑会各自从自己的
-   启动快照回写——后还原那张把前一张刚还原的内容一并抹掉，树停在中间态而两边都报「全过」。
-   取锁用 flag 'wx'（存在即失败），把「同时启动」那一格也堵掉。 */
-const OUTDIR = path.join(ROOT, 'tools', 'out');
-const LOCK = path.join(OUTDIR, '.mut39.lock');
-function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
-try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
-catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
-const BUSY = fs.readdirSync(OUTDIR).filter(x => /^\.mut\d+\.lock$/.test(x) && x !== '.mut39.lock');
-if (BUSY.length) { unlock(); console.log('中止：' + OUTDIR + ' 里还有别的变异网锁 ' + BUSY.join('、') + '（快照与本网重叠，并发跑两边读数全废）'); process.exit(2); }
+/* 独占锁收在单点：tools/mut-lock.js（flag 'wx' 取锁＋认所有 .mut*.lock＋退出释放）。
+   源码腿与浏览器腿共用这一枚 .mut39.lock，后起的那张直接 exit 2。 */
+const unlock = require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');
 
 const LOG = process.env.MUT_LOG || '';
 const LOGP = LOG ? (path.isAbsolute(LOG) ? LOG : path.join(ROOT, LOG)) : '';
@@ -73,7 +82,7 @@ console.log = function () {
 
 const FILES = ['design.css', 'map.css', 'travel-map.html', 'topic.html', 'node-manager.html', 'wishlist.html',
   'story.html', 'search.html', 'checklist.html', 'album-edit.html', 'expense.html', 'trip.html',
-  'planner.html', 'travel-notes.js', 'me.html', 'tools/smoke-topbar.js', 'README.md', 'tools/verify.js'];
+  'planner.html', 'travel-notes.js', 'me.html', 'index.html', 'tools/smoke-topbar.js', 'README.md', 'tools/verify.js'];
 const ORIG = {};
 FILES.forEach(f => { ORIG[f] = fs.readFileSync(path.join(ROOT, f), 'utf8'); });
 function restore() {
@@ -100,6 +109,11 @@ const FP = [
   ['design.css', 'body .tn-x{width:44px'],
   ['travel-notes.js', 'document.head.appendChild(s);'],
   ['me.html', '.entry .ic{color:'],
+  ['design.css', 'body .ob-skip,body .ob-btn{min-height:44px}'],
+  ['index.html', '.ob-btn{padding:0 26px;'],
+  ['index.html', "if(localStorage.getItem('tn_onboarded')) return;"],
+  ['tools/smoke-topbar.js', "ok('K36 "],
+  ['tools/smoke-topbar.js', "localStorage.removeItem('tn_onboarded')"],
   ['tools/verify.js', '§39 顶栏一族与触控口径闸门'],
 ];
 FP.forEach(([f, n]) => {
@@ -385,10 +399,10 @@ run('M49 ZERO39 的一行少写正向对照源码字段（那条期望 0 的对�
 run('M50 ZERO39 把 needle 写坏一个字符（needle 对不上真实改前形态＝拿不存在的串证明它不存在，正向对照必须喊「这个 0 不是证据」）', 'tools/verify.js',
   [["    ['wishlist.html', '.wl-remove{width:',", "    ['wishlist.html', '.wl-removeQ{width:',"]],
   '这条期望 0 的正向对照失效');
-run('M51 锚点表条数守卫：把阈值抬到当前长度 + 1（守卫自己必须能红，否则「82 条」只是文案）。' +
-  '阈值必须比 A39.length 大 1：25-B 把表从 60 长到 64、33-E 长到 82，原先「从 58 抬到 65」这一条' +
-  '抬不过新长度，就此打不红——一个只会守旧长度的守卫，锚一加长就自己失效（§34 那一课的第二种形状）', 'tools/verify.js',
-  [['if (A39.length < 80)', 'if (A39.length < 83)']],
+run('M51 锚点表条数守卫：把阈值抬到当前长度 + 1（守卫自己必须能红，否则「88 条」只是文案）。' +
+  '阈值必须比 A39.length 大 1：25-B 把表从 60 长到 64、33-E 长到 82、33-G 长到 88，原先「从 58 抬到 65」' +
+  '与后来「从 80 抬到 83」这两版都抬不过新长度，就此打不红——一个只会守旧长度的守卫，锚一加长就自己失效（§34 那一课的第二种形状）', 'tools/verify.js',
+  [['if (A39.length < 86)', 'if (A39.length < 89)']],
   '锚点表被削减');
 
 /* ============ ⑥ 浏览器腿在场：改名 / 复制 / 换档 / 摘登记（M52–M56） ============ */
@@ -398,7 +412,7 @@ run('M52 smoke-topbar 把 K16 改名成 K16x（齐备检认「id + 空格」：�
 run('M53 smoke-topbar 复制一条 K02（改名会连带红齐备检，复制才只喂条数守卫——§34 同一课）', 'tools/smoke-topbar.js',
   [["  ok('K02 顶栏内 40×40 一族零残留（改前 13 页里 11 页命中；这族曾经的错法是 design.css/map.css/页内联/内联 style 各写一遍，谁后加载谁说了算）',\n    fortyAll.length === 0, fortyAll.slice(0, 5).join(' | ') || '0 条');",
     "  ok('K02 顶栏内 40×40 一族零残留（改前 13 页里 11 页命中；这族曾经的错法是 design.css/map.css/页内联/内联 style 各写一遍，谁后加载谁说了算）',\n    fortyAll.length === 0, fortyAll.slice(0, 5).join(' | ') || '0 条');\n  ok('K02b 复制的一条（本条只为证明 §39 的条数守卫有线）',\n    fortyAll.length === 0, 'x');"]],
-  '判据条数不是 36');
+  '判据条数不是 37');
 run('M54 smoke-topbar 把 328×723 真机主档换成 375×812（「真机档已验证」就验在一台不存在的手机上）', 'tools/smoke-topbar.js',
   [['{ width: 328, height: 723 }', '{ width: 375, height: 812 }']],
   '真机主档');
@@ -464,6 +478,43 @@ run('M66 verify.js 自己：view39 不再把 .md 归进「只折叠空白、不�
 runAll('M67 smoke-topbar 的 PN_SEL 整族改名（脚本照样跑、K34 照样绿，但那是「零枚矮于 44」绿在一张空名单上——§38「取样档位没有被测对象＝假绿」同一个形状）', 'tools/smoke-topbar.js',
   'PN_SEL', 'PANEL_SELS',
   '抽不出 smoke-topbar.js 的 PN_SEL 名单');
+
+/* ============ ⑨ 批次 33-G：首启引导蒙层（第三处「两腿都无视野」的屏，M68–M76） ============
+   这一族的靶是**成对**写的，因为盲区本身就是双向的（地基读数 tools/out/b33g-obskip.txt：改前「跳过 ›」60.2×34）：
+     · M69 往注入串写回**不带 body 前缀**的尺寸 → design.css 的 body .ob-btn（0-1-1）永远赢 → 画面照旧 44，
+       浏览器腿结构性看不见，只有本节的 ZERO39 有视野（与 M62 同一个形状，落在同一族的另一种写法上）；
+     · M70 把选择器加上 body 前缀 → 同特异度＋后加载＝真覆盖，两腿都有视野（mut-smoke39 的 B 族同时打它）；
+     · M71／M72 打的是**分母与取样前置**：调用点没了、或蒙层压根不挂载，「零枚矮于 44」就是一个没有
+       被测对象的页面上的绿（§38 那一课在这一屏的两种形状）；
+     · M75／M76 打成双那两根（编号上界与条数阈值）：33-G 加 K36 时两根都抬过，只抬一根等于没抬。 */
+run('M68 design.css 那条首启引导的地板单点从 44 漂回 34（改前这一族根本没在任何地方被点名过，全靠 padding 撑）', 'design.css',
+  [['body .ob-skip,body .ob-btn{min-height:44px}', 'body .ob-skip,body .ob-btn{min-height:34px}']],
+  '首启引导那一屏的地板单点');
+run('M69 index.html 的注入串里给 .ob-btn 写回 min-height:44px（值对、出处错；而且它不带 body 前缀、赢不了 design.css——浏览器腿结构性看不见，这条只有源码腿有视野）', 'index.html',
+  [['.ob-btn{padding:0 26px;', '.ob-btn{min-height:44px;padding:0 26px;']],
+  'index.html 里出现「min-height:44px」');
+run('M70 注入串里那族选择器加上 body 前缀（同特异度＋后加载＝真覆盖，这一族里唯一两腿都有视野的写法）', 'index.html',
+  [['.ob-skip{position:absolute;', 'body .ob-skip{position:absolute;']],
+  'index.html 里出现「body .ob-」');
+run('M71 把「跳过 ›」的调用点改名（K36 的分母宿主没了而判据还在：零枚矮于 44 绿在一张没有钮的屏上）', 'index.html',
+  [['class="ob-skip"', 'class="obSkipX"']],
+  'K36 的分母宿主');
+run('M72 把蒙层的挂载前置换成另一个键名（tn_onboarded 这个名字没了，K36 读到的「没有样本」会被当成「够 44」——§38 那一课在这一屏的形状）', 'index.html',
+  [["if(localStorage.getItem('tn_onboarded')) return;", "if(localStorage.getItem('tn_ob_done')) return;"]],
+  '取样前置');
+run('M73 smoke-topbar 摘掉清 tn_onboarded 那一行（K36 靠它把蒙层挂上来：行为没了要红，而 OB_CLEAR 改名字不该红——所以钉 removeItem 不钉名字）', 'tools/smoke-topbar.js',
+  [['const OB_CLEAR = () => { try { localStorage.removeItem(\'tn_onboarded\'); } catch (e) {} };',
+    'const OB_CLEAR = () => {};']],
+  '清 tn_onboarded 的机制不是恰 1 处');
+run('M74 smoke-topbar 把 K36 改名成 K36x（齐备检认「id + 空格」：判据消失了却仍绿，就是 §31 那一课的第三次发作）', 'tools/smoke-topbar.js',
+  [["ok('K36 ", "ok('K36x "]],
+  '缺 K36');
+run('M75 smoke-topbar 的齐备检上界降回 i <= 35（只加判据不抬上界，K36 就不在检查范围里）', 'tools/smoke-topbar.js',
+  [['i <= 36', 'i <= 35']],
+  '浏览器腿齐备检的上界');
+run('M76 smoke-topbar 的条数阈值降回 size >= 35（与上一根成双：抬了编号不抬阈值，或反过来，都是改个数字照样绿）', 'tools/smoke-topbar.js',
+  [['size >= 36', 'size >= 35']],
+  '条数守卫阈值');
 
 /* ============ 设计内静默：只有浏览器腿有视野 ============ */
 greenCase('G01 map.css 追加一条 button.act 的 24px 覆写（被锚钉的字面量一根没动、区段检不看 map.css：源码腿必须全绿，只有 K01／K02 量 rect 能抓）', 'map.css',

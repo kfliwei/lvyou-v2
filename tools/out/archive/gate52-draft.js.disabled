@@ -1,0 +1,177 @@
+/* tools/out/gate52-draft.js — §52 的草稿腿：与将来落进 tools/verify.js 的那一块**逐字节同一份**
+ *
+ * 为什么要先在草稿里跑：§52 是一把「扫描器 + 期望 0」的尺子，按本项目的纪律（守卫记忆第 5 ／41 条），
+ * 尺子没自校准就进闸门，等于把一条会系统性撒谎的判据常驻在每次 verify 里。草稿先在盘上把 41 张网数一遍，
+ * 四条对照都成立、七项读数与探针（tools/out/probe33h-lock.js 的 §52 口径预跑）逐项对得上，再原样搬进
+ * tools/verify.js（搬完删掉本草稿，不留第二份实现）。
+ *
+ * 用法：cd lvyou-v2 && node tools/out/gate52-draft.js      （cwd 必须是仓库根，路径按相对写法）
+ */
+const fs = require('fs');
+const path = require('path');
+
+/* §52-BEGIN —— 下面这一块要逐字节搬进 tools/verify.js */
+{
+  let bad52 = 0;
+  const F52 = m => { bad52++; console.log('FAIL §52 变异网独占锁与还原保障闸门: ' + m); };
+  const rd52 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+
+  /* ---- ① 单点模块自己的三件定义（每条各配一枚变异：改窄 ANY／摘 wx／摘释放钩子都要红在本条） ---- */
+  const MS52 = rd52('tools/mut-lock.js');
+  if (!MS52) { F52('读不到 tools/mut-lock.js——所有网的独占锁都失去依据，本节余下的读数全部无效'); }
+  const ANY52 = MS52 ? ((MS52.match(/^[ \t]*const ANY = \/(\^[^\n]*?)\//m) || [])[1] || null) : null;
+  if (!ANY52) F52('抽不到模块里 `const ANY` 那一行（写法漂了 ⇒ 下面的「同源」比对会拿 null 去比，全场假红或假绿）');
+  const nAny52 = (MS52.match(/const ANY =/g) || []).length;
+  if (nAny52 !== 1) F52('模块里 `const ANY` 定义是 ' + nAny52 + ' 处（期望恰 1）：两把筛子就没有「同源」可言');
+  const nWx52 = (MS52.match(/flag: 'wx'/g) || []).length;
+  if (nWx52 !== 1) F52('模块里取锁不是恰 1 处 `flag: \'wx\'`（实测 ' + nWx52 + '）：退回 existsSync 再写就有「同时启动」那一格 race');
+  const nUnlock52 = (MS52.match(/process\.on\('exit', unlock\)/g) || []).length;
+  if (nUnlock52 !== 1) F52('模块没有恰 1 处退出释放（实测 ' + nUnlock52 + '）：崩在中间留下的锁会让后面每一张网永远拒跑');
+
+  /* ---- ② 一把尺子：从网自己的源码文本里派生「锁／筛子／还原保障／动不动树」 ---- */
+  const NARROW52 = '^\\.mut\\d+\\.lock$';
+  function arg52(src, i) {
+    let depth = 0, out = '';
+    for (let k = i; k < src.length; k++) {
+      const ch = src[k];
+      if (ch === '(' || ch === '[') depth++;
+      else if (ch === ')' || ch === ']') { if (depth === 0) break; depth--; }
+      else if (ch === ',' && depth === 0) break;
+      out += ch;
+    }
+    return out.trim();
+  }
+  /* 锁名只从「取锁那一下」的调用形状里抽，不从全文扫：
+     mut-verify52.js（守这张闸门的网）自己就得原样抄下别人的 require 行当靶串，扫全文会把别人家的锁名
+     算到它头上——分类器一撒谎，⑥⑦ 两条判据当场失真（同一类坑：守卫记忆「扫描器要加分母对账」）。 */
+  const ACQ52 = /mut-lock\.js'\)\)\s*\('(\.mut[\w.-]*\.lock)'\)/g;
+  const INL52 = /const LOCK = path\.join\([^)]*,\s*'(\.mut[\w.-]*\.lock)'\)/g;
+  function lockNamesOf(src) {
+    const names = [];
+    const push = n => { if (n && names.indexOf(n) < 0) names.push(n); };
+    let m;
+    ACQ52.lastIndex = 0; while ((m = ACQ52.exec(src))) push(m[1]);
+    INL52.lastIndex = 0; while ((m = INL52.exec(src))) push(m[1]);
+    return names;
+  }
+  function scan52(src) {
+    const lockNames = lockNamesOf(src);
+    const usesModule = /mut-lock\.js/.test(src);
+    const wx = /flag:\s*'wx'/.test(src);
+    const busyRe = usesModule ? ANY52 : ((src.match(/readdirSync\([^)]*\)[^\n]*?filter\([^)]*\/(\^\\\.mut[^/]*)\//) || [])[1] || null);
+    const hasExit = /process\.on\('exit'/.test(src);
+    const hasFinally = /finally\s*\{/.test(src);
+    /* 动没动树＝两把尺子取并集：写盘目标（括号平衡取第一参数，只写自己日志那处不算）∪「有快照/还原这一族」
+       ——只认 path.join(...) 形状的第一版把 fs.writeFileSync(F,…) 与 fs.writeFileSync(c.file,…) 整类漏掉，
+       三张真写盘的网被印成「不算雷」（守卫记忆第 5 条「扫描器要加分母对账」在本项目内的第三次发作）。 */
+    const key = 'writeFileSync(';
+    const tg = [];
+    let i = 0;
+    while ((i = src.indexOf(key, i)) >= 0) { tg.push(arg52(src, i + key.length)); i += key.length; }
+    const isLog52 = a => /^(LOGP|LOG)$/.test(a) || /\.txt['"]?\s*$/.test(a);
+    const writes = tg.filter(a => !isLog52(a)).length;
+    const snapish = /(?:function|const)\s+restore\b/.test(src) || (/\bbuf\b/.test(src) && /readFileSync/.test(src)) ||
+      /ORIG\b/.test(src) || /\bsnap\b/.test(src);
+    return {
+      lockNames, usesModule, wx, busyRe, hasExit, hasFinally,
+      narrow: !usesModule && busyRe === NARROW52,
+      offsrc: !usesModule && !!busyRe && ANY52 && busyRe !== ANY52,
+      racey: !usesModule && lockNames.length > 0 && !wx,
+      tree: writes > 0 || !!snapish,
+      locked: usesModule || lockNames.length > 0,
+    };
+  }
+
+  /* ---- ③ 尺子自己先校准：四条，任一失效本节直接判红（一条会系统性撒谎的常驻闸门比没有闸门更坏） ---- */
+  const NETS52 = fs.readdirSync('tools/out').filter(f => /^mut[-\w]*\.js$/.test(f)).sort();
+  const D52 = {};
+  NETS52.forEach(f => { D52[f] = scan52(rd52('tools/out/' + f)); });
+  const CAL52 = [];
+  const posInline = D52['mut-verify50.js'];
+  CAL52.push(['甲 正向（内联形状）：mut-verify50.js 必须数到锁名、wx、且筛子与模块同源',
+    !!(posInline && posInline.lockNames.length === 1 && posInline.wx && !posInline.usesModule && !posInline.offsrc)]);
+  const posModule = D52['mut-verify16.js'];
+  CAL52.push(['乙 正向（模块形状）：mut-verify16.js 必须被认成「接了单点模块」（不这么认就会把全体接模块的网误报成「不筛别人」）',
+    !!(posModule && posModule.usesModule && posModule.locked)]);
+  const synNoLock = scan52("const fs=require('fs');fs.writeFileSync(path.join(ROOT,'design.css'),'x');function restore(){}process.on('exit',restore);");
+  CAL52.push(['丙 退化（合成：写盘无锁）：必须数到锁名 0 个、且判成真动树',
+    !!(synNoLock.lockNames.length === 0 && !synNoLock.locked && synNoLock.tree)]);
+  const synVar = scan52("const fs=require('fs');const snaps=CASES.map(c=>({c,buf:fs.readFileSync(c.file)}));" +
+    "for(const{c,buf}of snaps){fs.writeFileSync(c.file,s.replace(c.old,c.neo));}");
+  CAL52.push(['丁 退化（合成：写盘目标是变量 `c.file`，v1 漏的那一类）：必须判成真动树',
+    !!(synVar.tree && synVar.lockNames.length === 0)]);
+  CAL52.forEach(c => { if (!c[1]) F52('自校准失效 — ' + c[0] + '（尺子不灵，本节余下读数不可信）'); });
+  const calibOk = CAL52.every(c => c[1]);
+
+  /* ---- ④ 七项期望 0 ---- */
+  const lists = [];
+  const add52 = (name, arr, why) => { lists.push([name, arr, why]); };
+  add52('没有锁却真动树', NETS52.filter(f => calibOk && D52[f].tree && !D52[f].locked),
+    '并发跑时后还原那张把前一张刚还原的内容抹掉，树停在中间态而两边都报「全过」');
+  add52('锁名筛子退回窄筛 \\d+', NETS52.filter(f => calibOk && D52[f].narrow),
+    '带字母的锁名（.mut25b.lock／.mut-verify19.lock）直接从视野穿过去＝「我看得见所有人，所有人看不见我」');
+  add52('自写筛子与模块 ANY 不同源', NETS52.filter(f => calibOk && D52[f].offsrc),
+    '两把筛子长得不一样就总有一天不一样；同源串从 tools/mut-lock.js 现场读，不手抄');
+  add52('有锁但取锁不是 flag wx', NETS52.filter(f => calibOk && D52[f].racey),
+    '先筛列表再写（或 existsSync 再写）留着一格「同时启动」的 race');
+  add52('动树却既无 exit 钩子也无 finally', NETS52.filter(f => calibOk && D52[f].tree && !D52[f].hasExit && !D52[f].hasFinally),
+    '崩在注入与还原之间会把树留在变异态，下一次读数从脏树开始');
+  add52('接了模块却把锁名传得不对', NETS52.filter(f => calibOk && D52[f].usesModule && D52[f].lockNames.length !== 1),
+    'acquire(name) 那一枚锁名就是别人筛子里认的那串：没传＝这张网的锁没人认得（模块在场不等于上了锁），数到两枚＝半转换或一把锁两开');
+  add52('一把锁名被两张不同的网共用', (function () {
+    const seen = {}, dup = [];
+    NETS52.forEach(f => {
+      if (!calibOk) return;
+      D52[f].lockNames.forEach(n => {
+        /* 33-E 定过口径：源码腿与浏览器腿**故意**共用同一枚 .mutNN.lock（两侧同抢一把，只有一侧带锁等于没有） */
+        if (n === '.mut39.lock') return;
+        if (seen[n]) dup.push(n + '（' + seen[n] + ' 与 ' + f + '）');
+        else seen[n] = f;
+      });
+    });
+    return dup;
+  })(), '两张网各自持有同名锁＝其中一张永远起不来，或更坏：都以为自己拿到了');
+  let sum52 = 0;
+  lists.forEach(l => { sum52 += l[1].length; });
+  lists.forEach(l => {
+    if (l[1].length) F52(l[0] + ' ' + l[1].length + ' 张（' + l[1].join('、') + '）：' + l[2]);
+  });
+
+  /* ---- ⑤ 正向锚：六张本批转换过的网，逐字节钉那一行 require（形状漂了要红，不能只靠分类器） ---- */
+  const CONV52 = [
+    ['tools/out/mut-verify39.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');"],
+    ['tools/out/mut-smoke39.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');"],
+    ['tools/out/mut-verify25b.js', "const unlock = require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut25b.lock');"],
+    ['tools/out/mut-avoid-e.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-avoid-e.lock');"],
+    ['tools/out/mut-shell-res.js', "require(path.join(__dirname, '..', '..', 'tools', 'mut-lock.js'))('.mut-shell-res.lock');"],
+    ['tools/out/mut-verify15-fallback.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify15-fallback.lock');"],
+  ];
+  CONV52.forEach(c => {
+    const s = rd52(c[0]);
+    if (!s) { F52('缺 ' + c[0] + '（本批转换过的网不在盘上）'); return; }
+    const n = s.split(c[1]).length - 1;
+    if (n !== 1) F52(c[0] + ' 里那行独占锁 require 命中 ' + n + ' 次（期望恰 1）：' + c[1]);
+  });
+  /* 老写法不许回来：三张新接模块的网里不许再残留自己写的那把 existsSync 取锁 */
+  ['tools/out/mut-verify25b.js', 'tools/out/mut-avoid-e.js', 'tools/out/mut-shell-res.js', 'tools/out/mut-verify15-fallback.js'].forEach(f => {
+    const s = rd52(f);
+    if (/fs\.existsSync\((LOCK|ME)\b\)/.test(s)) F52(f + ' 残留老写法「先 existsSync 再写」（有 race）');
+  });
+
+  /* 新闸门不写进 README 就等于没装（§50/§51 同一条纪律） */
+  if (rd52('README.md').indexOf('§52') < 0) F52('README.md 的 verify 清单没提 §52（新闸门不登记就等于没装：下一个人只会去找代码里有的节号，不会知道这一节本该存在）');
+
+  const modN52 = NETS52.filter(f => D52[f].usesModule).length;
+  const inlineN52 = NETS52.filter(f => !D52[f].usesModule && D52[f].locked).length;
+  const nolockN52 = NETS52.filter(f => !D52[f].locked).length;   /* 这个数必须现场派生：抄成常量「0」就是闸门自己印谎 */
+  console.log('变异网独占锁与还原保障闸门: ' + NETS52.length + ' 张网逐张分类（接模块 ' + modN52 + '／自写内联 ' +
+    inlineN52 + '（三件齐不齐由下面七项逐条判，这里只分形）／没锁 ' + nolockN52 + '，其中真动树 ' +
+    NETS52.filter(f => !D52[f].locked && D52[f].tree).length + '）；' +
+    '单点模块 tools/mut-lock.js 自身三件定义各恰 1（const ANY／flag wx／exit 释放），' +
+    '筛子串由本节从模块现场读出做「同源」比对（不手抄）；七项期望 0（没锁却真动树／窄筛 \\d+／自写筛子不同源／非 wx／动树无还原保障／模块在而锁名传得不对／一锁两网），' +
+    '外加 ' + CONV52.length + ' 张本批转换网的 require 行逐字节锚 + ' + CAL52.length + ' 把自校准（甲内联 乙模块 丙合成无锁 丁合成变量写盘——丁就是 v1 探针漏掉的那一类形状）；' +
+    '锁名一律从「取锁那一下」的调用形状里抽（模块式 require(...)(\'.mutNN.lock\') 或内联式 const LOCK = path.join(…, \'.mutNN.lock\')），不扫全文——扫全文会把「靶串里抄了别人家锁名」的网误判成多枚锁名；' +
+    '运行时那条「别人持锁必须拒跑」不由本节自证，由 node tools/mut-lock.js --selftest 的子进程实测代证（甲乙丙丁四条，现场有别的锁时丁显式 SKIP 不静默算过）');
+  if (bad52) console.log('§52 合计 ' + bad52 + ' 条红');
+}
+/* §52-END */

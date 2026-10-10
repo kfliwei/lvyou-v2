@@ -22,6 +22,8 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..', '..');
+/* 独占锁收在单点：tools/mut-lock.js（本网写 topic-common.js 再逐字节还原，并发跑会把别的网还原抹掉） */
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-avoid-e.lock');
 const F = path.join(ROOT, 'topic-common.js');
 const RAW = fs.readFileSync(F, 'utf8');
 /* 本仓库源码是 CRLF，锚点一律按 LF 写；比对与写回时换算，还原用原始字节 */

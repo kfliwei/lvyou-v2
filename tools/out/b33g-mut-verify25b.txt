@@ -1,0 +1,16 @@
+红对 M01 摘掉 ARCHIVE 回执那一行 → FAIL §25 像素基线闸门: ARCHIVE 那条留档回执不见了（留档块被整支摘掉）
+红对 M02 把整段留档挪到覆盖之后 → FAIL §25 像素基线闸门: 留档排在覆盖之后（ARCHIVE@8821 > 覆盖@8581）——那留的是新帧，旧帧照样没了
+红对 M03 摘掉逐张 copyFileSync → FAIL §25 像素基线闸门: 改拍前没有逐张留档（copyFileSync 那行不是恰 1 处）——覆盖即不可回，见 tools/out/b33f-floor.txt
+红对 M04 摘掉 .gitignore 里那条忽略 → FAIL §25 像素基线闸门: .gitignore 里 visual-baseline-prev/ 的忽略不是恰 1 处（实测 0）——109 张二进制会混进 git status，而它跟 visual-baseline/ 是**两个目录名**，前一条规则盖不住它
+PASS M05 正向对照：干净树 — 干净树 §25 红=false 退出码=0
+红对 M06 摘掉红态无条件落盘那行 → FAIL §25 像素基线闸门: 红态无条件留当前帧那一行不是恰 1 处（实测 0）——缩回「只有带 --keep-current 才留」，33-G 那次红帧照样丢
+红对 M07 把留帧判据缩回只看 --keep-current → FAIL §25 像素基线闸门: 留帧判据的形状变了（期望恰 1 处 const keepCur = KEEP || !ok）
+红对 M08 摘掉报告里的 curFrame 字段（留了档不登记在哪） → FAIL §25 像素基线闸门: 报告里没带 curFrame 回执——留了档却没登记在哪，等于下一轮还是要猜
+红对 M09 摘掉 stdout 的 EVID 回执 → FAIL §25 像素基线闸门: 红态没印 EVID 回执（当前帧落在哪必须在 stdout 可见，否则人只看到一张 diff 图）
+红对 M10 把 curF 单点内联到红态那一行 → FAIL §25 像素基线闸门: .cur.png 这个文件名拼了 2 处（期望恰 1：单点被内联到别处，以后改目录或扩展名两处会分叉）
+红对 M11 摘掉 README 那句登记 → FAIL §25 像素基线闸门: README.md 没登记「只读跑批的红态当前帧自动留档」这条口径（同上：口径变了不写进 README 就等于没改）
+红对 M12 把 EVID 回执挪到 FAIL 回执之前 → FAIL §25 像素基线闸门: 留帧/FAIL 回执/EVID 回执顺序变了（落帧@10351 FAIL@10839 EVID@10731）——EVID 说的是「那张红帧已经落盘」，它不许排在留帧之前
+--- 12 发：红对 11 / 静默 0 / 异常 0 ---
+还原后三份被改文件的净增删（应与开网前一致，只作核对不作判据）：
+4	4	README.md
+17	4	tools/visual-check.js

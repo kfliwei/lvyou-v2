@@ -62,7 +62,7 @@ const LOCK = path.join(OUTDIR45, '.mut45.lock');
 function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
 try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
 catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
-const BUSY45 = fs.readdirSync(OUTDIR45).filter(f => /^\.mut\d+\.lock$/.test(f) && f !== '.mut45.lock');
+const BUSY45 = fs.readdirSync(OUTDIR45).filter(f => /^\.mut[\w.-]+\.lock$/.test(f) && f !== '.mut45.lock');
 if (BUSY45.length) { unlock(); console.log('中止：' + OUTDIR45 + ' 里还有别的变异网锁 ' + BUSY45.join('、') + '（快照与本网重叠，并发跑两边读数全废）'); process.exit(2); }
 
 const LOG = process.env.MUT_LOG || '';

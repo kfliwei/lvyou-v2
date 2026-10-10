@@ -2336,16 +2336,41 @@ const EMOJI_MARK = 'emoji-ok:';
     else if (iOver < 0) F25('找不到覆盖基线那一行，顺序对账失去依据（fs.writeFileSync(baseF, buf) 被改名？）');
     else if (iArch > iOver) F25('留档排在覆盖之后（ARCHIVE@' + iArch + ' > 覆盖@' + iOver + '）——那留的是新帧，旧帧照样没了');
   }
+  /* 红的当前帧必须无条件留档（批次 33-G 补的第二条腿，跟上面「覆盖基线前先整批留档」同族）。
+     起因：me.ledger.390x844 那一发 21.37% 的红（tools/out/b33g-baseline-readonly.txt:128），
+     同一棵树带 --keep-current 复跑成 109/109、那张的当前帧与基线同 md5
+     （tools/out/b33g-baseline-readonly2.txt）——可红那一屏的像素在只读跑批里**根本没落盘**
+     （旧口径只有 --keep-current 才落当前帧），归因只剩「再跑一次碰运气」。
+     钉六件形状 + 一条顺序：单点落盘名、KEEP 那条、红态无条件那条、keepCur 判据、
+     报告里的 curFrame 字段、stdout 的 EVID 回执；顺序是「留帧 < FAIL 回执 < EVID 回执」。 */
+  const CURDEF = 'const curF = tag => path.join(DIFF,';
+  if (cnt25(VC, CURDEF) !== 1) F25('当前帧落盘名不是单点（' + CURDEF + ' 实测 ' + cnt25(VC, CURDEF) + ' 处，期望恰 1）');
+  if (cnt25(VC, '.cur.png') !== 1) F25('.cur.png 这个文件名拼了 ' + cnt25(VC, '.cur.png') + ' 处（期望恰 1：单点被内联到别处，以后改目录或扩展名两处会分叉）');
+  if (cnt25(VC, 'if (KEEP) fs.writeFileSync(curF(tag), buf);') !== 1) F25('--keep-current 那条落盘不见了（它管的是「绿态也要能并排看」，跟红态留档是两条腿）');
+  const REDW = 'if (!KEEP && !ok) fs.writeFileSync(curF(tag), buf);';
+  if (cnt25(VC, REDW) !== 1) F25('红态无条件留当前帧那一行不是恰 1 处（实测 ' + cnt25(VC, REDW) + '）——缩回「只有带 --keep-current 才留」，33-G 那次红帧照样丢');
+  if (cnt25(VC, 'const keepCur = KEEP || !ok;') !== 1) F25('留帧判据的形状变了（期望恰 1 处 const keepCur = KEEP || !ok）');
+  if (cnt25(VC, 'curFrame: keepCur ? path.relative(ROOT, curF(tag)) : undefined') !== 1) F25('报告里没带 curFrame 回执——留了档却没登记在哪，等于下一轮还是要猜');
+  if (cnt25(VC, "console.log('EVID ' + tag") !== 1) F25('红态没印 EVID 回执（当前帧落在哪必须在 stdout 可见，否则人只看到一张 diff 图）');
+  {
+    const iRed = VC.indexOf(REDW);
+    const iDiff = VC.indexOf("console.log('FAIL ' + tag + ' diff '");
+    const iEvid = VC.indexOf("console.log('EVID ' + tag");
+    if (iRed < 0 || iDiff < 0 || iEvid < 0) F25('红态收尾三行找不全（落帧@' + iRed + ' FAIL@' + iDiff + ' EVID@' + iEvid + '），顺序对账失去依据');
+    else if (!(iRed < iDiff && iDiff < iEvid)) F25('留帧/FAIL 回执/EVID 回执顺序变了（落帧@' + iRed + ' FAIL@' + iDiff + ' EVID@' + iEvid + '）——EVID 说的是「那张红帧已经落盘」，它不许排在留帧之前');
+  }
   const GI25 = rd25('.gitignore');
   if (cnt25(GI25, 'tools/out/visual-baseline-prev/') !== 1) F25('.gitignore 里 visual-baseline-prev/ 的忽略不是恰 1 处（实测 ' + cnt25(GI25, 'tools/out/visual-baseline-prev/') + '）——109 张二进制会混进 git status，而它跟 visual-baseline/ 是**两个目录名**，前一条规则盖不住它');
   if (rd25('README.md').indexOf('LCP 中位') < 0) F25('README.md 没登记性能预算的采样口径（改口径不写进 README 就等于没改，下一个人还会拿单次读数当真相）');
   if (rd25('README.md').indexOf('#nmTip') < 0) F25('README.md 的视觉闸门口径没登记 #nmTip 这一类（新名单不写进 README 就等于没装）');
   if (rd25('README.md').indexOf('.ui-tilewarn') < 0) F25('README.md 的视觉闸门口径没登记 .ui-tilewarn 这一类');
   if (rd25('README.md').indexOf('visual-baseline-prev') < 0) F25('README.md 没登记「--update 改拍前先整批留档」这条口径（闸门改了口径，不写进 README 就等于没装）');
+  if (rd25('README.md').indexOf('红态当前帧自动留档') < 0) F25('README.md 没登记「只读跑批的红态当前帧自动留档」这条口径（同上：口径变了不写进 README 就等于没改）');
   console.log('像素基线闸门: 摘除名单整串相等（' + n25 + ' 个选择器）且摘除动作真走它；只认 .ui-toast 的旧写法零残留；' +
     '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；' +
     '性能预算取 3 次采样的 LCP 中位 + CLS 最大（单次采样是掷硬币）；' +
-    '改拍前逐张留档到 visual-baseline-prev/ 且 ARCHIVE 排在 fs.writeFileSync(baseF, buf) 之前（基线本体不入库，覆盖即不可回）、该目录在 .gitignore 里单独一条；README 已登记');
+    '改拍前逐张留档到 visual-baseline-prev/ 且 ARCHIVE 排在 fs.writeFileSync(baseF, buf) 之前（基线本体不入库，覆盖即不可回）、该目录在 .gitignore 里单独一条；' +
+    '红态当前帧无条件落盘（curF 单点 + .cur.png 只拼一次 + 报告带 curFrame + stdout 带 EVID，顺序 留帧→FAIL→EVID）；README 已登记');
   fail += bad25;
 }
 
@@ -4751,7 +4776,7 @@ const EMOJI_MARK = 'emoji-ok:';
    就是本批要补的洞），所以本节两条腿：
      ① 源码侧钉「尺寸只在 design.css 单点点名，各页只留皮肤」——不钉值，钉**出处唯一**：
         各页那族的规则体里出现 width:/height:（含 min-*）就是红，无论写的是 40 还是 44；
-     ② 浏览器腿 rect/computed 判据住在 tools/smoke-topbar.js（K00–K35），本节只钉它们
+     ② 浏览器腿 rect/computed 判据住在 tools/smoke-topbar.js（K00–K36），本节只钉它们
         在场、编号连续、两档取样（328×723 真机主档 + 320×640 装箱最紧档）都跑。
    收口过程中普查另捞出三处同族，一并量化进浏览器腿：地图浮控件在玻璃柱里贴左（留白 0/8 与
    0/4 → K31）、内容区三枚 40px（.ck-remove／.ech-del／.tb-open → K32）、story 那颗 34px 下拉（K27）。
@@ -4765,6 +4790,18 @@ const EMOJI_MARK = 'emoji-ok:';
    注入串里若有人写回 `.tn-x{width:34px}`，design.css 的 `body .tn-x`（特异度 0-1-1）照样赢，浏览器腿
    读到的仍是 44 —— 只有源码侧「规则体零尺寸」那条看得见；反过来 design.css 那三条单点被改名或被删，
    源码锚会红，而「面板里真的够不够 44」只有 rect 量得到。
+   **批次 33-G 补的是同一族的第三处视野外**：index.html 的首启引导那一屏。它不在 BAR_PAGES 那 13 页里，
+   也不在 FILES39 那 17 个文件里，而蒙层的挂载条件是「localStorage 里没有 tn_onboarded」——K34/K35 的种子
+   恰恰把它设成 '1'，于是这屏在两腿的口径里等于不存在（像素基线也用它：visual-check.js 提前打这个键）。
+   地基实测（tools/out/b33g-obskip.txt，328 与 320 两档同值）：「跳过 ›」= 60.2×**34**，比地板差 10，
+   而且它体内从头到尾没有任何尺寸声明，全靠 padding:9px 14px 撑；同串的 .ob-btn 倒是有
+   min-height:44px——那是这一族唯一一处页内尺寸写点（值对、出处错，与 33-E 的 #infoSheet .is-btn 同形）。
+   落地＝尺寸收进 design.css 那条 `body .ob-skip,body .ob-btn{min-height:44px}`（`body` 前缀同样是必需的：
+   那份 <style> 运行时 append，永远晚于本文件），页内只留皮肤；闸门＝FILES39 纳入 index.html + 六条新锚 +
+   三族规则体零尺寸 + 两族期望 0 + 浏览器腿 K36（反过来清 tn_onboarded 才挂得上样）。
+   这一族两腿的可见性**正好是反的**，登记清楚：不带 body 前缀的回潮（.ob-skip{min-height:34px}）只有
+   源码腿看得见，带 body 前缀的回潮（body .ob-skip{…}）两腿都看得见，而 design.css 单点被删只有
+   K36 能当场读到 34。少任意一条腿，另一条都补不上那个洞。
    口径与 §21/§31/§36/§37/§38 一致：四元组守卫、期望 0 一律配「改前那段源码形状」的正向对照、
    .js/.css 视图走**共享的字符串感知剥刀** stripBlockComments、.html 与 .md 视图**只归一空白不剥注释**
    （所以 .html 的期望 0 一律避开注释里会出现的字面量，几何族改走规则体抽取；锚点串一律写成归一后的
@@ -4796,7 +4833,8 @@ const EMOJI_MARK = 'emoji-ok:';
 
   const FILES39 = ['design.css', 'map.css', 'travel-map.html', 'node-manager.html', 'wishlist.html',
     'story.html', 'search.html', 'checklist.html', 'album-edit.html', 'expense.html', 'trip.html',
-    'planner.html', 'topic.html', 'travel-notes.js', 'me.html', 'tools/smoke-topbar.js', 'README.md'];
+    'planner.html', 'topic.html', 'travel-notes.js', 'me.html', 'index.html',
+    'tools/smoke-topbar.js', 'README.md'];
   const V39 = {};
   FILES39.forEach(f => {
     if (!fs.existsSync(f)) { F39('缺 ' + f); V39[f] = ''; return; }
@@ -4873,6 +4911,15 @@ const EMOJI_MARK = 'emoji-ok:';
     ['travel-notes.js', '<input id="tnSearch"', 1, '列表搜索框（K34 量到 182×44）'],
     ['me.html', '.entry .ic{color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:var(--fs-6)}', 1, '同一个选择器的两条尺寸声明剥掉之后只剩这一条纯皮肤（改前这里是 width:34px;height:34px;border-radius:10px;background:var(--color-primary-soft)——四条全是死代码，被下面那条盖死）'],
     ['me.html', '.entry .ic{width:40px;height:40px;border-radius:13px;', 1, '活着的这一条才是尺寸写点（实测生效 40×40/13px/linear-gradient 底，所以剥掉上面那四条画面一字未动；K35 量的就是它）'],
+    /* 批次 33-G：首启引导那一屏（index.html 原本既不在 FILES39，也不在 BAR_PAGES 那 13 页里，
+       而它的蒙层只在 localStorage 没有 tn_onboarded 时才挂载——K34/K35 的种子恰恰把它设成 '1'，
+       所以这屏对两腿都是彻底的视野外。地基读数 tools/out/b33g-obskip.txt：「跳过 ›」60.2×34。 */
+    ['design.css', 'body .ob-skip,body .ob-btn{min-height:44px}', 1, '首启引导那一屏的地板单点（一枚是改前根本没人点名的 34 高跳过钮，一枚是值对出处错的页内 min-height）。`body` 前缀必需：那份 <style> 是 index.html 运行时 append 的，永远晚于 design.css，同为 0-1-0 时后加载者赢——与上面 body .tn-x 同一条理由'],
+    ['index.html', '.ob-btn{padding:0 26px;', 1, '改后这一条只剩皮肤（改前这里是 .ob-btn{min-height:44px;padding:0 26px;…}，同值但写了两处）。锚串带上前缀才打得开「有人把 min-height 塞回头部」这种改法'],
+    ['index.html', 'class="ob-skip"', 1, '那枚钮的调用点在场＝K36 的分母宿主：调用点没了而判据还在，「零枚矮于 44」就是一个没有任何被测对象的绿'],
+    ['index.html', "if(localStorage.getItem('tn_onboarded')) return;", 1, '取样前置（这一条被改写成别的键名或倒转条件，蒙层就不挂载，K36 量到的是「没有样本」而不是「够 44」——§38 那课「取样档位没有被测对象＝假绿」在这一屏的形状）'],
+    ['tools/smoke-topbar.js', "ok('K36 ", 1, '首启引导那一屏的真 rect（328/320 两档，反过来清掉 tn_onboarded 才挂载）：本批剥掉页内那处 min-height 之后，浏览器腿第一次量到这屏'],
+    ['tools/smoke-topbar.js', "localStorage.removeItem('tn_onboarded')", 1, 'K36 的挂载机制（TN_SEED 把它设成 1，这一条把它清掉）。钉 removeItem 而不钉 OB_CLEAR 那个名字：改名不改行为要绿，行为没了要红'],
     /* 浏览器腿在场 */
     ['tools/smoke-topbar.js', "ok('K01 ", 1, '顶栏内可点控件零矮于 44：这条的选择器含 select/input/button/a 四类（只写 button,a 就漏掉 story 那颗 34px 下拉）'],
     ['tools/smoke-topbar.js', "ok('K11 ", 1, '.is-btn 计算样式 white-space:nowrap（断字那条腿）'],
@@ -4894,8 +4941,8 @@ const EMOJI_MARK = 'emoji-ok:';
     ['tools/smoke-topbar.js', "ok('K34 ", 1, '面板族真 rect（328/320 两档，面板与列表都打开后再量）：这条是 33-B 那批剥完之后**第一次**有人量面板里的钮多高'],
     ['tools/smoke-topbar.js', "ok('K35 ", 1, 'me.html .entry .ic 的 40×40 范围证明：它证明「活着的是哪一条」，不证明「死声明没复活」（后者只有上面那两条源码锚看得见）'],
     ['tools/smoke-topbar.js', 'const PN_SEL = ', 1, '面板族选择器名单：K34 的分母。抽不出它就是「0 枚矮钮」这种恒真读数——期望 0 的判据必须有会红的宿主'],
-    ['tools/smoke-topbar.js', 'i <= 35', 1, '浏览器腿齐备检的上界：加一条判据不抬它，新那条就没人查它在不在'],
-    ['tools/smoke-topbar.js', 'size >= 35', 1, '条数守卫阈值：与上一对成双（只抬编号不抬阈值＝改个数字照样绿）'],
+    ['tools/smoke-topbar.js', 'i <= 36', 1, '浏览器腿齐备检的上界：加一条判据不抬它，新那条就没人查它在不在（33-G 加 K36 时抬一档）'],
+    ['tools/smoke-topbar.js', 'size >= 36', 1, '条数守卫阈值：与上一对成双（只抬编号不抬阈值＝改个数字照样绿）'],
   ];
   A39.forEach(a => {
     if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
@@ -4907,7 +4954,7 @@ const EMOJI_MARK = 'emoji-ok:';
     const got = cnt39(V39[file], needle);
     if (got !== want) F39(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
   });
-  if (A39.length < 80) F39('锚点表被削减：' + A39.length + ' 条（批次 25-B 落地时实测 60 条，33-E 把面板族与 me.html 补进来后实测 82 条，阈值取 80——整组删掉就等于这节没了。阈值是**当前长度减 2**，不是历史长度：§34 那一课，抬阈值类判据抄历史数字就会从「能红」变成摆设）');
+  if (A39.length < 86) F39('锚点表被削减：' + A39.length + ' 条（批次 25-B 落地时实测 60 条，33-E 把面板族与 me.html 补进来后实测 82 条，33-G 把首启引导那一屏补进来后实测 88 条，阈值取 86——整组删掉就等于这节没了。阈值是**当前长度减 2**，不是历史长度：§34 那一课，抬阈值类判据抄历史数字就会从「能红」变成摆设）');
 
   /* ② 各页只留皮肤：这一族规则体内**不许出现任何尺寸声明**（含 min-*）。
      这里钉的是出处唯一，不是值：写 44 也一样红——尺寸有第二处写点，就说明下一次漂移不需要任何人同意。 */
@@ -4933,6 +4980,13 @@ const EMOJI_MARK = 'emoji-ok:';
     ['travel-notes.js', '.tn-repolish{', 3, '重润色钮三处（两处皮肤 + 一处覆写）：枚数变了说明有人新起一处尺寸写点'],
     ['travel-notes.js', '.tn-tagbar button{', 1, '标签条里的钮：真 rect 在空库里量不到（那条栏默认收起），所以这条源码锚是它唯一的守'],
     ['travel-notes.js', '.tn-listbar input{', 1, '列表搜索框'],
+    /* 批次 33-G：首启引导那一族。三族就三族，但口径要写清楚**为什么只有这三族**：
+       .ob-d{ 体内那条 max-width:300px 是文字排版盒（不是触控件尺寸），.ob-dot{ 是 8×8 的进度
+       指示点（<span>，非交互，设计如此）——把它们收进零尺寸族，闸门就会去管一件本来该由设计
+       说的话，红得没有意义。这两族留在这里由人读，不由这条规则管。 */
+    ['index.html', '.ob-skip{', 1, '「跳过 ›」：改前它体内没有任何尺寸声明，全靠 padding:9px 14px 撑出 34 高（实测 60.2×34）。地板现在归 design.css 那条 body .ob-skip，这里写回 min-height/height 就是第二处写点'],
+    ['index.html', '.ob-btn{', 1, '主/次两颗步骤钮：33-G 之前这里是值对出处错的 min-height:44px，现只剩皮肤'],
+    ['index.html', '.ob-mask{', 1, '整屏容器（inset:0 是定位不是尺寸）：给它钉死 height 就把这屏从「内容撑开」改回「谁后加载谁说了算」的老形状'],
   ];
   SKIN39.forEach(([f, sel, want, why]) => {
     if (!(f in V39)) { F39('SKIN39 登记了 §39 没读的文件「' + f + '」：' + why); return; }
@@ -5039,6 +5093,16 @@ const EMOJI_MARK = 'emoji-ok:';
     ['me.html', 'width:34px',
       '.entry .ic{width:34px;height:34px;border-radius:10px;background:var(--color-primary-soft);color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:var(--fs-6)}',
       '同一选择器两条尺寸、后加载者胜，前面那一整条是死代码（改前 me.html 里 34 与 40 各一条，实测生效的一直是 40×40）。死声明的害不在画面，在「下一个读代码的人会在两份里挑错一份」'],
+    /* 批次 33-G：首启引导那一屏的两条「出处」。**这两条的可见性正好相反**——
+       不带 body 前缀的写法赢不了 design.css（0-1-0 打不过 0-1-1），所以 K36 结构性看不见，
+       只有这条源码腿有视野；带 body 前缀的写法是真覆盖，K36 当场就读到 34，两腿一起守。
+       配对写下来是为了让下一个人知道：少掉任意一条，另一条都补不上那个洞。 */
+    ['index.html', 'min-height:44px',
+      '.ob-btn{min-height:44px;padding:0 26px;border-radius:999px}',
+      '值对、出处错：这是 33-G 在 index.html 里量到的唯一一处尺寸写点（改前计数 1，现 0）。写的是对的数照样要红——第二处写点意味着下一次漂到 40 不需要任何人同意；而且它对浏览器腿是盲的（赢不了 design.css），所以只能钉在这里'],
+    ['index.html', 'body .ob-',
+      'body .ob-skip{min-height:34px} body .ob-btn{min-height:30px}',
+      '注入串里出现 body .ob-* 就是第二处写点、而且这一次它**赢得了**：那份 <style> 运行时 append，永远晚于 design.css，同特异度 0-1-1 时后加载者直接盖掉单点（与 travel-notes.js 的 body .tn 成对）。它是这一族里唯一两腿都有视野的写法'],
   ];
   ZERO39.forEach(a => {
     if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string') {
@@ -5051,19 +5115,20 @@ const EMOJI_MARK = 'emoji-ok:';
     if (cnt39(flat39(ctrl), needle) < 1 && cnt39(ws39(ctrl), needle) < 1) F39('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
   });
 
-  /* ⑥ 浏览器腿齐备检：K00–K35 一条不许少，条数守卫（少一条就是有个症状没人管） */
+  /* ⑥ 浏览器腿齐备检：K00–K36 一条不许少，条数守卫（少一条就是有个症状没人管） */
   let nKLeg39 = 0;
   {
     const src39 = V39['tools/smoke-topbar.js'];
-    for (let i = 0; i <= 35; i++) {
+    for (let i = 0; i <= 36; i++) {
       const id = 'K' + (i < 10 ? '0' + i : '' + i);
-      if (src39.indexOf("ok('" + id + ' ') < 0) F39('tools/smoke-topbar.js 缺 ' + id + ' 这条判据（顶栏一族／.is-btn 断字／标题省略号／退档与 36 豁免／面板族真 rect 是 K00–K35 一整组）');
+      if (src39.indexOf("ok('" + id + ' ') < 0) F39('tools/smoke-topbar.js 缺 ' + id + ' 这条判据（顶栏一族／.is-btn 断字／标题省略号／退档与 36 豁免／面板族真 rect／首启引导那一屏是 K00–K36 一整组）');
     }
     const nK39 = cnt39(src39, "ok('K");
     nKLeg39 = nK39;
-    const WANT_K39 = 36;
-    if (nK39 !== WANT_K39) F39('tools/smoke-topbar.js 的判据条数不是 ' + WANT_K39 + '：' + nK39 + ' 条（25-B 落地时 K00–K33 共 34 条，33-E 补面板族与 me.html 两屏到 36；整组削减等于把这节拆了。判据数与期望数只此一处派生——抄两遍会有一遍说谎）');
+    const WANT_K39 = 37;
+    if (nK39 !== WANT_K39) F39('tools/smoke-topbar.js 的判据条数不是 ' + WANT_K39 + '：' + nK39 + ' 条（25-B 落地时 K00–K33 共 34 条，33-E 补面板族与 me.html 两屏到 36，33-G 补首启引导那一屏到 37；整组削减等于把这节拆了。判据数与期望数只此一处派生——抄两遍会有一遍说谎）');
     if (cnt39(src39, 'const BAR_PAGES') !== 1) F39('抽不出 smoke-topbar.js 的 BAR_PAGES 名单：K00 的分母自检没有宿主');
+    if (cnt39(src39, "localStorage.removeItem('tn_onboarded')") !== 1) F39('smoke-topbar.js 里清 tn_onboarded 的机制不是恰 1 处：K36 靠它把蒙层挂上来——它没了，这一条判据就在一个没有蒙层的页面上绿');
     if (cnt39(src39, 'const PN_SEL') !== 1) F39('抽不出 smoke-topbar.js 的 PN_SEL 名单：K34 的分母没了，「零枚矮于 44」会在一个没有任何被测对象的页面上绿（§38 那次「取样档位没有被测对象＝假绿」的同一个形状）');
     /* 与 §38 的互斥对账：本批改过 design.css 的触控族，别和 24 那批的字号族判据互相打红 */
     const SELF39 = flat39(rd39(__filename));
@@ -5098,7 +5163,7 @@ const EMOJI_MARK = 'emoji-ok:';
 
   const byFile39 = {};
   A39.forEach(a => { byFile39[a[0]] = (byFile39[a[0]] || 0) + 1; });
-  console.log('顶栏一族与触控口径闸门: ' + A39.length + ' 条代码锚点（**逐文件条数现场派生**，不抄历史数：' + Object.keys(byFile39).map(k => k + ' ' + byFile39[k]).join('／') + '）；分组说明——design.css ' + byFile39['design.css'] + '＝顶栏一族 8（.t-row wrap／back+t-ic 同条／.t-ic 右贴与 .ti 归零／:active／.title flex:1 1 7em+min-width:7em+省略号／.trow-acts／.topbar 分母）+ 触控族 10（两个非 .topbar 宿主／act 地板／mic／wl-btn／移除·删除·打开四族并一条／nm-item-btn／is-btn／36 两条款含 margin:0 auto／行程条）；travel-map 10＝--tb-h 挂 body 的 63 推导／top:var(--tb-h) 两处／盒宽与 .laymenu 的 right 成对／≤360 阈值／退成 44 圆钮／收 .act-label／.trow-acts／两枚 aria-label；node-manager 7＝.is-acts wrap／.is-btn 只剩皮肤（无 min-height）／.ic 两处／is-btn ic 恰 5／infoSheet 分母／缩放让位 66；wishlist 3＝trow-acts／aria-label 移除／.wl-remove 皮肤；story＋search 各 1；checklist 3＋album-edit 1＝内容区那三枚；四页 .t-ic 各 1；map.css 1＝专题页那两枚动作钮的 ≤360 退档；topic.html 2＝.act-label 与 aria-label（退档要收字先得有可收的标签）；smoke-topbar ' + byFile39['tools/smoke-topbar.js'] + '＝判据在场 + K33 专题页那一行 + K34 面板族真 rect 与 K35 me.html 两枚在场 + PN_SEL 名单 + 条数守卫上界与阈值成双 + 两档取样 + 触控视口 + 白名单）+ ' + SKIN39.length + ' 族规则体零尺寸抽取（每族先按分母数规则条数，再逐体断无 width:/height:——钉的是出处唯一不是值，页内写 44 也红；配反向「写回 40 要抓到」与正向「皮肤不误伤」）+ design.css 触控族段区段检（40px 期望 0／36px 恰 5＝豁免族只那两条款／44px ≥10 防空段，配改前合成段反向对照）+ 全站 html 扫描（.t-ic 恰 4 且逐页点名、内联 40×40 圆钮期望 0，分母 <18 份即红）+ ' + ZERO39.length + ' 族期望 0（钉死行高 42／两处 .ctl button 尺寸／写死 56px／页内联 Leaflet 40／is-btn 的 min-height 双写／标题 min-width:0／三枚内容区 40／select 34／同值双写的 mic 44／design.css 自相矛盾的 36／33-E 再加两条：注入串里的 body .tn-*（同特异度＋后加载＝真覆盖，SKIN39 那条钉的是不带 body 的写法——那一种浏览器腿结构性看不见，两腿正好一对一盲，所以两条都要在）与 me.html 的 width:34px（同选择器两条尺寸、后加载者胜，前面那条整行是死代码））每条配「改前那段源码形状」的正向对照；浏览器腿 K00–K35 齐备检 + 条数守卫 ' + nKLeg39 + '（BAR_PAGES 与 PN_SEL 两根分母各恰 1——后者抽不出，「面板零枚矮于 44」就在一个没有被测对象的页面上绿）；另有本节自己的一条自指纪律：flat39／view39 两枚**定义行**分别要求含那把共享的字符串感知剥刀的名字、以及把 .md 归进不剥注释那一支，各配一枚合成旧写法的变异自证（整串锚会被比较串自己命中而永真，所以只取定义那一行）；A39 ' + A39.length + '／SKIN39 ' + SKIN39.length + '／ZERO39 ' + ZERO39.length + '，抬阈值类变异要取当前长度 + 1；口径表预跑见 tools/out/pre39-counts.js 与 tools/out/b33e-pre-counts.txt，地基读数见 tools/out/b33e-probe-touch.txt（串里 108 处「斜杠星」／面板族 15 条规则体 0 处尺寸／design.css 三条单点里两条原本零锚）与 tools/out/b33e-probe-knife.txt（换刀对既有四文件逐字等价）与 tools/out/b33e-probe-panel.txt＋b33e-probe-fileui.txt（真 rect 与 file:// 可测性），变异自测见 tools/out/mut-verify39.js（源码腿）与 tools/out/mut-smoke39.js（浏览器腿）');
+  console.log('顶栏一族与触控口径闸门: ' + A39.length + ' 条代码锚点（**逐文件条数现场派生**，不抄历史数：' + Object.keys(byFile39).map(k => k + ' ' + byFile39[k]).join('／') + '）；分组说明——design.css ' + byFile39['design.css'] + '＝顶栏一族 8（.t-row wrap／back+t-ic 同条／.t-ic 右贴与 .ti 归零／:active／.title flex:1 1 7em+min-width:7em+省略号／.trow-acts／.topbar 分母）+ 触控族 10（两个非 .topbar 宿主／act 地板／mic／wl-btn／移除·删除·打开四族并一条／nm-item-btn／is-btn／36 两条款含 margin:0 auto／行程条）；travel-map 10＝--tb-h 挂 body 的 63 推导／top:var(--tb-h) 两处／盒宽与 .laymenu 的 right 成对／≤360 阈值／退成 44 圆钮／收 .act-label／.trow-acts／两枚 aria-label；node-manager 7＝.is-acts wrap／.is-btn 只剩皮肤（无 min-height）／.ic 两处／is-btn ic 恰 5／infoSheet 分母／缩放让位 66；wishlist 3＝trow-acts／aria-label 移除／.wl-remove 皮肤；story＋search 各 1；checklist 3＋album-edit 1＝内容区那三枚；四页 .t-ic 各 1；map.css 1＝专题页那两枚动作钮的 ≤360 退档；topic.html 2＝.act-label 与 aria-label（退档要收字先得有可收的标签）；smoke-topbar ' + byFile39['tools/smoke-topbar.js'] + '＝判据在场 + K33 专题页那一行 + K34 面板族真 rect 与 K35 me.html 两枚在场 + K36 首启引导那一屏在场 + PN_SEL 名单 + 条数守卫上界与阈值成双 + 两档取样 + 触控视口 + 白名单）+ ' + SKIN39.length + ' 族规则体零尺寸抽取（每族先按分母数规则条数，再逐体断无 width:/height:——钉的是出处唯一不是值，页内写 44 也红；配反向「写回 40 要抓到」与正向「皮肤不误伤」；33-G 在 index.html 那族只收 .ob-skip/.ob-btn/.ob-mask 三族，**.ob-d 的 max-width:300px 与 .ob-dot 的 8×8 有意不收**——前者是文字排版盒、后者是非交互的进度指示点，收进来闸门就会去管本来该由设计说话的事，红得没有意义）+ design.css 触控族段区段检（40px 期望 0／36px 恰 5＝豁免族只那两条款／44px ≥10 防空段，配改前合成段反向对照）+ 全站 html 扫描（.t-ic 恰 4 且逐页点名、内联 40×40 圆钮期望 0，分母 <18 份即红）+ ' + ZERO39.length + ' 族期望 0（钉死行高 42／两处 .ctl button 尺寸／写死 56px／页内联 Leaflet 40／is-btn 的 min-height 双写／标题 min-width:0／三枚内容区 40／select 34／同值双写的 mic 44／design.css 自相矛盾的 36／33-E 再加两条：注入串里的 body .tn-*（同特异度＋后加载＝真覆盖，SKIN39 那条钉的是不带 body 的写法——那一种浏览器腿结构性看不见，两腿正好一对一盲，所以两条都要在）与 me.html 的 width:34px（同选择器两条尺寸、后加载者胜，前面那条整行是死代码）／33-G 再加两条，正好把这一对盲区在同一屏重述一遍：index.html 的 min-height:44px（改前唯一那处页内尺寸写点，值对出处错，而且它不带 body 前缀、赢不了 design.css——浏览器腿结构性看不见，只有这条源码腿有视野）与 index.html 的 body .ob-*（同特异度＋后加载＝真覆盖，K36 当场读到 34，两腿一起守））每条配「改前那段源码形状」的正向对照；浏览器腿 K00–K36 齐备检 + 条数守卫 ' + nKLeg39 + '（BAR_PAGES、PN_SEL、清 tn_onboarded 那一行三根分母各恰 1——后两根抽不出，「面板／蒙层零枚矮于 44」就在一个没有被测对象的页面上绿）；另有本节自己的一条自指纪律：flat39／view39 两枚**定义行**分别要求含那把共享的字符串感知剥刀的名字、以及把 .md 归进不剥注释那一支，各配一枚合成旧写法的变异自证（整串锚会被比较串自己命中而永真，所以只取定义那一行）；A39 ' + A39.length + '／SKIN39 ' + SKIN39.length + '／ZERO39 ' + ZERO39.length + '，抬阈值类变异要取当前长度 + 1；口径表预跑见 tools/out/pre39-counts.js 与 tools/out/b33e-pre-counts.txt，地基读数见 tools/out/b33e-probe-touch.txt（串里 108 处「斜杠星」／面板族 15 条规则体 0 处尺寸／design.css 三条单点里两条原本零锚）与 tools/out/b33e-probe-knife.txt（换刀对既有四文件逐字等价）与 tools/out/b33e-probe-panel.txt＋b33e-probe-fileui.txt（真 rect 与 file:// 可测性），变异自测见 tools/out/mut-verify39.js（源码腿）与 tools/out/mut-smoke39.js（浏览器腿）');
   fail += bad39;
 }
 
@@ -7977,6 +8042,186 @@ function stripBlockComments(s) {
 
   console.log('字族三档与注入串闸门: ' + A51.length + ' 条代码锚点（② 档三个出图口各「字面品牌族 + 排在字库后面」／fontsReady 单点四件（无 API 落 false、400 与 700 两个字重、同步抛错也放行、导出行放行尾）／面板私名三枚与暗色档那一支让位全站 --color-bg／③ 档五个文件各自的桌面名（登记为设计内）／腿的私有名派生常量与页内那把刀·UA 默认档判据·' + cnt51(V51['tools/smoke-font.js'], 'window.UI.fontsReady = () => new Promise(function () {});') + ' 处卡住字库·reject 照样落笔·真鼠标点那颗「卡」钮·条数守卫／探针与闸门同名的那张留-generic 点名表）+ ' + ZERO51.length + ' 族期望 0（注入串同名 --bg/--fd 两枚／design.css 那族别名一行／poster 与 travel-map 三枚桌面名 ctx.font／已删的 shareCanvas 与 wrapText／导出表里没有 fontsReady 的旧行）各配 HEAD 原串正向对照 + 三把内置扫描全量对账（白名单五桶之外根目录 ' + var51.files + ' 个 js/html/css 里绕过 ' + var51.T1 + ' 处、② 档 canvas ' + var51.T2 + ' 处其中不含品牌族 ' + var51.noBrand + ' 处、③ 档命中 ' + var51.T3 + '／表 ' + T3.length + ' 条、留 generic ' + var51.T2gen + '／表 ' + T2GEN.length + ' 条；三个出图口的闸门计数 ' + JSON.stringify(var51.gate) + ' 且 fontsReady 定义全站 1 份；注入串与 design.css 同名令牌 ' + var51.same + ' 枚——这一枚就是根因），每把都先拿合成样本自校准（绕过行必须被抓住／var(--tnp-fd) 必须被放行／改前那两枚必须与 design.css 撞上）+ 一条自指纪律（flat51/view51 定义行走那把共享剥刀与不剥文档那一支，哨兵里有一条专读 design.css 原物的「为什么摘掉」注释，因为注释会被 flat 吃掉）+ 浏览器腿 FO00–FO21 齐备检与条数守卫（FO06 反向对照现场插一条同名 :root 覆盖把读数翻过来，FO12 断「等于 UA 默认那一档」而不是「落回兜底族」——这两处是我自己先写错、实测才纠正的，判据本身也要有牙；FO14/FO17/FO20 用永不落定的 fontsReady 反证「闸门真装了」，那种静默失效源码腿读不出来）；A51 表长 ' + A51.length + ' 条、ZERO51 表长 ' + ZERO51.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b35a-census.txt（并集口径 39 处／7 个文件＝T1 9＋T2 19＋T3 11，审核报告 §4 第 5 条当时写的 33 处是逐类采样漏了两档，本批已按并集回写）与本节文件头那条诚实口径（像素腿 0 漂移），改后读数见 tools/out/b35b-census.txt、tools/out/b35b-smoke-font.txt 与 tools/out/b35b-inject.txt，变异自测见 tools/out/mut-verify51.js');
   fail += bad51;
+}
+
+
+/* ============ §52 变异网独占锁与还原保障闸门：守的是我们自己的尺子 ============
+   批次 33-H。42 张变异网在同一棵树上动土（这个数由本节从 tools/out 现场派生，本网自己也在分母里）：
+   两张并发时后还原的那张会把前一张刚还原的内容一并抹掉，
+   树停在中间态而两边都报「全过」——这是假绿里最坏的一种，因为没有任何产品判据会红它。
+   先跑草稿腿（tools/out/archive/gate52-draft.js.disabled，已挪进归档、不在 mut-* 分母里）把这张尺子
+   在盘上数一遍、四条自校准对照都成立，再原样搬进本文件：搬动只加了一行 `fail += bad52;`——草稿只 console 红字不进退出码，
+   那样的闸门等于没装（守卫记忆里「只印红字不计入退出码＝闸门没装」这一族，这里当场补上）。
+   本节守的四件：单点模块 tools/mut-lock.js 自己的三件定义（ANY／wx／exit 释放）、
+   七项「期望 0」的网级形状（没锁却真动树／窄筛／自写筛子不同源／非 wx／动树无还原保障／
+   模块在却没传锁名／一把锁名两网共用）、六张本批转换网那行 require 的逐字节锚、
+   以及四条自校准（甲内联／乙模块／丙合成无锁／丁合成变量写盘——丁就是 v1 探针漏掉的那一类形状）。
+   尺子一坏（自校准任一失效）本节余下读数当场闭嘴不计数；运行时那条「别人持锁必须拒跑」
+   由 `node tools/mut-lock.js --selftest` 的子进程实测代证，不由本节自证。 */
+/* §52-BEGIN —— 下面这一块要逐字节搬进 tools/verify.js */
+{
+  let bad52 = 0;
+  const F52 = m => { bad52++; console.log('FAIL §52 变异网独占锁与还原保障闸门: ' + m); };
+  const rd52 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+
+  /* ---- ① 单点模块自己的三件定义（每条各配一枚变异：改窄 ANY／摘 wx／摘释放钩子都要红在本条） ---- */
+  const MS52 = rd52('tools/mut-lock.js');
+  if (!MS52) { F52('读不到 tools/mut-lock.js——所有网的独占锁都失去依据，本节余下的读数全部无效'); }
+  const ANY52 = MS52 ? ((MS52.match(/^[ \t]*const ANY = \/(\^[^\n]*?)\//m) || [])[1] || null) : null;
+  if (!ANY52) F52('抽不到模块里 `const ANY` 那一行（写法漂了 ⇒ 下面的「同源」比对会拿 null 去比，全场假红或假绿）');
+  const nAny52 = (MS52.match(/const ANY =/g) || []).length;
+  if (nAny52 !== 1) F52('模块里 `const ANY` 定义是 ' + nAny52 + ' 处（期望恰 1）：两把筛子就没有「同源」可言');
+  const nWx52 = (MS52.match(/flag: 'wx'/g) || []).length;
+  if (nWx52 !== 1) F52('模块里取锁不是恰 1 处 `flag: \'wx\'`（实测 ' + nWx52 + '）：退回 existsSync 再写就有「同时启动」那一格 race');
+  const nUnlock52 = (MS52.match(/process\.on\('exit', unlock\)/g) || []).length;
+  if (nUnlock52 !== 1) F52('模块没有恰 1 处退出释放（实测 ' + nUnlock52 + '）：崩在中间留下的锁会让后面每一张网永远拒跑');
+
+  /* ---- ② 一把尺子：从网自己的源码文本里派生「锁／筛子／还原保障／动不动树」 ---- */
+  const NARROW52 = '^\\.mut\\d+\\.lock$';
+  function arg52(src, i) {
+    let depth = 0, out = '';
+    for (let k = i; k < src.length; k++) {
+      const ch = src[k];
+      if (ch === '(' || ch === '[') depth++;
+      else if (ch === ')' || ch === ']') { if (depth === 0) break; depth--; }
+      else if (ch === ',' && depth === 0) break;
+      out += ch;
+    }
+    return out.trim();
+  }
+  /* 锁名只从「取锁那一下」的调用形状里抽，不从全文扫：
+     mut-verify52.js（守这张闸门的网）自己就得原样抄下别人的 require 行当靶串，扫全文会把别人家的锁名
+     算到它头上——分类器一撒谎，⑥⑦ 两条判据当场失真（同一类坑：守卫记忆「扫描器要加分母对账」）。 */
+  const ACQ52 = /mut-lock\.js'\)\)\s*\('(\.mut[\w.-]*\.lock)'\)/g;
+  const INL52 = /const LOCK = path\.join\([^)]*,\s*'(\.mut[\w.-]*\.lock)'\)/g;
+  function lockNamesOf(src) {
+    const names = [];
+    const push = n => { if (n && names.indexOf(n) < 0) names.push(n); };
+    let m;
+    ACQ52.lastIndex = 0; while ((m = ACQ52.exec(src))) push(m[1]);
+    INL52.lastIndex = 0; while ((m = INL52.exec(src))) push(m[1]);
+    return names;
+  }
+  function scan52(src) {
+    const lockNames = lockNamesOf(src);
+    const usesModule = /mut-lock\.js/.test(src);
+    const wx = /flag:\s*'wx'/.test(src);
+    const busyRe = usesModule ? ANY52 : ((src.match(/readdirSync\([^)]*\)[^\n]*?filter\([^)]*\/(\^\\\.mut[^/]*)\//) || [])[1] || null);
+    const hasExit = /process\.on\('exit'/.test(src);
+    const hasFinally = /finally\s*\{/.test(src);
+    /* 动没动树＝两把尺子取并集：写盘目标（括号平衡取第一参数，只写自己日志那处不算）∪「有快照/还原这一族」
+       ——只认 path.join(...) 形状的第一版把 fs.writeFileSync(F,…) 与 fs.writeFileSync(c.file,…) 整类漏掉，
+       三张真写盘的网被印成「不算雷」（守卫记忆第 5 条「扫描器要加分母对账」在本项目内的第三次发作）。 */
+    const key = 'writeFileSync(';
+    const tg = [];
+    let i = 0;
+    while ((i = src.indexOf(key, i)) >= 0) { tg.push(arg52(src, i + key.length)); i += key.length; }
+    const isLog52 = a => /^(LOGP|LOG)$/.test(a) || /\.txt['"]?\s*$/.test(a);
+    const writes = tg.filter(a => !isLog52(a)).length;
+    const snapish = /(?:function|const)\s+restore\b/.test(src) || (/\bbuf\b/.test(src) && /readFileSync/.test(src)) ||
+      /ORIG\b/.test(src) || /\bsnap\b/.test(src);
+    return {
+      lockNames, usesModule, wx, busyRe, hasExit, hasFinally,
+      narrow: !usesModule && busyRe === NARROW52,
+      offsrc: !usesModule && !!busyRe && ANY52 && busyRe !== ANY52,
+      racey: !usesModule && lockNames.length > 0 && !wx,
+      tree: writes > 0 || !!snapish,
+      locked: usesModule || lockNames.length > 0,
+    };
+  }
+
+  /* ---- ③ 尺子自己先校准：四条，任一失效本节直接判红（一条会系统性撒谎的常驻闸门比没有闸门更坏） ---- */
+  const NETS52 = fs.readdirSync('tools/out').filter(f => /^mut[-\w]*\.js$/.test(f)).sort();
+  const D52 = {};
+  NETS52.forEach(f => { D52[f] = scan52(rd52('tools/out/' + f)); });
+  const CAL52 = [];
+  const posInline = D52['mut-verify50.js'];
+  CAL52.push(['甲 正向（内联形状）：mut-verify50.js 必须数到锁名、wx、且筛子与模块同源',
+    !!(posInline && posInline.lockNames.length === 1 && posInline.wx && !posInline.usesModule && !posInline.offsrc)]);
+  const posModule = D52['mut-verify16.js'];
+  CAL52.push(['乙 正向（模块形状）：mut-verify16.js 必须被认成「接了单点模块」（不这么认就会把全体接模块的网误报成「不筛别人」）',
+    !!(posModule && posModule.usesModule && posModule.locked)]);
+  const synNoLock = scan52("const fs=require('fs');fs.writeFileSync(path.join(ROOT,'design.css'),'x');function restore(){}process.on('exit',restore);");
+  CAL52.push(['丙 退化（合成：写盘无锁）：必须数到锁名 0 个、且判成真动树',
+    !!(synNoLock.lockNames.length === 0 && !synNoLock.locked && synNoLock.tree)]);
+  const synVar = scan52("const fs=require('fs');const snaps=CASES.map(c=>({c,buf:fs.readFileSync(c.file)}));" +
+    "for(const{c,buf}of snaps){fs.writeFileSync(c.file,s.replace(c.old,c.neo));}");
+  CAL52.push(['丁 退化（合成：写盘目标是变量 `c.file`，v1 漏的那一类）：必须判成真动树',
+    !!(synVar.tree && synVar.lockNames.length === 0)]);
+  CAL52.forEach(c => { if (!c[1]) F52('自校准失效 — ' + c[0] + '（尺子不灵，本节余下读数不可信）'); });
+  const calibOk = CAL52.every(c => c[1]);
+
+  /* ---- ④ 七项期望 0 ---- */
+  const lists = [];
+  const add52 = (name, arr, why) => { lists.push([name, arr, why]); };
+  add52('没有锁却真动树', NETS52.filter(f => calibOk && D52[f].tree && !D52[f].locked),
+    '并发跑时后还原那张把前一张刚还原的内容抹掉，树停在中间态而两边都报「全过」');
+  add52('锁名筛子退回窄筛 \\d+', NETS52.filter(f => calibOk && D52[f].narrow),
+    '带字母的锁名（.mut25b.lock／.mut-verify19.lock）直接从视野穿过去＝「我看得见所有人，所有人看不见我」');
+  add52('自写筛子与模块 ANY 不同源', NETS52.filter(f => calibOk && D52[f].offsrc),
+    '两把筛子长得不一样就总有一天不一样；同源串从 tools/mut-lock.js 现场读，不手抄');
+  add52('有锁但取锁不是 flag wx', NETS52.filter(f => calibOk && D52[f].racey),
+    '先筛列表再写（或 existsSync 再写）留着一格「同时启动」的 race');
+  add52('动树却既无 exit 钩子也无 finally', NETS52.filter(f => calibOk && D52[f].tree && !D52[f].hasExit && !D52[f].hasFinally),
+    '崩在注入与还原之间会把树留在变异态，下一次读数从脏树开始');
+  add52('接了模块却把锁名传得不对', NETS52.filter(f => calibOk && D52[f].usesModule && D52[f].lockNames.length !== 1),
+    'acquire(name) 那一枚锁名就是别人筛子里认的那串：没传＝这张网的锁没人认得（模块在场不等于上了锁），数到两枚＝半转换或一把锁两开');
+  add52('一把锁名被两张不同的网共用', (function () {
+    const seen = {}, dup = [];
+    NETS52.forEach(f => {
+      if (!calibOk) return;
+      D52[f].lockNames.forEach(n => {
+        /* 33-E 定过口径：源码腿与浏览器腿**故意**共用同一枚 .mutNN.lock（两侧同抢一把，只有一侧带锁等于没有） */
+        if (n === '.mut39.lock') return;
+        if (seen[n]) dup.push(n + '（' + seen[n] + ' 与 ' + f + '）');
+        else seen[n] = f;
+      });
+    });
+    return dup;
+  })(), '两张网各自持有同名锁＝其中一张永远起不来，或更坏：都以为自己拿到了');
+  let sum52 = 0;
+  lists.forEach(l => { sum52 += l[1].length; });
+  lists.forEach(l => {
+    if (l[1].length) F52(l[0] + ' ' + l[1].length + ' 张（' + l[1].join('、') + '）：' + l[2]);
+  });
+
+  /* ---- ⑤ 正向锚：六张本批转换过的网，逐字节钉那一行 require（形状漂了要红，不能只靠分类器） ---- */
+  const CONV52 = [
+    ['tools/out/mut-verify39.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');"],
+    ['tools/out/mut-smoke39.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');"],
+    ['tools/out/mut-verify25b.js', "const unlock = require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut25b.lock');"],
+    ['tools/out/mut-avoid-e.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-avoid-e.lock');"],
+    ['tools/out/mut-shell-res.js', "require(path.join(__dirname, '..', '..', 'tools', 'mut-lock.js'))('.mut-shell-res.lock');"],
+    ['tools/out/mut-verify15-fallback.js', "require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify15-fallback.lock');"],
+  ];
+  CONV52.forEach(c => {
+    const s = rd52(c[0]);
+    if (!s) { F52('缺 ' + c[0] + '（本批转换过的网不在盘上）'); return; }
+    const n = s.split(c[1]).length - 1;
+    if (n !== 1) F52(c[0] + ' 里那行独占锁 require 命中 ' + n + ' 次（期望恰 1）：' + c[1]);
+  });
+  /* 老写法不许回来：三张新接模块的网里不许再残留自己写的那把 existsSync 取锁 */
+  ['tools/out/mut-verify25b.js', 'tools/out/mut-avoid-e.js', 'tools/out/mut-shell-res.js', 'tools/out/mut-verify15-fallback.js'].forEach(f => {
+    const s = rd52(f);
+    if (/fs\.existsSync\((LOCK|ME)\b\)/.test(s)) F52(f + ' 残留老写法「先 existsSync 再写」（有 race）');
+  });
+
+  /* 新闸门不写进 README 就等于没装（§50/§51 同一条纪律） */
+  if (rd52('README.md').indexOf('§52') < 0) F52('README.md 的 verify 清单没提 §52（新闸门不登记就等于没装：下一个人只会去找代码里有的节号，不会知道这一节本该存在）');
+
+  const modN52 = NETS52.filter(f => D52[f].usesModule).length;
+  const inlineN52 = NETS52.filter(f => !D52[f].usesModule && D52[f].locked).length;
+  const nolockN52 = NETS52.filter(f => !D52[f].locked).length;   /* 这个数必须现场派生：抄成常量「0」就是闸门自己印谎 */
+  console.log('变异网独占锁与还原保障闸门: ' + NETS52.length + ' 张网逐张分类（接模块 ' + modN52 + '／自写内联 ' +
+    inlineN52 + '（三件齐不齐由下面七项逐条判，这里只分形）／没锁 ' + nolockN52 + '，其中真动树 ' +
+    NETS52.filter(f => !D52[f].locked && D52[f].tree).length + '）；' +
+    '单点模块 tools/mut-lock.js 自身三件定义各恰 1（const ANY／flag wx／exit 释放），' +
+    '筛子串由本节从模块现场读出做「同源」比对（不手抄）；七项期望 0（没锁却真动树／窄筛 \\d+／自写筛子不同源／非 wx／动树无还原保障／模块在而锁名传得不对／一锁两网），' +
+    '外加 ' + CONV52.length + ' 张本批转换网的 require 行逐字节锚 + ' + CAL52.length + ' 把自校准（甲内联 乙模块 丙合成无锁 丁合成变量写盘——丁就是 v1 探针漏掉的那一类形状）；' +
+    '锁名一律从「取锁那一下」的调用形状里抽（模块式 require(...)(\'.mutNN.lock\') 或内联式 const LOCK = path.join(…, \'.mutNN.lock\')），不扫全文——扫全文会把「靶串里抄了别人家锁名」的网误判成多枚锁名；' +
+    '运行时那条「别人持锁必须拒跑」不由本节自证，由 node tools/mut-lock.js --selftest 的子进程实测代证（甲乙丙丁四条，现场有别的锁时丁显式 SKIP 不静默算过）');
+  if (bad52) console.log('§52 合计 ' + bad52 + ' 条红');
+  fail += bad52;
 }
 
 

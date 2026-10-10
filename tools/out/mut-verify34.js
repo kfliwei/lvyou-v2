@@ -18,6 +18,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify34.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 /* 证据由脚本自己写盘：shell 重定向在长跑后台任务里留过 0 字节文件（§20 同一课） */
 const LOG = process.env.MUT_LOG || '';

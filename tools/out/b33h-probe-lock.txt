@@ -1,0 +1,96 @@
+自校准：甲 mut-verify39.js 锁名 .mut39.lock（取锁 wx（存在即失败，无 race））；乙 mut-verify16.js 取锁 模块（wx＋宽筛） 锁名 .mut-verify16.lock；丙 合成「写盘无锁」样本数到锁名 0 个（写盘 1 处）→ 三条都成立，尺子是灵的
+
+=== 逐张（41 张 mut-*.js）===
+mut-avoid-e.js             | 锁名=无 | 取锁=— | 筛别人=无 | 崩还原=N | 写盘=0处 | 快照=0项(MUTS)
+mut-shell-res.js           | 锁名=无 | 取锁=— | 筛别人=无 | 崩还原=N | 写盘=0处 | 快照=无
+mut-smoke31.js             | 锁名=.mut-smoke31.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=2项(FILES)
+mut-smoke33.js             | 锁名=.mut-smoke33.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=1项(FILES)
+mut-smoke34.js             | 锁名=.mut-smoke34.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=2项(FILES)
+mut-smoke36.js             | 锁名=.mut-smoke36.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=2项(FILES)
+mut-smoke39.js             | 锁名=.mut39.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut\d+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=14项(FILES)
+mut-usable.js              | 锁名=.mut-usable.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=N | 写盘=1处 | 快照=4项(FILES)
+mut-verify15-fallback.js   | 锁名=无 | 取锁=— | 筛别人=无 | 崩还原=N | 写盘=0处 | 快照=无
+mut-verify16.js            | 锁名=.mut-verify16.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=1项(MUTS)
+mut-verify17.js            | 锁名=.mut-verify17.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=1项(MUTS)
+mut-verify18.js            | 锁名=.mut-verify18.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=0项(MUTS)
+mut-verify19.js            | 锁名=.mut-verify19.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=2项(MUTS)
+mut-verify21.js            | 锁名=.mut-verify21.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=0项(MUTS)
+mut-verify22.js            | 锁名=.mut-verify22.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=1处 | 快照=0项(MUTS)
+mut-verify23.js            | 锁名=.mut-verify23.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=0项(MUTS)
+mut-verify25-perf.js       | 锁名=.mut-verify25-perf.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=2项(FILES)
+mut-verify25b.js           | 锁名=.mut25b.lock | 取锁=先筛列表再写（有 race） | 筛别人=^\.mut.*\.lock$ | 崩还原=N | 写盘=1处 | 快照=变量
+mut-verify26.js            | 锁名=.mut-verify26.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=7项(FILES)
+mut-verify27.js            | 锁名=.mut-verify27.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=8项(FILES)
+mut-verify28.js            | 锁名=.mut-verify28.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=8项(FILES)
+mut-verify31.js            | 锁名=.mut-verify31.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=8项(FILES)
+mut-verify32.js            | 锁名=.mut-verify32.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=10项(FILES)
+mut-verify33.js            | 锁名=.mut-verify33.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=8项(FILES)
+mut-verify34.js            | 锁名=.mut-verify34.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=7项(FILES)
+mut-verify36.js            | 锁名=.mut-verify36.lock | 取锁=模块（wx＋宽筛） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=15项(FILES)
+mut-verify37.js            | 锁名=.mut37.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=10项(FILES)
+mut-verify38.js            | 锁名=.mut38.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=13项(FILES)
+mut-verify39.js            | 锁名=.mut39.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut\d+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=19项(FILES)
+mut-verify40.js            | 锁名=.mut40.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=3处 | 快照=5项(FILES)
+mut-verify41.js            | 锁名=.mut41.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=9项(FILES)
+mut-verify42.js            | 锁名=.mut42.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=9项(FILES)
+mut-verify43.js            | 锁名=.mut43.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=4项(FILES)
+mut-verify44.js            | 锁名=.mut44.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=5处 | 快照=5项(FILES)
+mut-verify45.js            | 锁名=.mut45.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=11项(FILES)
+mut-verify46.js            | 锁名=.mut46.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=20项(FILES)
+mut-verify47.js            | 锁名=.mut47.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=6项(FILES)
+mut-verify48.js            | 锁名=.mut48.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=8项(FILES)
+mut-verify49.js            | 锁名=.mut49.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=9项(FILES)
+mut-verify50.js            | 锁名=.mut50.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=6项(FILES)
+mut-verify51.js            | 锁名=.mut51.lock | 取锁=wx（存在即失败，无 race） | 筛别人=^\.mut[\w.-]+\.lock$ | 崩还原=Y | 写盘=2处 | 快照=11项(FILES)
+
+=== 名字对不上筛子的（并发时互相看不见）===
+mut-smoke31.js 持锁 .mut-smoke31.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke31.js 持锁 .mut-smoke31.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke33.js 持锁 .mut-smoke33.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke33.js 持锁 .mut-smoke33.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke34.js 持锁 .mut-smoke34.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke34.js 持锁 .mut-smoke34.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke36.js 持锁 .mut-smoke36.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-smoke36.js 持锁 .mut-smoke36.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-usable.js 持锁 .mut-usable.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-usable.js 持锁 .mut-usable.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify16.js 持锁 .mut-verify16.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify16.js 持锁 .mut-verify16.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify17.js 持锁 .mut-verify17.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify17.js 持锁 .mut-verify17.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify18.js 持锁 .mut-verify18.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify18.js 持锁 .mut-verify18.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify19.js 持锁 .mut-verify19.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify19.js 持锁 .mut-verify19.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify21.js 持锁 .mut-verify21.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify21.js 持锁 .mut-verify21.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify22.js 持锁 .mut-verify22.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify22.js 持锁 .mut-verify22.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify23.js 持锁 .mut-verify23.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify23.js 持锁 .mut-verify23.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify25-perf.js 持锁 .mut-verify25-perf.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify25-perf.js 持锁 .mut-verify25-perf.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify25b.js 持锁 .mut25b.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify25b.js 持锁 .mut25b.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify26.js 持锁 .mut-verify26.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify26.js 持锁 .mut-verify26.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify27.js 持锁 .mut-verify27.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify27.js 持锁 .mut-verify27.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify28.js 持锁 .mut-verify28.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify28.js 持锁 .mut-verify28.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify31.js 持锁 .mut-verify31.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify31.js 持锁 .mut-verify31.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify32.js 持锁 .mut-verify32.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify32.js 持锁 .mut-verify32.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify33.js 持锁 .mut-verify33.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify33.js 持锁 .mut-verify33.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify34.js 持锁 .mut-verify34.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify34.js 持锁 .mut-verify34.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify36.js 持锁 .mut-verify36.lock → mut-smoke39.js 的筛子「^\.mut\d+\.lock$」看不见它
+mut-verify36.js 持锁 .mut-verify36.lock → mut-verify39.js 的筛子「^\.mut\d+\.lock$」看不见它
+
+=== 无独占锁的网，与各自动锁的网的快照文件重叠 ===
+无锁且真动树的：（0 张）
+无锁但抽不到写盘调用的（不算雷，只算要人工确认一眼）：mut-avoid-e.js、mut-shell-res.js、mut-verify15-fallback.js（3 张）
+
+汇总：无锁 0 张；看不见别人锁名的穿筛组合 44 组；可判定的重叠对 0；快照名单 UNKNOWN 0 张

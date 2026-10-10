@@ -13,6 +13,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-smoke33.lock'); /* 拦别人这一格交给单点模块（宽筛子），自锁名沿用原有那一枚 */
 
 const FILES = ['planner.js'];
 /* 上一批踩过：同一个变异脚本被起了两份，两份都在写 planner.js，

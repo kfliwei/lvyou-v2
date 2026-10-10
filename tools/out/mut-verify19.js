@@ -33,6 +33,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify19.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 const CSS = 'design.css', UI = 'ui.js', PL = 'planner.js', TN = 'travel-notes.js',
   IDX = 'index.html', TOP = 'topic.html', STO = 'story.html', SET = 'settings.html',

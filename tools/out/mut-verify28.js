@@ -9,6 +9,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify28.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 const FILES = ['planner.js', 'planner.html', 'design.css', 'tools/smoke-export.js',
   'tools/verify.js', 'tools/gen-sw-shell.cjs', 'README.md', '改进实施方案与验收标准.md'];

@@ -1475,6 +1475,12 @@ body .tn-editpage .body button{padding:0 12px}
 body .tn-listbar input,body .tn-quotes .sr input{min-height:44px}
 body .tn-more>summary{min-height:44px}
 .story-nav .sn-btn{width:44px;height:44px}
+/* 首启引导那一屏（批次 33-G 归位）：改前「跳过 ›」实测 60.2×34（两档都是，
+   tools/out/b33g-obskip.txt:5、:14），比地板差 10；那枚钮的尺码从头到尾没在任何地方点名过，
+   全靠 padding 撑。`.ob-btn` 改前已经在 index.html 注入串里写了 min-height:44px——值对、出处错，
+   一并收到这里。注入串是运行时 append 的，永远晚于本文件，所以同特异度时它赢；
+   这一条必须带 `body` 前缀才压得住。 */
+body .ob-skip,body .ob-btn{min-height:44px}
 /* 36px 一族：地图上浮控件，允许低于 44，理由见上面的口径 */
 /* `margin:0 auto` 不是装饰：玻璃柱的**宽**是各页自己写的（travel-map 44／map.css 40），
    钮的尺寸在这里点名成 36，两边没人对账时钮贴左、柱子右侧空一条（实测留白 0/8 与 0/4）。

@@ -30,6 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify23.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 const CSS = 'design.css', VF = 'tools/verify.js', TN = 'travel-notes.js', AL = 'album.js', IX = 'index.html';
 const G = '质感闸门 FAIL';

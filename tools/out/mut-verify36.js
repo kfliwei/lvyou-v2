@@ -21,6 +21,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify36.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 const LOG = process.env.MUT_LOG || '';
 const LOGP = LOG ? (path.isAbsolute(LOG) ? LOG : path.join(ROOT, LOG)) : '';

@@ -11,6 +11,8 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..', '..');
+/* 独占锁收在单点：tools/mut-lock.js（本网砸 android_app 副本与外部壳的 res，并发跑会互相抹还原） */
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify15-fallback.lock');
 const RES = path.join(ROOT, 'android_app', 'app', 'src', 'main', 'res');
 /* 指向一个必然不存在的壳目录，逼闸门走仓库副本（等价于另一台机器的现场） */
 const NO_SHELL = path.join(ROOT, 'tools', 'out', '__no_such_shell_dir__');
@@ -45,8 +47,12 @@ ok(b0.code === 0 && /仓库壳源副本 android_app/.test(splashLine(b0.out)) &&
   '基线（无壳）→ exit=' + b0.code + ' | ' + splashLine(b0.out));
 
 /* ② 三条变异砸在仓库副本上：闸门必须逐条转红，证明退回的那条路径真在被解析 */
+/* 崩在「注入」与「还原」之间会把壳源副本留在变异态：登记原字节，退出时兜底写回 */
+const live = [];
+process.on('exit', () => { live.forEach(t => { try { fs.writeFileSync(t.file, t.buf); } catch (e) {} }); });
 for (const c of CASES) {
   const buf = fs.readFileSync(c.file);
+  live.push({ file: c.file, buf });
   const s = buf.toString('utf8');
   const count = s.split(c.old).length - 1;
   if (count !== 1) { ok(false, '锚点命中 ' + count + ' 次（要求恰好 1 次），不注入：' + path.basename(c.file)); continue; }
@@ -65,6 +71,7 @@ for (const c of CASES) {
 const SHELL_RES = (process.env.TRACE_ANDROID_SHELL || 'F:/MyAi/trace/lvyou-v2-android').replace(/\\/g, '/') + '/app/src/main/res';
 if (fs.existsSync(SHELL_RES)) {
   const brokenBuf = fs.readFileSync(CASES[0].file);
+  live.push({ file: CASES[0].file, buf: brokenBuf });
   fs.writeFileSync(CASES[0].file, brokenBuf.toString('utf8').replace(CASES[0].old, CASES[0].neo));
   const p = runVerify();
   ok(p.code === 0 && /外部壳 /.test(splashLine(p.out)),

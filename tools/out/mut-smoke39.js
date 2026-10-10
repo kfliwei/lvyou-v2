@@ -1,6 +1,6 @@
 /* tools/out/mut-smoke39.js — §39 的浏览器腿变异自测（批次 25-B 的 B 组）
  *
- * 十八条「改了源码，真浏览器里必须红在指定那条 K 判据上」的行为退化。
+ * 二十二条「改了源码，真浏览器里必须红在指定那条 K 判据上」的行为退化，外加一条 G03 反证（下面明写）。
  * 为什么这组不能省：§39 的根因是「同一族几何被写了四遍，谁后加载谁说了算」，
  * 而源码腿能钉的是**出处与字面量**，钉不到**落到屏幕上的那寸尺寸**——
  * 断字（K11/K13）、标题被压成 2px（K03）、退档阈值写错（K21）、玻璃柱里贴左（K31）、
@@ -12,29 +12,26 @@
  * `body .tn-x`（0-1-1）永远赢它（0-1-0），画面照旧 44。所以这一族在 B 组只打「design.css 单点
  * 自己漂」（B15/B16）与「me.html 活着的这一条漂」（B17），外加 B18 打 K34 自己的分母：
  * 名单清空后「零枚矮于 44」会在一个没有被测对象的页面上绿（§38 那一课的第三种形状）。
- * 跑前先验基线：smoke-topbar 必须 36 条全绿，否则整网退出——基线不脏就没法把红记在变异头上。
+ * 33-G 是同一族形状落在**第三处无视野的屏**上（首启引导蒙层，index.html 运行时注入的那份 <style>）：
+ * B19 打 design.css 单点自己漂、B20 打注入串里带 body 前缀的真覆盖（这一半两腿都有视野，与源码腿
+ * M70 同源）、B21/B22 打 K36 的取样前置与调用点（蒙层不挂载＝「没有样本」而不是「够 44」）。
+ * 最后 G03 是本腿的**反证**：不带 body 前缀的尺寸写回必须让整网全绿——K36 的文案里那句
+ * 「本腿读不到」不能只写在注释里（§43 那一课：闸门注释里「现状如此」的说法要先实测一次）。
+ * 跑前先验基线：smoke-topbar 必须 37 条全绿，否则整网退出——基线不脏就没法把红记在变异头上。
  *
  * **不得与源码腿（mut-verify39.js）或像素基线并行**：变异打的正是 smoke 要量的那几页，
  * 两份同时跑读数全废（批次 20 实测）。锁用**同一个文件**：只有一侧带锁的锁不是锁。
  *
- * 用法: MUT_LOG=tools/out/b25b-mut-smoke39.txt node tools/out/mut-smoke39.js
+ * 用法: MUT_LOG=tools/out/b33g-mut-smoke39.txt node tools/out/mut-smoke39.js
  */
 const fs = require('fs');
 const cp = require('child_process');
 const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 
-/* 与源码腿共用一把锁（tools/out/.mut39.lock）：谁先到谁占，另一张网当场退出。
-   取锁用 flag 'wx'（存在即失败），把「同时启动」那一格也堵掉；BUSY 认所有 .mut*.lock，
-   不只认名字——本族各网快照都含 tools/verify.js 与同一批产品文件，并发跑各自从自己的启动快照
-   回写，后还原那张把前一张刚还原的内容一并抹掉，树停在中间态而两边都报「全过」。 */
-const OUTDIR = path.join(ROOT, 'tools', 'out');
-const LOCK = path.join(OUTDIR, '.mut39.lock');
-function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
-try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
-catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
-const BUSY = fs.readdirSync(OUTDIR).filter(x => /^\.mut\d+\.lock$/.test(x) && x !== '.mut39.lock');
-if (BUSY.length) { unlock(); console.log('中止：' + OUTDIR + ' 里还有别的变异网锁 ' + BUSY.join('、') + '（快照与本网重叠，并发跑两边读数全废）'); process.exit(2); }
+/* 独占锁收在单点：tools/mut-lock.js（§52 的口径——三件事只留一份，筛子不许各家自写）。
+   与源码腿 mut-verify39.js 共用同一把 .mut39.lock 是**故意**的：两侧同抢一把，只有一侧带锁等于没有。 */
+const unlock = require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut39.lock');
 
 /* 证据由脚本自己写盘：shell 重定向在长跑后台任务里留过 0 字节文件。
    每行带时刻：这张网一条要跑一整遍 smoke-topbar（十几分钟级），没时间戳就没法判断
@@ -51,7 +48,7 @@ console.log = function () {
 
 const FILES = ['design.css', 'map.css', 'topic.html', 'travel-map.html', 'node-manager.html', 'story.html',
   'search.html', 'wishlist.html', 'checklist.html', 'album-edit.html', 'expense.html', 'me.html',
-  'tools/smoke-topbar.js'];
+  'index.html', 'tools/smoke-topbar.js'];
 const ORIG = {};
 FILES.forEach(f => { ORIG[f] = fs.readFileSync(path.join(ROOT, f), 'utf8'); });
 function restore() {
@@ -71,6 +68,11 @@ process.on('exit', () => { restore(); unlock(); });
  ['me.html', '.entry .ic{width:40px'],
  ['tools/smoke-topbar.js', "ok('K34 "],
  ['tools/smoke-topbar.js', 'const PN_SEL = '],
+ ['design.css', 'body .ob-skip,body .ob-btn{min-height:44px}'],
+ ['index.html', '.ob-btn{padding:0 26px;'],
+ ['index.html', 'class="ob-skip"'],
+ ['tools/smoke-topbar.js', "ok('K36 "],
+ ['tools/smoke-topbar.js', "localStorage.removeItem('tn_onboarded')"],
 ].forEach(pair => {
   if (ORIG[pair[0]].indexOf(pair[1]) < 0) {
     console.log('中止：基准源码 ' + pair[0] + ' 不含本批指纹「' + pair[1].slice(0, 40) + '」，读数不可信');
@@ -97,7 +99,7 @@ function smoke() {
   console.log('基准 smoke-topbar 全绿（' + (out.match(/全部通过（(\d+) 条）/) || [])[1] + ' 条），开始逐条打红\n');
 }
 
-let red = 0, anomalies = 0, total = 0;
+let red = 0, anomalies = 0, total = 0, silent = 0;
 function judge(name, file, mutated, token) {
   total++;
   fs.writeFileSync(path.join(ROOT, file), mutated);
@@ -130,6 +132,33 @@ function run(name, file, from, to, token) {
     return;
   }
   judge(name, file, src.replace(from, () => to), token);
+}
+/* 设计内静默（浏览器腿必须**全绿**）：这一条不是「没人守」，而是反证 K36 文案里那句声明——
+   「注入串里写回不带 body 前缀的尺寸，本腿读不到」。这句若不实测一次，就又是一条只写在注释里的
+   断言（§43 那一课：闸门注释里「现状如此」的说法要先写探针实测）。读到 44 才算证明：
+   0-1-0 打不过 design.css 的 0-1-1，画面照旧 44，真正的视野在源码腿 M69 那一边。 */
+function silentCase(name, file, from, to) {
+  total++;
+  const src = ORIG[file];
+  const n = src.split(from).length - 1;
+  if (n !== 1) {
+    anomalies++;
+    console.log('异常  ' + name + '  ' + file + ' 的 from 串命中 ' + n + ' 处，期望 1（静默样本没打上）');
+    return;
+  }
+  fs.writeFileSync(path.join(ROOT, file), src.replace(from, () => to));
+  let out;
+  try { out = smoke(); }
+  finally { fs.writeFileSync(path.join(ROOT, file), ORIG[file]); }
+  const fails = out.split('\n').filter(l => l.indexOf('FAIL ') === 0);
+  if (fails.length === 0 && !/CRASH/.test(out)) {
+    silent++;
+    console.log('静默  ' + name + '  → 浏览器腿 0 红（这条退化对 rect/computed 是结构性盲的，视野在源码腿 M69 那一边）');
+  } else {
+    anomalies++;
+    console.log('异常  ' + name + '  本条应「浏览器腿全绿」（用它反证那句结构性失明），实际 FAIL ' + fails.length +
+      ' 条：' + fails.map(l => l.slice(0, 70)).join(' | '));
+  }
 }
 
 /* ============ 标题那一族：源码锚在、渲染已经错 ============ */
@@ -185,5 +214,21 @@ run('B18 K34 自己的分母清空（PN_SEL 换成空表：五枚全不量，「
   "const PN_SEL = ['#tnX', '#tnQuote', '#tnDocBtn', '#tnViewTrip', '#tnSearch'];",
   'const PN_SEL = [];', 'K34');
 
-console.log('mut-smoke39: ' + red + '/' + total + ' 按预期红，异常 ' + anomalies);
+/* ============ 批次 33-G：首启引导蒙层（这屏此前既不在 FILES39 也不在 BAR_PAGES，两腿都无视野） ============
+   地基读数 tools/out/b33g-obskip.txt：改前「跳过 ›」= 60.2×34（328 与 320 两档同值），比地板差 10。
+   B19 打 design.css 单点自己漂；B20 打注入串里**带 body 前缀**的真覆盖（同特异度＋后加载，这一半两腿都有视野）；
+   B21／B22 打 K36 的取样前置与调用点——蒙层不挂载、或那枚钮换了 class，「零枚矮于 44」都是绿在一张没有样本的屏上。
+   G03 是这一族的**反证**：不带 body 前缀的尺寸写回，本腿必须全绿（K36 的文案就是这么声明的，得实测一次）。 */
+run('B19 design.css 那条首启引导的地板单点从 44 漂回 34（改前这一族压根没在任何地方被点名过，全靠 padding 撑）→ K36 必须红', 'design.css',
+  'body .ob-skip,body .ob-btn{min-height:44px}', 'body .ob-skip,body .ob-btn{min-height:34px}', 'K36');
+run('B20 注入串里给那枚跳过钮写回带 body 前缀的 min-height:34px（同特异度＋运行时 append＝真覆盖，design.css 压不住它；这一半与源码腿 M70 打的是同一种写法）→ K36 必须红', 'index.html',
+  '.ob-skip{position:absolute;', 'body .ob-skip{min-height:34px;position:absolute;', 'K36');
+run('B21 挂载前置倒转成恒真（tn_onboarded 那个键还在但蒙层永远不挂载：K36 读到的 mounted=false 是「没有样本」，不是「够 44」）→ K36 必须红', 'index.html',
+  "if(localStorage.getItem('tn_onboarded')) return;", 'if(1) return;', 'K36');
+run('B22 把「跳过 ›」的 class 改名（钮还在屏幕上、还能点，但 .ob-skip 这个选择器没人认了：K36 的分母宿主没了而判据照样跑）→ K36 必须红', 'index.html',
+  'class="ob-skip"', 'class="obSkipX"', 'K36');
+silentCase('G03 注入串里给 .ob-btn 写回不带 body 前缀的 min-height:34px（0-1-0 打不过 design.css 的 0-1-1，画面照旧 44）——浏览器腿必须全绿：这条就是 K36 那句「本腿读不到不带 body 前缀的写回」的实测反证，视野在源码腿 M69', 'index.html',
+  '.ob-btn{padding:0 26px;', '.ob-btn{min-height:34px;padding:0 26px;');
+
+console.log('mut-smoke39: 共 ' + total + ' 条 / 按预期红 ' + red + ' / 设计内静默 ' + silent + ' / 异常 ' + anomalies);
 process.exit(anomalies ? 1 : 0);

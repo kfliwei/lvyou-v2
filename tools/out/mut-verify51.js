@@ -73,7 +73,7 @@ const LOCK = path.join(OUTDIR, '.mut51.lock');
 function unlock() { try { fs.unlinkSync(LOCK); } catch (e) {} }
 try { fs.writeFileSync(LOCK, String(process.pid), { flag: 'wx' }); }
 catch (e) { console.log('中止：' + LOCK + ' 已存在（另一张变异网正在动树，读数会全废）'); process.exit(2); }
-const BUSY = fs.readdirSync(OUTDIR).filter(f => /^\.mut\d+\.lock$/.test(f) && f !== '.mut51.lock');
+const BUSY = fs.readdirSync(OUTDIR).filter(f => /^\.mut[\w.-]+\.lock$/.test(f) && f !== '.mut51.lock');
 if (BUSY.length) { unlock(); console.log('中止：' + OUTDIR + ' 里还有别的变异网锁 ' + BUSY.join('、') + '（快照可能与本网重叠，并发跑两边读数全废）'); process.exit(2); }
 
 const LOG = process.env.MUT_LOG || '';

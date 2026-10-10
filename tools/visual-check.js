@@ -54,8 +54,11 @@ const UPDATE = argv.includes('--update');
 const REINDEX = argv.includes('--reindex');
 const SEEDONLY = argv.includes('--seed');
 /* FAIL 定位用：把本次截图也落一份（visual-diff/*.cur.png），与基线、diff 三张并排看，
-   不然只有一张 diff 图，分不清"改了色"还是"挪了位"。不影响任何判定。 */
+   不然只有一张 diff 图，分不清"改了色"还是"挪了位"。不影响任何判定。
+   这个开关管的是「绿态也要能并排看」；**红态不需要带它**（见下方 keepCur，批次 33-G 补的腿）。 */
 const KEEP = argv.includes('--keep-current');
+/* 当前帧的落盘名（与基线、diff 三张并排看的那个 .cur.png）：单点一个，别在两处各拼一遍串。 */
+const curF = tag => path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png');
 const onlyPages = argv.filter(a => !a.startsWith('--'));
 
 /* 状态清单：page → 视口列表。地图页不再有宽阈值（拦掉请求后它和普通页一样确定，理由见下方阈值注释）。
@@ -324,7 +327,7 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
       return n;
     }, TOAST_SEL);
     const buf = await pg.screenshot({ type: 'png', animations: 'disabled' });
-    if (KEEP) fs.writeFileSync(path.join(DIFF, tag.replace(/\.png$/, '') + '.cur.png'), buf);
+    if (KEEP) fs.writeFileSync(curF(tag), buf);
     testN++;
     if (toasts) console.log('NOTE ' + tag + ' — 截图前摘除 ' + toasts + ' 条短命 toast（不进基线）');
 
@@ -361,9 +364,19 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
     const lim = st.kind ? THRESH_SEED : THRESH;
     const ok = ratio <= lim;
     fs.writeFileSync(path.join(DIFF, tag), PNG.sync.write(diffPng));
-    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined });
+    /* 红的当前帧必须留档（批次 33-G 补的腿，和 33-F 那条「覆盖基线前先整批留档」同一族）：
+       只读跑批原本只有 --keep-current 才落当前帧，而 me.ledger 那次 21.37% 的红复跑就没了——
+       「旧那一屏 vs 新这一屏」只剩一张 diff 图，归因只能靠再跑一次碰运气。当前帧不入库、不要钱，
+       留着才有「红的是哪一屏」的直接读数；判定本身一个字节都不动。 */
+    const keepCur = KEEP || !ok;
+    if (!KEEP && !ok) fs.writeFileSync(curF(tag), buf);   /* 带 --keep-current 时截图后已落过盘，这里只补「红且没带那个开关」 */
+    report.push({ state: tag, status: ok ? 'PASS' : 'FAIL', diffPct: +(ratio * 100).toFixed(3), limitPct: +(lim * 100).toFixed(2), toastsRemoved: toasts || undefined, curFrame: keepCur ? path.relative(ROOT, curF(tag)) : undefined });
     if (ok) console.log('PASS ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '%');
-    else { console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag); failN++; }
+    else {
+      console.log('FAIL ' + tag + '  diff ' + (ratio * 100).toFixed(2) + '% > ' + (lim * 100) + '%  → tools/out/visual-diff/' + tag);
+      if (!KEEP) console.log('EVID ' + tag + ' — 当前帧已自动留档 → ' + path.relative(ROOT, curF(tag)) + '（三张并排看：基线 / 这一张 / diff）');
+      failN++;
+    }
   }
   /* ---------- 性能预算（P0-2 验收项）：LCP < 2.5s、CLS < 0.05 ----------
      单独干净页测：不装 CLOCK 桩（performance.now 被钉成常量，时间戳会失真）。

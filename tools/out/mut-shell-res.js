@@ -8,6 +8,8 @@ const { execFileSync } = require('child_process');
 
 const RES = path.join(__dirname, '..', '..', '..', 'lvyou-v2-android', 'app', 'src', 'main', 'res');
 const PROBE = path.join(__dirname, 'probe-shell-res.js');
+/* 独占锁收在单点：tools/mut-lock.js（本网砸的是隔壁壳仓库的 xml，与 lvyou-v2 的网不共文件，但同一时间仍只许一张网动盘） */
+require(path.join(__dirname, '..', '..', 'tools', 'mut-lock.js'))('.mut-shell-res.lock');
 
 const CASES = [
   { file: path.join(RES, 'drawable', 'splash_brand.xml'), old: 'android:strokeAlpha="0.35"', neo: 'android:strokeOpacity="0.35"', exp: '没有 android:strokeOpacity' },
@@ -25,6 +27,8 @@ function runProbe() {
 
 let fail = 0;
 const snaps = CASES.map(c => ({ c, buf: fs.readFileSync(c.file) }));
+/* 崩在「注入」与「还原」之间会把壳仓库的 xml 留在变异态：退出时兜底写回原字节 */
+process.on('exit', () => { snaps.forEach(t => { try { fs.writeFileSync(t.c.file, t.buf); } catch (e) {} }); });
 
 for (const { c, buf } of snaps) {
   const s = buf.toString('utf8');

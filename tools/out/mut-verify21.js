@@ -30,6 +30,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
+require(path.join(ROOT, 'tools', 'mut-lock.js'))('.mut-verify21.lock'); /* 独占锁单点，见 tools/mut-lock.js */
 
 const CSS = 'design.css', MAP = 'map.css', VF = 'tools/verify.js', IDX = 'index.html',
   SW = 'sw.js', SY = 'tools/sync-assets.js', COV = 'fonts/coverage.json';

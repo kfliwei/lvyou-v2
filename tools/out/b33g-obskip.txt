@@ -2,26 +2,26 @@
 前提：tn_onboarded 已清（index.html:538 那条 if 不放行就没有蒙层）；拦 http / CLOCK 桩 / reduce / dsf=2 与闸门同口径
 
 --- 328×723  蒙层挂载=true  根字号=15px ---
-  .ob-skip「跳过 ›」 rect=60.2×34 @254,14  min-height=0px  padding=9px 14px  font=12.1875px  line-height=normal  中心命中=ob-skip [自己]  → 交互件：高**低于 44 地板**(34)  宽达标
+  .ob-skip「跳过 ›」 rect=60.2×44 @254,14  min-height=44px  padding=9px 14px  font=12.1875px  line-height=normal  中心命中=ob-skip [自己]  → 交互件：高达标(44≥44)  宽达标
   .ob-btn「下一步」 rect=93.4×44 @117,465  min-height=44px  padding=0px 26px  font=13.125px  line-height=normal  中心命中=ob-btn pri [自己]  → 交互件：高达标(44≥44)  宽达标
   .ob-dot「」 rect=8×8 @144,435  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot on [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-dot「」 rect=8×8 @160,435  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-dot「」 rect=8×8 @176,435  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-mask「跳过 ›探索全国」 rect=328×723 @0,0  min-height=0px  padding=32px  font=15px  line-height=normal  中心命中=ob-d [不是自己]  → 非交互（指示点/容器），不参与 44 地板判定
-  自校准（给 .ob-skip 挂 inline min-height:44px 再读）：读到 44 ≥44 → 尺子灵； 摘回 inline 后=34（这一条同时明写：浏览器腿对 inline 覆写有视野，对注入串里那条 padding 式高度只能读结果）
+  自校准（给 .ob-skip 挂 inline min-height:44px 再读）：读到 44 ≥44 → 尺子灵； 摘回 inline 后=44（这一条同时明写：浏览器腿对 inline 覆写有视野，对注入串里那条 padding 式高度只能读结果）
 
 --- 320×640  蒙层挂载=true  根字号=15px ---
-  .ob-skip「跳过 ›」 rect=60.2×34 @246,14  min-height=0px  padding=9px 14px  font=12.1875px  line-height=normal  中心命中=ob-skip [自己]  → 交互件：高**低于 44 地板**(34)  宽达标
+  .ob-skip「跳过 ›」 rect=60.2×44 @246,14  min-height=44px  padding=9px 14px  font=12.1875px  line-height=normal  中心命中=ob-skip [自己]  → 交互件：高达标(44≥44)  宽达标
   .ob-btn「下一步」 rect=93.4×44 @113,424  min-height=44px  padding=0px 26px  font=13.125px  line-height=normal  中心命中=ob-btn pri [自己]  → 交互件：高达标(44≥44)  宽达标
   .ob-dot「」 rect=8×8 @140,394  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot on [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-dot「」 rect=8×8 @156,394  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-dot「」 rect=8×8 @172,394  min-height=auto  padding=0px  font=15px  line-height=normal  中心命中=ob-dot [自己]  → 非交互（指示点/容器），不参与 44 地板判定
   .ob-mask「跳过 ›探索全国」 rect=320×640 @0,0  min-height=0px  padding=32px  font=15px  line-height=normal  中心命中=ob-d [不是自己]  → 非交互（指示点/容器），不参与 44 地板判定
-  自校准（给 .ob-skip 挂 inline min-height:44px 再读）：读到 44 ≥44 → 尺子灵； 摘回 inline 后=34（这一条同时明写：浏览器腿对 inline 覆写有视野，对注入串里那条 padding 式高度只能读结果）
+  自校准（给 .ob-skip 挂 inline min-height:44px 再读）：读到 44 ≥44 → 尺子灵； 摘回 inline 后=44（这一条同时明写：浏览器腿对 inline 覆写有视野，对注入串里那条 padding 式高度只能读结果）
 
 === 出处对账（源码侧）===
   index.html 里 .ob-skip 的规则体出现次数=1（全在 :551 那条注入串里）
-  design.css 里 .ob- 命中行数=0（0 ⇒ 这一族完全在单点之外）
+  design.css 里 .ob- 命中行数=2（0 ⇒ 这一族完全在单点之外）
   verify.js §39 的 FILES39 含 index.html=false（名单长度=17 项）
   smoke-topbar 的 BAR_PAGES 含 index.html=false（名单里 13 页）
   expense-form.js 注入串里的尺寸声明逐条：min-height:44px ×2、height:44px ×3（无 <44 ⇒ 同族形状、无当前症状）

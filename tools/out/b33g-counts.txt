@@ -1,0 +1,23 @@
+=== index.html（首启引导那一族，原文视图）===
+  .ob-mask{      条数=1  规则体内含尺寸=0  .ob-mask{position:fixed;inset:0;z-index:9990;background:var(--color-bg,#f6f3ec);display:flex;fle
+  .ob-skip{      条数=1  规则体内含尺寸=0  .ob-skip{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;border:0;bac
+  .ob-btn{       条数=1  规则体内含尺寸=1  .ob-btn{min-height:44px;padding:0 26px;border-radius:999px;border:1px solid var(--color-line-str
+  .ob-btn.pri{   条数=1  规则体内含尺寸=0  .ob-btn.pri{background:var(--color-primary,#ae5738);border-color:var(--color-primary,#ae5738);co
+  .ob-dot{       条数=1  规则体内含尺寸=1  .ob-dot{width:8px;height:8px;border-radius:50%;background:var(--color-line,#e3ded2)}
+  .ob-dot.on{    条数=1  规则体内含尺寸=0  .ob-dot.on{background:var(--color-primary,#ae5738)}
+  .ob-acts{      条数=1  规则体内含尺寸=0  .ob-acts{display:flex;gap:12px}
+  .ob-dots{      条数=1  规则体内含尺寸=0  .ob-dots{display:flex;gap:8px;margin:28px 0 22px}
+  .ob-ic{        条数=1  规则体内含尺寸=0  .ob-ic{font-size:56px;margin-bottom:20px}
+  .ob-t{         条数=1  规则体内含尺寸=0  .ob-t{font-family:var(--font-serif,serif);font-size:26px;color:var(--color-ink,#26241f);letter-s
+  .ob-d{         条数=1  规则体内含尺寸=1  .ob-d{font-size:var(--fs-5);color:var(--color-muted,#8c877d);line-height:1.9;max-width:300px;tex
+  整串计数：min-height:44px=1、height:=33、width:=27、body .ob-=0、含 .ob- 的行=1
+  index.html 里那枚「跳过」钮的产出点：obSkip=2、class="ob-skip"=1、if(localStorage.getItem('tn_onboarded')) return;=1
+=== design.css（单点该持有的那一头）===
+  body .ob-=0、.ob- 命中行数=0（0 ⇒ 这一族整族在单点之外，与 33-E 的面板族同形状）
+=== tools/verify.js（闸门现在有没有看过它）===
+  FILES39 含 index.html=false、.ob- 出现=0、obSkip=0、tn_onboarded=2
+=== tools/smoke-topbar.js（浏览器腿）===
+  BAR_PAGES 含 index.html=false、'.ob-' 相关：.ob- 出现=0、tn_onboarded=2、ok('K 条数=36、i <= 35=1、size >= 35=1
+=== 对照：33-E 已收口的那一族（同形状的参照物）===
+  travel-notes.js 注入串里 body .tn-*=0（期望 0：那种写法同特异度＋后加载＝真覆盖）
+  design.css 里 body .tn-x=1、body .tn-pill,body .tn-viewtab=1
