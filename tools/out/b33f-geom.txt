@@ -1,0 +1,59 @@
+=== ① 空库态：me.html 的 .rec 有几行、在不在帧内（34-B 接线 + 33-B 的 44 地板） ===
+  me.html 空库@390×844 → .rec 行数 0  首行 null  空态块 不在  scrollY 0 文档高 1708
+
+=== ② 空库态：index.html 那条备份提醒条出不出屏（33-C z 9500→8000） ===
+  328×723 → 提醒条出现 1 次 {"y":561,"h":58,"z":"8000"}  页内 tn-* 节点 0  #tnPanel 存在=false
+  390×844 → 提醒条出现 1 次 {"y":679,"h":61,"z":"8000"}  页内 tn-* 节点 0  #tnPanel 存在=false
+
+=== ③ 空库态：settings.html 批次 36 那三处在不在帧内 ===
+  320×640  scrollY 0  文档高 3532  视口 640
+    #wdUrl → top=2122 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2371 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2427 h=115 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2552 h=44 不在帧内  文本=『坚果云：填标准地址』
+  328×723  scrollY 0  文档高 3513  视口 723
+    #wdUrl → top=2103 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2352 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2408 h=115 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2533 h=44 不在帧内  文本=『坚果云：填标准地址』
+  390×844  scrollY 0  文档高 3450  视口 844
+    #wdUrl → top=2070 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2324 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2380 h=102 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2492 h=44 不在帧内  文本=『坚果云：填标准地址』
+  452×995  scrollY 0  文档高 3484  视口 995
+    #wdUrl → top=2061 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2321 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2377 h=114 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2501 h=44 不在帧内  文本=『坚果云：填标准地址』
+  768×1024  scrollY 0  文档高 3247  视口 1024
+    #wdUrl → top=1928 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2182 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2238 h=61 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2309 h=44 不在帧内  文本=『坚果云：填标准地址』
+  1440×900  scrollY 0  文档高 3247  视口 900
+    #wdUrl → top=1928 h=46 不在帧内  placeholder=『https://dav.jianguoyun.com/dav/』
+    #wdPass → top=2182 h=46 不在帧内  placeholder=『坚果云要填「应用密码」，不是登录密码』
+    #wdHelp → top=2238 h=61 不在帧内  文本=『坚果云的密码栏不能填登录密码：在网页版点头像 → 账』
+    #wdPresetJg → top=2309 h=44 不在帧内  文本=『坚果云：填标准地址』
+
+=== ④ story.html 翻页浮条：33-B 抬 .sn-btn、33-D 加长 #snSub，各动在哪 ===
+
+视口 390×844  卡面数 8  日卡首行 .sc-date=『2026-09-26 · 09:24』
+  .story-nav {"x":12,"y":678,"w":366,"h":62}  底边 740 / 视口高 844 → 整条在帧内
+  #snPrev {"x":27,"y":687,"w":44,"h":44}  #snNext {"x":319,"y":687,"w":44,"h":44}  computed={"width":"44px","height":"44px","minWidth":"auto"}
+  #snTitle 『瑞金 · 长征的起点』 scrollW 228 clientW 228 → 放得下
+  #snSub 现串『第 1 / 8 站 · 2026-09-26 · 09:24』 scrollW 228 / 容器 228 → 放得下
+  #snSub 改前串『第 1 / 8 站 · 2026-09-26』 scrollW 228 → 33-D 加长 0px
+  #snSub 实测高 16  行高 normal → 单行
+
+视口 328×723  卡面数 8  日卡首行 .sc-date=『2026-09-26 · 09:24』
+  .story-nav {"x":12,"y":557,"w":304,"h":62}  底边 619 / 视口高 723 → 整条在帧内
+  #snPrev {"x":27,"y":566,"w":44,"h":44}  #snNext {"x":257,"y":566,"w":44,"h":44}  computed={"width":"44px","height":"44px","minWidth":"auto"}
+  #snTitle 『瑞金 · 长征的起点』 scrollW 166 clientW 166 → 放得下
+  #snSub 现串『第 1 / 8 站 · 2026-09-26 · 09:24』 scrollW 166 / 容器 166 → 放得下
+  #snSub 改前串『第 1 / 8 站 · 2026-09-26』 scrollW 166 → 33-D 加长 0px
+  #snSub 实测高 15  行高 normal → 单行
+
+=== ⑤ me.html 有账态：.rec 行数（基线 me.ledger 那一格到底拍没拍到这批改动） ===
+  me.html 有账@390×844 → .rec 行数 0  首行 null  前四行高 []  scrollY 0 文档高 1817 视口 844

@@ -1,0 +1,53 @@
+
+=== 空库态 story.320x640.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":6676,"pct":0.8149}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 89373d0b98cb7bf1）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 空库态 story.328x723.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":6613,"pct":0.6972}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 98fe90162879b727）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 空库态 story.390x844.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":7278,"pct":0.5528}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 14e284a089e3be8e）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 空库态 story.452x995.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":9336,"pct":0.519}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 8213194b9af9b1bf）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 空库态 story.768x1024.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":9509,"pct":0.3023}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 6fdc3dcb2295817d）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 空库态 story.1440x900.png ===
+  卡面数 0（0 → 这一屏没有 .sc-date，33-D 结构性不参与）
+  A 现状 vs 基线 → {"diffPixels":9509,"pct":0.1834}
+  注入 #snPrev,#snNext{width:40px!important;height:40px!important} → 实读 {"prev":{"w":44,"h":44,"cw":"44px"},"next":{"w":44,"h":44,"cw":"44px"}}
+  B 只退钮 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 是（sha 1af54aba75c5cadc）
+  截图后钮尺寸复查 {"prev":{"w":40,"h":40,"cw":"40px"},"next":{"w":40,"h":40,"cw":"40px"}}
+
+=== 种子态 story.seed.390x844（闸门报 0.60%） ===
+  卡面数 8  首张 .sc-date=『2026-09-26 · 09:24』
+  A 现状 vs 基线 → {"diffPixels":7860,"pct":0.597}
+  只退文字：#snSub 『第 1 / 8 站 · 2026-09-26 · 09:24』→『第 1 / 8 站 · 2026-09-26』（.sc-date 同口径）
+  C 只退文字 vs 基线 → {"diffPixels":7335,"pct":0.5571}
+  D 文字 + 钮都退 vs 基线 → {"diffPixels":0,"pct":0}  与基线整文件同字节? 否（基线 f11ed2723f14db04 / 当前 fdc566b60f33a47d）
+  E 只退钮（另起一屏，文字保持现状）vs 基线 → {"diffPixels":1791,"pct":0.136}
+  拆账复核：A−C＝525 对比 E＝1791；A−E＝6069 对比 C＝7335
+
+截图归档目录 tools/out/b33f-shots/

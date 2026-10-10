@@ -2323,12 +2323,29 @@ const EMOJI_MARK = 'emoji-ok:';
   if (cnt25(VC, 'const PERF_SAMPLES = 3;') !== 1) F25('性能预算回到单次采样（PERF_SAMPLES 不是恰 1 处 = 3）——冷尾长尾会让这条闸门随机红，先读 tools/out/b21-perf-ab.txt 再改');
   if (cnt25(VC, 'const lcp = ls.slice().sort((a, b) => a - b)[1];') !== 1) F25('LCP 没取样本中位数——时间类指标取中位，单次读数不作数');
   if (cnt25(VC, 'const cls = Math.max.apply(null, cs);') !== 1) F25('CLS 没取三次里的最大值——位移越线一次就算越线，这里不该用中位');
+  /* 改拍前必须把旧基线整批留档（批次 33-F 补的一条）。基线本体不入库，--update 一覆盖旧帧就永久没了：
+     那次 topic 四档指纹变了，「旧那一屏 vs 新这一屏」拿不到任何直接读数，只能另写探针从
+     「同代码单页重拍能否落回旧帧」侧证（tools/out/b33f-floor.txt）。留档把这一步变成现成的目录对目录 diff。
+     钉三件：PREV 常量定义、逐张 copyFileSync、以及**顺序**——留档必须排在覆盖之前（排在后面留的是新帧，等于没留）。 */
+  if (cnt25(VC, "const PREV = path.join(ROOT, 'tools', 'out', 'visual-baseline-prev');") !== 1) F25('visual-check.js 的 PREV（改拍前留档目录）定义不是恰 1 处（实测 ' + cnt25(VC, "const PREV = path.join(ROOT, 'tools', 'out', 'visual-baseline-prev');") + '）');
+  if (cnt25(VC, 'fs.copyFileSync(path.join(BASE, f), path.join(PREV, f));') !== 1) F25('改拍前没有逐张留档（copyFileSync 那行不是恰 1 处）——覆盖即不可回，见 tools/out/b33f-floor.txt');
+  {
+    const iArch = VC.indexOf("console.log('ARCHIVE 改拍前旧基线 '");
+    const iOver = VC.indexOf('fs.writeFileSync(baseF, buf);');
+    if (iArch < 0) F25('ARCHIVE 那条留档回执不见了（留档块被整支摘掉）');
+    else if (iOver < 0) F25('找不到覆盖基线那一行，顺序对账失去依据（fs.writeFileSync(baseF, buf) 被改名？）');
+    else if (iArch > iOver) F25('留档排在覆盖之后（ARCHIVE@' + iArch + ' > 覆盖@' + iOver + '）——那留的是新帧，旧帧照样没了');
+  }
+  const GI25 = rd25('.gitignore');
+  if (cnt25(GI25, 'tools/out/visual-baseline-prev/') !== 1) F25('.gitignore 里 visual-baseline-prev/ 的忽略不是恰 1 处（实测 ' + cnt25(GI25, 'tools/out/visual-baseline-prev/') + '）——109 张二进制会混进 git status，而它跟 visual-baseline/ 是**两个目录名**，前一条规则盖不住它');
   if (rd25('README.md').indexOf('LCP 中位') < 0) F25('README.md 没登记性能预算的采样口径（改口径不写进 README 就等于没改，下一个人还会拿单次读数当真相）');
   if (rd25('README.md').indexOf('#nmTip') < 0) F25('README.md 的视觉闸门口径没登记 #nmTip 这一类（新名单不写进 README 就等于没装）');
   if (rd25('README.md').indexOf('.ui-tilewarn') < 0) F25('README.md 的视觉闸门口径没登记 .ui-tilewarn 这一类');
+  if (rd25('README.md').indexOf('visual-baseline-prev') < 0) F25('README.md 没登记「--update 改拍前先整批留档」这条口径（闸门改了口径，不写进 README 就等于没装）');
   console.log('像素基线闸门: 摘除名单整串相等（' + n25 + ' 个选择器）且摘除动作真走它；只认 .ui-toast 的旧写法零残留；' +
     '名单里三个名字各有活挂载点（node-manager.html 的 id="nmTip" + loadIndex 开场提示、ui.js 的 ui-tilewarn + 4000ms 定时器、topic-common.js 的 .toast 兜底）；' +
-    '性能预算取 3 次采样的 LCP 中位 + CLS 最大（单次采样是掷硬币）；README 已登记');
+    '性能预算取 3 次采样的 LCP 中位 + CLS 最大（单次采样是掷硬币）；' +
+    '改拍前逐张留档到 visual-baseline-prev/ 且 ARCHIVE 排在 fs.writeFileSync(baseF, buf) 之前（基线本体不入库，覆盖即不可回）、该目录在 .gitignore 里单独一条；README 已登记');
   fail += bad25;
 }
 

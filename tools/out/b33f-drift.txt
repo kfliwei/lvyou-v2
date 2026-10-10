@@ -1,0 +1,14 @@
+清单条数 旧 109 / 现 109
+指纹变化 11 条：
+  topic.320x640.png b86ad49aa507c815→498e678e5ad4be2e
+  topic.328x723.png ba85423b61c32538→8f90ad86fa01cb08
+  topic.452x995.png 659f6f564628ce08→ded098bfc0ceeaf4
+  topic.768x1024.png cca1008a0d2177dd→99d0dd00972ad0f3
+  story.320x640.png 89373d0b98cb7bf1→2823b86e669d4c8f
+  story.328x723.png 98fe90162879b727→77860ff43d2998b6
+  story.390x844.png 14e284a089e3be8e→0587427b565c04c6
+  story.452x995.png 8213194b9af9b1bf→b4308bafc2bf903c
+  story.768x1024.png 6fdc3dcb2295817d→64ab76612b12c9b2
+  story.1440x900.png 1af54aba75c5cadc→3d359c0ffbd8e4b9
+  story.seed.390x844.png f11ed2723f14db04→adc1411e41ea2948
+条数异常 0 条：

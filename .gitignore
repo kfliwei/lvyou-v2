@@ -39,6 +39,7 @@ tools/archive/
 # 基线缺失/指纹不符时 visual-check 判 FAIL，不会静默重建
 tools/out/visual-baseline/
 tools/out/visual-diff/
+tools/out/visual-baseline-prev/
 # 历史散点截图（无日期目录，非本轮物证）；带日期的物证目录 tools/out/shots/<日期>/ 逐个 git add
 tools/out/shots/after/
 tools/out/shots/before/

@@ -30,6 +30,8 @@ const match = _pm.default || _pm;   /* pixelmatch v6+ 为 ESM default 导出 */
 const ROOT = path.join(__dirname, '..');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const BASE = path.join(ROOT, 'tools', 'out', 'visual-baseline');
+/* 改拍前的旧基线整批留档处（每次 --update 覆盖上一份）。见 UPDATE 分支注释。 */
+const PREV = path.join(ROOT, 'tools', 'out', 'visual-baseline-prev');
 const DIFF = path.join(ROOT, 'tools', 'out', 'visual-diff');
 const MANIFEST = path.join(ROOT, 'tools', 'out', 'visual-baseline.json');
 const REPORT = path.join(ROOT, 'tools', 'out', 'visual-report.json');
@@ -229,6 +231,18 @@ const CLOCK = `const __T = new Date('2026-10-03T10:00:00+08:00').getTime();
   if (UPDATE && !onlyOne) {
     const valid = new Set(allStates().map(tagOf));
     for (const k of Object.keys(manifest)) if (!valid.has(k)) { delete manifest[k]; console.log('PRUNE 清单已摘除的状态: ' + k); }
+  }
+  /* 改拍前先把旧基线整批复制到 tools/out/visual-baseline-prev/，再开始覆盖。
+     批次 33-F 的教训：基线本体不入库，--update 一覆盖旧帧就永久没了——那次 topic 四档指纹变了，
+     「旧那一屏 vs 新这一屏」根本无法直接量，只能另写探针从「同代码单页重拍能否落回旧帧」侧证。
+     留档之后那一刀是现成的：diff 两个目录即可。单页 --update 也照留（它同样会覆盖）。 */
+  if (UPDATE) {
+    fs.mkdirSync(PREV, { recursive: true });
+    let snapN = 0;
+    for (const f of fs.readdirSync(BASE).filter(x => x.endsWith('.png'))) {
+      fs.copyFileSync(path.join(BASE, f), path.join(PREV, f)); snapN++;
+    }
+    console.log('ARCHIVE 改拍前旧基线 ' + snapN + ' 张 → tools/out/visual-baseline-prev/');
   }
 
   let seeded = false;

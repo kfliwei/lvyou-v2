@@ -1,0 +1,148 @@
+批次 33-F · 像素基线重拍前的人审清单（2026-10-10）
+=====================================================
+
+闸门：node tools/visual-check.js（109 态 = 17 页 × 六视口 + 种子/有账态）
+本次只读第一跑：tools/out/b33f-visual-readonly1.txt
+  末行「比对 109 张: 102 PASS, 7 FAIL」（耗时 544.9s），tools/out/visual-report.json 的 fail=7
+红全部集中在 story.html 一页，别的一页都没有：
+  :85 FAIL story.320x640.png   diff 0.81% > 0.1%
+  :86 FAIL story.328x723.png    diff 0.70% > 0.1%
+  :87 FAIL story.390x844.png    diff 0.55% > 0.1%
+  :88 FAIL story.452x995.png    diff 0.52% > 0.1%
+  :89 FAIL story.768x1024.png   diff 0.30% > 0.1%
+  :90 FAIL story.1440x900.png   diff 0.18% > 0.1%
+  :124 FAIL story.seed.390x844.png diff 0.60% > 0.05%
+diff 图（重拍前已另存，防止后续只读跑把它们覆盖掉）：tools/out/b33f-evidence-readonly/
+
+一、红在哪：红区连通块表（tools/out/probe33f-diff.js → b33f-diff-clusters.txt，像素为设备像素 DPR 2）
+  六个空态各 5 块，形状一致：
+    块1 = 底部翻页浮条轮廓（328 档 x=24-632 y=1112-1224，6144 像素，占 0.648%）
+    块2/块3 = 左右两枚圆钮的环（各 56×56 = CSS 28×28 的环宽）
+    块4/块5 = 钮内箭头字形（各 16×24）
+  种子态 13 块 = 上面 5 块 + 浮条中央文字 2 块 + 日卡日期行（块5 x=296-368 y=1216-1240，即 .sc-date）等
+  ⇒ 全部落在 .story-nav 浮条与日卡日期这两处，没有第三块孤立在别处。
+
+二、成因（两处，都是本批有意为之的改进，不是回归）
+  ① 33-B 触控地板：design.css:1495 `.story-nav .sn-btn{width:44px;height:44px}`（改前 story.html 里是 40×40）
+  ② 33-D 日期口径：dayClock 单点给日卡 `.sc-date` 与浮条 `#snSub` 补「· HH:MM」
+     （种子态实测读数：.sc-date=『2026-09-26 · 09:24』，#snSub=『第 1 / 8 站 · 2026-09-26 · 09:24』）
+
+三、归因反证（tools/out/probe33f-attr.js → b33f-attr.txt）——反向腿：产品码一行不动，运行时造「改前那一屏」
+  做法：注入 `#snPrev,#snNext{width:40px!important;height:40px!important}` 退 ①；
+        用 textContent 把 ` · \d{2}:\d{2}$` 剪掉退 ②；再与**基线本体**做 pixelmatch（threshold 0.02，与闸门同一口径）
+  六档空态（A=现状 / B=只退钮）：
+    320: A 6676 像素 0.8149% → B 0 像素 0.0000%，且与基线整文件同 sha 89373d0b98cb7bf1
+    328: A 6613 像素 0.6972% → B 0 像素 0.0000%，同 sha 98fe90162879b727
+    390: A 7278 像素 0.5528% → B 0 像素 0.0000%，同 sha 14e284a089e3be8e
+    452: A 9336 像素 0.5190% → B 0 像素 0.0000%，同 sha 8213194b9af9b1bf
+    768: A 9509 像素 0.3023% → B 0 像素 0.0000%，同 sha 6fdc3dcb2295817d
+   1440: A 9509 像素 0.1834% → B 0 像素 0.0000%，同 sha 1af54aba75c5cadc
+    ⇒ 六个空态的红＝只有 ①，且「退回后与基线连 PNG 字节都一样」——比「0 个差异像素」更强：
+      连编码器输出都相同，说明既没混进第三个改动，也没混进时钟噪声。
+    ⇒ A 档六档逐条复现了闸门第一跑的读数（0.81/0.70/0.55/0.52/0.30/0.18），探针与闸门同一口径。
+  种子态四条腿（A 都没退 / C 只退文字 / D 都退 / E 只退钮）：
+    A 7860 像素 0.5970%（= 闸门报的 0.60%）
+    C 7335 像素 0.5571%   E 1791 像素 0.1360%   D 0 像素 0.0000%
+    D 与基线**像素级全同**（pixelmatch=0）但整文件不同 sha（f11ed… vs fdc56…）：
+      逐字节查下来只有 7 个像素不同，每个 ΣΔ=3（即每通道差 1），位置 x=44-75 y=1468-1479（设备像素），
+      全部 alpha 相同且非透明 ⇒ 是我 textContent 替换后字体栅格化的次像素舍入残差，
+      0.00053% 既低于 pixelmatch 的 0.02 单通道判定，也低于种子态阈值 0.05%。
+    拆账不成立为严格相加：C+E=9126 > A=7860，重叠 1266 像素（16%）。
+      原因是浮条是一块玻璃底，钮尺寸和文字长度都会挪动同一块底上的像素，两笔在轮廓上共享。
+      ⇒ 所以这里不能报「钮贡献 7335 + 文字贡献 1791」这种相加账；能报的是「D=0：两处一起退回就与基线全同，
+        不存在第三处未知改动」，以及「单独退任何一项都还红（C 0.557%、E 0.136% 都 > 0.05%）」。
+
+四、其余 102 张为什么是 0.00%（范围证明，不是「大概没动」）—— tools/out/probe33f-geom.js → b33f-geom.txt
+  · settings.html（批次 36 改了 placeholder／#wdHelp 文案／#wdPresetJg 那颗钮，四处都在名单内的 17 页里）：
+      六档全部**不在取景帧内**——元素 top 在 1928–2552，文档高 3247–3532，最大视口只有 1024；
+      placeholder 逐字读到『坚果云要填「应用密码」，不是登录密码』，证明确实加载了新文案，只是拍不到。
+      ⇒ 这一张的 0.00% 是「帧外」，不是「内容没变」。基线本身也拍不到它，所以重拍不会覆盖这笔改动，
+        它要靠 smoke-webdav 那条腿守（W 系列已 15 条 0 失败）。
+  · me.html 的 .rec（批次 33-C 改 z 分层、批次 34 改「最近记录」跳转）：
+      空库态与有账态都量到 .rec 行数 **0**（tools/visual-ledger.js 只灌 tn_trips/tn_expense/tn_budget，不灌游记）
+      ⇒ 「那一态根本不挂载」型 0.00%，同样不是回归证据。
+  · index.html 备份提醒条（批次 33-C 把 z9500→8000）：**在帧内**（328: y=561 h=58 z=8000；390: y=679 h=61），
+      但那一屏 `tn-*` 节点数 0、#tnPanel 不存在 ⇒ 改了 z 而没有第二个堆叠者与它争，画面自然不动。
+      这一张的 0.00% 是「改了但不可见」，属于真通过。
+  · story 种子态的浮条溢出判据：`#snSub` scrollWidth 228 = clientWidth 228 —— 这是**恒等式空判据**
+      （.sn-info{flex:1;min-width:0}，块级元素不横向溢出自己的盒子），不能拿来当「没溢出」的证据；
+      已弃用，改用上面临时退回旧写法 + pixelmatch 的归因反证。
+
+五、结论与授权口径
+  两处改动都是审核报告里点单要修的（触控地板 44px / 日期时分统一），属「有意改版」⇒ 允许重拍基线。
+  重拍后要求：只读复跑两遍，109/109 全绿，且除 story 那 7 张外其余 102 张的登记 sha 不许变
+  （`git diff tools/out/visual-baseline.json` 只该出现 story 那 7 条）。
+  ⚠ 这条判据已被第七节**实测推翻**：实际漂移 11 条（story 7 + topic 4）。topic 那 4 条没有任何代码变更
+     来解释，是「同代码重拍本来就可能落不回同一帧」。判据作废，改口径见第八节。
+
+六、踩到的坑（写进记忆）
+  注入 <style> 后**同一次任务里**读 getBoundingClientRect 仍拿到改前的 44×44，
+  而截图之后复查是 40×40 —— 样式失效不是「没生效」而是「那一瞬间的读数是旧的」。
+  第一版探针把那个 44 当成「退钮没成功」的证据印出来，如果只读那一行就会误判整支探针没生效；
+  真正定案的是「B 档与基线整文件同字节」。⇒ 归因探针的判据要落在像素/字节上，不要落在「注入后立刻读布局」上。
+
+七、重拍后的两遍只读 + 11 条指纹漂移（10-10 补，**推翻第五节那条判据**）
+  全量重拍：node tools/visual-check.js --update → tools/out/b33f-update.txt
+  run-1 tools/out/b33f-visual-readonly2.txt  「比对 109 张: 109 PASS, 0 FAIL」 506.6s exit=0，109 行读数逐条 diff 0.00%
+  run-2 tools/out/b33f-visual-readonly3.txt  「比对 109 张: 109 PASS, 0 FAIL」 512.7s exit=0，同样 109 行 0.00%
+  （中间那一发单页重拍留档 tools/out/b33f-evidence-run2/visual-report.json：topic.328x723 PASS diffPct=0.001，
+    是阈值 0.1% 的 1/100；它后来被证明不是回归，见下面的地板读数。）
+
+  清单对账 tools/out/probe33f-drift.js → b33f-drift.txt（现清单 vs git HEAD 那份 b33f-manifest-HEAD.json）：
+    条数 109/109，条数异常 0；**指纹变化 11 条** = story 7（33-B/33-D，归因见第二、三节）+ **topic 4**
+      topic.320x640  b86ad49a→498e678e   topic.328x723  ba85423b→8f90ad86
+      topic.452x995  659f6f56→ded098bf   topic.768x1024 cca1008a→99d0dd00
+    ⇒ topic 这 4 条没有代码变更能解释：批次 33/34 只碰 design.css 的 .story-nav/.sc-* 与 dayClock、story 缩略图与
+       me 跳转，topic.html 的可见面一行没动。第五节「其余 102 张 sha 不许变」判据作废。
+
+  地板读数（同代码单页重拍能不能落回全量那一帧）tools/out/probe33f-floor.js → b33f-floor.txt
+    10 张（topic 六档 + travel-map 两档 + album.320 + index.390），三口径一起量：
+      ①整文件 sha ②pixelmatch@0.02 差异像素 ③严格不等像素（四通道全等才算同）+ 最大通道差 + bbox + 分档直方图
+    topic.320 / topic.768 / topic.1440：本次帧 == 现清单登记，三口径全 0
+    topic.328：本次帧 ba85423b **正好等于改拍前那一帧**（HEAD 旧登记就是 ba85423b），而全量 --update 写的是 8f90ad86
+               → ①整字节不同 ②pixelmatch 11 ③严格 170；最大通道差 34，框 196,776→297,907，
+                 档位 {1-2:94, 3-5:37, 6-20:35, ≥21:4}（一半以上只差 1–2 个通道值）
+    topic.390：本次帧既不等于现登记也不等于旧登记（严格 92 / pixelmatch 2 / 最大通道差 30）
+    topic.452：**pixelmatch 0 而严格差 25**（最大通道差 10）——「闸门报 0.00%」与「两帧逐像素全同」不是一回事
+    对照：travel-map.320 / travel-map.768 / album.320 / index.390 → 三口径全 0，逐字节可重现
+    ⇒ **同一份产品码、同一套冻结前置，单页重拍在 topic 六档里有三档（328/390/452）落不回全量跑批那一帧；
+       其余页此刻可重现。**「sha 变了」不等于「改版了」；反过来「sha 没变」也不等于「闸门在骗人」。
+    三本名单交叉（fresh / 现清单 / HEAD 清单）tools/out/probe33f-shatable.js → b33f-shatable.txt
+
+  差异是「整块挪位」还是「孤立像素」tools/out/probe33f-shift.js → b33f-shift.txt（fresh 做 -2..+2 设备像素平移扫描）
+    topic.328 零位移 170 → 最优位移 (0,0)，降幅 0.0%；平移一格 → 131097（跳 771 倍）
+    topic.390 零位移 92 → (0,0) 降幅 0.0%；topic.452 零位移 25 → (0,0) 降幅 0.0%
+    ⇒ 不是整块挪位（挪位会在某一格出现深谷），是孤立像素级抖动。
+    排除项两条，都是当场 grep 坐实的：
+      · `.tr-seal`（map.css:995）整条规则没有任何 transform ⇒ 「差的必字章旋转角」那句口头判断作废；
+      · design.css:352 的减动效规则覆盖 `*,*::before,*::after`（含 .tr-hot 的 tr-pulse 环）⇒ 不是动画漏网。
+    落点裁片与 4x 并排放大：tools/out/b33f-shots-floor/{crop-fresh-*,crop-base-*,crop-hot-*,zoom-*}.png
+    （`b33f-shots/`、`b33f-shots-floor/` 这两个目录是探针产物，**不入库**——随时可用 `node tools/out/probe33f-attr.js`／
+      `probe33f-floor.js` + `probe33f-crop.js` + `probe33f-zoom.js` 重生成；入库的是本文件与那些 .txt 读数，
+      以及改拍前的 7 张 story diff 图 `b33f-evidence-readonly/`（那一份不可重生成：旧基线已被 --update 覆盖）。）
+
+八、这次暴露的盲区 → 本批装上的三条（只动 tools/README/.gitignore，产品文件一行没动）
+  盲区：基线 PNG 不入库（.gitignore 里 tools/out/visual-baseline/），入库的只有 visual-baseline.json 的 16 位短 sha。
+        --update 一覆盖，旧那一帧永久没了 ⇒ 上面 topic 那 4 条只能靠「同代码重拍能否落回旧帧」侧证，
+        拿不到「旧那一屏 vs 新这一屏」的直接读数。
+  改 1 tools/visual-check.js（+14/0）：--update 分支在覆盖之前把 BASE 里的 PNG 整批复制到 PREV
+        （tools/out/visual-baseline-prev/），印「ARCHIVE 改拍前旧基线 N 张」；单页 --update 也照留。
+  改 2 .gitignore（+1/0）：加 tools/out/visual-baseline-prev/ —— 它跟 visual-baseline/ 是两个目录名，前一条盖不住。
+  改 3 README.md:103「视觉闸门」条：三口径读数、平移扫描、topic 定性与「sha 变 ≠ 改版」全部写进口径。
+  常驻锚 tools/verify.js §25 新增 5 条：PREV 定义恰 1 处 / 逐张 copyFileSync 恰 1 处 / **顺序**（ARCHIVE 必须排在
+        `fs.writeFileSync(baseF, buf)` 之前，排在后面留的是新帧）/ .gitignore 那条恰 1 处 / README 已登记。
+  变异自证 tools/out/mut-verify25b.js → b33f-mut-verify25b.txt
+        M01 摘 ARCHIVE 回执 → 红对；M02 整段挪到覆盖之后 → 红对（报 ARCHIVE@8790 > 覆盖@8550）；
+        M03 摘 copyFileSync → 红对；M04 摘 .gitignore 那条 → 红对；M05 干净树正向对照 → 退出码 0。
+        5 发：红对 4 / 静默 0 / 异常 0。
+        踩坑：.gitignore 与 visual-check.js 行尾是 CRLF。M04 第一版手抄 LF 字面量做 replace → 空转，报的是
+              「静默对」而实际「压根没变异」；首版 ARCH_BLOCK 同样因 CRLF 被 preflight 抛异常（这是设计内行为）。
+              块文本改为从盘上正则派生，每一发切下去之前先断言这一刀确实命中。
+  留档腿今天只证到「跑到 + 全量」：tools/out/probe33f-prev.js → b33f-prev.txt
+        prev 109 张、基线 109 张、与现基线逐字节相同 109 / 不同 0。
+        ⇒ 证明复制动作发生且覆盖全量，**不**证明「旧帧被保住」；那一腿要等下一次真改版的 --update 才出读数
+          （那时 prev 与基线会不同）。这条欠账登记在此，别让下一人误以为已经全证。
+  顺带坐实一条早就存在的守卫（不是本批新加的）：visual-check.js:344-347 的 baseline-drift 检会在只读跑里红
+        「基线本体与入库清单指纹不符（被人手替换或半截 --update）」⇒ 单页 --update 不改写清单这件事有闸守着，
+        不会静默留下 PNG 与清单两套真相。
+  node tools/verify.js 终局：exit=0、=== ALL CHECKS PASSED ===（b33f-verify-aftergate.txt／b33f-verify-arch1.txt）

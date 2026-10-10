@@ -1,0 +1,12 @@
+=== 单页重拍 vs 全量 --update 基线：三口径对账（同一份产品码，两个跑批）===
+  topic.320x640.png  摘toast=1  登记sha=498e678e5ad4be2e  基线文件sha=498e678e5ad4be2e  本次sha=498e678e5ad4be2e  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"498e678e5ad4be2e","bytes":225595}
+  topic.328x723.png  摘toast=1  登记sha=8f90ad86fa01cb08  基线文件sha=8f90ad86fa01cb08  本次sha=ba85423b61c32538  → ①整字节不同 ②pixelmatch=11 ③严格=170 最大通道差=34 框=196,776→297,907 档={"d1_2":94,"d3_5":37,"d6_20":35,"d21p":4} 本次清单登记={"sha":"8f90ad86fa01cb08","bytes":235159}
+  topic.390x844.png  摘toast=1  登记sha=a3969c047a18c9ae  基线文件sha=a3969c047a18c9ae  本次sha=6c372d2fe5cb1a74  → ①整字节不同 ②pixelmatch=2 ③严格=92 最大通道差=30 框=106,924→202,1132 档={"d1_2":39,"d3_5":30,"d6_20":20,"d21p":3} 本次清单登记={"sha":"a3969c047a18c9ae","bytes":270063}
+  topic.452x995.png  摘toast=1  登记sha=ded098bfc0ceeaf4  基线文件sha=ded098bfc0ceeaf4  本次sha=37638e32317e8e43  → ①整字节不同 ②pixelmatch=0 ③严格=25 最大通道差=10 框=183,1260→206,1282 档={"d1_2":15,"d3_5":6,"d6_20":4,"d21p":0} 本次清单登记={"sha":"ded098bfc0ceeaf4","bytes":309303}
+  topic.768x1024.png  摘toast=1  登记sha=99d0dd00972ad0f3  基线文件sha=99d0dd00972ad0f3  本次sha=99d0dd00972ad0f3  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"99d0dd00972ad0f3","bytes":332163}
+  topic.1440x900.png  摘toast=1  登记sha=a905221f3f485666  基线文件sha=a905221f3f485666  本次sha=a905221f3f485666  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"a905221f3f485666","bytes":722978}
+  travel-map.320x640.png  摘toast=1  登记sha=ddd9d6510cedee9b  基线文件sha=ddd9d6510cedee9b  本次sha=ddd9d6510cedee9b  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"ddd9d6510cedee9b","bytes":134310}
+  travel-map.768x1024.png  摘toast=1  登记sha=4c30e8cdd4126d16  基线文件sha=4c30e8cdd4126d16  本次sha=4c30e8cdd4126d16  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"4c30e8cdd4126d16","bytes":172102}
+  album.320x640.png  摘toast=0  登记sha=025ad2c4ec6bdd8a  基线文件sha=025ad2c4ec6bdd8a  本次sha=025ad2c4ec6bdd8a  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"025ad2c4ec6bdd8a","bytes":436386}
+  index.390x844.png  摘toast=0  登记sha=539f3e1066769dc1  基线文件sha=539f3e1066769dc1  本次sha=539f3e1066769dc1  → ①整字节相同 ②pixelmatch=0 ③严格=0 最大通道差=0 框=(无) 档={"d1_2":0,"d3_5":0,"d6_20":0,"d21p":0} 本次清单登记={"sha":"539f3e1066769dc1","bytes":1009085}
+截图与 diff 图归档 tools/out/b33f-shots-floor/

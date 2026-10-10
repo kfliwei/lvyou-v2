@@ -1,0 +1,9 @@
+红对 M01 摘掉 ARCHIVE 回执那一行 → FAIL §25 像素基线闸门: ARCHIVE 那条留档回执不见了（留档块被整支摘掉）
+红对 M02 把整段留档挪到覆盖之后 → FAIL §25 像素基线闸门: 留档排在覆盖之后（ARCHIVE@8790 > 覆盖@8550）——那留的是新帧，旧帧照样没了
+红对 M03 摘掉逐张 copyFileSync → FAIL §25 像素基线闸门: 改拍前没有逐张留档（copyFileSync 那行不是恰 1 处）——覆盖即不可回，见 tools/out/b33f-floor.txt
+红对 M04 摘掉 .gitignore 里那条忽略 → FAIL §25 像素基线闸门: .gitignore 里 visual-baseline-prev/ 的忽略不是恰 1 处（实测 0）——109 张二进制会混进 git status，而它跟 visual-baseline/ 是**两个目录名**，前一条规则盖不住它
+PASS M05 正向对照：干净树 — 干净树 §25 红=false 退出码=0
+--- 5 发：红对 4 / 静默 0 / 异常 0 ---
+还原后本批两文件的净增删（应与变异前一致：.gitignore 1/0、visual-check.js 14/0）：
+1	0	.gitignore
+14	0	tools/visual-check.js
