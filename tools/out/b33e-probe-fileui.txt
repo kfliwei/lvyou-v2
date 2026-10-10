@@ -1,0 +1,8 @@
+TravelNotes.ensureUI 在场：true
+[载入即测] panel=缺 | list=缺 | listbar=缺 | head-x=缺 | pill-doc=缺 | viewtab=缺 | search=缺 | quote-btn=缺 | tagbar=缺 | tn-x合成钮 44x44 computed 44px/44px | tn-x带inline34 34x34 computed 34px/34px
+[ensureUI 后] panel=0x0 | list=0x0 | listbar=0x0 | head-x=0x0 | pill-doc=0x0 | viewtab=0x0 | search=0x0 | quote-btn=0x0 | tagbar=none | tagbar合成钮 computed minH=44px rect=0 | tn-x合成钮 0x0 computed 44px/44px | tn-x带inline34 0x0 computed 34px/34px
+[openPanel 后] panel=328x723 | list=0x0 | listbar=0x0 | head-x=44x44 | pill-doc=0x0 | viewtab=0x0 | search=0x0 | quote-btn=60x44 | tagbar=none | tagbar合成钮 computed minH=44px rect=0 | tn-x合成钮 44x44 computed 44px/44px | tn-x带inline34 34x34 computed 34px/34px
+[openList 后] panel=328x723 | list=328x723 | listbar=328x118 | head-x=44x44 | pill-doc=51x44 | viewtab=95x44 | search=182x44 | quote-btn=60x44 | tagbar=none | tagbar合成钮 computed minH=44px rect=0 | tn-x合成钮 44x44 computed 44px/44px | tn-x带inline34 34x34 computed 34px/34px
+报错 0 条：
+
+[me.html file://] .entry .ic 实测：["40x40 radius=13px bg=linear-gradient(145deg,  display=grid","40x40 radius=13px bg=linear-gradient(145deg,  display=grid","40x40 radius=13px bg=linear-gradient(145deg,  display=grid"]

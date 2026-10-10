@@ -4751,23 +4751,37 @@ const EMOJI_MARK = 'emoji-ok:';
    就是本批要补的洞），所以本节两条腿：
      ① 源码侧钉「尺寸只在 design.css 单点点名，各页只留皮肤」——不钉值，钉**出处唯一**：
         各页那族的规则体里出现 width:/height:（含 min-*）就是红，无论写的是 40 还是 44；
-     ② 浏览器腿 34 条 rect/computed 判据住在 tools/smoke-topbar.js（K00–K33），本节只钉它们
+     ② 浏览器腿 rect/computed 判据住在 tools/smoke-topbar.js（K00–K35），本节只钉它们
         在场、编号连续、两档取样（328×723 真机主档 + 320×640 装箱最紧档）都跑。
    收口过程中普查另捞出三处同族，一并量化进浏览器腿：地图浮控件在玻璃柱里贴左（留白 0/8 与
    0/4 → K31）、内容区三枚 40px（.ck-remove／.ech-del／.tb-open → K32）、story 那颗 34px 下拉（K27）。
+   **批次 33-E 补的正是这节的两个视野外**：BAR_PAGES 那 13 页里没有随手记面板（面板不是顶栏），而
+   33-B 把面板一族的尺寸从注入串剥进 design.css 单点之后，源码侧一条锚都没钉（现场 grep：`body .tn-x`
+   与那条 .tn-pill/.tn-viewtab 族在 verify.js 里命中 0），浏览器侧也没有一条腿量过面板里的钮今天多高
+   （实测读数 tools/out/b33e-probe-panel.txt：.tn-x 44×44、#tnQuote 60×44、#tnDocBtn 51×44、
+   .tn-tagbar button 两枚各 44、#tnSearch 182×44，328 与 320 两档逐字相同）。同一批普查还捞出
+   me.html 的 `.entry .ic` 在同一份 <style> 里写了两遍尺寸（34 与 40），后加载者胜、前一条成了死规则
+   （实测生效值 40×40，tools/out/b33e-probe-panel.txt 末行）。两条腿各自的盲区不同，所以要一起补：
+   注入串里若有人写回 `.tn-x{width:34px}`，design.css 的 `body .tn-x`（特异度 0-1-1）照样赢，浏览器腿
+   读到的仍是 44 —— 只有源码侧「规则体零尺寸」那条看得见；反过来 design.css 那三条单点被改名或被删，
+   源码锚会红，而「面板里真的够不够 44」只有 rect 量得到。
    口径与 §21/§31/§36/§37/§38 一致：四元组守卫、期望 0 一律配「改前那段源码形状」的正向对照、
-   .js/.css 视图剥块注释、.html 视图**只归一空白不剥注释**（所以 .html 的期望 0 一律避开注释里
-   会出现的字面量，几何族改走规则体抽取；锚点串一律写成归一后的真实形状，多行 CSS 归一后 `{` 后
-   带一个空格，写成紧凑形就是永远打不红的哑锚——口径表预跑见 tools/out/pre39-counts.js）。
+   .js/.css 视图走**共享的字符串感知剥刀** stripBlockComments、.html 与 .md 视图**只归一空白不剥注释**
+   （所以 .html 的期望 0 一律避开注释里会出现的字面量，几何族改走规则体抽取；锚点串一律写成归一后的
+   真实形状，多行 CSS 归一后 `{` 后带一个空格，写成紧凑形就是永远打不红的哑锚——口径表预跑见
+   tools/out/pre39-counts.js）。换刀这一条是批次 33-E 补的：这把刀原本还是 naive 正则，而本批要把
+   travel-notes.js 注入的那份 <style>（串里 108 处「斜杠星」）与 README 的登记行纳入扫描——两把刀在
+   travel-notes.js 上差 7493 字符、在 README 上差 8939 字符，逐条读数见 tools/out/b33e-probe-knife.txt
+   （对现有那几个文件的两把刀逐字等价，所以换刀不动任何一根既有锚的命中数；这一族尺寸盲面积实测 0）。
    ============================================================ */
 {
   let bad39 = 0;
   const F39 = m => { bad39++; console.log('FAIL §39 顶栏一族与触控口径闸门: ' + m); };
   const ws39 = s => s.replace(/\s+/g, ' ').trim();
-  const flat39 = s => ws39(s.replace(/\/\*[\s\S]*?\*\//g, ''));
+  const flat39 = s => ws39(stripBlockComments(s));
   const cnt39 = (s, n) => s.split(n).length - 1;
   const rd39 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
-  const view39 = f => /\.html$/.test(f) ? ws39(rd39(f)) : flat39(rd39(f));
+  const view39 = f => /\.html$|\.md$/.test(f) ? ws39(rd39(f)) : flat39(rd39(f));
   /* 规则体抽取：选择器出现处 → 从它到下一个 } 为止（含选择器本身，好让反向对照看得见是谁的规则） */
   const bodies39 = (src, sel) => {
     const out = [];
@@ -4782,7 +4796,7 @@ const EMOJI_MARK = 'emoji-ok:';
 
   const FILES39 = ['design.css', 'map.css', 'travel-map.html', 'node-manager.html', 'wishlist.html',
     'story.html', 'search.html', 'checklist.html', 'album-edit.html', 'expense.html', 'trip.html',
-    'planner.html', 'topic.html', 'tools/smoke-topbar.js', 'README.md'];
+    'planner.html', 'topic.html', 'travel-notes.js', 'me.html', 'tools/smoke-topbar.js', 'README.md'];
   const V39 = {};
   FILES39.forEach(f => {
     if (!fs.existsSync(f)) { F39('缺 ' + f); V39[f] = ''; return; }
@@ -4842,6 +4856,23 @@ const EMOJI_MARK = 'emoji-ok:';
     ['trip.html', '<a class="t-ic" href="planner.html" aria-label="行程规划">', 1, '同上第二页'],
     ['checklist.html', '<a class="t-ic" href="planner.html" aria-label="行程规划">', 1, '同上第三页'],
     ['planner.html', '<a class="t-ic" href="wishlist.html" aria-label="想去清单">', 1, '同上第四页（href 不同，所以四页不可能是一份复制粘贴的公共模板，只能靠类名单对账）'],
+    /* 批次 33-E：随手记面板一族（travel-notes.js 不在 BAR_PAGES 那 13 页里，上面整组从没量过它）
+       33-B 把面板族尺寸从**运行时注入串**剥进 design.css 单点，剥完源码侧一条锚都没钉（现场 grep：
+       `body .tn-x` 在 verify.js 里命中 0）。不钉就是 33-B 的成果没人守——下面这四条单点里，
+       前两条改前是零锚，第三条只有 §48:6860 顺带提到，第四条（故事页翻页钮）本批有意进单点。 */
+    ['design.css', 'body .tn-x{width:44px;height:44px;flex:0 0 auto}', 1, '面板关闭钮一族五处落点（面板头/列表顶栏/名言浮层/引导页/编辑页）共用这一条：改前实测 32/34/36/40 四种。`body` 前缀不是冗余——注入串是运行时 append 的，永远晚于 design.css，同为 0-1-0 时后加载者赢，只有抬到 0-1-1 才压得住'],
+    ['design.css', 'body .tn-pill,body .tn-viewtab,body .tn-repolish,body .tn-tagbar button', 1, '面板里那四条「非方形钮」的 min-height 地板并成一条（胶囊/视图页签/重润色/标签条）：一条覆盖四族正是「一族只写一遍」的字面证据，拆回四条就退回根因'],
+    ['design.css', 'body .tn-listbar input,body .tn-quotes .sr input{min-height:44px}', 1, '搜索框与名言搜索框（批次 25-B 的教训：input/select 不在选择器族里就整体漏过）'],
+    ['design.css', '.story-nav .sn-btn{width:44px;height:44px}', 1, '旅程回顾翻页钮：批次 25-B 登记为「有意不进白名单」的那枚（规则体含几何），33-E 把它收进单点点名表，从此它有一处写点而不是没人管'],
+    ['travel-notes.js', "var s = document.createElement('style');", 1, '注入机制在场（这三条是分母：机制没了，下面那些「注入串里不许写尺寸」就成了恒真判据）'],
+    ['travel-notes.js', 's.textContent = CSS;', 1, '注入机制第二环：整串来自单一 CSS 变量，逐段拼的话尺寸就散到多处了'],
+    ['travel-notes.js', 'document.head.appendChild(s);', 1, '注入机制第三环：运行时挂载点。这一条是本节两腿盲区不同的来源——它永远晚于 design.css'],
+    ['travel-notes.js', '<button class="tn-pill" id="tnDocBtn">', 1, '调用点形状（尺寸已归 design.css，这里只剩类名+id）：K34 量的那枚 51×44 就是它'],
+    ['travel-notes.js', '<div class="tn-viewrow"><button class="tn-viewtab on" id=', 1, '同上第二处：视图页签（K34 量到 95×44）'],
+    ['travel-notes.js', '<div class="tn-tagbar" id="tnTagBar" style="display:none">', 1, '标签条默认收起（空库里 display:none，浏览器腿只有 computed 可读——这一条锚钉的就是「为什么 K34 对它只断 computed」）'],
+    ['travel-notes.js', '<input id="tnSearch"', 1, '列表搜索框（K34 量到 182×44）'],
+    ['me.html', '.entry .ic{color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:var(--fs-6)}', 1, '同一个选择器的两条尺寸声明剥掉之后只剩这一条纯皮肤（改前这里是 width:34px;height:34px;border-radius:10px;background:var(--color-primary-soft)——四条全是死代码，被下面那条盖死）'],
+    ['me.html', '.entry .ic{width:40px;height:40px;border-radius:13px;', 1, '活着的这一条才是尺寸写点（实测生效 40×40/13px/linear-gradient 底，所以剥掉上面那四条画面一字未动；K35 量的就是它）'],
     /* 浏览器腿在场 */
     ['tools/smoke-topbar.js', "ok('K01 ", 1, '顶栏内可点控件零矮于 44：这条的选择器含 select/input/button/a 四类（只写 button,a 就漏掉 story 那颗 34px 下拉）'],
     ['tools/smoke-topbar.js', "ok('K11 ", 1, '.is-btn 计算样式 white-space:nowrap（断字那条腿）'],
@@ -4860,6 +4891,11 @@ const EMOJI_MARK = 'emoji-ok:';
     ['tools/smoke-topbar.js', '{ width: 320, height: 640 }', 1, '装箱最紧档：只跑 328 就漏掉「再窄一档整组装箱怎么排」'],
     ['tools/smoke-topbar.js', 'isMobile: true, hasTouch: true', 1, '触控视口（不带动点仿真，:active 一族与 44 档的口径就不成立）'],
     ['tools/smoke-topbar.js', "const WRAPPED_OK = ['wishlist.html'];", 1, '付垂直空间的页白名单只有一页：某页退档失效被挤成两行，K08 会红；白名单被人加长也要红'],
+    ['tools/smoke-topbar.js', "ok('K34 ", 1, '面板族真 rect（328/320 两档，面板与列表都打开后再量）：这条是 33-B 那批剥完之后**第一次**有人量面板里的钮多高'],
+    ['tools/smoke-topbar.js', "ok('K35 ", 1, 'me.html .entry .ic 的 40×40 范围证明：它证明「活着的是哪一条」，不证明「死声明没复活」（后者只有上面那两条源码锚看得见）'],
+    ['tools/smoke-topbar.js', 'const PN_SEL = ', 1, '面板族选择器名单：K34 的分母。抽不出它就是「0 枚矮钮」这种恒真读数——期望 0 的判据必须有会红的宿主'],
+    ['tools/smoke-topbar.js', 'i <= 35', 1, '浏览器腿齐备检的上界：加一条判据不抬它，新那条就没人查它在不在'],
+    ['tools/smoke-topbar.js', 'size >= 35', 1, '条数守卫阈值：与上一对成双（只抬编号不抬阈值＝改个数字照样绿）'],
   ];
   A39.forEach(a => {
     if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number') {
@@ -4871,7 +4907,7 @@ const EMOJI_MARK = 'emoji-ok:';
     const got = cnt39(V39[file], needle);
     if (got !== want) F39(file + ' 里「' + needle.slice(0, 60) + '」命中 ' + got + ' 次（要 ' + want + '）：' + why);
   });
-  if (A39.length < 58) F39('锚点表被削减：' + A39.length + ' 条（批次 25-B 落地时实测 60 条，阈值取 58——整组删掉就等于这节没了）');
+  if (A39.length < 80) F39('锚点表被削减：' + A39.length + ' 条（批次 25-B 落地时实测 60 条，33-E 把面板族与 me.html 补进来后实测 82 条，阈值取 80——整组删掉就等于这节没了。阈值是**当前长度减 2**，不是历史长度：§34 那一课，抬阈值类判据抄历史数字就会从「能红」变成摆设）');
 
   /* ② 各页只留皮肤：这一族规则体内**不许出现任何尺寸声明**（含 min-*）。
      这里钉的是出处唯一，不是值：写 44 也一样红——尺寸有第二处写点，就说明下一次漂移不需要任何人同意。 */
@@ -4888,6 +4924,15 @@ const EMOJI_MARK = 'emoji-ok:';
     ['album-edit.html', '.ech-del{', 1, '改前 40×40'],
     ['story.html', '.story-bar .back{', 1, '尺寸只走 design.css 那条 .story-bar .back,.nm-topbar .back'],
     ['search.html', '.sbar .mic{', 2, '改前 44（与 design.css 同值但两处各写，仍是根因形状）＋暗色覆写一处'],
+    /* 批次 33-E：面板族（尺寸住在 travel-notes.js 运行时注入的那份 <style> 里，
+       上面 FILES39 原本没有这两个文件，整族对 §39 是视野外的。分母逐条实测见
+       tools/out/b33e-pre-counts.txt，真 rect 见 tools/out/b33e-probe-panel.txt） */
+    ['travel-notes.js', '.tn-x{', 8, '关闭钮一族八处落点：33-B 之后只剩皮肤，写回 width:34px 这一族当场红（浏览器腿对这条是盲的——注入串特异度不够，赢不了 design.css）'],
+    ['travel-notes.js', '.tn-pill{', 1, '胶囊钮'],
+    ['travel-notes.js', '.tn-viewtab{', 1, '视图页签'],
+    ['travel-notes.js', '.tn-repolish{', 3, '重润色钮三处（两处皮肤 + 一处覆写）：枚数变了说明有人新起一处尺寸写点'],
+    ['travel-notes.js', '.tn-tagbar button{', 1, '标签条里的钮：真 rect 在空库里量不到（那条栏默认收起），所以这条源码锚是它唯一的守'],
+    ['travel-notes.js', '.tn-listbar input{', 1, '列表搜索框'],
   ];
   SKIN39.forEach(([f, sel, want, why]) => {
     if (!(f in V39)) { F39('SKIN39 登记了 §39 没读的文件「' + f + '」：' + why); return; }
@@ -4987,6 +5032,13 @@ const EMOJI_MARK = 'emoji-ok:';
     ['design.css', '.nm-item-btn{min-height:36px',
       '.nm-item-btn{min-height:36px;padding:0 12px;border-radius:999px}',
       '同一文件内两条同族自相矛盾（36 在前、44 在后，靠顺序取胜）——这就是本批根因在 design.css 里的那一份'],
+    /* 批次 33-E：面板族的两条「出处错」。这两条正是浏览器腿结构性看不见的那一类，只有源码侧有视野。 */
+    ['travel-notes.js', 'body .tn',
+      'body .tn-x{width:34px;height:34px} body .tn-pill{min-height:34px}',
+      '注入串里出现 body .tn-* 就是「第二处尺寸写点」而且**这次它赢得了**：那份 <style> 是运行时 append 的，永远晚于 design.css，同特异度 0-1-1 时后加载者直接盖掉单点。这条与上面 SKIN39 的「零尺寸」是一对——不带 body 前缀的写法赢不了 design.css，浏览器腿看不见，只有 SKIN39 抓；带 body 前缀的写法两边都抓，因为它同时是回潮和真覆盖'],
+    ['me.html', 'width:34px',
+      '.entry .ic{width:34px;height:34px;border-radius:10px;background:var(--color-primary-soft);color:var(--color-primary-dark);display:grid;place-items:center;flex:0 0 auto;font-size:var(--fs-6)}',
+      '同一选择器两条尺寸、后加载者胜，前面那一整条是死代码（改前 me.html 里 34 与 40 各一条，实测生效的一直是 40×40）。死声明的害不在画面，在「下一个读代码的人会在两份里挑错一份」'],
   ];
   ZERO39.forEach(a => {
     if (a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string') {
@@ -4999,16 +5051,20 @@ const EMOJI_MARK = 'emoji-ok:';
     if (cnt39(flat39(ctrl), needle) < 1 && cnt39(ws39(ctrl), needle) < 1) F39('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
   });
 
-  /* ⑥ 浏览器腿齐备检：K00–K33 一条不许少，条数守卫（少一条就是有个症状没人管） */
+  /* ⑥ 浏览器腿齐备检：K00–K35 一条不许少，条数守卫（少一条就是有个症状没人管） */
+  let nKLeg39 = 0;
   {
     const src39 = V39['tools/smoke-topbar.js'];
-    for (let i = 0; i <= 33; i++) {
+    for (let i = 0; i <= 35; i++) {
       const id = 'K' + (i < 10 ? '0' + i : '' + i);
-      if (src39.indexOf("ok('" + id + ' ') < 0) F39('tools/smoke-topbar.js 缺 ' + id + ' 这条判据（顶栏一族／.is-btn 断字／标题省略号／退档与 36 豁免是 K00–K33 一整组）');
+      if (src39.indexOf("ok('" + id + ' ') < 0) F39('tools/smoke-topbar.js 缺 ' + id + ' 这条判据（顶栏一族／.is-btn 断字／标题省略号／退档与 36 豁免／面板族真 rect 是 K00–K35 一整组）');
     }
     const nK39 = cnt39(src39, "ok('K");
-    if (nK39 !== 34) F39('tools/smoke-topbar.js 的判据条数不是 34：' + nK39 + ' 条（25-B 落地时实测 K00–K33 共 34 条；整组削减等于把这节拆了）');
+    nKLeg39 = nK39;
+    const WANT_K39 = 36;
+    if (nK39 !== WANT_K39) F39('tools/smoke-topbar.js 的判据条数不是 ' + WANT_K39 + '：' + nK39 + ' 条（25-B 落地时 K00–K33 共 34 条，33-E 补面板族与 me.html 两屏到 36；整组削减等于把这节拆了。判据数与期望数只此一处派生——抄两遍会有一遍说谎）');
     if (cnt39(src39, 'const BAR_PAGES') !== 1) F39('抽不出 smoke-topbar.js 的 BAR_PAGES 名单：K00 的分母自检没有宿主');
+    if (cnt39(src39, 'const PN_SEL') !== 1) F39('抽不出 smoke-topbar.js 的 PN_SEL 名单：K34 的分母没了，「零枚矮于 44」会在一个没有任何被测对象的页面上绿（§38 那次「取样档位没有被测对象＝假绿」的同一个形状）');
     /* 与 §38 的互斥对账：本批改过 design.css 的触控族，别和 24 那批的字号族判据互相打红 */
     const SELF39 = flat39(rd39(__filename));
     if (SELF39.indexOf('const FILES38 = [') < 0) F39('抽不出 §38 的 FILES38 名单：本节改的是 design.css 与 13 页顶栏，§38 也钉了 design.css 的字号档，两节不许对同一条规则各说一套');
@@ -5018,9 +5074,31 @@ const EMOJI_MARK = 'emoji-ok:';
     }
   }
 
+  /* ⑦ 自指定义行锚：这一节自己的两把刀。
+     「不许退回 naive 正则」这种纪律，钉成整串锚会被比较串自己命中而永真（needle 与源文本同形，
+     count 恒 ≥1），所以只取**定义那一行**，只问它含不含共享剥刀的名字；两条各配自己的变异，
+     合成「退回旧写法」那一行必须被判不过——打不红就说明这根锚是永真的摆设。 */
+  {
+    const RAW39 = rd39(__filename);
+    const lineFlat39 = (RAW39.match(/^[ \t]*const flat39 = [^\n]*/m) || [''])[0];
+    const lineView39 = (RAW39.match(/^[ \t]*const view39 = [^\n]*/m) || [''])[0];
+    if (!lineFlat39) F39('抽不出 verify.js 自己的 flat39 定义行：本节的视图口径没有自指锚（改这一行的人同时把闸门拆了，还看不见自己拆了）');
+    else if (lineFlat39.indexOf('stripBlockComments') < 0) F39('flat39 的定义行不再调用共享的字符串感知剥刀：' + lineFlat39.slice(0, 72) + '（naive 正则会从字符串里那枚游离「斜杠星」开一扇盲窗，一路吞到下一个「星斜杠」；travel-notes.js 注入串里这样的记号有 108 处，两视图在该文件上差 7493 字符、README 上差 8939 字符，逐条读数 tools/out/b33e-probe-knife.txt）');
+    if (!lineView39) F39('抽不出 verify.js 自己的 view39 定义行');
+    else if (lineView39.indexOf('.md$') < 0) F39('view39 不再把 .md 归进「只折叠空白、不剥注释」那一支：' + lineView39.slice(0, 72) + '（README 那条登记行里带块注释字面量，被剥掉之后本节钉在 README 上的锚会静默 0 命中——静默的 0 与「写对了」在输出里长得一样）');
+    /* 变异自证：模拟「把定义行换回旧写法」——旧写法必然不含刀名。这里刻意不写斜杠星字面量，
+       否则这行字符串自己就成了别处 naive 扫描的盲窗起点（§42 那一课的第二次发作）。 */
+    const MUTFLAT39 = '  const flat39 = s => ws39(s.replace(NAIVE, ""));';
+    if (MUTFLAT39.indexOf('stripBlockComments') >= 0) F39('flat39 自指锚的变异失效：合成「退回旧刀」的定义行里也含 stripBlockComments，这根锚是永真的');
+    const MUTVIEW39 = '  const view39 = f => /\.html$/.test(f) ? ws39(rd39(f)) : flat39(rd39(f));';
+    if (MUTVIEW39.indexOf('.md$') >= 0) F39('view39 自指锚的变异失效：合成「收掉 .md 那一支」的定义行仍含 .md$');
+  }
+
   if (V39['README.md'].indexOf('§39') < 0) F39('README.md 的 verify 清单没提 §39（新闸门不写进 README 就等于没装）');
 
-  console.log('顶栏一族与触控口径闸门: ' + A39.length + ' 条代码锚点（design.css 18＝顶栏一族 8（.t-row wrap／back+t-ic 同条／.t-ic 右贴与 .ti 归零／:active／.title flex:1 1 7em+min-width:7em+省略号／.trow-acts／.topbar 分母）+ 触控族 10（两个非 .topbar 宿主／act 地板／mic／wl-btn／移除·删除·打开四族并一条／nm-item-btn／is-btn／36 两条款含 margin:0 auto／行程条）；travel-map 10＝--tb-h 挂 body 的 63 推导／top:var(--tb-h) 两处／盒宽与 .laymenu 的 right 成对／≤360 阈值／退成 44 圆钮／收 .act-label／.trow-acts／两枚 aria-label；node-manager 7＝.is-acts wrap／.is-btn 只剩皮肤（无 min-height）／.ic 两处／is-btn ic 恰 5／infoSheet 分母／缩放让位 66；wishlist 3＝trow-acts／aria-label 移除／.wl-remove 皮肤；story＋search 各 1；checklist 3＋album-edit 1＝内容区那三枚；四页 .t-ic 各 1；map.css 1＝专题页那两枚动作钮的 ≤360 退档；topic.html 2＝.act-label 与 aria-label（退档要收字先得有可收的标签）；smoke-topbar 14＝九条判据在场 + K33 专题页那一行 + 两档取样 + 触控视口 + 白名单）+ 十二族规则体零尺寸抽取（每族先按分母数规则条数，再逐体断无 width:/height:——钉的是出处唯一不是值，页内写 44 也红；配反向「写回 40 要抓到」与正向「皮肤不误伤」）+ design.css 触控族段区段检（40px 期望 0／36px 恰 5＝豁免族只那两条款／44px ≥10 防空段，配改前合成段反向对照）+ 全站 html 扫描（.t-ic 恰 4 且逐页点名、内联 40×40 圆钮期望 0，分母 <18 份即红）+ 十四族期望 0（钉死行高 42／两处 .ctl button 尺寸／写死 56px／页内联 Leaflet 40／is-btn 的 min-height 双写／标题 min-width:0／三枚内容区 40／select 34／同值双写的 mic 44／design.css 自相矛盾的 36）每条配「改前那段源码形状」的正向对照；浏览器腿 K00–K33 齐备检 + 条数守卫 34；口径表预跑见 tools/out/pre39-counts.js，变异自测见 tools/out/mut-verify39.js');
+  const byFile39 = {};
+  A39.forEach(a => { byFile39[a[0]] = (byFile39[a[0]] || 0) + 1; });
+  console.log('顶栏一族与触控口径闸门: ' + A39.length + ' 条代码锚点（**逐文件条数现场派生**，不抄历史数：' + Object.keys(byFile39).map(k => k + ' ' + byFile39[k]).join('／') + '）；分组说明——design.css ' + byFile39['design.css'] + '＝顶栏一族 8（.t-row wrap／back+t-ic 同条／.t-ic 右贴与 .ti 归零／:active／.title flex:1 1 7em+min-width:7em+省略号／.trow-acts／.topbar 分母）+ 触控族 10（两个非 .topbar 宿主／act 地板／mic／wl-btn／移除·删除·打开四族并一条／nm-item-btn／is-btn／36 两条款含 margin:0 auto／行程条）；travel-map 10＝--tb-h 挂 body 的 63 推导／top:var(--tb-h) 两处／盒宽与 .laymenu 的 right 成对／≤360 阈值／退成 44 圆钮／收 .act-label／.trow-acts／两枚 aria-label；node-manager 7＝.is-acts wrap／.is-btn 只剩皮肤（无 min-height）／.ic 两处／is-btn ic 恰 5／infoSheet 分母／缩放让位 66；wishlist 3＝trow-acts／aria-label 移除／.wl-remove 皮肤；story＋search 各 1；checklist 3＋album-edit 1＝内容区那三枚；四页 .t-ic 各 1；map.css 1＝专题页那两枚动作钮的 ≤360 退档；topic.html 2＝.act-label 与 aria-label（退档要收字先得有可收的标签）；smoke-topbar ' + byFile39['tools/smoke-topbar.js'] + '＝判据在场 + K33 专题页那一行 + K34 面板族真 rect 与 K35 me.html 两枚在场 + PN_SEL 名单 + 条数守卫上界与阈值成双 + 两档取样 + 触控视口 + 白名单）+ ' + SKIN39.length + ' 族规则体零尺寸抽取（每族先按分母数规则条数，再逐体断无 width:/height:——钉的是出处唯一不是值，页内写 44 也红；配反向「写回 40 要抓到」与正向「皮肤不误伤」）+ design.css 触控族段区段检（40px 期望 0／36px 恰 5＝豁免族只那两条款／44px ≥10 防空段，配改前合成段反向对照）+ 全站 html 扫描（.t-ic 恰 4 且逐页点名、内联 40×40 圆钮期望 0，分母 <18 份即红）+ ' + ZERO39.length + ' 族期望 0（钉死行高 42／两处 .ctl button 尺寸／写死 56px／页内联 Leaflet 40／is-btn 的 min-height 双写／标题 min-width:0／三枚内容区 40／select 34／同值双写的 mic 44／design.css 自相矛盾的 36／33-E 再加两条：注入串里的 body .tn-*（同特异度＋后加载＝真覆盖，SKIN39 那条钉的是不带 body 的写法——那一种浏览器腿结构性看不见，两腿正好一对一盲，所以两条都要在）与 me.html 的 width:34px（同选择器两条尺寸、后加载者胜，前面那条整行是死代码））每条配「改前那段源码形状」的正向对照；浏览器腿 K00–K35 齐备检 + 条数守卫 ' + nKLeg39 + '（BAR_PAGES 与 PN_SEL 两根分母各恰 1——后者抽不出，「面板零枚矮于 44」就在一个没有被测对象的页面上绿）；另有本节自己的一条自指纪律：flat39／view39 两枚**定义行**分别要求含那把共享的字符串感知剥刀的名字、以及把 .md 归进不剥注释那一支，各配一枚合成旧写法的变异自证（整串锚会被比较串自己命中而永真，所以只取定义那一行）；A39 ' + A39.length + '／SKIN39 ' + SKIN39.length + '／ZERO39 ' + ZERO39.length + '，抬阈值类变异要取当前长度 + 1；口径表预跑见 tools/out/pre39-counts.js 与 tools/out/b33e-pre-counts.txt，地基读数见 tools/out/b33e-probe-touch.txt（串里 108 处「斜杠星」／面板族 15 条规则体 0 处尺寸／design.css 三条单点里两条原本零锚）与 tools/out/b33e-probe-knife.txt（换刀对既有四文件逐字等价）与 tools/out/b33e-probe-panel.txt＋b33e-probe-fileui.txt（真 rect 与 file:// 可测性），变异自测见 tools/out/mut-verify39.js（源码腿）与 tools/out/mut-smoke39.js（浏览器腿）');
   fail += bad39;
 }
 

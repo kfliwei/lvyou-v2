@@ -1,0 +1,148 @@
+=== 每个宿主的样式段数与「带尺寸的规则条数」（含装饰性尺寸，只说明扫描有没有跑到位）===
+  design.css：样式段 1 段，带尺寸的规则 133 条
+  map.css：样式段 1 段，带尺寸的规则 112 条
+  travel-notes.js：样式段 1 段，带尺寸的规则 67 条
+  index.html：样式段 2 段，带尺寸的规则 25 条
+  story.html：样式段 1 段，带尺寸的规则 8 条
+  me.html：样式段 1 段，带尺寸的规则 15 条
+
+=== 控件族选择器的尺寸写点（只列可点/可输入那一族）：共 61 个选择器 ===
+    #meRecent .rec
+      design.css → min-height:44px
+    .ctl button
+      design.css → width:36px!important height:36px!important
+    .foodbar input
+      map.css → min-width:0 height:38px
+    .hero__search input
+      index.html → min-width:0
+    .rec .dot
+      me.html → width:7px height:7px
+    .s-row .search input
+      map.css → min-width:0
+    .search-bar input
+      design.css → height:38px
+    .story-nav .sn-btn
+      design.css → width:44px height:44px
+[双写].tabbar button
+      design.css → min-height:var(--tab-h)
+      map.css → min-width:60px max-width:220px
+      map.css → min-width:70px
+      map.css → min-width:0 min-height:44px
+      map.css → min-height:52px
+    .tabbar button .ic
+      map.css → height:22px
+    .tn-acts button
+      travel-notes.js → min-height:46px
+      travel-notes.js → min-height:48px
+    .tn-cal-d.has i
+      design.css → min-width:14px height:14px
+    .tn-cal-nav
+      design.css → width:44px height:44px
+    .tn-cal-today
+      design.css → min-height:44px
+    .tn-cfm .tc-box
+      travel-notes.js → width:82vw max-width:320px
+    .tn-cfm .tc-btns button
+      design.css → min-height:44px
+    .tn-dlg
+      travel-notes.js → max-height:82%
+    .tn-dlg button
+      travel-notes.js → width:100% min-height:50px
+    .tn-dlg input
+      travel-notes.js → width:100% min-height:46px
+    .tn-dlg textarea
+      travel-notes.js → width:100% min-height:130px
+    .tn-editpage .body button
+      design.css → min-height:44px
+    .tn-exp-list button
+      travel-notes.js → width:100% min-height:44px
+    .tn-guide .bar .spk
+      design.css → min-height:44px
+    .tn-guide .bar b
+      travel-notes.js → min-width:0
+    .tn-guide .loading::before
+      travel-notes.js → width:24px height:24px
+[双写].tn-item .pics img
+      design.css → width:84px height:84px
+      travel-notes.js → width:76px height:76px
+[双写].tn-item .tg button
+      design.css → min-width:44px
+      design.css → min-height:44px
+      travel-notes.js → min-height:40px
+    .tn-item .tg button::after
+      design.css → height:1.5px width:2.2em
+    .tn-item .tx
+      travel-notes.js → max-height:120px
+    .tn-item .tx.open
+      travel-notes.js → max-height:none
+    .tn-item audio
+      travel-notes.js → width:100% height:36px
+    .tn-listbar b
+      travel-notes.js → min-width:0
+    .tn-listbar input
+      design.css → min-height:44px
+    .tn-panel .tn-acts
+      design.css → width:auto height:auto
+    .tn-panel .tn-acts button
+      design.css → min-height:44px
+    .tn-panel .tn-acts button::after
+      design.css → height:1.5px width:100%
+    .tn-pill
+      design.css → min-height:44px
+    .tn-quotes .bar b
+      travel-notes.js → min-width:0
+    .tn-quotes .sr input
+      design.css → min-height:44px
+[双写].tn-quotes .web
+      design.css → min-height:46px
+      travel-notes.js → width:100% min-height:44px
+    .tn-repolish
+      design.css → min-height:44px
+    .tn-seg button
+      travel-notes.js → min-height:44px
+    .tn-settings
+      travel-notes.js → max-height:90dvh
+[双写].tn-settings button
+      design.css → min-height:48px
+      travel-notes.js → width:100% min-height:50px
+    .tn-settings input
+      travel-notes.js → width:100% min-height:48px
+    .tn-style
+      travel-notes.js → width:100%
+[双写].tn-style button
+      design.css → min-height:44px
+      travel-notes.js → min-width:0
+      travel-notes.js → min-width:0 min-height:54px
+    .tn-tagbar button
+      design.css → min-height:44px
+    .tn-viewer img
+      design.css → max-width:100% max-height:84vh
+    .tn-viewer-nav
+      design.css → width:48px height:48px
+    .tn-viewer-x
+      design.css → width:44px height:44px
+    .tn-viewtab
+      design.css → min-height:44px
+    .tn-wall .grid img
+      travel-notes.js → width:100%
+    .tn-x
+      design.css → width:44px height:44px
+    \.tn-editpage .body input
+      travel-notes.js → width:100% min-height:46px
+    \.tn-editpage .body textarea
+      travel-notes.js → width:100% min-height:34vh
+    \.tn-editpage .foot button
+      travel-notes.js → width:100% min-height:50px
+    button.act
+      design.css → min-height:44px
+    button.act.sec
+      design.css → min-height:44px
+    button.go
+      design.css → min-height:44px
+    button.mine
+      design.css → min-height:44px
+
+=== 结论读数 ===
+  控件族选择器总数：61
+  其中有两个及以上宿主在写尺寸的：6 个
+  名单：.tabbar button | .tn-item .pics img | .tn-item .tg button | .tn-quotes .web | .tn-settings button | .tn-style button

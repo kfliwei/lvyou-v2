@@ -365,6 +365,105 @@ const load = async (p, file, ms) => {
     ckq.ck.join(',') === '44px,44px' && ckq.tb.join(',') === '44px,44px' && alq[0] === '44px' && alq[1] === '44px',
     JSON.stringify([ckq, alq]));
 
+  /* ============ D4. 随手记面板一族（批次 33-E）：注入串 vs design.css 单点 ============ */
+  /* 这一族的错法跟 K24/K26 同形（一族几何写两遍，靠加载顺序取胜），但比它们更隐蔽：
+     travel-notes.js 的 buildUI() 是**运行时** document.head.appendChild(style)，那一串永远晚于
+     design.css。33-B 把单点写成 body .tn-x（特异度 0-1-1）才压过注入串里的 .tn-x（0-1-0）。
+     后果＝「有人把注入串里的尺寸改回 34px」浏览器腿**看不见**（它压根赢不了 design.css），
+     只有源码腿能看见；反过来源码腿看不见真 rect 挤扁/断行。两腿盲区不同，必须一起补。
+     下面这些期望值来自地基实测 tools/out/b33e-probe-fileui.txt（file:// + 空库 + 328 档逐字读数）：
+       #tnX 44×44｜#tnQuote 60×44｜#tnDocBtn 51×44｜#tnViewTrip 95×44｜#tnSearch 182×44，报错 0 条。
+     .tn-tagbar 在空库里是 display:none（没标签就没这条栏），真 rect 量不到，只能读 computed——
+     所以那一枚走 K28/K32 已有的「只守 CSS 出处，不守调用点」口径，并在 extra 里把 barShown 印出来。
+     同段还挂一枚**无牙自校准**：给 .tn-x 加 inline 34px，它必须真的回到 34×34。这一枚读到的不是
+     「产品对了」，而是「本腿对 inline 覆盖结构性失明」。哪天 design.css 给单点补上 !important 把
+     inline 也压回 44，这个读数就翻，等于尺子的含义变了——必须当场红，不能悄悄换成另一把尺子。 */
+  const PN_SEL = ['#tnX', '#tnQuote', '#tnDocBtn', '#tnViewTrip', '#tnSearch'];
+  const TN_SEED = () => { try { localStorage.setItem('tn_onboarded', '1'); } catch (e) {} };
+  const readPanel = p => p.evaluate(sels => {
+    const r = {};
+    sels.forEach(s => {
+      const el = document.querySelector(s);
+      if (!el) { r[s] = null; return; }
+      const b = el.getBoundingClientRect();
+      r[s] = [Math.round(b.width), Math.round(b.height)];
+    });
+    const bar = document.querySelector('.tn-tagbar');
+    const head = document.querySelector('.tn-panel .tn-head') || document.body;
+    const mk = css => {
+      const b = document.createElement('button');
+      b.className = 'tn-x';
+      if (css) b.style.cssText = css;
+      head.appendChild(b);
+      const q = b.getBoundingClientRect(), cs = getComputedStyle(b);
+      const o = [Math.round(q.width), Math.round(q.height), cs.width, cs.height];
+      b.remove();
+      return o;
+    };
+    let tagbar = null;
+    if (bar) {
+      const t = document.createElement('button');
+      bar.appendChild(t);
+      const cs = getComputedStyle(t);
+      tagbar = [cs.minHeight, cs.minWidth];
+      t.remove();
+    }
+    return { r: r, bareX: mk(null), inline34: mk('width:34px;height:34px'),
+      tagbar: tagbar, barShown: bar ? getComputedStyle(bar).display : '缺' };
+  }, PN_SEL);
+  const pnq = {};
+  for (const vp of [V328, V320]) {
+    const p = await newPage(browser, vp, TN_SEED);
+    await load(p, 'index.html', 2600);
+    await p.evaluate(() => {
+      if (!window.TravelNotes) return;
+      TravelNotes.ensureUI();
+      TravelNotes.openPanel({ label: '应县木塔', lat: 39.66, lng: 113.13, __i: 0 });
+      TravelNotes.openList();
+    });
+    await sleep(1300);
+    pnq[vp.width] = await readPanel(p);
+    pnq[vp.width].__errs = p.__errs;
+    await p.close();
+  }
+  const pnBad = [];
+  [328, 320].forEach(w => PN_SEL.forEach(s => {
+    const v = pnq[w].r[s];
+    if (!v) pnBad.push(w + '/' + s + '=缺');
+    else if (v[0] < 44 || v[1] < 44) pnBad.push(w + '/' + s + '=' + v[0] + '×' + v[1]);
+  }));
+  ok('K34 随手记面板那五枚真 rect 全 ≥44（328/320 两档，面板与列表都打开后再量；design.css 的 body .tn-* 是唯一尺寸写点，注入串改回 34 也赢不了它——那条盲区由 §39 源码腿守，本腿守真渲染出来的高度）',
+    /* 分母自检先走：名单被掏空时 pnBad 恒为空，「零枚矮于 44」会在一个没有被测对象的页面上绿（§38 那一课） */
+    PN_SEL.length >= 5 &&
+    pnBad.length === 0 &&
+    [328, 320].every(w => pnq[w].bareX[0] === 44 && pnq[w].bareX[1] === 44 &&
+      pnq[w].bareX[2] === '44px' && pnq[w].bareX[3] === '44px') &&
+    [328, 320].every(w => !!pnq[w].tagbar && pnq[w].tagbar[0] === '44px') &&
+    /* 无牙自校准：inline 34px 必须真的压过 body .tn-x，否则「本腿看不见 inline 覆盖」这句声明就是假的 */
+    [328, 320].every(w => pnq[w].inline34[0] === 34 && pnq[w].inline34[1] === 34 &&
+      pnq[w].inline34[2] === '34px'),
+    JSON.stringify([pnq[328], pnq[320].r, pnBad.slice(0, 4)]));
+
+  /* me.html 的 .entry .ic 同一个选择器被写过两条尺寸（34 与 40），33-E 剥掉前面那三条死声明。
+     这条是**范围证明**（画面一字未动：活着的从来是 40×40 / radius 13px / grid / 渐变底那一条），
+     不是回归陷阱——34px 即便被加回来，位置仍在那条之前，浏览器照样盖掉它，本腿读不到变化。
+     能看见「死声明复活」的只有 verify.js §39 的源码锚（改后精确形 1 次 + width:34px 期望 0）。 */
+  const pme33e = await newPage(browser, V328, TN_SEED);
+  await load(pme33e, 'me.html', 1900);
+  const icq = await pme33e.evaluate(() => {
+    const els = Array.from(document.querySelectorAll('.entry .ic'));
+    return { n: els.length, first: els.slice(0, 4).map(e => {
+      const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+      return [Math.round(r.width), Math.round(r.height), cs.borderRadius, cs.display,
+        /^linear-gradient/.test(cs.backgroundImage)];
+    }) };
+  });
+  await pme33e.close();
+  ok('K35 me.html 的 .entry .ic 实测 40×40 / 13px 圆角 / grid / 渐变底（剥掉同选择器那三条死声明后的范围证明：它证明「活着的是哪一条」，不证明「死声明没复活」——后者只有源码腿看得见）',
+    icq.n >= 3 && icq.first.length >= 3 && icq.first.every(x => x[0] === 40 && x[1] === 40 &&
+      x[2] === '13px' && x[3] === 'grid' && x[4] === true),
+    JSON.stringify(icq));
+
   /* ============ D3. 顶栏一族分母之外的那一页（K08 的盲区） ============ */
   /* BAR_PAGES 那 13 页里没有 topic.html，所以 K08「barH>70 只许 wishlist」从没量过专题页。
      批次 25-B 把标题下限收到 7em 之后，专题页在 328/320 放不下「返回+标题+随手记+游记」，
@@ -388,13 +487,13 @@ const load = async (p, file, ms) => {
 
   /* ============ E. 全程零报错 + 条数守卫 ============ */
   const NOISE = /Failed to load resource|net::|ERR_|manifest\.webmanifest|瓦片|tile|Failed to fetch|favicon/i;
-  const real = allErrs.concat((pn.__errs || []), (tm328.__errs || []), (tm452.__errs || []), (pw.__errs || []), (ps.__errs || []), (pty.__errs || []), (pt.__errs || []), (pck.__errs || []), (pal.__errs || []), (tq320.__errs || []), (tq390.__errs || [])).filter(e => !NOISE.test(e));
+  const real = allErrs.concat((pn.__errs || []), (tm328.__errs || []), (tm452.__errs || []), (pw.__errs || []), (ps.__errs || []), (pty.__errs || []), (pt.__errs || []), (pck.__errs || []), (pal.__errs || []), (tq320.__errs || []), (tq390.__errs || []), (pnq[328].__errs || []), (pnq[320].__errs || []), (pme33e.__errs || [])).filter(e => !NOISE.test(e));
   ok('K29 全程零真实页面报错（几何收口不许把任何一页改崩）',
     real.length === 0, real.slice(0, 3).join(' | ') || '0 条');
   const EXPECT = [];
-  for (let i = 0; i <= 33; i++) EXPECT.push('K' + String(i).padStart(2, '0'));
-  ok('K30 条数与齐备检：K00–K33 除自身外全部执行且 ≥33 条（少一条或改名成 K15x 都要红——§31 那课：判据齐备检只认前缀会自己消失）',
-    EXPECT.every(e => e === 'K30' || ran.indexOf(e) >= 0) && new Set(ran).size >= 33,
+  for (let i = 0; i <= 35; i++) EXPECT.push('K' + String(i).padStart(2, '0'));
+  ok('K30 条数与齐备检：K00–K35 除自身外全部执行且 ≥35 条（少一条或改名成 K15x 都要红——§31 那课：判据齐备检只认前缀会自己消失）',
+    EXPECT.every(e => e === 'K30' || ran.indexOf(e) >= 0) && new Set(ran).size >= 35,
     '执行 ' + new Set(ran).size + ' 条 / 期望 ' + (EXPECT.length - 1) + ' 条' +
       (EXPECT.filter(e => e !== 'K30' && ran.indexOf(e) < 0).length ? ' 缺 ' + EXPECT.filter(e => e !== 'K30' && ran.indexOf(e) < 0).join(',') : ''));
 

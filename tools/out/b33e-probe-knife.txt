@@ -1,0 +1,18 @@
+K1 两把刀逐字等价性（现有 FILES39 的非 html 文件 + 待纳入的两个）
+  design.css              逐字相同【换刀不动锚】
+  map.css                 逐字相同【换刀不动锚】
+  tools/smoke-topbar.js   逐字相同【换刀不动锚】
+  README.md               不同：smart 比 naive 多 -8939 字符
+     首个分歧 @115705
+     naive : … 7 个 `assets/data/.cache/*.json`（反向差集空，不是丢文件）。**真机目测项（转场手感、减动效观感、画像开关、启动屏首帧）仍待实机验**，…
+     smart : … 7 个 `assets/data/.cache…
+  travel-notes.js         不同：smart 比 naive 多 7493 字符
+     首个分歧 @11366
+     naive : …'-' + p(d.getDate()); } function noteDay(n) { var s = String((n && (n.day || n.date)…
+     smart : …'-' + p(d.getDate()); } /* 日期归一单点：day 字段 → date 里的年月日 → ts 反推，一律出补零的 YYYY-MM-DD。 历史数…
+  me.html                 逐字相同【换刀不动锚】
+
+K2 travel-notes.js 尺寸声明计数：naive 视图 171 处 / 智能视图 171 处，naive 少读 0 处
+   对照：color: 计数 naive 147 / smart 147
+   smart 视图抽到 237 条规则，naive 视图看不见前 46 字符相同的有 0 条
+   其中被吞掉的规则里含尺寸声明的：0 条

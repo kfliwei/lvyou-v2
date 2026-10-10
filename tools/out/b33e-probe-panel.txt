@@ -1,0 +1,20 @@
+
+=========== 328x723 ===========
+[录音屏] {"out":[{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"}],"tagbarHeights":[],"listbarInputHeights":[],"tagbarShown":"none"}
+[+名言浮层] [{"sel":"tn-x","tag":"button#tnQuoteBack","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"}]
+[清单屏] tagbar=flex pill/viewtab 高：[{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"},{"sel":"tn-pill","tag":"button#tnDocBtn","w":51,"h":44,"mh":"44px","mw":"auto"},{"sel":"#tnSearch","tag":"input#tnSearch","w":182,"h":44,"mh":"44px","mw":"0px"}]
+   .tn-tagbar button 逐枚高：[44,44]
+   .tn-listbar input 逐枚高：[44]
+[日历屏] [{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"},{"sel":"tn-pill","tag":"button#tnDocBtn","w":51,"h":44,"mh":"44px","mw":"auto"},{"sel":"#tnSearch","tag":"input#tnSearch","w":182,"h":44,"mh":"44px","mw":"0px"}]
+   报错 0 条 
+
+=========== 320x640 ===========
+[录音屏] {"out":[{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"}],"tagbarHeights":[],"listbarInputHeights":[],"tagbarShown":"none"}
+[+名言浮层] [{"sel":"tn-x","tag":"button#tnQuoteBack","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"}]
+[清单屏] tagbar=flex pill/viewtab 高：[{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"},{"sel":"tn-pill","tag":"button#tnDocBtn","w":51,"h":44,"mh":"44px","mw":"auto"},{"sel":"#tnSearch","tag":"input#tnSearch","w":182,"h":44,"mh":"44px","mw":"0px"}]
+   .tn-tagbar button 逐枚高：[44,44]
+   .tn-listbar input 逐枚高：[44]
+[日历屏] [{"sel":"tn-x","tag":"button#tnX","w":44,"h":44,"mh":"auto","mw":"auto"},{"sel":"tn-repolish","tag":"button#tnQuote","w":60,"h":44,"mh":"44px","mw":"auto"},{"sel":"tn-pill","tag":"button#tnDocBtn","w":51,"h":44,"mh":"44px","mw":"auto"},{"sel":"#tnSearch","tag":"input#tnSearch","w":182,"h":44,"mh":"44px","mw":"0px"}]
+   报错 0 条 
+
+=========== me.html .entry .ic 实测 rect：["40x40","40x40","40x40","40x40","40x40","40x40","40x40"]（源码里 34 与 40 两条同名，:61 后加载者胜）

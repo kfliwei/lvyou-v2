@@ -1,0 +1,55 @@
+==== ① 新登记的 A39 串（要数到期望次数；数错就当场改） ====
+ OK  1 /要 1  design.css             「body .tn-x{width:44px;height:44px;flex:0 0 auto}」
+ OK  1 /要 1  design.css             「body .tn-pill,body .tn-viewtab,body .tn-repolish,body .tn-」
+ OK  1 /要 1  design.css             「body .tn-listbar input,body .tn-quotes .sr input{min-heigh」
+ OK  1 /要 1  design.css             「.story-nav .sn-btn{width:44px;height:44px}」
+ OK  0 /要 0  travel-notes.js        「body .tn」
+ OK  1 /要 1  travel-notes.js        「var s = document.createElement('style');」
+ OK  1 /要 1  travel-notes.js        「s.textContent = CSS;」
+ OK  1 /要 1  travel-notes.js        「document.head.appendChild(s);」
+ OK  1 /要 1  travel-notes.js        「<button class="tn-pill" id="tnDocBtn">」
+ OK  1 /要 1  travel-notes.js        「<div class="tn-viewrow"><button class="tn-viewtab on" id="」
+ OK  1 /要 1  travel-notes.js        「<div class="tn-tagbar" id="tnTagBar" style="display:none">」
+ OK  1 /要 1  travel-notes.js        「<input id="tnSearch"」
+ OK  0 /要 0  me.html                「width:34px」
+ OK  1 /要 1  me.html                「.entry .ic{color:var(--color-primary-dark);display:grid;pl」
+ OK  1 /要 1  me.html                「.entry .ic{width:40px;height:40px;border-radius:13px;」
+ !!  0 /要 1  tools/smoke-topbar.js  「ok('K34 」
+ !!  0 /要 1  tools/smoke-topbar.js  「ok('K35 」
+ !!  0 /要 1  tools/smoke-topbar.js  「for (let i = 0; i <= 35; i++) EXPECT.push(」
+ !!  0 /要 1  tools/smoke-topbar.js  「new Set(ran).size >= 35」
+ !!  0 /要 1  tools/smoke-topbar.js  「const PN_SEL = 」
+
+==== ② 面板族规则体（SKIN39 的分母 + 每条规则体里是否真零尺寸） ====
+ OK travel-notes.js 「.tn-x{」抽到 8 条（要 8），带尺寸 0 条
+ OK travel-notes.js 「.tn-pill{」抽到 1 条（要 1），带尺寸 0 条
+ OK travel-notes.js 「.tn-viewtab{」抽到 1 条（要 1），带尺寸 0 条
+ OK travel-notes.js 「.tn-repolish{」抽到 3 条（要 3），带尺寸 0 条
+ OK travel-notes.js 「.tn-tagbar button{」抽到 1 条（要 1），带尺寸 0 条
+ OK travel-notes.js 「.tn-listbar input{」抽到 1 条（要 1），带尺寸 0 条
+
+   逐条规则体（供肉眼确认「只剩皮肤」）：
+     .tn-x{background:rgba(255,255,255,.14);color:#f5ede0}
+     .tn-x{background:rgba(38,36,31,.07);border:0;border-radius:var(--r-sm,8px);font-size:var(--fs-5);color:#6b66
+     .tn-x{background:rgba(255,255,255,.1)}
+     .tn-x{background:var(--color-bg-soft);color:var(--color-muted);border-radius:50%}
+     .tn-x{background:rgba(255,255,255,.12);color:#efe9dc}
+     .tn-x{background:var(--tnp-sf2);color:var(--tnp-i5)}
+     .tn-x{background:rgba(255,255,255,.1)}
+     .tn-x{background:rgba(255,255,255,.08)}
+     .tn-pill{background:rgba(255,255,255,.12);color:#efe9dc;border:1px solid rgba(255,255,255,.18);border-radius
+     .tn-viewtab{flex:1;background:rgba(255,255,255,.06);color:var(--tnp-i5);border:1px solid var(--tnp-ln);borde
+     .tn-repolish{background:#efe9dc;color:#26241f;border:1px solid #d5cdb9}
+     .tn-repolish{background:var(--color-surface);border:1px solid var(--color-line);color:var(--color-ink-soft)}
+     .tn-repolish{background:transparent;border:0;color:var(--color-muted);font-weight:500;text-decoration:underl
+     .tn-tagbar button{flex:0 0 auto;border:1px solid var(--tnp-ln);background:var(--tnp-sf);border-radius:var(--
+     .tn-listbar input{flex:1;padding:0 14px;border:1px solid var(--tnp-ln);border-radius:var(--r-sm,8px);font-si
+
+==== ③ 合成源：反向对照必须被抓到、正向对照必须不被误伤 ====
+   BAD 抽出 1 条，带尺寸 1 条（要 1）
+   BAD2「注入串写 body 前缀抬特异度」在视图里 "body .tn" 命中 1 次（要 ≥1）
+   GOOD 抽出 1 条，带尺寸 0 条（要 0）
+    loose-quote 自校准：「tn-loose-quote」已被剥掉【正确】
+   换刀差：naive 视图含 .tn-bbb ？ false ／ 新视图含 .tn-bbb ？ true（要 false／true）
+   naive: var accept = 'image var t = 1;
+   新刀: var accept = 'image/*'; var css = '.tn-bbb{width:7px}'; var t = 1;
