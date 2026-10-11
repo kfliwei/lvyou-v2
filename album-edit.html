@@ -253,6 +253,7 @@
     return {
       id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
       title: n.title || n.siteName || '未命名',
+      noteIds: [n.id],
       lead: (n.text || n.raw || '').trim(),
       layout: ph.length >= 2 ? 'duo' : (ph.length ? 'full' : 'text'),
       photos: ph,
@@ -304,9 +305,9 @@
 
     root.innerHTML = h.join('');
 
-    // 封面绑定
-    root.querySelector('#cvTitle').onchange = function () { album.title = this.value.trim(); };
-    root.querySelector('#cvSub').onchange = function () { album.subtitle = this.value.trim(); };
+    // 封面绑定（手改过书名/副题＝认这台册子自己定的名字，之后有新游记进来不再重算封面题）
+    root.querySelector('#cvTitle').onchange = function () { album.title = this.value.trim(); album.coverAuto = false; };
+    root.querySelector('#cvSub').onchange = function () { album.subtitle = this.value.trim(); album.coverAuto = false; };
     root.querySelector('#cvYear').onchange = function () { album.year = this.value.trim(); };
     root.querySelector('#cvSwap').onclick = function () {
       pickPhoto(function (src) { album.cover = src; render(); });
@@ -407,12 +408,12 @@
   };
   document.getElementById('addText').onclick = function () { addChapter(newChapter()); };
   document.getElementById('addMap').onclick = function () {
-    var pts = [];
-    notes.filter(function (n) { return n.lat != null && n.lng != null; }).sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); }).forEach(function (n) {
-      pts.push({ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' });
-    });
-    if (!pts.length) { toast('还没有带位置的游记'); return; }
-    album.chapters.push({ id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '我们的路线', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: pts });
+    var located = notes.filter(function (n) { return n.lat != null && n.lng != null; })
+      .sort(function (a, b) { return (a.ts || 0) - (b.ts || 0); });
+    if (!located.length) { toast('还没有带位置的游记'); return; }
+    var plate = Album.routeChapter(located);
+    if (!plate) { toast('至少要两篇带位置的游记，路线才画得出来'); return; }
+    album.chapters.push(plate);
     render();
     scrollLastChapterIntoView();
   };

@@ -144,23 +144,19 @@
     });
     if (!chapters.length) chapters.push(emptyChapter());
     // 图册级地图插页：整本 ≥2 个坐标点时，末尾追加「我们的路线」
-    var allPoints = [];
-    ordered.forEach(function (n) {
-      if (n.lat != null && n.lng != null) allPoints.push({ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' });
-    });
-    if (allPoints.length >= 2) {
-      chapters.push({ id: 'ch_route_' + Date.now(), title: '我们的路线', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: allPoints });
-    }
+    var route = routeChapter(ordered);
+    if (route) chapters.push(route);
     var all = ordered;
     var first = all[0], last = all[all.length - 1];
     var stats = summarize(all);
     var year = first ? String(new Date(first.ts).getFullYear()) : String(new Date().getFullYear());
-    // 标题：优先用覆盖最多的省 / 市，其次第一站地点
-    var title = dominantPlace(all);
+    // 书名：按城市并列（批次 38-B2，旧写法是取「篇数最多的那座城」，多城旅程会把别的城整座抹掉）
+    var cv = coverTitle(all);
     return {
       id: 'album_' + Date.now(),
-      title: title,
-      subtitle: '',
+      title: cv.title,
+      subtitle: cv.subtitle,
+      coverAuto: true,
       year: year,
       cover: pickCover(all),
       coverGradient: 'linear-gradient(160deg,#3E4A40 0%,#5C6B60 40%,#8A7A62 100%)',
@@ -195,6 +191,7 @@
     return {
       id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999),
       title: chapterTitle(sorted),
+      noteIds: sorted.map(function (n) { return n.id; }),
       lead: lead,
       layout: layout,
       photos: photos.slice(0, 4),       // 最多 4 张入章
@@ -205,7 +202,7 @@
     };
   }
   function emptyChapter() {
-    return { id: 'ch_empty', title: '未命名章节', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: [] };
+    return { id: 'ch_empty', title: '未命名章节', noteIds: [], lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: [] };
   }
   function summarize(notes) {
     var withLoc = notes.filter(function (n) { return n.lat != null; });
@@ -230,15 +227,100 @@
       km: Math.round(km)
     };
   }
-  function dominantPlace(notes) {
-    var c = {};
+  /* ---------- 书名与副题：按城市并列（批次 38-B2） ----------
+     旧写法 dominantPlace 取「篇数最多的那座城」，实测大同 3 篇 + 太原 2 篇的书名只剩「大同」；
+     city/province 都缺时（异地没网、反查失败）它退化成逐景点计数，实测书名变成「云冈石窟」。 */
+  var CITY_MAX = 2;                     /* 封面上最多并列两座：书名是 clamp(46px,13vw,64px)，328 宽里两行封顶 */
+  function coverTitle(notes) {
+    function uniq(key) {
+      var seen = {}, list = [];
+      notes.forEach(function (n) {
+        var v = (n[key] || '').trim();
+        if (v && !seen[v]) { seen[v] = 1; list.push(v); }
+      });
+      return list;
+    }
+    var cities = uniq('city'), provs = uniq('province');
+    var pool = cities.length ? cities : provs;
+    if (!pool.length) return { title: '我的旅行', subtitle: '' };
+    var unit = cities.length ? '城' : '省';
+    var shown = pool.slice(0, CITY_MAX).join(' · ');
+    return {
+      title: pool.length > CITY_MAX ? shown + ' 等 ' + pool.length + ' ' + unit : shown,
+      subtitle: pool.length > 1 ? pool.length + ' 座' + unit + ' · ' + notes.length + ' 段记忆' : ''
+    };
+  }
+
+  /* ---------- 路线插页：整本 ≥2 个坐标点才有，位置恒在最后 ---------- */
+  /* 三种认法缺一不可：isRoutePlate 是这一批改的标记；'ch_route_' 前缀认批次 7~37 自动生成的旧插页；
+     标题那一条认旧版编辑器「添加路线地图」按 'ch_' 前缀存下来的那一枚（不认的话合并时会留下两张路线页）。 */
+  function routePlate(ch) {
+    return !!ch.isRoutePlate || String(ch.id || '').indexOf('ch_route_') === 0 || (ch.title || '').trim() === '我们的路线';
+  }
+  function routeChapter(notes) {
+    var pts = [];
     notes.forEach(function (n) {
-      var k = n.city || n.province || n.siteName;
-      if (k) c[k] = (c[k] || 0) + 1;
+      if (n.lat != null && n.lng != null) pts.push({ lat: n.lat, lng: n.lng, name: n.siteName || n.title || '·' });
     });
-    var best = '', max = 0;
-    Object.keys(c).forEach(function (k) { if (c[k] > max) { max = c[k]; best = k; } });
-    return best || '我的旅行';
+    if (pts.length < 2) return null;
+    return { id: 'ch_route_' + Date.now(), title: '我们的路线', noteIds: [], isRoutePlate: true, lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: pts };
+  }
+
+  /* ---------- 册子落后检测（批次 38-B） ----------
+     旧行为：album.html 见库里已有册子就直接渲染最后一本，新写的游记永远进不去
+     （实测补记太原 2 篇后，册内章节/统计/路线插页零变化，界面上也没有一句说明）。
+     核对靠每章的 noteIds；批次 7~37 生成的旧册没有这个字段，先用「章节标题 == 游记 title/siteName」
+     的代理匹配补盖一次章，匹配不上的当作手工章，不参与核对、也不会被重复追加。 */
+  function stampLegacy(album, notes) {
+    var byTitle = {};
+    notes.forEach(function (n) {
+      var k = (n.title || n.siteName || '').trim();
+      if (!k) return;
+      if (!byTitle[k]) byTitle[k] = [];
+      byTitle[k].push(n.id);
+    });
+    (album.chapters || []).forEach(function (ch) {
+      if (routePlate(ch) || (ch.noteIds && ch.noteIds.length)) return;
+      var ids = byTitle[(ch.title || '').trim()];
+      if (ids && ids.length) ch.noteIds = ids.slice();
+    });
+    return album;
+  }
+  function coveredIds(album) {
+    var s = {};
+    (album.chapters || []).forEach(function (ch) {
+      if (routePlate(ch)) return;
+      (ch.noteIds || []).forEach(function (id) { s[id] = 1; });
+    });
+    return s;
+  }
+  function pendingNotes(album, notes) {
+    if (!album || !album.chapters) return [];
+    stampLegacy(album, notes);
+    var c = coveredIds(album);
+    return (notes || []).filter(function (n) { return !c[n.id]; });
+  }
+  /* 只追加没入册的游记成新章，已有的章节一字不动（手工编辑不丢），书名/副题仅在没手改过时跟着重算 */
+  function mergeIntoAlbum(album, notes) {
+    var pending = pendingNotes(album, notes);
+    if (!album || !pending.length) return { album: album, added: 0, chapters: [] };
+    var fresh = [];
+    groupTrips(pending).forEach(function (trip) {
+      groupByPlace(trip.notes).forEach(function (placeNotes) { fresh.push(chapterFromNotes(placeNotes)); });
+    });
+    var chs = (album.chapters || []).slice();
+    for (var i = chs.length - 1; i >= 0; i--) { if (routePlate(chs[i])) chs.splice(i, 1); }
+    album.chapters = chs.concat(fresh);
+    var route = routeChapter(notes);
+    if (route) album.chapters.push(route);
+    album.stats = summarize(notes);
+    if (album.coverAuto !== false) {
+      var cv = coverTitle(notes);
+      album.title = cv.title;
+      album.subtitle = cv.subtitle;
+    }
+    album.updatedAt = Date.now();
+    return { album: album, added: fresh.length, chapters: fresh };
   }
 
   /* ---------- 地图插页 SVG（经纬度投影 + 陶土路线） ---------- */
@@ -448,6 +530,10 @@
     save: albumSave,
     remove: albumRemove,
     buildFromNotes: buildFromNotes,
+    pendingNotes: pendingNotes,
+    mergeIntoAlbum: mergeIntoAlbum,
+    coverTitle: coverTitle,
+    routeChapter: routeChapter,
     groupTrips: groupTrips,
     render: renderAlbumHTML,
     renderChapter: renderChapterHTML,

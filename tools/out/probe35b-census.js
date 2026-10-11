@@ -42,7 +42,7 @@ const T3 = [
   ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042],
   ['travel-notes.js', 2047],
   ['vault.js', 400],
-  ['album.js', 262]
+  ['album.js', 344]
 ];
 const isT3 = h => T3.some(([f, n]) => h.f === f && h.n === n);
 /* ② 档里设计内留 generic 的那一条（日期短档，不担品牌字族），必须显式点名 */

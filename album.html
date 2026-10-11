@@ -90,6 +90,14 @@
   .al-empty span{display:block;margin-top:8px;font-size:var(--fs-4);color:var(--color-muted);line-height:1.9}
   .al-empty .btn{margin-top:26px;display:inline-flex;min-height:48px;align-items:center;padding:0 28px;border-radius:999px;background:var(--color-primary);color:var(--bg);font-size:var(--fs-5);font-weight:600;cursor:pointer}
 
+  /* ---- 落后提示条：册子生成之后新写的游记不会自己进来（批次 38-B） ---- */
+  .al-pending{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%) translateY(16px);z-index:1200;display:flex;align-items:center;gap:10px;max-width:min(92vw,460px);background:rgba(32,32,29,.94);color:#fff;border-radius:16px;padding:12px 12px 12px 16px;box-sizing:border-box;font-size:var(--fs-4);line-height:1.5;box-shadow:0 10px 28px -8px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity var(--motion-normal),transform var(--motion-normal)}
+  .al-pending.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+  .al-pending__t{flex:1;min-width:0}
+  .al-pending__btn{flex:0 0 auto;min-height:44px;min-width:44px;display:inline-flex;align-items:center;padding:0 16px;border:0;border-radius:999px;background:var(--grad-primary);color:var(--bg);font-size:var(--fs-5);font-weight:600;cursor:pointer}
+  .al-pending__btn:active{transform:scale(.96)}
+  .al-pending__x{flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border:0;background:transparent;color:rgba(255,255,255,.55);font-size:var(--fs-6);cursor:pointer;border-radius:50%}
+
   /* 深色适配 */
   .theme-dark .al-top{background:linear-gradient(to bottom,rgba(29,28,25,.92),rgba(29,28,25,0))}
   .theme-dark .al-back{background:rgba(38,36,32,.7)}
@@ -117,13 +125,19 @@
 
 <div class="al" id="albumRoot"></div>
 
+<div class="al-pending" id="alPending" role="status" aria-live="polite">
+  <span class="al-pending__t" id="alPendingText"></span>
+  <button class="al-pending__btn" id="alPendingAdd">加进来</button>
+  <button class="al-pending__x" id="alPendingClose" title="本次不加入" aria-label="关闭"><svg class="ti" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#ti-close"/></svg></button>
+</div>
+
 <script src="travel-notes.js"></script>
 <script src="album.js"></script>
 <script src="icons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
-  var ALBUM = null, _bound = false;
+  var ALBUM = null, _bound = false, _pendingHid = false;
 
   function esc(s){ return window.UI ? UI.esc(s) : String(s==null?'':s); }
 
@@ -167,6 +181,28 @@
     document.getElementById('alEdit').style.display = album ? 'block' : 'none';
     document.getElementById('alExport').style.display = album ? 'block' : 'none';
     if (album) bindAudio(document.getElementById('albumRoot'));
+    checkPending();
+  }
+
+  /* ---- 落后检测（批次 38-B）：册子生成一次就定稿，之后新写的游记不会自己进来 ----
+     旧行为是见到库里已有册子直接渲染最后一本，补记的游记在章节/统计/路线插页里全部缺席，
+     界面上也没有一句说明。这里只做检测与出口，加入时逐章追加、不改写已有章节（手工编辑不丢）。 */
+  function liveNotes() { return window.TravelNotes ? TravelNotes.list() : []; }
+
+  function checkPending() {
+    var bar = document.getElementById('alPending');
+    if (!bar) return;
+    var pend = (ALBUM && !_pendingHid) ? Album.pendingNotes(ALBUM, liveNotes()) : [];
+    if (!pend.length) { bar.classList.remove('show'); return; }
+    document.getElementById('alPendingText').textContent = '还有 ' + pend.length + ' 篇新游记没进这本册';
+    bar.classList.add('show');
+  }
+
+  function addPending() {
+    var r = Album.mergeIntoAlbum(ALBUM, liveNotes());
+    if (!r.added) { checkPending(); return; }
+    Album.save(r.album).then(function (saved) { render(saved); }, function () { render(r.album); });
+    toast('已加入 ' + r.added + ' 篇游记');
   }
 
   function renderEmpty() {
@@ -257,6 +293,13 @@
       a.download = name + '.html'; a.click();
       toast('已下载');
     }
+  };
+
+  /* 落后提示条：加进来 / 本次先不 */
+  document.getElementById('alPendingAdd').onclick = addPending;
+  document.getElementById('alPendingClose').onclick = function () {
+    _pendingHid = true;
+    document.getElementById('alPending').classList.remove('show');
   };
 
   bindProgress();

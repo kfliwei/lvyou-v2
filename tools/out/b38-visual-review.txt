@@ -1,0 +1,43 @@
+批次 38 像素基线重拍 · 人审清单与范围证明（2026-10-11）
+
+【为什么是重拍而不是只读反证】
+本批改了四个可见面：album.js（+105/−19）、album.html（+44/−1）、album-edit.html（+10/−9）、story.html（+40/−15）。
+批次 37 那种「只改行为不改画面」的条件不成立，所以必须重拍；重拍的代价与顺序见下。
+
+【范围证明（对旧基线比对，日志 tools/out/b38-vc-scope1.txt，518.9s）】
+109 态里 **107 态逐张 `diff 0.00%`，只有两张动**：
+  album.seed.390x844.png   diff 2.10%   ← 封面书名改成按城并列（种子数据实测「赣州市 · 湘西州 等 7 城」）+ 副题不再恒空（「7 座城 · 8 段记忆」）
+  story.seed.390x844.png   diff 0.43%   ← 进屏那一刻全程连线与全部站点就在图上（8 站 + 点线 + 底部条「第 1 / 8 站」）
+其余 107 态 0.00%，其中**空库态的 album 与 story 在六档视口全部 0.00%**——这一档最有力：
+按代码路径本就不该动的态（库里没游记，`coverTitle` 走兜底、`drawRoute` 根本不跑）确实一个像素没动。
+0.00% 是 pixelmatch（threshold 0.02）以下的 0，不等于逐字节相同；口径沿用 33-F。
+
+【重拍顺序（33-F 那条纪律的形状）】
+① 先归档：`ARCHIVE 改拍前旧基线 109 张 → tools/out/visual-baseline-prev/`（`--update` 那行的第一行，早于任何覆盖）
+② 再覆盖：`--update` 全量重拍 109 张 + 写 `tools/out/visual-baseline.json`（481.3s，EXIT 0）
+③ 后自证：只读复跑两遍，两遍都必须 109 PASS 且逐张 0.00%——
+   第二遍才算复现，一遍绿可能是那次跑的取景侥幸。实测：
+   b38-vc-rerun1.txt → 比对 109 张: 109 PASS, 0 FAIL · 耗时 551.0s · EXIT_R1=0
+   b38-vc-rerun2.txt → 比对 109 张: 109 PASS, 0 FAIL · 耗时 527.0s · EXIT_R2=0
+   两遍都是「到上限 8000ms 仍未稳定 0 张」；第二遍有 1 张等过两轮轮询（album.seed.390x844，519ms）。
+
+【取景性能（--update 那一跑）】
+109 张里等过两轮轮询以上 1 张（album.seed.390x844，536ms），到上限 8000ms 仍未稳定 0 张。
+这张正是本批改了封面题的那张，文字换行导致布局签名变了一次，属预期。
+
+【人审看图（可入库的那一份）】
+目录 tools/out/shots/2026-10-11-b38-album-story/，六张：
+  album.seed.390x844.PREV-baseline.png / .cur.png / .diffmask.png
+  story.seed.390x844.PREV-baseline.png / .cur.png / .diffmask.png
+（同一批帧的本机原始归档在 tools/out/visual-archive/2026-10-11-05-58-26/，`visual-diff/` 与 `visual-baseline-prev/`
+  和 `visual-archive/` 都在 `.gitignore` 里，所以这里另存一份可入库的，避免文档引用一个永远不会进仓库的路径。）
+
+【顺手量到、仍等你点单的一条】
+story.seed.390x844 的当前帧再次拍到「翻页浮条压正文」：那条 `fixed` 的半透明圆角条压在正文那句「静。」上，
+与 §3 第 13 条那三档读数（`:123` scrollY=0 压 1/1 行、180 压 1/1 行、360 压 2.49/5 行）同形。
+本批只改了这张屏上半段的地图画法，浮条一根没碰。
+
+【读数文件命名的一条坑】
+`*.log` 在 `.gitignore` 里（第 4 行），所以 visual-check 的四份跑批日志（scope1/update/rerun1/rerun2）
+各存了一份 `.txt` 副本入库；文档里引用的是 `.txt` 那一份。终局总闸门读数同样自己写盘（末行 `EXIT=0`）：
+tools/out/b38-verify-final.txt（114 行，`=== ALL CHECKS PASSED ===`；里面两处 `FAIL` 字样是闸门描述文本，不是失败计数）。

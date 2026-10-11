@@ -8056,10 +8056,11 @@ function stripBlockComments(s) {
   /* ③ 档点名表（那些文档不载 design.css，写死桌面名是唯一办法）
      这两张表按行号点名，所以任何往 travel-notes.js 里插代码的批次都会把它们推位——
      批次 37 往 travel-notes.js 插了 76 行，把 1984→2047（该点之前净增 63）、2278→2354（净增 76），三处登记（本节两张 + probe35a/35b 各一份 + mut-verify51 的 from 串）要一起改，
-     改一边就会出现「探针绿、闸门红」。 */
+     改一边就会出现「探针绿、闸门红」。
+     批次 38 往 album.js 插了 82 行，把 262→344（那一枚是 renderMapPlateSVG 里的 SVG <text>，它前面只多了封面题/路线章那一族函数）。 */
   const T3 = [['results.js', 132], ['results.js', 134], ['results.js', 139], ['results.js', 145],
     ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 2047],
-    ['vault.js', 400], ['album.js', 262]];
+    ['vault.js', 400], ['album.js', 344]];
   const T2GEN = [['travel-notes.js', 2354]];
   const inT = (T, f, n) => T.some(x => x[0] === f && x[1] === n);
 
@@ -8353,6 +8354,344 @@ function stripBlockComments(s) {
     '运行时那条「别人持锁必须拒跑」不由本节自证，由 node tools/mut-lock.js --selftest 的子进程实测代证（甲乙丙丁四条，现场有别的锁时丁显式 SKIP 不静默算过）');
   if (bad52) console.log('§52 合计 ' + bad52 + ' 条红');
   fail += bad52;
+}
+
+
+/* ============ §53 图册落后同步与叙事地图全程可见闸门（批次 38-B / 38-B2 / 38-C） ============
+   用户报（逐字，2026-10-11）：「我去了大同和太原，旅行图册只显示大同。旅程叙事上面的地图要展示什么？」
+   38-A 地基实测（tools/out/b38-probe-album-story.txt）坐实三条成因，本批逐条收口，本节是收口之后的常驻守卫：
+     ① 册子生成一次即定稿：album.html 见库里已有册子就直接渲染最后一本，之后新写的游记进不了册，界面上也没有一句说明。
+        → 现在 Album.pendingNotes 数出没入册的篇数，album.html 底部条把它说出来并给「加进来」这一手
+          （Album.mergeIntoAlbum 逐章追加，已有章节一字不动，书名/副题只在没被手改过时跟着重算）。
+     ② 书名取「篇数最多的那座城」（旧函数 dominantPlace）：大同 3 篇 + 太原 2 篇，书名实测只剩「大同」；
+        city/province 全缺（异地没网、反查失败）时它退化成逐景点计数，实测书名变成「云冈石窟」。
+        → 现在 coverTitle 按城并列（最多两城，再多落「等 N 城」），全空兜底「我的旅行」。
+     ③ 旅程叙事顶部那张地图「讲到哪画到哪」：进屏恰好是最坏的一档（实测 1 个点、0 条线，另一座城完全不在视野里），
+        翻页还 flyTo 把缩放档抬到 ≥10。→ 现在全程点线进屏就在，讲到哪一档靠粗细与大小区分，
+          跨城那一段用另一族语法（不冒充走过的路），翻页只在跑出视野时平移、zoom 恒不动，
+          单站不再顶到最大档，没坐标的篇数有一句交代。
+   本节钉四件事：① 正向锚点（新代码形状逐条钉死）② 三族期望 0（各配 HEAD 原串做正向对照）
+   ③ 内置扫描四把（导出面↔调用者对账／章节生成点归属／drawRoute 全程不变式／落后条的触控与层叠）
+   ④ 两条常驻浏览器腿的齐备检 + 条数守卫 + 循环上限对账。 */
+{
+  let bad53 = 0;
+  const F53 = m => { bad53++; console.log('FAIL §53 图册同步与叙事地图闸门: ' + m); };
+  const ws53 = s => s.replace(/\s+/g, ' ').trim();
+  const flat53 = s => ws53(stripBlockComments(s));
+  const cnt53 = (s, n) => s.split(n).length - 1;
+  const rd53 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view53 = f => /\.md$/.test(f) ? ws53(rd53(f)) : flat53(rd53(f));
+
+  const FILES53 = ['album.js', 'album.html', 'album-edit.html', 'story.html',
+    'tools/smoke-album-sync.js', 'tools/smoke-story-map.js', 'README.md'];
+  const V53 = {};
+  FILES53.forEach(f => {
+    if (!fs.existsSync(f)) { F53('缺 ' + f); V53[f] = ''; return; }
+    V53[f] = view53(f);
+  });
+
+  const CH53 = {};   /* ③(b) 现场读到的「带 noteIds 的章／不带」两档计数，印在末尾摘要里，不手抄 */
+  let STRAY53 = -1;  /* ③(b) 数到的「album.js / album-edit.html 之外就地造章的产品文件」数；-1＝这一把没跑成 */
+
+  /* ⓪ 自指纪律（同 §45–§52 那一支）：本节的期望 0 全住在「改前原串还写在注释里」的那一带，
+        于是在三处改动旁边各钉一枚现场哨兵——剥刀一坏或注释一多，期望 0 会静默满足。 */
+  {
+    const DEF53 = (rd53('tools/verify.js').match(/^[ \t]*const flat53 = [^\n]*/m) || [''])[0];
+    if (DEF53.indexOf('stripBlockComments') < 0) F53('§53 的 flat53 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF53.slice(0, 56) || '整行没数到，连定义都漂了') + '）：album.js 与 story.html 的文件头注释里原样抄着改前那几句，不剥就当它们还在');
+    const L53 = (rd53('tools/verify.js').match(/^[ \t]*const view53 = [^\n]*/m) || [''])[0];
+    if (L53.indexOf('.md$') < 0) F53('view53 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L53.slice(0, 60) || '整行没数到') + '）：README 登记本批时要写旧函数名，文档侧的锚会当场读 0');
+    [['album.js', 'function coverTitle(notes) {'], ['album.html', 'id="alPending"'], ['story.html', 'function drawRoute(upto){']].forEach(p => {
+      if (V53[p[0]].indexOf(p[1]) < 0) F53('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点 */
+  const A53 = [
+    /* —— album.js：书名按城并列（③ 成因②） —— */
+    ['album.js', 'function coverTitle(notes) {', 1, '书名只有一个生成点：两处各算一套，合并后与新建就会给出两个不同的书名'],
+    ['album.js', 'var CITY_MAX = 2;', 1, '封面最多并列两座（书名走 clamp(46px,13vw,64px)，328 宽里两行封顶）；抬这个数要连着看像素基线'],
+    ["album.js", "var cities = uniq('city'), provs = uniq('province');", 1, '按城去重、城缺了才退到省：旧写法是把城与景点名混在一个计数表里'],
+    ["album.js", "if (!pool.length) return { title: '我的旅行', subtitle: '' };", 1, 'city/province 全空时的兜底。旧写法这一步退化成逐景点计数，实测书名成了「云冈石窟」——景点名不是书名'],
+    ["album.js", "title: pool.length > CITY_MAX ? shown + ' 等 ' + pool.length + ' ' + unit : shown,", 1, '三城以上说「等 N 城」：全列会把封面题挤成三行，一座不列又把别的城整座抹掉'],
+    ["album.js", "subtitle: pool.length > 1 ? pool.length + ' 座' + unit + ' · ' + notes.length + ' 段记忆' : ''", 1, '副题在多城时不再空着（改前恒 subtitle: \'\'，封面那一块是死的）'],
+    ['album.js', 'title: cv.title,', 1, 'buildFromNotes 交的是 coverTitle 的结果，不是自己算的那个'],
+    ['album.js', 'coverAuto: true,', 1, '新建时默认「这书名还是自动的」——手改保护要有起点'],
+    /* —— album.js：路线插页单点 + 三认法（旧册兼容） —— */
+    ['album.js', 'function routeChapter(notes) {', 1, '路线插页只有一个生成点（buildFromNotes 与合并、编辑器共用）'],
+    ['album.js', 'if (pts.length < 2) return null;', 1, '少于两个坐标点画不出路线，返回 null 让调用方去说「为什么没画」，不是静默给一张空插页'],
+    ['album.js', "isRoutePlate: true,", 1, '新插页带标记：没有它，合并时下一轮就认不出自己上一轮生成的那枚'],
+    ['album.js', "function routePlate(ch) {", 1, '「这枚是不是路线插页」也只有一把尺子'],
+    ["album.js", "return !!ch.isRoutePlate || String(ch.id || '').indexOf('ch_route_') === 0 || (ch.title || '').trim() === '我们的路线';", 1, '三认法缺一不可：isRoutePlate 认本批新章，ch_route_ 前缀认批次 7~37 自动生成的旧册，标题那一条认旧编辑器手拼的那枚（少第三支，合并后会留下两张路线页）'],
+    /* —— album.js：落后检测与增量追加（成因①） —— */
+    ['album.js', 'function stampLegacy(album, notes) {', 1, '批次 7~37 的旧册没有 noteIds，先按标题代理补盖一次章；不补就把整本旧册当成「一篇没入册」'],
+    ['album.js', 'if (routePlate(ch) || (ch.noteIds && ch.noteIds.length)) return;', 1, '两头都要挡：路线插页不参与核对，已经有 noteIds 的章不许被代理匹配改写'],
+    ['album.js', 'if (ids && ids.length) ch.noteIds = ids.slice();', 1, '盖的是副本切片，不把笔记数组的引用漏进册子'],
+    ['album.js', 'if (!album || !album.chapters) return [];', 1, '没有册子就谈不上「落后」：空库走 autoCreate 那一条路，不该弹这条提示'],
+    ['album.js', 'if (!album || !pending.length) return { album: album, added: 0, chapters: [] };', 1, '没落后不动这册的任何一个字节（返回值里 added:0 是 album.html 收起浮条的依据）'],
+    ["album.js", "for (var i = chs.length - 1; i >= 0; i--) { if (routePlate(chs[i])) chs.splice(i, 1); }", 1, '只摘旧路线插页重算这一枚；倒着走是为了 splice 不错位'],
+    ['album.js', 'album.stats = summarize(notes);', 1, '统计跟着全量重算：只追加章节不重算统计，封面那三枚数字就永远停在旧旅程上'],
+    ['album.js', 'if (album.coverAuto !== false) {', 1, '手改过书名的册子不再被自动重算盖掉——这条是「不静默覆盖用户编辑」唯一的守卫'],
+    ['album.js', 'noteIds: sorted.map(function (n) { return n.id; }),', 1, '自动章节带上 member 名单：落后检测的分母就是它'],
+    /* —— album.js：导出面（腿与页面都从这儿进） —— */
+    ['album.js', 'pendingNotes: pendingNotes,', 1, '导出（调用者由 ③(a) 逐条对账，导出了没人调＝死代码）'],
+    ['album.js', 'mergeIntoAlbum: mergeIntoAlbum,', 1, '导出'],
+    ['album.js', 'coverTitle: coverTitle,', 1, '导出'],
+    ['album.js', 'routeChapter: routeChapter,', 1, '导出'],
+    /* —— album.html：落后提示条 —— */
+    ['album.html', 'var ALBUM = null, _bound = false, _pendingHid = false;', 1, '"本次先不"这一档要有落点：没有它，用户关掉浮条后每次 render 又弹回来'],
+    ['album.html', 'function liveNotes() { return window.TravelNotes ? TravelNotes.list() : []; }', 1, '游记取的是当场读数，不是页面进屏时那一份缓存'],
+    ['album.html', "var pend = (ALBUM && !_pendingHid) ? Album.pendingNotes(ALBUM, liveNotes()) : [];", 1, '检测挂在每次 render 之后：换册、加完、编辑回来都会重新数'],
+    ["album.html", "document.getElementById('alPendingText').textContent = '还有 ' + pend.length + ' 篇新游记没进这本册';", 1, '这句话必须带篇数：只说「有新游记」等于让人去自己数'],
+    ['album.html', 'var r = Album.mergeIntoAlbum(ALBUM, liveNotes());', 1, '「加进来」走的是那一个增量出口'],
+    ['album.html', 'if (!r.added) { checkPending(); return; }', 1, '没加成果就不保存不重绘：否则会把一份半途的册子写进库里'],
+    ['album.html', 'Album.save(r.album).then(function (saved) { render(saved); }, function () { render(r.album); });', 1, '存完再按库里的真值重绘；存失败也重绘（屏上先给用户看到结果，不让白点一下）'],
+    ["album.html", "toast('已加入 ' + r.added + ' 篇游记');", 1, '点了要有回执，且回执说加了几篇'],
+    ["album.html", "document.getElementById('alPendingAdd').onclick = addPending;", 1, '真接线：§49 那一族就是「屏上能看不能点」，新入口先问一句谁给它挂了事件'],
+    ['album.html', '<div class="al-pending" id="alPending" role="status" aria-live="polite">', 1, '落后这件事是状态变更，走 aria-live（§36 那一族）'],
+    /* —— album-edit.html：手改保护 + 插页走单点 —— */
+    ["album-edit.html", "album.title = this.value.trim(); album.coverAuto = false;", 1, '改名那一刻就把书名标成「这台册子自己定的」：下一批新游记进来时不许再重算书名'],
+    ["album-edit.html", "album.subtitle = this.value.trim(); album.coverAuto = false;", 1, '副题同理'],
+    ['album-edit.html', 'noteIds: [n.id],', 1, '编辑器从游记生成的章也带名单：不带就会被重复追加（同一篇出现两章）'],
+    ['album-edit.html', 'var plate = Album.routeChapter(located);', 1, '那颗「添加地图」走单点生成（带 isRoutePlate）；旧写法手拼一枚 ch_ 前缀、无标记的章'],
+    ["album-edit.html", "if (!plate) { toast('至少要两篇带位置的游记，路线才画得出来'); return; }", 1, '画不出来说明为什么画不出来，不是静默不响应'],
+    /* —— story.html：成因③ —— */
+    ['story.html', 'var skipped=notes.length-withLoc.length;', 1, '没坐标的篇数单记一笔（改前是静默 filter，用户只会以为「丢了」）'],
+    ['story.html', "trips=groupTrips(withLoc);", 1, '行程切分吃的是过滤后那一份，且只此一处'],
+    ['story.html', "var withLoc=notes.filter(function(n){return n.lat!=null&&n.lng!=null;});", 1, '过滤只写一次：两处各 filter 就会出现「卡片数与地图点数不一致」那种读数'],
+    ['story.html', "function fitBounds(){", 1, '进屏取景是独立一件事（翻页不再动它）'],
+    ['story.html', 'if(!pts.length) return;', 1, '零站时不喂空数组给 Leaflet（改前 pts.length===0 会让 fitBounds 收到空集）'],
+    ['story.html', 'if(pts.length>1 && b.getNorth()!==b.getSouth() && b.getEast()!==b.getWest()) map.fitBounds(b,{padding:[30,30]});', 1, '退化 bounds 保护：站与站重合时 fitBounds 会一路顶到最大缩放档'],
+    ['story.html', 'else map.setView(pts[0],10);', 1, '单站给可读的街景档，不是最大档'],
+    ["story.html", "function placeKey(n){ return n.city || n.province || n.siteName || ''; }", 1, '「算不算同一座城」的口径单点'],
+    ['story.html', "var same=placeKey(cards[k-1])!=='' && placeKey(cards[k-1])===placeKey(cards[k]);", 1, '跨城那一段不许画成「走过的路」（这一行自己就是那条诚实线）'],
+    ["story.html", "? {color:'#AE5738',weight:done?3:2,opacity:done?.6:.22,dashArray:done?null:'6 6',lineCap:'round'}", 1, '城内一族：讲到就实，没讲到淡虚线'],
+    ["story.html", ": {color:'#9C9A92',weight:done?2:1.5,opacity:done?.45:.28,dashArray:'2 7',lineCap:'round'};", 1, '跨城一族：恒点线，最淡也看得见'],
+    ['story.html', 'var sz=cur?16:(past?10:8), col=cur?\'#AE5738\':(past?\'rgba(174,87,56,.7)\':\'#9C9A92\'), bd=cur?3:2;', 1, '讲到哪一档靠大小与颜色分三档（改前只有 cur/非 cur 两档，未讲到的全是一种灰）'],
+    ['story.html', 'function setActive(i,initial){', 1, 'initial 这一档是给进屏那一次用的：进屏不平移，取景一次就够'],
+    ['story.html', 'if(!initial) keepInView(gxy(n.lat,n.lng));', 1, '翻页只在当前站跑出视野时平移，zoom 恒不动（改前每翻一页 flyTo 抬到 ≥10）'],
+    ['story.html', 'function keepInView(p){', 1, '「要不要挪」与「挪多少」分开两件事'],
+    ['story.html', 'if(map.getBounds().pad(-0.05).contains(ll)) return;', 1, '已在视野内一步都不动：不这么写就成了每翻一页都轻推一下地图，看着像在飘'],
+    ['story.html', 'map.panTo(ll,{duration:.5});', 1, '要挪就挪，不改缩放档'],
+    ['story.html', 'setActive(0,true); fitBounds();', 1, '进屏顺序：先落到第一站，再给全程取景（反了会被 fitBounds 之后又飞一次）'],
+    ['story.html', '.sc-skip{margin:8px 4px 0;font-size:var(--fs-3);color:var(--color-muted);text-align:center;line-height:1.7}', 1, '那句说明走字号阶梯，不是页内魔法数字'],
+    /* —— 两条常驻腿的形状 —— */
+    ['tools/smoke-album-sync.js', 'const VW = 328, VH = 723;', 1, '量的是用户那块屏（§37 口径）'],
+    ['tools/smoke-album-sync.js', "localStorage.setItem('tn_onboarded', '1');", 1, '不打这个标记，首启蒙层会吃掉真鼠标点击'],
+    ['tools/smoke-album-sync.js', "page.click('#alPendingAdd');", 2, '「加进来」由真鼠标点出来：直调 addPending() 就测不到接线在不在。两本册各点一次，少一枚＝只验了一本'],
+    ['tools/smoke-story-map.js', 'const VW = 328, VH = 723;', 1, '同上'],
+    ['tools/smoke-story-map.js', "localStorage.setItem('tn_onboarded', '1');", 1, '同上'],
+    ['tools/smoke-story-map.js', "document.querySelectorAll('#storyMap path.leaflet-interactive')", 1, '连线读数读的是真渲染出来的 SVG path，不是函数返回值的期望'],
+    ['tools/smoke-story-map.js', "getAttribute('stroke-dasharray')", 1, '实线与虚线在 DOM 层分得开（stroke 相同、dashArray 不同）'],
+    ['tools/smoke-story-map.js', 'total >= 20', 1, '条数守卫（腿是顺序跑的，中途抛了＝后面判据一条没执行，那种「全绿」是空转出来的）'],
+    ['tools/smoke-album-sync.js', 'total >= 32', 1, '同上：判据 33 条，ok() 在自增前求值，最后那条守卫自己不算进 32'],
+  ];
+  A53.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F53('A53 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V53)) { F53('A53 登记了 §53 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt53(V53[f], needle);
+    if (n !== exp) F53(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：三族旧写法，串取自 git show HEAD:album.js / HEAD:album-edit.html / HEAD:story.html 的真行原文 */
+  const ZERO53 = [
+    ['album.js', 'var title = dominantPlace(all);', '    var title = dominantPlace(all);',
+      '书名回到「取篇数最多的那座城」：大同 3 篇 + 太原 2 篇实测只剩「大同」，而这正是用户报的那件事'],
+    ['album.js', 'function dominantPlace(notes) {', '  function dominantPlace(notes) {',
+      '那个取众数的函数整个回来了：它还有一个更坏的退化——city/province 都缺时逐景点计数，实测书名变成「云冈石窟」'],
+    ['album.js', 'subtitle: \'\',', '      subtitle: \'\',',
+      '封面副题回到恒空：那一块屏就永远是死的，多城旅程也没有任何地方说「还有别的城」'],
+    ["album.js", "chapters.push({ id: 'ch_route_' + Date.now(), title: '我们的路线', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: allPoints });",
+      "      chapters.push({ id: 'ch_route_' + Date.now(), title: '我们的路线', lead: '', layout: 'text', photos: [], caption: '', audio: '', audioLabel: '', mapPoints: allPoints });",
+      '路线插页回到就地手拼：没有 isRoutePlate，合并时认不出上一轮那枚，两批插页会在册子里叠成两张'],
+    ["album-edit.html", "album.chapters.push({ id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '我们的路线',",
+      "    album.chapters.push({ id: 'ch_' + Date.now() + '_' + Math.floor(Math.random() * 9999), title: '我们的路线',",
+      '编辑器那颗「添加地图」回到手拼 ch_ 前缀、无标记的章：这是 routePlate 第三认法存在的理由，但写法本身要红——它绕开了「少于两点画不出来」那一档'],
+    ['story.html', 'map.flyTo(', '  map.flyTo(_p,Math.max(map.getZoom(),10),{duration:.7});',
+      '翻页回到每翻一页飞一次站：缩放档被抬到 ≥10，另一座城直接从视野里消失（38-A 实测进屏 1 点 0 线、末站才第一次看见全程）'],
+    ['story.html', 'Math.max(map.getZoom()', '  map.flyTo(_p,Math.max(map.getZoom(),10),{duration:.7});',
+      '「至少 10 档」这一句是「讲到哪画到哪」的配套：地图从「这一段旅程的全貌」退回到「跟着放大镜走」'],
+    ['story.html', 'function setActive(i){', 'function setActive(i){',
+      'setActive 丢掉 initial 参数：进屏那一次也会走 keepInView，与紧随其后的 fitBounds 抢视野'],
+    ['story.html', 'for(var k=0;k<=upto&&k<cards.length;k++){', '  for(var k=0;k<=upto&&k<cards.length;k++){ pts.push(gxy(cards[k].lat,cards[k].lng)); }',
+      '画线循环回到「只画讲到那几段」：这就是那条「进屏 0 段连线」的成因'],
+    ['story.html', 'if(pts.length) map.fitBounds(pts,{padding:[30,30]});', '  if(pts.length) map.fitBounds(pts,{padding:[30,30]});',
+      '取景回到只看有没有点：单站时它一路顶到最大缩放档，屏上就剩一个点占满全屏'],
+    ['story.html', 'trips=groupTrips(notes.filter(function(n){return n.lat!=null&&n.lng!=null;}));',
+      '  trips=groupTrips(notes.filter(function(n){return n.lat!=null&&n.lng!=null;}));',
+      '没坐标的游记回到静默丢弃：38-A 实测 20 篇里有 3 篇没位置，屏上没有任何一句说明'],
+  ];
+  ZERO53.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F53('ZERO53 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V53)) { F53('ZERO53 登记了 §53 没读的文件「' + f + '」：' + why); return; }
+    if (cnt53(V53[f], needle) !== 0) F53(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt53(flat53(ctrl), needle) < 1) F53('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③(a) 导出面 ↔ 调用者对账：文档承诺的能力要 grep 调用者，零调用者现场等于没有 */
+  {
+    const EXP53 = [
+      ['pendingNotes', ['album.html'], 1, '落后检测的入口：导出了没人调，用户就还是看不见那几篇新游记，而 album.js 里的代码看着是齐的'],
+      ['mergeIntoAlbum', ['album.html'], 1, '「加进来」唯一的出口：多一处就是有第二条写入路径绕过了手改保护'],
+      ['routeChapter', ['album-edit.html'], 1, '编辑器走单点生成：多一处就是有第二处就地手拼插页'],
+      ['coverTitle', [], 0, '书名由 buildFromNotes 与 mergeIntoAlbum 内部调用，产品面不直调——它的外部读者是常驻腿 A27–A30（下面单独要求腿里直调 ≥1 处）'],
+    ];
+    EXP53.forEach(e => {
+      const k = e[0];
+      const def = cnt53(V53['album.js'], k + ': ' + k + ',');
+      if (def !== 1) F53('album.js 导出面里「' + k + ': ' + k + ',」读到 ' + def + ' 处，期望恰 1：' + e[3]);
+      let callers = 0;
+      e[1].forEach(f => { callers += cnt53(V53[f], 'Album.' + k + '('); });
+      if (callers !== e[2]) F53('Album.' + k + '( 在产品面读到 ' + callers + ' 处调用（期望 ' + e[2] + '）：' + e[3]);
+    });
+    /* 直调下界只写这一处：从前条件写 <1、红字写「没有一处」，两抄一错闸门就印谎
+       （变异网 S09 把下界抬高一格，红字里的期望却还是老的——同一族坑本项目已记过一次）。 */
+    const LEG_MIN53 = 1;
+    const legCalls = cnt53(V53['tools/smoke-album-sync.js'], 'Album.coverTitle(');
+    if (legCalls < LEG_MIN53) F53('tools/smoke-album-sync.js 里 Album.coverTitle( 直调少于 ' + LEG_MIN53 + ' 处（实得 ' + legCalls + '）：导出面这一枚就纯是死代码——三城并列那一档没人量过');
+  }
+
+  /* ③(b) 章节生成点的归属：自动章必须带 noteIds（落后检测的分母），手工章必须不带（带了就等着被按名单覆盖语义误判） */
+  {
+    function bal53(src, i) {
+      let depth = 0;
+      for (let k = i; k < src.length; k++) {
+        const ch = src[k];
+        if (ch === '{') depth++;
+        else if (ch === '}') { depth--; if (depth === 0) return src.slice(i, k + 1); }
+      }
+      return '';
+    }
+    function chapLits53(src) {
+      const out = [];
+      let i = 0;
+      while ((i = src.indexOf("{ id: 'ch_", i)) >= 0) {
+        const b = bal53(src, i);
+        if (b) out.push(b);
+        i += 8;
+      }
+      return out;
+    }
+    const CAL53B = "{ id: 'ch_x', noteIds: [n.id], lead: '' } { id: 'ch_y', lead: '' }";
+    const calLits = chapLits53(CAL53B);
+    const calWith = calLits.filter(s => s.indexOf('noteIds') >= 0).length;
+    if (calLits.length !== 2 || calWith !== 1) F53('章节归属那把刀自校准失准（合成两个章对象，应「数到 2 个、其中 1 个带 noteIds」，实得 ' +
+      calLits.length + '/' + calWith + '）：刀一瞎，下面那几个数全是假的');
+    const WANT53 = { 'album.js': [3, 0], 'album-edit.html': [1, 2] };
+    Object.keys(WANT53).forEach(f => {
+      const lits = chapLits53(V53[f]);
+      const withIds = lits.filter(s => s.indexOf('noteIds') >= 0).length;
+      CH53[f] = withIds + '/' + (lits.length - withIds);      if (withIds !== WANT53[f][0]) F53(f + ' 里带 noteIds 的章节生成点是 ' + withIds + ' 处（期望 ' + WANT53[f][0] +
+        '）：自动章丢了名单，那篇游记在落后检测里永远算「没入册」，用户点一次「加进来」就多一章重复内容');
+      if (lits.length - withIds !== WANT53[f][1]) F53(f + ' 里不带 noteIds 的手工章生成点是 ' + (lits.length - withIds) + ' 处（期望 ' + WANT53[f][1] +
+        '）：多一处就是有人新开了一个「生成章却不登记名单」的口，少一处是手工章被套上了名单、下一次合并会把它当成自动章');
+    });
+    /* 全局兜底：除登记的这几处，别的产品文件里不许再出现第四种「就地造章」 */
+    const stray53 = fs.readdirSync('.').filter(f => /^(?!album)(.*\.(js|html))$/.test(f) && fs.statSync(f).isFile() &&
+      chapLits53(flat53(rd53(f))).length > 0);
+    STRAY53 = stray53.length;
+    if (stray53.length) F53('除 album.js / album-edit.html 之外还有 ' + stray53.length + ' 个产品文件就地造章节（' + stray53.join('、') + '）：章节形状一旦有两套，noteIds 与 isRoutePlate 这些字段就会在某一族里静默缺席');
+  }
+
+  /* ③(c) drawRoute 全程不变式：进屏就画全，讲到哪亮到哪，且不许用截断循环表达「讲到」 */
+  {
+    const raw53c = rd53('story.html').split(/\r?\n/);
+    const s53c = raw53c.findIndex(L => L.indexOf('function drawRoute(upto){') >= 0);
+    let e53c = -1;
+    for (let i = s53c + 1; i < raw53c.length; i++) { if (raw53c[i] === '}') { e53c = i; break; } }   /* 顶格的 } 才是函数尾：内层 for 的收尾是缩进的，用 trim() 会提前一头 */
+    if (s53c < 0 || e53c < 0) F53('读不到 drawRoute 的两头（@' + s53c + '／@' + e53c + '）：这一支当场失明，③(c) 不作数');
+    else {
+      const body = flat53(raw53c.slice(s53c, e53c + 1).join('\n'));
+      const R = {
+        poly: cnt53(body, 'L.polyline('),
+        full: cnt53(body, 'k<cards.length'),
+        trunc: cnt53(body, 'k<=upto&&'),
+        intra: cnt53(body, "color:'#AE5738'"),
+        cross: cnt53(body, "color:'#9C9A92'"),
+        done: cnt53(body, 'var done=k<=upto;'),
+      };
+      /* 反向自校准：HEAD 那一版函数体喂进同一把尺子，必须被同样的三处抓到 */
+      const OLD53C = "function drawRoute(upto){ routeLayer.clearLayers(); var pts=[]; for(var k=0;k<=upto&&k<cards.length;k++){ pts.push(gxy(cards[k].lat,cards[k].lng)); } if(pts.length>1) L.polyline(pts,{color:'#AE5738',weight:3,opacity:.5,dashArray:'6 6',lineCap:'round'}).addTo(routeLayer); }";
+      const OC = { trunc: cnt53(OLD53C, 'k<=upto&&'), cross: cnt53(OLD53C, "color:'#9C9A92'"), done: cnt53(OLD53C, 'var done=k<=upto;') };
+      if (!(OC.trunc === 1 && OC.cross === 0 && OC.done === 0)) F53('drawRoute 那把尺子反向自校准失准（喂改前函数体应「截断 1、跨城 0、done 0」，实得 ' +
+        JSON.stringify(OC) + '）：尺子认不出旧写法，下面那几个数就只是尺子在睡');
+      /* 这一族的期望只写这一处，条件与红字同源（同一把尺子量出来的数，红字里再抄一遍就是第二次说谎的机会）。 */
+      const EXP53R = { poly: 1, full: 2, intra: 1, cross: 1, done: 1 };
+      if (R.poly !== EXP53R.poly) F53('drawRoute 里 L.polyline( 读到 ' + R.poly + ' 处，期望 ' + EXP53R.poly + '：两段各画一次会把「讲到／没讲到」那一档分裂成两套样式来源');
+      if (R.full !== EXP53R.full) F53('drawRoute 里覆盖全程的循环是 ' + R.full + ' 处（期望 ' + EXP53R.full + '：线一段 + 标记一枚）：少一处就是又有人把某一族截断到 upto');
+      if (R.trunc !== 0) F53('drawRoute 里出现「k<=upto&&」这种截断（现读 ' + R.trunc + ' 处）：这就是「进屏 0 段连线、另一座城完全不在屏上」那一条成因本身');
+      if (R.intra !== EXP53R.intra || R.cross !== EXP53R.cross) F53('城内／跨城两族语法各恰 ' + EXP53R.intra + '／' + EXP53R.cross + '（现读 ' + R.intra + '／' + R.cross + '）：合成一族就是把跨城连线说成走过的路，拆成三族是有人又开始按距离编颜色');
+      if (R.done !== EXP53R.done) F53('「讲到哪一档」的判据 var done=k<=upto; 读到 ' + R.done + ' 处，期望 ' + EXP53R.done + '：两处各算一套，线与点的亮法会不一致');
+      if (cnt53(V53['story.html'], 'keepInView(') !== 2) F53('keepInView 的定义 + 调用要各 1（现读 ' + cnt53(V53['story.html'], 'keepInView(') + ' 处）：只有定义＝没接线，只有调用＝每翻一页都挪');
+    }
+  }
+
+  /* ③(d) 落后条的触控地板、层叠档与隐藏态不吃点击 */
+  {
+    const CSS53 = V53['album.html'];
+    function block53(sel) {
+      const i = CSS53.indexOf(sel + '{');
+      if (i < 0) return '';
+      const j = CSS53.indexOf('}', i);
+      return j < 0 ? '' : CSS53.slice(i, j + 1);
+    }
+    const px = (b, prop) => {
+      const m = new RegExp(prop + ':(\\d+)px').exec(b);
+      return m ? Number(m[1]) : -1;
+    };
+    const btn = block53('.al-pending__btn'), x = block53('.al-pending__x'), bar = block53('.al-pending');
+    /* 尺子自己先校准：40px 那一档必须被同一把刀抓到（抓不到，下面的「≥44」就是空判据） */
+    const CAL53D = '.al-pending__btn{min-height:40px;min-width:40px}';
+    if (px(CAL53D, 'min-height') !== 40) F53('触控那把刀自校准失准（合成 40px 读回 ' + px(CAL53D, 'min-height') + '）：读不到数就等于没检查');
+    if (px(btn, 'min-height') < 44 || px(btn, 'min-width') < 44) F53('「加进来」那颗钮掉到 44 地板以下（现读 min-height ' + px(btn, 'min-height') + ' / min-width ' + px(btn, 'min-width') + '）：它是这条浮条唯一的动作，够不着就等于浮条白说');
+    if (px(x, 'width') < 44 || px(x, 'height') < 44) F53('浮条上那颗 ✕ 掉到 44 地板以下（现读 ' + px(x, 'width') + '×' + px(x, 'height') + '）：「本次先不」走不通，用户就只能在被唠叨和被强加之间二选一');
+    const zm = /z-index:(\d+)/.exec(bar);
+    if (!zm || Number(zm[1]) !== 1200) F53('落后条的 z-index 不是 1200 档（现读 ' + (zm ? zm[1] : '没数到') + '）：这一档是底部固定条一族的位置（.ui-offlinebar 同档），低于底导航就被压住，高于弹层就在弹层底下还说话');
+    if (bar.indexOf('opacity:0;pointer-events:none') < 0) F53('落后条收起态没有 pointer-events:none：一条透明的条横在屏底挡住它下面那颗钮');
+    if (block53('.al-pending.show').indexOf('pointer-events:auto') < 0) F53('落后条展开态没把 pointer-events 收回来：show 了却点不动');
+    if (cnt53(CSS53, "' 篇新游记没进这本册'") !== 1) F53('落后文案的落点不是恰 1 处（现读 ' + cnt53(CSS53, "' 篇新游记没进这本册'") + '）：两处各写一句就会有一句忘了带篇数');
+    if (cnt53(CSS53, '>加进来</button>') !== 1) F53('那颗动作钮不在场（现读 ' + cnt53(CSS53, '>加进来</button>') + '）：只说「还有 N 篇没进来」而不给出口，是审核报告里那一族「把没做的说成做不了」最小的复发形态');
+  }
+
+  /* ④ 两条常驻腿齐备检 + 条数守卫 + 循环上限对账 */
+  {
+    const LEGS53 = [
+      ['tools/smoke-album-sync.js', 'A', 31, "ok('A32'"],
+      ['tools/smoke-story-map.js', 'S', 19, "ok('S20'"],
+    ];
+    LEGS53.forEach(g => {
+      const [f, pre, last, guard] = g;
+      const S = V53[f];
+      for (let i = 0; i <= last; i++) {
+        const lab = "ok('" + pre + (i < 10 ? '0' : '') + i + "'";
+        if (cnt53(S, lab) !== 1) F53(f + ' 里 ' + pre + (i < 10 ? '0' : '') + i + ' 这条判据不是恰 1 处（实得 ' + cnt53(S, lab) +
+          '）：这一节断的是「图册落后要能检测能追加」与「叙事地图进屏给全貌」，删一条就少一个证据，改编号会让本节齐备检集体失效');
+      }
+      if (cnt53(S, guard) !== 1) F53(f + ' 少了最后那条条数守卫（' + guard + '）：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转出来的');
+      const LAB = S.match(new RegExp("ok\\('" + pre + "(\\d+)'", 'g')) || [];
+      const MAXN = LAB.reduce((m, s) => Math.max(m, Number(new RegExp(pre + '(\\d+)').exec(s)[1])), 0);
+      /* 上限不写死在代码文本里、由这张表带着，所以这一条对账比 §50 那一支更严：改表就必须对着腿里的真实编号改。
+         守卫那条（A32／S20）写在最后一条判据里，所以登记表的上限该是「腿里真实最大编号 − 1」。 */
+      if (last !== MAXN - 1) F53('④ 齐备检给 ' + f + ' 登记的循环上限是 ' + last + '，而这条腿里真实最大编号是 ' + pre + MAXN +
+        '：差一格就是有那条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+      if (!LAB.length) F53(f + ' 里一条 ok() 判据都没数到（现读 ' + LAB.length + '）：这条腿的形状变了，齐备检当场失明');
+    });
+  }
+
+  if (V53['README.md'].indexOf('§53') < 0) F53('README.md 的 verify 清单没提 §53（新闸门不写进 README 就等于没装）');
+  if (V53['README.md'].indexOf('smoke-album-sync') < 0) F53('README.md 没登记 tools/smoke-album-sync.js 这条腿');
+  if (V53['README.md'].indexOf('smoke-story-map') < 0) F53('README.md 没登记 tools/smoke-story-map.js 这条腿');
+
+  console.log('图册同步与叙事地图闸门: ' + A53.length + ' 条代码锚点（书名按城并列三档与全空兜底／插页单点 + 三认法旧册兼容／落后检测 stampLegacy-coveredIds-pendingNotes 三段／增量追加只摘插页、统计全量重算、coverAuto 挡手改／导出面四件／落后条那一句带篇数 + 真鼠标接线 + aria-live + 44 地板 + 1200 档 + 收起态不吃点击／编辑器改名即标 coverAuto=false + 章带 noteIds + 添加地图走单点／叙事侧 skipped 计数一句交代 + 取景退化 bounds 保护 + 单站 10 档 + 城内跨城两族语法 + done 单点亮法 + 三档标记大小 + keepInView 只平移不改 zoom）+ ' + ZERO53.length + ' 族期望 0（dominantPlace 那两处／恒空副题／就地手拼插页两处／flyTo 与那个「至少 10 档」／丢 initial 参数／截断循环的画线／只看有没有点的取景／静默 filter）各配 HEAD 原串正向对照 + 四把内置扫描（导出面↔调用者逐条对账（' + JSON.stringify({ pendingNotes: 1, mergeIntoAlbum: 1, routeChapter: 1, coverTitle: 0 }) + '，coverTitle 另要求常驻腿直调）；章节生成点归属现场读数（带 noteIds／不带）= ' + JSON.stringify(CH53) + '，别的产品文件就地造章 ' + STRAY53 + ' 处；drawRoute 全程不变式（polyline 单点、覆盖全程循环 2、截断 0、两族各 1、done 单点、keepInView 定义+调用各 1，反向自校准喂改前函数体）；落后条触控/层叠/点击三件，各把都先拿合成样本自校准）+ 两条腿 A00–A31／S00–S19 齐备检与条数守卫（守卫表达式 total>=32 与 total>=20 由 A53 钉住，循环上限由 ④ 现场对账）');
+  fail += bad53;
 }
 
 

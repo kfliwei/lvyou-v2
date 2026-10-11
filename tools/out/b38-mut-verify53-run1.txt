@@ -1,0 +1,104 @@
+=== mut-verify53 · 靶子 98 条（红 89／抹登记 4／静默 5），预检 全过 ===
+基准 verify 全绿 ✓（A53 表长 69／ZERO53 表长 11，与本网登记一致）
+基准 smoke-album-sync 判据全绿 ✓（33 条）
+基准 smoke-story-map 判据全绿 ✓（21 条）
+OK   R01 封面并列上限抬到三座（书名走 clamp(46px,13vw,64px)，328  → 同步与叙事地图闸门: album.js 里「var CITY_MAX = 2;」实得 0，期望 1：封面最多并列两座（书名走 clamp(46px,13vw,64px)，
+OK   R02 city/province 全空时退回拿第一个景点名当书名（用户实测到的那句「云  → 同步与叙事地图闸门: album.js 里「if (!pool.length) return { title: '我的旅行', subtitle: 」实得 0，期望 1：
+OK   R03 按城去重退回按景点去重（一座城三篇就成了三个「城」，书名与副题一起说谎）  → 同步与叙事地图闸门: album.js 里「var cities = uniq('city'), provs = uniq('province');」实得 0，期望 1：
+OK   R04 副题退回恒空（改前那一块屏永远是死的，多城旅程也没有任何地方说「还有别的城」）  → 同步与叙事地图闸门: album.js 里出现「subtitle: '',」：封面副题回到恒空：那一块屏就永远是死的，多城旅程也没有任何地方说「还有别的城」
+OK   R05 新插页不再带标记（合并时下一轮认不出自己上一轮生成的那枚，册子里叠出两张路线页）  → 同步与叙事地图闸门: album.js 里「isRoutePlate: true,」实得 0，期望 1：新插页带标记：没有它，合并时下一轮就认不出自己上一轮生成的那枚
+OK   R06 三认法少了标题那一支（旧编辑器手拼的那枚认不出，合并后留两张路线页）  → 同步与叙事地图闸门: album.js 里「return !!ch.isRoutePlate || String(ch.id || '').inde」实得 0，期望 1：
+OK   R07 少于两点也照样生成插页（画不出的那张空页没人解释，调用方那一句「为什么没画」也永  → 同步与叙事地图闸门: album.js 里「if (pts.length < 2) return null;」实得 0，期望 1：少于两个坐标点画不出路线，返回 null
+OK   R08 摘旧插页那一圈改成正着走（splice 一错位就漏摘一枚，两枚并存在同一本册里）  → 同步与叙事地图闸门: album.js 里「for (var i = chs.length - 1; i >= 0; i--) { if (rout」实得 0，期望 1：
+OK   R09 追加章节却不重算统计（封面那三枚数字永远停在旧旅程上）  → 同步与叙事地图闸门: album.js 里「album.stats = summarize(notes);」实得 0，期望 1：统计跟着全量重算：只追加章节不重算统计，封
+OK   R10 手改保护摘掉（用户自己起的书名会被下一批新游记重算盖掉——这是「不静默覆盖用户编  → 同步与叙事地图闸门: album.js 里「if (album.coverAuto !== false) {」实得 0，期望 1：手改过书名的册子不再被自动重算盖掉——这
+OK   R11 自动章节丢掉 member 名单（那篇游记在落后检测里永远算「没入册」，点一次「  → 同步与叙事地图闸门: album.js 里「noteIds: sorted.map(function (n) { return n.id; }),」实得 0，期望 1：自
+OK   R12 没有落后也不动册子这一档摘掉（每进一次图册都重写一遍库，半途的册子也会被写进去）  → 同步与叙事地图闸门: album.js 里「if (!album || !pending.length) return { album: album」实得 0，期望 1：
+OK   R13 代理匹配不再挡已有名单的章（已经核对过的章会被标题匹配改写，覆盖语义从此不确定）  → 同步与叙事地图闸门: album.js 里「if (routePlate(ch) || (ch.noteIds && ch.noteIds.leng」实得 0，期望 1：
+OK   R14 盖进去的是数组引用而不是切片（库里那份与内存那份共享一个数组，改一处动两处）  → 同步与叙事地图闸门: album.js 里「if (ids && ids.length) ch.noteIds = ids.slice();」实得 0，期望 1：盖的是副
+OK   R15 没有册子也照样谈「落后」（空库走 autoCreate 那一条路，这条提示会在还  → 同步与叙事地图闸门: album.js 里「if (!album || !album.chapters) return [];」实得 0，期望 1：没有册子就谈不上「落后
+OK   R16 落后检测的入口从导出面摘掉（页面那条腿从此拿不到它，album.js 里的代码看  → 同步与叙事地图闸门: album.js 里「pendingNotes: pendingNotes,」实得 0，期望 1：导出（调用者由 ③(a) 逐条对账，导出了没人调＝
+OK   R17 那颗「加进来」摘线（§49 那一族就是「屏上能看不能点」，浮条说了等于没说）  → 同步与叙事地图闸门: album.html 里「document.getElementById('alPendingAdd').onclick = ad」实得 0，期望 
+OK   R18 「本次先不」这一档没了落点（用户关掉浮条后每次 render 又弹回来，只能二选  → 同步与叙事地图闸门: album.html 里「var pend = (ALBUM && !_pendingHid) ? Album.pendingNo」实得 0，期望 
+OK   R19 没加成果也照样保存（会把一份半途的册子写进库里）  → 同步与叙事地图闸门: album.html 里「if (!r.added) { checkPending(); return; }」实得 0，期望 1：没加成果就不保存不
+OK   R20 存失败就不再重绘（屏上白点一下，用户以为什么都没发生）  → 同步与叙事地图闸门: album.html 里「Album.save(r.album).then(function (saved) { render(s」实得 0，期望 
+OK   R21 落后这件事不再走 aria-live（状态变更对读屏的人不存在）  → 同步与叙事地图闸门: album.html 里「<div class="al-pending" id="alPending" role="status"」实得 0，期望 
+OK   R22 游记退回页面进屏时那一份缓存（写完游记再进图册，条子数的还是旧篇数）  → 同步与叙事地图闸门: album.html 里「function liveNotes() { return window.TravelNotes ? T」实得 0，期望 
+OK   R23 点完不给回执（或回执不说加了几篇）  → 同步与叙事地图闸门: album.html 里「toast('已加入 ' + r.added + ' 篇游记');」实得 0，期望 1：点了要有回执，且回执说加了几篇
+OK   R24 那句话退回不带篇数（只说「有新游记」等于让人自己去数）  → 同步与叙事地图闸门: album.html 里「document.getElementById('alPendingText').textContent」实得 0，期望 
+OK   R25 动作钮改了名（只说「还有 N 篇没进来」而不给出口，是审核报告里「把没做的说成做  → 同步与叙事地图闸门: 那颗动作钮不在场（现读 0）：只说「还有 N 篇没进来」而不给出口，是审核报告里那一族「把没做的说成做不了」最小的复发形态
+OK   R26 改名不再标「这台册子自己定的」（下一批新游记进来时书名被重算盖掉）  → 同步与叙事地图闸门: album-edit.html 里「album.title = this.value.trim(); album.coverAuto = f」实得 
+OK   R27 编辑器生成的章不带名单（同一篇会被重复追加成两章）  → 同步与叙事地图闸门: album-edit.html 里「noteIds: [n.id],」实得 0，期望 1：编辑器从游记生成的章也带名单：不带就会被重复追加（同一篇出
+OK   R28 那颗「添加地图」绕开单点（第二处就地手拼插页，没有 isRoutePlate，也  → 同步与叙事地图闸门: Album.routeChapter( 在产品面读到 0 处调用（期望 1）：编辑器走单点生成：多一处就是有第二处就地手拼插页
+OK   R29 画不出来时静默不响应  → 同步与叙事地图闸门: album-edit.html 里「if (!plate) { toast('至少要两篇带位置的游记，路线才画得出来'); return; 」实得 
+OK   R30 过滤条件写成只查 lat（lng 缺了也算有位置，卡片与地图的点数从此不一致）  → 同步与叙事地图闸门: story.html 里「var withLoc=notes.filter(function(n){return n.lat!=n」实得 0，期望 
+OK   R31 没坐标的篇数不再单记一笔（改前是静默 filter，用户只会以为「丢了」）  → 同步与叙事地图闸门: story.html 里「var skipped=notes.length-withLoc.length;」实得 0，期望 1：没坐标的篇数单记一笔
+OK   R32 零站那一路摘掉（Leaflet 收到空集：整页报错还是白地图取决于库的心情）  → 同步与叙事地图闸门: story.html 里「if(!pts.length) return;」实得 0，期望 1：零站时不喂空数组给 Leaflet（改前 pts.le
+OK   R33 退化 bounds 保护摘掉（站与站重合时 fitBounds 一路顶到最大缩放  → 同步与叙事地图闸门: story.html 里「if(pts.length>1 && b.getNorth()!==b.getSouth() && b.」实得 0，期望 
+OK   R34 单站退回顶到最大档  → 同步与叙事地图闸门: story.html 里「else map.setView(pts[0],10);」实得 0，期望 1：单站给可读的街景档，不是最大档
+OK   R35 跨城那一段一律画成「走过的路」（诚实线那一行自己没了：城与城之间的直线不是用户走  → 同步与叙事地图闸门: story.html 里「var same=placeKey(cards[k-1])!=='' && placeKey(cards」实得 0，期望 
+OK   R36 城内那一族的颜色被换掉（两族语法合成一族的前一步）  → 同步与叙事地图闸门: story.html 里「? {color:'#AE5738',weight:done?3:2,opacity:done?.6:.」实得 0，期望 
+OK   R37 跨城那一族的颜色被换掉（有人又开始按距离编颜色）  → 同步与叙事地图闸门: story.html 里「: {color:'#9C9A92',weight:done?2:1.5,opacity:done?.4」实得 0，期望 
+OK   R38 标记大小退回两档（未讲到的与讲到过的看起来一样）  → 同步与叙事地图闸门: story.html 里「var sz=cur?16:(past?10:8), col=cur?'#AE5738':(past?'」实得 0，期望 
+OK   R39 setActive 丢掉 initial 参数（进屏那一次也会走 keepInV  → 同步与叙事地图闸门: story.html 里出现「function setActive(i){」：setActive 丢掉 initial 参数：进屏那一次也会走 ke
+OK   R40 进屏那一次也平移（取景刚做完又被推一下，看着像在飘）  → 同步与叙事地图闸门: story.html 里「if(!initial) keepInView(gxy(n.lat,n.lng));」实得 0，期望 1：翻页只在当前站跑
+OK   R41 已在视野内也照样挪（每翻一页轻推一下地图）  → 同步与叙事地图闸门: story.html 里「if(map.getBounds().pad(-0.05).contains(ll)) return;」实得 0，期望 1
+OK   R42 平移退回飞站（缩放档被抬起来，另一座城直接从视野里消失）  → 同步与叙事地图闸门: story.html 里「map.panTo(ll,{duration:.5});」实得 0，期望 1：要挪就挪，不改缩放档
+OK   R43 进屏顺序反过来（先取景再落站＝取景之后又飞一次；树上这两句各占一行，锚在 fla  → 同步与叙事地图闸门: story.html 里「setActive(0,true); fitBounds();」实得 0，期望 1：进屏顺序：先落到第一站，再给全程取景（
+OK   R44 那句说明退回页内魔法数字（不走字号阶梯）  → 同步与叙事地图闸门: story.html 里「.sc-skip{margin:8px 4px 0;font-size:var(--fs-3);colo」实得 0，期望 
+OK   R45 「算不算同一座城」的口径少了省这一档（city 缺时全部算跨城，两族语法乱成一团  → 同步与叙事地图闸门: story.html 里「function placeKey(n){ return n.city || n.province ||」实得 0，期望 
+OK   R46 行程切分退回吃全量（没坐标的那几篇也进组，卡片数与地图点数不一致的老读数回来）  → 同步与叙事地图闸门: story.html 里「trips=groupTrips(withLoc);」实得 0，期望 1：行程切分吃的是过滤后那一份，且只此一处
+OK   S01 flat53 定义行不再走那把共享剥刀（产品文件头注释里原样抄着改前那几句，不剥  → 同步与叙事地图闸门: §53 的 flat53 定义行没走那把共享剥刀（现场读到的那一行：  const flat53 = s => ws53(s);）：album.js
+OK   S02 view53 退回「文档也剥注释」那一支（README 登记本批时要写旧函数名，  → 同步与叙事地图闸门: view53 的定义行退回「文档也剥注释」那一支（现场读到的那一行：  const view53 = f => flat53(rd53(f));）：
+OK   S03 盲区哨兵表里那一枚换成树上没有的串（这一带又变成盲窗，住在里面的期望 0 会静默  → 同步与叙事地图闸门: 盲区哨兵：「function coverTitleX(notes) {」在 flat 里读不到了（它就贴在 album.js 本批改掉的行旁边；读不
+OK   S04 A53 有一条多塞一个字段（四元组形状不整即红，跳过不再静默 return）  → 同步与叙事地图闸门: A53 有一条不是「[文件, 串, 期望次数, 原因]」四元组：["album.js","var CITY_MAX = 2;",1,1,"封面最多并
+OK   S05 ZERO53 有一条把正向对照写成数字（那条期望 0 的对照等于没有）  → 同步与叙事地图闸门: ZERO53 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：["album.js","var title = dominantPlac
+OK   S06 A53 登记了本节没读的文件（锚等于没跑）  → 同步与叙事地图闸门: A53 登记了 §53 没读的文件「wishlist.html」：同上
+OK   S07 ZERO53 的正向对照失效（那个 0 就不是证据：对照串里读不到 needle  → 同步与叙事地图闸门: 「map.flyTo(」这条期望 0 的正向对照失效了（上面那个 0 不是证据）
+OK   S08 导出面对账里落后检测的期望调用数抬成 2（产品面只剩一处真调用，从此这条永远红或  → 同步与叙事地图闸门: Album.pendingNotes( 在产品面读到 1 处调用（期望 2）：落后检测的入口：导出了没人调，用户就还是看不见那几篇新游记，而 alb
+异常 S09 常驻腿直调 coverTitle 那一枚的下界抬到 2（三城并列那一档没人量过也  → §53 红 0 条，整跑还绿＝退出码没跟上：（红字压根没印，整跑还绿＝那条锚是假绿灯）
+OK   S10 章节归属那把刀的自校准期望从 2 抬成 3（刀一瞎，下面那几个数全是假的）  → 同步与叙事地图闸门: 章节归属那把刀自校准失准（合成两个章对象，应「数到 2 个、其中 1 个带 noteIds」，实得 2/1）：刀一瞎，下面那几个数全是假的
+OK   S11 album.js 带 noteIds 的生成点期望抬到 4（现场读 3 也算对，  → 同步与叙事地图闸门: album.js 里带 noteIds 的章节生成点是 3 处（期望 4）：自动章丢了名单，那篇游记在落后检测里永远算「没入册」，用户点一次「加进来
+OK   S12 album-edit.html 不带名单的手工章期望抬到 3（有人新开口造「生成  → 同步与叙事地图闸门: album-edit.html 里不带 noteIds 的手工章生成点是 2 处（期望 3）：多一处就是有人新开了一个「生成章却不登记名单」的口，少
+OK   S13 就地造章的兜底扫描把 album 那一族放进白名单外（第四种造章形状不再有人管，  → 同步与叙事地图闸门: 除 album.js / album-edit.html 之外还有 2 个产品文件就地造章节（album-edit.html、album.js）：章
+OK   S14 drawRoute 两头查找串换掉（③(c) 那一整支当场失明）  → 同步与叙事地图闸门: 读不到 drawRoute 的两头（@-1／@116）：这一支当场失明，③(c) 不作数
+OK   S15 drawRoute 那把尺子的反向自校准期望挪掉（尺子认不出旧写法，下面那几个数  → 同步与叙事地图闸门: drawRoute 那把尺子反向自校准失准（喂改前函数体应「截断 1、跨城 0、done 0」，实得 {"trunc":1,"cross":0,"d
+异常 S16 覆盖全程的循环期望抬到 3（截断某一族没人管）  → §53 红 1 条，没有一条含「覆盖全程的循环是 2 处（期望 3」：FAIL §53 图册同步与叙事地图闸门: drawRoute 里覆盖全程的循环是 2 处（期望 2：线一段 + 标记一枚）：少一处就是又有人把某一族截断到 upto
+异常 S17 polyline 单点期望抬到 2（两段各画一次把「讲到／没讲到」分裂成两套样式  → §53 红 1 条，没有一条含「L.polyline( 读到 1 处，期望 2」：FAIL §53 图册同步与叙事地图闸门: drawRoute 里 L.polyline( 读到 1 处，期望 1：两段各画一次会把「讲到／没讲到」那一档分裂成两套样式来源
+OK   S18 截断那一支的条件取反（干净树读 0 也算对，「进屏 0 段连线」那条成因重新没人  → 同步与叙事地图闸门: drawRoute 里出现「k<=upto&&」这种截断（现读 0 处）：这就是「进屏 0 段连线、另一座城完全不在屏上」那一条成因本身
+异常 S19 「讲到哪一档」的判据期望抬到 2（线与点的亮法两处各算一套）  → §53 红 1 条，没有一条含「var done=k<=upto; 读到 1 处，期望 2」：FAIL §53 图册同步与叙事地图闸门: 「讲到哪一档」的判据 var done=k<=upto; 读到 1 处，期望 1：两处各算一套，线与点的亮法会不一致
+OK   S20 keepInView 的定义+调用计数抬到 3（只有定义＝没接线那一档从此不算红  → 同步与叙事地图闸门: keepInView 的定义 + 调用要各 1（现读 2 处）：只有定义＝没接线，只有调用＝每翻一页都挪
+OK   S21 触控那把刀的自校准期望从 40 挪成 41（读不到数就等于没检查）  → 同步与叙事地图闸门: 触控那把刀自校准失准（合成 40px 读回 40）：读不到数就等于没检查
+OK   S22 「加进来」那颗钮的地板抬到 45（现场读 44 也算对，真正的落地板那一支被挪松  → 同步与叙事地图闸门: 「加进来」那颗钮掉到 44 地板以下（现读 min-height 44 / min-width 44）：它是这条浮条唯一的动作，够不着就等于浮条白说
+OK   S23 浮条关闭钮的地板抬到 45（同上）  → 同步与叙事地图闸门: 浮条上那颗 ✕ 掉到 44 地板以下（现读 44×44）：「本次先不」走不通，用户就只能在被唠叨和被强加之间二选一
+OK   S24 落后条的 z-index 档挪成 1300（现场读 1200 也算错，这一档就不  → 同步与叙事地图闸门: 落后条的 z-index 不是 1200 档（现读 1200）：这一档是底部固定条一族的位置（.ui-offlinebar 同档），低于底导航就被压
+OK   S25 收起态那一支的查找串换掉（一条透明的条横在屏底挡住它下面那颗钮，不再有人报）  → 同步与叙事地图闸门: 落后条收起态没有 pointer-events:none：一条透明的条横在屏底挡住它下面那颗钮
+OK   S26 展开态那一支的查找串换掉（show 了却点不动不再有人报）  → 同步与叙事地图闸门: 落后条展开态没把 pointer-events 收回来：show 了却点不动
+OK   S27 落后文案落点计数抬到 2（两处各写一句、有一句忘了带篇数这件事不当红）  → 同步与叙事地图闸门: 落后文案的落点不是恰 1 处（现读 1）：两处各写一句就会有一句忘了带篇数
+OK   S28 动作钮在场计数抬到 2（一枚算过，两枚才算过）  → 同步与叙事地图闸门: 那颗动作钮不在场（现读 1）：只说「还有 N 篇没进来」而不给出口，是审核报告里那一族「把没做的说成做不了」最小的复发形态
+OK   S29 ④ 齐备检给 album-sync 那条腿登记的循环上限收窄一格（A31 从此没  → 同步与叙事地图闸门: ④ 齐备检给 tools/smoke-album-sync.js 登记的循环上限是 30，而这条腿里真实最大编号是 A32：差一格就是有那条判据没人
+OK   S30 ④ 条数守卫的查找串挪成不存在的编号（守卫那一支换目标，摘掉它也没人报）  → 同步与叙事地图闸门: tools/smoke-album-sync.js 少了最后那条条数守卫（ok('A33'）：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全
+OK   S31 ④ 上限与真实最大编号的对账挪成「等于编号本身」（少守一条判据却自称对过账）  → 同步与叙事地图闸门: ④ 齐备检给 tools/smoke-album-sync.js 登记的循环上限是 31，而这条腿里真实最大编号是 A32：差一格就是有那条判据没人
+OK   S32 ④ 那条「一条判据都没数到」的判据取反（这条腿形状变了也不再当场失明）  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里一条 ok() 判据都没数到（现读 33）：这条腿的形状变了，齐备检当场失明
+OK   S33 ④ 齐备检给 story-map 那条腿登记的循环上限收窄一格（S19 从此没人  → 同步与叙事地图闸门: ④ 齐备检给 tools/smoke-story-map.js 登记的循环上限是 18，而这条腿里真实最大编号是 S20：差一格就是有那条判据没人守
+OK   T01 album-sync 屏档退回 452×995（量的不是用户那块屏，「点了动没动  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里「const VW = 328, VH = 723;」实得 0，期望 1：量的是用户那块屏（§
+OK   T02 album-sync 不打 tn_onboarded 标记（首启蒙层 z9990  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里「localStorage.setItem('tn_onboarded', '1');」实得 
+OK   T03 album-sync 那两处真鼠标点击被改名（直调 addPending() 就  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里「page.click('#alPendingAdd');」实得 0，期望 2：「加进来」由真
+OK   T04 album-sync 条数守卫阈值挪低（判据少 30 条也算「跑完了」）  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里「total >= 32」实得 0，期望 1：同上：判据 33 条，ok() 在自增前求值，最
+OK   T05 story-map 条数守卫阈值挪低（同上：中途抛了＝后面判据一条没执行，那种「  → 同步与叙事地图闸门: tools/smoke-story-map.js 里「total >= 20」实得 0，期望 1：条数守卫（腿是顺序跑的，中途抛了＝后面判据一条没执
+OK   T06 story-map 屏档退回 452×995（视野里框住几座城与屏宽直接相关）  → 同步与叙事地图闸门: tools/smoke-story-map.js 里「const VW = 328, VH = 723;」实得 0，期望 1：同上
+OK   T07 story-map 连线读数改打一个不存在的类（读回来的永远是空集，「进屏 0   → 同步与叙事地图闸门: tools/smoke-story-map.js 里「document.querySelectorAll('#storyMap path.leafl
+OK   T08 story-map 的虚实读数改看 stroke-width（实线与淡虚线在 D  → 同步与叙事地图闸门: tools/smoke-story-map.js 里「getAttribute('stroke-dasharray')」实得 0，期望 1：实线与虚
+OK   T09 album-sync 判据 A21 被改名（齐备检按字面 ok('A21 逐条数  → 同步与叙事地图闸门: tools/smoke-album-sync.js 里 A21 这条判据不是恰 1 处（实得 0）：这一节断的是「图册落后要能检测能追加」与「叙事地
+OK   T10 story-map 判据 S11 被改名（这条腿自己也是会被删的）  → 同步与叙事地图闸门: tools/smoke-story-map.js 里 S11 这条判据不是恰 1 处（实得 0）：这一节断的是「图册落后要能检测能追加」与「叙事地图
+异常 T11 album-sync 里 coverTitle 的三枚直调摘掉（导出面那一枚就真  → §53 红 0 条，整跑还绿＝退出码没跟上：（红字压根没印，整跑还绿＝那条锚是假绿灯）
+OK   T12 README 抹掉 §53 的登记（新闸门不写进 README 就等于没装）  → 同步与叙事地图闸门: README.md 的 verify 清单没提 §53（新闸门不写进 README 就等于没装）
+OK   T13 README 抹掉图册这条腿的登记（腿在跑，登记表里却没有它）  → 同步与叙事地图闸门: README.md 没登记 tools/smoke-album-sync.js 这条腿
+OK   T14 README 抹掉叙事这条腿的登记（同上）  → 同步与叙事地图闸门: README.md 没登记 tools/smoke-story-map.js 这条腿
+OK   U01 合并时不再把重算的路线插页塞回册子（A53 钉的是 routeChapter 的  → 源码腿 0 红且整跑绿，album-sync 红在 A15（共 2 条红）
+OK   U02 render 末尾不再挂落后检测（`Album.pendingNotes(` 那  → 源码腿 0 红且整跑绿，album-sync 红在 A04（共 13 条红）
+OK   U03 旧册代理匹配的分组键对不上（章节标题永远查不到那串名单：整本旧册被当成「一篇没入  → 源码腿 0 红且整跑绿，album-sync 红在 A22（共 1 条红）
+OK   U04 底部条那句不再以「第 N / M 站」开头（§53 锚的是 keepInView  → 源码腿 0 红且整跑绿，story-map 红在 S08（共 2 条红）
+OK   U05 进屏取景只吃第一站（fitBounds 本体、退化 bounds 判据、padd  → 源码腿 0 红且整跑绿，story-map 红在 S06（共 2 条红）
+=== mut-verify53: 98 条靶子 → 红对 88／静默对 5／异常 5 ===
+注意：U 类重跑过两条腿，它们按固定文件名落读数 tools/out/b38-smoke-album-sync.txt 与 tools/out/b38-smoke-story-map.txt；跑完要在干净树上各复跑一次这两条腿并把读数盖回去。

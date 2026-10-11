@@ -4,7 +4,7 @@
  * 为什么要自己重数：审核报告 §4 第 5 条写「33 处 / 7 个文件」，但三档相加只有 32（正文印 ③ 12、逐条数得出 11）。
  * 我第一版用 `font-family:` + 值字符类里排除引号 去抓，planner.js/album.js/vault.js 整档 0 命中——
  *   原因是那些行写 font-family:"PingFang SC"（值以字面双引号开头），被字符类挡掉；
- *   album.js:262 写 font-family="Songti SC, serif"（SVG/HTML 属性，等号不是冒号），也一样漏。
+ *   album.js:344 写 font-family="Songti SC, serif"（SVG/HTML 属性，等号不是冒号；批次 38 前它在 262），也一样漏。
  *   第二版把值放宽后又把 `var(--font-…)`、`inherit`、`ui-monospace` 这些合法行算进来了。
  * ⇒ 这一版改成「白名单」形状（和将来 §21 闸门同一个口径）：
  *   每一处 font-family / ctx.font 必须落进四个合法桶之一（token 定义 / var 接线 / inherit / 等宽档），
@@ -45,7 +45,7 @@ const T3 = [
   ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042],                     // docShell 自有 body/h1/h2/.story
   ['travel-notes.js', 2047],                                                            // 另存的游记 HTML body（批次 37 后从 1984 推到 2047）
   ['vault.js', 400],                                                                    // vault 导出 HTML body
-  ['album.js', 262]                                                                     // SVG <text font-family="Songti SC, serif">
+  ['album.js', 344]                                                                     // SVG <text font-family="Songti SC, serif">（批次 38 后从 262 推到 344）
 ];
 const isT3 = h => T3.some(([f, n]) => h.f === f && h.n === n);
 

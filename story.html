@@ -33,6 +33,7 @@
   .story-empty img{width:200px;height:auto;max-width:70vw;display:block;margin:0 auto 18px}
   .story-empty b{display:block;font-family:var(--font-serif);font-size:var(--fs-8);font-weight:400;color:var(--color-ink);margin-bottom:8px}
   .story-empty span{font-size:var(--fs-4);line-height:1.8}
+  .sc-skip{margin:8px 4px 0;font-size:var(--fs-3);color:var(--color-muted);text-align:center;line-height:1.7}
   .story-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 104px);z-index:80;display:flex;align-items:center;gap:10px;width:min(calc(100% - 24px),440px);background:var(--glass-bar);border:1px solid var(--edge-hair-soft);border-radius:999px;padding:8px 14px;box-shadow:var(--shadow-float);backdrop-filter:var(--blur-bar);-webkit-backdrop-filter:var(--blur-bar)}
   .story-nav .sn-btn{border:1px solid var(--color-line);border-radius:50%;background:var(--color-surface);color:var(--color-ink);font-size:var(--fs-7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
   .story-nav .sn-btn:disabled{opacity:.35;cursor:not-allowed}
@@ -127,12 +128,16 @@ function renderSel(){
 function dayClock(n){ return [TravelNotes.dayText(n), TravelNotes.fmtClock(n.ts)].filter(Boolean).join(' · '); }
 function render(){
   notes=(window.TravelNotes?TravelNotes.list():[]);
-  trips=groupTrips(notes.filter(function(n){return n.lat!=null&&n.lng!=null;}));
+  /* 没坐标的游记进不了路线，但它们在库里、在游记屏里看得见。改前这里是静默 filter（实测 20 篇里有
+     3 篇没位置，屏上没有任何一句说明，用户只会以为「丢了」）——数目单记一笔，末尾交代。 */
+  var withLoc=notes.filter(function(n){return n.lat!=null&&n.lng!=null;});
+  var skipped=notes.length-withLoc.length;
+  trips=groupTrips(withLoc);
   renderSel();
   var list = curTrip==='all' ? trips.reduce(function(a,t){return a.concat(t.notes);},[]) : (trips[+curTrip]?trips[+curTrip].notes:[]);
   cards=list.slice().sort(function(a,b){return a.ts-b.ts;});
   var box=document.getElementById('cards');
-  if(!cards.length){ box.innerHTML='<div class="story-empty"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="足迹线稿"><ellipse cx="34" cy="66" rx="6" ry="9" transform="rotate(-15 34 66)"/><circle cx="30" cy="52" r="2"/><circle cx="36" cy="49" r="1.6"/><circle cx="42" cy="52" r="1.4"/><ellipse cx="66" cy="42" rx="5.4" ry="8" transform="rotate(10 66 42)"/><circle cx="63" cy="30" r="1.8"/><circle cx="69" cy="28" r="1.5"/><circle cx="74" cy="30" r="1.3"/><ellipse cx="96" cy="20" rx="4.4" ry="6.4" transform="rotate(-8 96 20)" opacity=".5"/><path d="M14 84 Q60 76 108 12" stroke-dasharray="3 5" opacity=".3"/></svg><b>还没有带坐标的游记</b><span>先在地图上记录几篇，<br>这里会把它们讲成一段旅程。</span></div>'; return; }
+  if(!cards.length){ box.innerHTML='<div class="story-empty"><svg class="empty-art" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="足迹线稿"><ellipse cx="34" cy="66" rx="6" ry="9" transform="rotate(-15 34 66)"/><circle cx="30" cy="52" r="2"/><circle cx="36" cy="49" r="1.6"/><circle cx="42" cy="52" r="1.4"/><ellipse cx="66" cy="42" rx="5.4" ry="8" transform="rotate(10 66 42)"/><circle cx="63" cy="30" r="1.8"/><circle cx="69" cy="28" r="1.5"/><circle cx="74" cy="30" r="1.3"/><ellipse cx="96" cy="20" rx="4.4" ry="6.4" transform="rotate(-8 96 20)" opacity=".5"/><path d="M14 84 Q60 76 108 12" stroke-dasharray="3 5" opacity=".3"/></svg><b>还没有带坐标的游记</b><span>先在地图上记录几篇，<br>这里会把它们讲成一段旅程。</span>'+(skipped?'<span style="display:block;margin-top:14px">另有 '+skipped+' 篇没填位置，进不了路线</span>':'')+'</div>'; return; }
   /* 批次7-C 旅程开篇：竖排题签取首站地名，横排一句卷首语（数据全来自 cards，不编） */
   var _f=cards[0];
   /* 卷首语的跨度只拿有 ts 的那几站算：没填时间戳的游记会把手上的减法打成 NaN，而「跨 NaN 天」是会上屏的 */
@@ -148,23 +153,37 @@ function render(){
       +'<div class="sc-place">'+esc(n.title||n.siteName||'未命名')+'</div>'
       +'<div class="sc-meta">'+esc(n.siteName||'')+(n.weather?' · '+esc(n.weather):'')+'</div>'
       +'<div class="sc-txt">'+esc(n.text||n.raw)+'</div>'+pics+tags+'</div>';
-  }).join('');
+  }).join('')+(skipped?'<div class="sc-skip">另有 '+skipped+' 篇没填位置，不进路线</div>':'');
+  setActive(0,true);
   fitBounds();
-  setActive(0);
 }
+/* 进屏取景：全部站点一次框进来（含没讲到的），地图从一开始就是「这一段旅程的全貌」。
+   站与站重合或只有 1 站时，fitBounds 会一路顶到最大缩放档，实测只剩一个点占满屏——那不如给个可读的街景档。 */
 function fitBounds(){
   var pts=cards.map(function(n){var p=gxy(n.lat,n.lng);return [p[0],p[1]];});
-  if(pts.length) map.fitBounds(pts,{padding:[30,30]});
+  if(!pts.length) return;
+  var b=L.latLngBounds(pts);
+  if(pts.length>1 && b.getNorth()!==b.getSouth() && b.getEast()!==b.getWest()) map.fitBounds(b,{padding:[30,30]});
+  else map.setView(pts[0],10);
 }
-/* 分镜：累计路线 + 途经点 + 当前高亮，逐站展开旅程 */
+/* 分镜（批次 38-C）：全程的点线一进场就在，讲到哪一档靠粗细与大小区分。
+   改前是「讲到哪画到哪」：进屏恰好是最坏的一档——1 个点、0 条线，另一座城完全不在视野里，
+   要翻到末站才第一次看见全程。跨城的连线不冒充走过的路：按城市断开，城与城之间用最淡的点线搭一下。 */
+function placeKey(n){ return n.city || n.province || n.siteName || ''; }
 function drawRoute(upto){
   routeLayer.clearLayers();
-  var pts=[];
-  for(var k=0;k<=upto&&k<cards.length;k++){ pts.push(gxy(cards[k].lat,cards[k].lng)); }
-  if(pts.length>1) L.polyline(pts,{color:'#AE5738',weight:3,opacity:.5,dashArray:'6 6',lineCap:'round'}).addTo(routeLayer);
-  for(var k=0;k<=upto&&k<cards.length;k++){
-    var p=gxy(cards[k].lat,cards[k].lng), cur=(k===upto);
-    var mk=L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+(cur?'16':'8')+'px;height:'+(cur?'16':'8')+'px;border-radius:50%;background:'+(cur?'#AE5738':'#9C9A92')+';border:'+(cur?'3px':'2px')+' solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[cur?16:8,cur?16:8],iconAnchor:[cur?8:4,cur?8:4]})}).addTo(routeLayer);
+  for(var k=1;k<cards.length;k++){
+    var done=k<=upto;
+    var same=placeKey(cards[k-1])!=='' && placeKey(cards[k-1])===placeKey(cards[k]);
+    var st=same
+      ? {color:'#AE5738',weight:done?3:2,opacity:done?.6:.22,dashArray:done?null:'6 6',lineCap:'round'}
+      : {color:'#9C9A92',weight:done?2:1.5,opacity:done?.45:.28,dashArray:'2 7',lineCap:'round'};
+    L.polyline([gxy(cards[k-1].lat,cards[k-1].lng),gxy(cards[k].lat,cards[k].lng)],st).addTo(routeLayer);
+  }
+  for(var k=0;k<cards.length;k++){
+    var p=gxy(cards[k].lat,cards[k].lng), cur=(k===upto), past=(k<upto);
+    var sz=cur?16:(past?10:8), col=cur?'#AE5738':(past?'rgba(174,87,56,.7)':'#9C9A92'), bd=cur?3:2;
+    var mk=L.marker(p,{icon:L.divIcon({className:'',html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:'+col+';border:'+bd+'px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]})}).addTo(routeLayer);
     if(window.UI) UI.markerLabel(mk,(cards[k].title||cards[k].siteName||'第 '+(k+1)+' 站')+(cur?'，正讲到这一站':''));
   }
 }
@@ -175,15 +194,21 @@ function updateNav(i){
   document.getElementById('snPrev').disabled=(i<=0);
   document.getElementById('snNext').disabled=(i>=cards.length-1);
 }
-function setActive(i){
+function setActive(i,initial){
   var els=document.querySelectorAll('.story-card');
   els.forEach(function(e){e.classList.remove('active');});
   if(els[i]) els[i].classList.add('active');
   var n=cards[i]; if(!n) return;
-  var _p=gxy(n.lat,n.lng);
   drawRoute(i);
-  map.flyTo(_p,Math.max(map.getZoom(),10),{duration:.7});
+  /* 翻页不再飞站、不再改缩放档：地图进屏就给全貌，讲到大同不用跳到太原。
+     只有当前站跑到视野外才平移（用户自己拖/缩过之后才会发生），zoom 恒不动。 */
+  if(!initial) keepInView(gxy(n.lat,n.lng));
   updateNav(i);
+}
+function keepInView(p){
+  var ll=L.latLng(p[0],p[1]);
+  if(map.getBounds().pad(-0.05).contains(ll)) return;
+  map.panTo(ll,{duration:.5});
 }
 function goStep(dir){
   var i=lastActive<0?0:lastActive;

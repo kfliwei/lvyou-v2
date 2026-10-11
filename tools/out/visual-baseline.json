@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-10T00:50:54.252Z",
+  "generatedAt": "2026-10-11T06:07:16.264Z",
   "viewports": [
     "320x640",
     "328x723",
@@ -40,20 +40,20 @@
       "bytes": 225595
     },
     "topic.328x723.png": {
-      "sha": "8f90ad86fa01cb08",
-      "bytes": 235159
+      "sha": "ba85423b61c32538",
+      "bytes": 235140
     },
     "topic.390x844.png": {
-      "sha": "a3969c047a18c9ae",
-      "bytes": 270063
+      "sha": "6c372d2fe5cb1a74",
+      "bytes": 269979
     },
     "topic.452x995.png": {
-      "sha": "ded098bfc0ceeaf4",
+      "sha": "37638e32317e8e43",
       "bytes": 309303
     },
     "topic.768x1024.png": {
-      "sha": "99d0dd00972ad0f3",
-      "bytes": 332163
+      "sha": "cca1008a0d2177dd",
+      "bytes": 332161
     },
     "topic.1440x900.png": {
       "sha": "a905221f3f485666",
@@ -132,28 +132,28 @@
       "bytes": 1043330
     },
     "settings.320x640.png": {
-      "sha": "060d04fc209d268e",
-      "bytes": 262837
+      "sha": "cde953baf67e33c0",
+      "bytes": 262892
     },
     "settings.328x723.png": {
-      "sha": "38b3f52879cf19c9",
-      "bytes": 289472
+      "sha": "b894d5e09b978036",
+      "bytes": 289524
     },
     "settings.390x844.png": {
-      "sha": "e39bf7547db4bade",
-      "bytes": 370675
+      "sha": "7be2db96ac48cb49",
+      "bytes": 370649
     },
     "settings.452x995.png": {
-      "sha": "739158d8ec66eb46",
-      "bytes": 459013
+      "sha": "3f4e0b16b8dfe61e",
+      "bytes": 459099
     },
     "settings.768x1024.png": {
-      "sha": "277ebf68242027e6",
-      "bytes": 1004491
+      "sha": "5ddd86d4250e6fd8",
+      "bytes": 1004389
     },
     "settings.1440x900.png": {
-      "sha": "f51f780e7c578125",
-      "bytes": 963711
+      "sha": "54b13d36c65cf336",
+      "bytes": 963673
     },
     "me.320x640.png": {
       "sha": "badc0d75a8f8cbe6",
@@ -424,12 +424,12 @@
       "bytes": 510772
     },
     "album.seed.390x844.png": {
-      "sha": "23a617a588142f2b",
-      "bytes": 130416
+      "sha": "82f8dfb1f7d51de8",
+      "bytes": 164853
     },
     "story.seed.390x844.png": {
-      "sha": "adc1411e41ea2948",
-      "bytes": 164364
+      "sha": "d453a093e65f1908",
+      "bytes": 179189
     },
     "travel-map.seed.390x844.png": {
       "sha": "5f34a7b9f60d9c33",
