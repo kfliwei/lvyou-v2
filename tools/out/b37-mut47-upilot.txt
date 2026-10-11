@@ -1,0 +1,14 @@
+=== mut-verify47 · 靶子 85 条（红 73／抹登记 1／静默 11），预检 全过 ===
+基准 verify 全绿 ✓（不可逆动作闸门: 81 条代码锚点（写远端单点 putEnv / 判定单点 coverPla…）
+基准 smoke-irreversible 判据全绿 ✓（95 条 I+J）
+异常 U01 panelDirty 恒返回「不脏」（A47 只钉 function panel  → 源码腿红 0 条／整跑不绿，浏览器腿红 4 条（首条 FAIL  I37 有内容时点关闭先问一句：出 tr）
+OK   U04 pushWords 把「从云端恢复也读不回来」那半句摘掉（锚钉的是 title   → 源码腿 0 红且整跑绿，浏览器腿红在 I07（共 1 条红）
+OK   U05 编辑屏的脏判定整条短路（if (d.length) 变 if (false)：这  → 源码腿 0 红且整跑绿，浏览器腿红在 J07（共 4 条红）
+异常 U06 先收层再追问（dropEdit() 插到 confirmDialog 前面：三枚  → 源码腿红 0 条／整跑不绿，浏览器腿红 1 条（首条 FAIL  J08 问的时候编辑屏还开着、正文一字未）
+异常 U07 开层不再压历史（pushEditEntry 的定义、try/catch、c.pu  → 源码腿红 0 条／整跑不绿，浏览器腿红 1 条（首条 FAIL  J04 开层时为这一层压进一条历史（2→）
+OK   U08 photoSig 恒返同一串（锚只钉 function photoSig(arr  → 源码腿 0 红且整跑绿，浏览器腿红在 J17（共 1 条红）
+OK   U09 editDiff 的正文那一支退回不报字数（锚钉的是函数定义行，问句从此只会说「  → 源码腿 0 红且整跑绿，浏览器腿红在 J09（共 2 条红）
+OK   U10 editDiff 起手就非空（一进屏就判脏：脏检查从「拦丢内容」变成「每关一次骚  → 源码腿 0 红且整跑绿，浏览器腿红在 J05（共 2 条红）
+OK   U11 导入框「框里还有字」那一条判据短路（三枚锚全在场：动词、早退、closeImp   → 源码腿 0 红且整跑绿，浏览器腿红在 J30（共 2 条红）
+=== mut-verify47: 85 条靶子 → 红对 0／静默对 6／异常 3／跳过 76 ===
+注意：U 类重跑过 smoke-irreversible，它按固定文件名落读数 tools/out/b32-smoke-irreversible.txt；跑完要在干净树上复跑一次并把读数盖回去。

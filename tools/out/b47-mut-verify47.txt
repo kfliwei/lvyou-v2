@@ -1,0 +1,90 @@
+=== mut-verify47 · 靶子 85 条（红 73／抹登记 1／静默 11），预检 全过 ===
+基准 verify 全绿 ✓（不可逆动作闸门: 81 条代码锚点（写远端单点 putEnv / 判定单点 coverPla…）
+基准 smoke-irreversible 判据全绿 ✓（95 条 I+J）
+OK   R01 自动出口那条唯一放行式被摘（没人点按钮也整包覆盖——改前 L2 那一发原地复活）  → 逆动作闸门: sync-webdav.js 里「if (!p.risky) { putEnv(c, env, cb); return; }」实得 0，期望 1：自动路径唯
+OK   R02 首建那一档扩成「所有档都直传」（确认层整条绕开）  → 逆动作闸门: sync-webdav.js 里「if (p.first) { stage('upload'); putEnv(c, env, cb); 」实得 0，期望 
+OK   R03 手动按钮接回裸 push（零确认抹云端，本批那颗主雷）  → 逆动作闸门: settings.html 里出现「WebDAV.push(function」：手动上传又接回裸 push：零确认整包覆盖，正是报告里那颗「一次点击抹掉唯一
+OK   R04 跳过告警又交给 UI.tileWarn(字符串)（那句话永远上不了屏）  → 逆动作闸门: sync-webdav.js 里出现「UI.tileWarn && UI.tileWarn('自动上传已跳过」：「替你挡下覆盖」这件事不吭声：用户以为在同步
+OK   R05 云同步失败的告警同形退回 tileWarn  → 逆动作闸门: sync-webdav.js 里出现「UI.tileWarn && UI.tileWarn('云同步失败」：云同步失败的告警又交给 UI.tileWarn(
+OK   R06 remoteInfo 的 404 那一支不截断链（同一调用者答两次：先直传成功又  → 逆动作闸门: sync-webdav.js 里「if (r.status === 404) { once(null, { exists: false }」实得 0，期望 
+OK   R07 risky 的定义收窄到只数条数（云端读不到／读不出合法备份这两档从此不算险）  → 逆动作闸门: sync-webdav.js 里「p.risky = p.unknown || p.invalid || p.lose > 0;」实得 0，期望 1：「可能
+OK   R08 真会丢那一档的标题与动词退回泛泛（「确定」不说明后果，红色也一起没了）  → 逆动作闸门: sync-webdav.js 里「title: '云端有本机没有的记录', danger: true, okText: '仍然覆盖',」实得 0，期望 1：
+OK   R09 取消不上报（页面从此不知道用户说了不，结果行只剩上一句的余温）  → 逆动作闸门: sync-webdav.js 里「if (!ok) { cb(null, { cancelled: true }); return; }」实得 0，期望 1
+OK   R10 没有确认层可用时改回静默覆盖（宁可报错这一支没了）  → 逆动作闸门: sync-webdav.js 里「if (!window.UI || !UI.confirm) { cb(new Error(」实得 0，期望 1：没有确认
+OK   R11 导出面摘掉 confirmPush（页面拿到 undefined，判定与确认从此  → 逆动作闸门: sync-webdav.js 里「confirmPush: confirmPush,」实得 0，期望 1：同上
+OK   R12 两段按钮文案退回一句（两次网络往返被「正在上传…」盖住）  → 逆动作闸门: settings.html 里「stage === 'check' ? '检查云端…' : '正在上传…'」实得 0，期望 1：两段文案真的接上了 onSt
+OK   R13 按钮名回到「清除全部数据」（承诺比实际大，实际只删游记）  → 逆动作闸门: settings.html 里出现「清除全部数据」：那颗按钮的名字/标题又回到「清除全部数据」：这名字承诺的范围比实际大，而它实际只删游记（名不符实那一整族
+OK   R14 确认层标题同族退回（正文说实话而标题谎报范围）  → 逆动作闸门: settings.html 里「title: '清除全部游记',」实得 0，期望 1：确认层跟着改名，不能只改按钮留文案谎报
+OK   R15 清除前不关 autosync（清完那一下走 _afterSave，33s 后自己  → 逆动作闸门: settings.html 里「WebDAV.setAutosync(false);」实得 0，期望 1：清完那一下会走 _afterSave→schedu
+OK   R16 关完不刷新那颗开关的 UI（显示开着、实际已关，两边分叉）  → 逆动作闸门: settings.html 里「if (window.WDW && WDW.render) WDW.render();」实得 0，期望 1：关完要刷新那个开
+OK   R17 结果提示又谎报「已清除全部数据」  → 逆动作闸门: travel-notes.js 里出现「flash('已清除全部数据')」：结果提示又谎报「全部数据」：实际只删游记，而用户会以为图册和账目也没了（名不符实
+OK   R18 录音面板那扇门的 force 严格比较放宽成「有没有实参」（click 事件对象  → 逆动作闸门: travel-notes.js 里「if (force !== true) {」实得 2，期望 3：严格比较：事件对象、1、非空字符串都算「不是强制」，不许
+OK   R19 closePanel 的 force 形参被抹掉（脏检查那条 if 失去输入）  → 逆动作闸门: travel-notes.js 里出现「function closePanel() {」：closePanel 的 force 形参被抹掉：脏检查那条 if
+OK   R20 遮罩绑定退回裸函数引用（事件对象当第一个实参递进去）  → 逆动作闸门: travel-notes.js 里出现「mask.onclick = closePanel;」：绑定退回裸函数引用：click 事件对象会被当第一个实参传进
+OK   R21 #tnX 绑定退回裸引用（这一枚是真机档唯一可达的关闭出口）  → 逆动作闸门: travel-notes.js 里「$X(panel, '#tnX').onclick = function () { closePanel」实得 0，期望
+OK   R22 确认层两个按钮退回默认「确定/取消」（说不清「关掉就没了」）  → 逆动作闸门: travel-notes.js 里「confirmDialog(dirtyWords(d), function () { closePane」实得 0，期望
+OK   R23 confirmDialog 的自定义钮名形参被摘（这一族从此只能叫「确定/取消」  → 逆动作闸门: travel-notes.js 里「function confirmDialog(msg, onOk, okLabel, noLabel) 」实得 0，期望
+OK   R24 编辑屏那扇门的 force 严格比较放宽（返回钮上那颗 click 事件对象成了  → 逆动作闸门: travel-notes.js 里「if (force !== true) {」实得 2，期望 3：严格比较：事件对象、1、非空字符串都算「不是强制」，不许
+OK   R25 导入框那扇门的 force 严格比较放宽（第三口同因）  → 逆动作闸门: travel-notes.js 里「if (force !== true) {」实得 2，期望 3：严格比较：事件对象、1、非空字符串都算「不是强制」，不许
+OK   R26 基线不再抄屏上现值（base 落成 null：一进屏四样全算「改过」，或者反过来  → 逆动作闸门: travel-notes.js 里「editCtx = { pg: pg, photos: photos, base: editVals(p」实得 0，期望
+OK   R27 popstate 每开一层重绑一次（编辑屏关过后别人的 popstate 也被这  → 逆动作闸门: travel-notes.js 里「if (!editPopBound) { editPopBound = true; addEventLi」实得 0，期望
+OK   R28 pushState 失败不再回写 pushed（压不成也照样 back：drop  → 逆动作闸门: travel-notes.js 里「try { history.pushState({ tnEdit: 1 }, ''); c.pushed」实得 0，期望
+OK   R29 没压过也 back（点一次返回多攒一条空层，攒够了返回键就一路退空层）  → 逆动作闸门: travel-notes.js 里「if (c && c.pushed) { try { history.back(); } catch (」实得 0，期望
+OK   R30 #tnEditBack 的绑定退回裸引用（MouseEvent 直接当 forc  → 逆动作闸门: travel-notes.js 里「$X(pg, '#tnEditBack').onclick = function () { closeE」实得 0，期望
+OK   R31 #tnEditBack 退回无条件拆层（本条雷本体原地复活：改到一半按返回，这一  → 逆动作闸门: travel-notes.js 里出现「function () { pg.remove(); };」：返回钮又回到无条件拆层（HEAD:1931）：改到一半
+OK   R32 保存路径退回裸拆层（历史里那条 entry 没人收，下一次物理返回退回这一屏的空  → 逆动作闸门: travel-notes.js 里出现「renderStats(); pg.remove();」：保存路径又回到裸拆层（HEAD:1940）：保存成功不收历
+OK   R33 编辑屏那枚「问句已出口就早退」被摘（连点两下返回叠出第二层，答一次留一层）  → 逆动作闸门: travel-notes.js 里「if (document.querySelector('.tn-cfm')) return;」实得 1，期望 2：连点两
+OK   R34 导入框那枚早退守卫被摘（同族第二处，(a)(b) 两处共用一枚期望 2 的锚，只  → 逆动作闸门: travel-notes.js 里「if (document.querySelector('.tn-cfm')) return;」实得 1，期望 2：连点两
+OK   R35 导入框的 × 退回无判定直拆（粘进去没导入的整份备份就地作废）  → 逆动作闸门: travel-notes.js 里出现「#tnImpX').onclick = close;」：导入框的 × 又接回无判定直拆（HEAD:2120）：粘贴框
+OK   R36 导入框的 × 退回裸 closeImp 引用（同 R30：事件对象当 force  → 逆动作闸门: travel-notes.js 里「$X(m, '#tnImpX').onclick = function () { closeImp();」实得 0，期望
+OK   R37 导入框的按钮动词借用编辑屏的「保存」（它不保存任何东西，「继续保存」是谎话）  → 逆动作闸门: travel-notes.js 里「'关掉不导入', '继续导入');」实得 0，期望 1：导入框的动词不许借用编辑屏的「保存」——它不保存任何东西，按钮说
+OK   R38 导入框的遮罩入口整条被摘（第二条门从此不经过任何判定）  → 逆动作闸门: travel-notes.js 里「m.onclick = function (e) { if (e.target === m) close」实得 0，期望
+OK   R39 closeEdit 的 force 形参被抹（脏检查那条 if 失去输入，同 R  → 逆动作闸门: travel-notes.js 里「function closeEdit(force) {」实得 0，期望 1：编辑屏关闭的唯一判定口：改前它只有一个出口且
+OK   R40 (e) 落点少一处：onEditPop 里物理返回那一调被摘（(d) 那把刀的姐  → 逆动作闸门: 全站 closeEdit 落点从 travel-notes.js 的 3 处（定义 + #tnEditBack 绑定 + onEditPop 里物理返回那一
+OK   R41 (e) 落点多一处：绑定里连调两次 closeEdit（多出来的那一处是第二个拆  → 逆动作闸门: 全站 closeEdit 落点从 travel-notes.js 的 3 处（定义 + #tnEditBack 绑定 + onEditPop 里物理返回那一
+OK   S01 共享剥刀退回不剥注释（注释里抄的改前原串会被当成代码在场）  → 逆动作闸门: §47 的 flat47 定义行没走那把共享剥刀（现场读到的那一行：  const flat47 = s => ws47(s);）：注释里抄的改前原串会被当
+OK   S02 文档那一支退回「README 也剥注释」（登记串里天生要写这族的形状，文档侧的锚  → 逆动作闸门: view47 的定义行退回「文档也剥注释」那一支（现场读到的那一行：  const view47 = f => flat47(rd47(f));）：READ
+OK   S03 盲区哨兵：只把 wdPushBtn 那行的函数体空格形状改掉（A47/ZERO   → 逆动作闸门: 盲区哨兵：「$('wdPushBtn').onclick = function () {」在 flat 里读不到了（它就贴在 settings.html 本
+OK   S04 裸 push 那把刀失准（下面那个「产品侧 0」就只是刀瞎）  → 逆动作闸门: §47 的裸 push 扫描器自己读不到合成样本（应 1 实得 0）：下面那个「产品侧 0」就只是刀瞎了
+OK   S05 push 家族那把刀失准（登记表会当场变成空断言）  → 逆动作闸门: push 家族那把刀失准（合成一行应读 2，实得 0）：定义与调用都算命中，读不到就等于下面那张表全空
+OK   S06 文案那把刀的自校准失准（全站 0 不再区分「产品干净」与「刀没开刃」）  → 逆动作闸门: 文案那把刀自校准失准（合成一行应命中 2 个旧串，实得 0）：命中数不对说明下面的全站 0 是刀的问题，不是产品的问题
+OK   S07 closePanel 那把刀退回只认括号（读不到裸引用那一种形状，② 里两条期望  → 逆动作闸门: closePanel 那把刀失准（合成一行应读 3：定义 + 裸引用 + 直调，实得 2）：读不到裸引用那一种形状，就分不清「包一层」和「裸引用」，② 里那
+OK   S08 把 settings.html 从 push 家族登记表里摘掉（那一处接线被拆时  → 逆动作闸门: confirmPush/pushAuto/coverPlan 的落点与登记表对不上（settings.html 实得 1／登记 0）：口径是「判定只有一个出
+OK   S09 tools 侧裸 push 的分母下限挪高（批次 8 那条传输腿被拆时，「产品侧  → 逆动作闸门: tools/ 侧裸 push 只剩 8 处（实测 4）：扫描口径漂了或者批次 8 那条传输腿被拆了，此时上面那个「产品侧 0」没有正向对照，不构成证据
+OK   S10 条数守卫阈值从 94 挪到 2（删 93 条判据照样绿；批次 37 之后判据是   → 逆动作闸门: 条数守卫不在了或阈值被挪：判据是 95 条，ok() 在自增前求值，所以表达式写的是 checks >= 94
+OK   S11 齐备检循环上限从 56 收到 55（收窄一格就少守一条，而且它自己永远不会红）  → 逆动作闸门: ④ 齐备检的循环上限是 55，而浏览器腿里真实最大编号是 I56：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）
+OK   S12 摘掉 I14b（remoteInfo 单次回调守卫从此零反证——它自己没有任何其  → 逆动作闸门: I14b（一次 remoteInfo 只回调一次）不在场：它是 remoteInfo 那条单次回调守卫唯一的反证——守卫本身零其它调用者，删了这条判据就没人
+OK   S13 摘掉 I22b（开关显示开了其实没开这一族没人守）  → 逆动作闸门: I22b（真点开关后 UI 与状态同步）不在场：自动那两条腿若是靠写 localStorage 打开的，就永远测不出「开关显示开了但其实没开」这一族
+OK   S14 A47 有一条被拆成三元组（少字段会解构错位，这条锚等于没跑）  → 逆动作闸门: A47 有一条不是「[文件, 串, 期望次数, 原因]」四元组：["sync-webdav.js","var settled = false;",1]（少字
+OK   S15 A47 登记了 §47 没读的文件（名单与登记表分家时那条锚静默通过）  → 逆动作闸门: A47 登记了 §47 没读的文件「sync-webdavX.js」：全站唯一写远端文件的地方；它自己不做任何判断，只认「已经决定要覆盖」
+OK   S16 ZERO47 的 needle 换成树上没有的串（那个 0 就不再是证据）  → 逆动作闸门: 「清除全部数据ZZZ」这条期望 0 的正向对照失效了（上面那个 0 不是证据）
+OK   S17 抹掉 README 里 §47 的登记（摘登记要抹全部出现：只摘一处 index  → 逆动作闸门: README.md 的 verify 清单没提 §47（新闸门不写进 README 就等于没装）
+OK   S18 CAL47B 的期望从 1 挪到 0（自校准那一行被摘了牙，后面那个「产品侧 0  → 逆动作闸门: §47 的裸 push 扫描器自己读不到合成样本（应 1 实得 1）：下面那个「产品侧 0」就只是刀瞎了
+OK   S19 CAL47P 的期望从 3 挪到 2（「分不清包一层和裸引用」这把刀被认成合法）  → 逆动作闸门: closePanel 那把刀失准（合成一行应读 3：定义 + 裸引用 + 直调，实得 3）：读不到裸引用那一种形状，就分不清「包一层」和「裸引用」，② 里那
+OK   S20 ④ 的 J 族齐备检循环上限从 35 收到 34（收窄一格就少守一条，而它自己永  → 逆动作闸门: ④ J 族齐备检的循环上限是 34，而浏览器腿里真实最大 J 编号是 J35：J01–J35 是批次 37 编辑屏两扇门的全部证据，收窄一格就少守一条
+OK   S21 摘掉 J12b（「问句已出口就早退」那条守卫唯一的目击者没了——真鼠标第二下物理  → 逆动作闸门: J12b（代码里直调返回出口也不叠第二层）不在场：真鼠标第二下物理上落在 .tn-cfm 的遮罩上、根本够不到返回钮（J12 量的就是这件事），所以那条「问
+OK   S22 摘掉 J31b（问句藏在导入框后面那一种没人守：J30 读到的「出了确认层」照样  → 逆动作闸门: J31b（问句压在导入框之上、.tc-ok 真点得到）不在场：.tn-cfm 与 .tn-editpage/导入框同为 z9700，靠后挂载者决胜；层要是藏
+OK   S23 CAL47K 的期望从 3 挪到 2（closeEdit 那把刀被认成合法，R3  → 逆动作闸门: closeEdit 那把刀失准（合成一行应读 3：定义 + 裸引用 + 直调，实得 3）：读不到裸引用那一种形状，就分不清 (d) 里那两条「绑定不许退回裸
+OK   S24 剥刀盲区反证钉的那两串之一在产品里改了名（盲区一旦不可读，本节钉过的每个落点计数  → 逆动作闸门: 剥刀盲区反证失效：注释里的「关闭之前先问一句」现在读不到了 ⇒ 那把刀在 travel-notes.js 的失焦点变了（要么被修好，要么漂位）。本节钉过的每
+OK   T01 真机档退回 452×995（量的就不是用户那块屏，§37 口径）  → 逆动作闸门: tools/smoke-irreversible.js 里「const VW = 328, VH = 723;」实得 0，期望 1：必须量用户那块屏（§37
+OK   T02 摘掉 I25 那一条（把 ok 换名：按钮名回归那种「页面上没人读」的回归从此只  → 逆动作闸门: tools/smoke-irreversible.js 里 I25 这条判据不是恰 1 处（实得 0）：这一节的立论是「点下去之前先问，问的内容要说清会丢什
+OK   T03 把 I43 改成 I93（改编号＝齐备检集体失效，那一格从此没人守）  → 逆动作闸门: tools/smoke-irreversible.js 里 I43 这条判据不是恰 1 处（实得 0）：这一节的立论是「点下去之前先问，问的内容要说清会丢什
+OK   T04 跨防抖那一等从 31s 缩到 2s（读到 PUT 自增 0 变成必然，连锁那一条  → 逆动作闸门: tools/smoke-irreversible.js 里「await sleep(31000);」实得 0，期望 1：连锁那一条必须跨过默认防抖窗口再读：
+OK   T05 遮罩那条代码路径被摘（屏上摸不到≠两条入口可以不接）  → 逆动作闸门: tools/smoke-irreversible.js 里「document.querySelector(".tn-mask").click()」实得 0，
+OK   T06 确认层的类名读错（永远读到 null，然后判成「没弹层」——那种绿比红更坏）  → 逆动作闸门: tools/smoke-irreversible.js 里「m.classList.contains('tn-cfm') ? 'tn-cfm' : 'ui-
+OK   T07 种子函数少一个形参（「其它集合没动」从此没有分母）  → 逆动作闸门: tools/smoke-irreversible.js 里「function seedLocal(ids, davPort, withAlbum)」实得 0
+OK   T08 真点列表进编辑屏那一支被改名（openEdit 不在导出面上，这一支是「腿测的是  → 逆动作闸门: tools/smoke-irreversible.js 里「async function toEditLayer(page) {」实得 0，期望 1：浏览器
+OK   T09 读「层在不在 + 四件现值 + 库里那条 + 历史长度」的那枚探针被改名（判据各  → 逆动作闸门: tools/smoke-irreversible.js 里「function editSnap(page) {」实得 0，期望 1：一次同时读「层在不在 +
+OK   U01 panelDirty 恒返回「不脏」（A47 只钉 function panel  → 源码腿 0 红且整跑绿，浏览器腿红在 I37（共 4 条红）
+OK   U02 dirtyWords 退回通用问句（锚同理只钉定义行；「列出会丢什么」这一条只有  → 源码腿 0 红且整跑绿，浏览器腿红在 I39（共 1 条红）
+OK   U03 coverPlan 里图册那一类不计 lose（钉的是 p.lose 求和那一行  → 源码腿 0 红且整跑绿，浏览器腿红在 I06（共 1 条红）
+OK   U04 pushWords 把「从云端恢复也读不回来」那半句摘掉（锚钉的是 title   → 源码腿 0 红且整跑绿，浏览器腿红在 I07（共 1 条红）
+OK   U05 编辑屏的脏判定整条短路（if (d.length) 变 if (false)：这  → 源码腿 0 红且整跑绿，浏览器腿红在 J07（共 4 条红）
+OK   U06 先收层再追问（dropEdit() 追加在早退那一行行尾：三枚锚都在体外，屏上却  → 源码腿 0 红且整跑绿，浏览器腿红在 J08（共 1 条红）
+OK   U07 开层不再压历史（pushEditEntry 的定义、try/catch、c.pu  → 源码腿 0 红且整跑绿，浏览器腿红在 J04（共 1 条红）
+OK   U08 photoSig 恒返同一串（锚只钉 function photoSig(arr  → 源码腿 0 红且整跑绿，浏览器腿红在 J17（共 1 条红）
+OK   U09 editDiff 的正文那一支退回不报字数（锚钉的是函数定义行，问句从此只会说「  → 源码腿 0 红且整跑绿，浏览器腿红在 J09（共 2 条红）
+OK   U10 editDiff 起手就非空（一进屏就判脏：脏检查从「拦丢内容」变成「每关一次骚  → 源码腿 0 红且整跑绿，浏览器腿红在 J05（共 2 条红）
+OK   U11 导入框「框里还有字」那一条判据短路（三枚锚全在场：动词、早退、closeImp   → 源码腿 0 红且整跑绿，浏览器腿红在 J30（共 2 条红）
+=== mut-verify47: 85 条靶子 → 红对 74／静默对 11／异常 0 ===
+注意：U 类重跑过 smoke-irreversible，它按固定文件名落读数 tools/out/b32-smoke-irreversible.txt；跑完要在干净树上复跑一次并把读数盖回去。

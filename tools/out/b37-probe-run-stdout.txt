@@ -1,0 +1,44 @@
+=== 批次 37-A 地基实测：编辑游记屏返回即丢 ===
+口径：328×723（一加 Ace 6T 真机档）；来源 http://127.0.0.1:8191/index.html
+
+— 打开列表 —
+  切到时间线视图: {"ok":true,"x":163.9921875,"y":212.125,"w":95,"hh":44,"top":190,"bottom":234}
+  库里初值: {"title":"应县木塔","text":"库里原有的正文。","photos":2,"tags":"辽代","edited":""}
+  编辑层枚数(未开): 0 | history.length=2 state=null
+
+— L1 入口穷举：这一屏有几个出口 —
+  点「编辑」: {"ok":true,"x":94.9765625,"y":721.90625,"w":75,"hh":44,"top":700,"bottom":744}
+  开层后: {"editpage":1,"editpageShown":true,"zOfEdit":"9010","masks":".tn-mask=1/hidden .ui-modal-mask=0/hidden .tn-cfm=0/hidden","cfm":0,"list":1,"store":{"title":"应县木塔","text":"库里原有的正文。","photos":2,"tags":"辽代","edited":""},"histLen":2,"histState":"null"}
+  层几何: {"top":0,"bottom":723,"left":0,"right":328} vs 视口 328×723 → 全铺=true
+  网格 42 点里有 0 点命中的不是这一层；前 8 条: （无）
+  层内可见钮: tnEditBack[←]  tnEditAddPhoto[加照片]  tnEditSave[保存修改]
+  按 Escape 后：编辑层枚数=1 展示中=true 确认层=0
+
+— L2 丢失现场：改四处（题目/正文/标签/删一张照片），然后真点左上角返回 —
+  屏上现值: {"title":"应县木塔·第二次上去","text":"改过的正文，这一句在库里从来没有过。","tags":"辽代 木构 应县","photos":1}
+  点返回前库里: {"title":"应县木塔","text":"库里原有的正文。","photos":2,"tags":"辽代","edited":""} | 确认层枚数=0
+  真点 #tnEditBack: {"ok":true,"x":38,"y":28,"w":44,"hh":44,"top":6,"bottom":50}
+  点返回后: 编辑层枚数=0 展示中=false | 确认层枚数=0
+  点返回后库里: {"title":"应县木塔","text":"库里原有的正文。","photos":2,"tags":"辽代","edited":""}
+  逐条是否被丢弃: {"title":true,"text":true,"tags":false,"photos":true}（true=屏上改的没进库）
+  丢失期间是否问过一次: 零追问
+  重开编辑: true
+  重开后屏上读到的: {"title":"应县木塔","text":"库里原有的正文。","tags":"辽代","photos":2}（若无草稿＝库里原值）
+  DOM 原生脏标记可用?(input.value!==getAttribute(value)) {"titleDirty":false,"textDirty":false,"tagsDirty":false}（true=能当脏判据）
+  照片廉价签名口径(库里原值): {"orig":"118,118","origLen":2}
+
+— L3 物理返回键（壳 MainActivity.java:547 → webView.goBack()）能否在 JS 侧拦 —
+  事实：全树无 popstate 监听（grep pushState|popstate 只命中 4 处 history.replaceState，且都包在 try/catch 里）
+  http:// 下 pushState: {"pushHttp":"ok","stateAfterPush":"{\"b37\":1}","lenAfterPush":3}
+  http:// 下 history.back() 后 popstate: {"fired":1,"state":"null","len":3}
+  file:// 下: {"origin":"file://","href":"file:///F:/MyAi/trace/lvyou-v2/index.html","pushFile":"ok","stateAfter":"{\"b37\":1}","replaceFile":"ok","notesReady":true}
+  file:// 下 history.back() 后 popstate: {"fired":1,"state":"null"}
+  file:// 下编辑屏: no edit row (库里无篇，file:// 是同一 profile 的新 origin)
+
+— 同族清点（全树「层持有用户输入 + 无条件 remove」）—
+  travel-notes.js:1931  tn-editpage / #tnEditBack → pg.remove()          【本报告 §3-3，本批目标】
+  travel-notes.js:2118-2120  importNotes / #tnImpX 与点遮罩 → close()=m.remove()，层内有 #tnImpTxt 粘贴框 【同族：粘进去的备份 JSON 也是人手打的】
+  results.js:426  定制路书 / #ix 与点遮罩 → d.remove()，层内有 #idays/#ipref 输入 【同族，但丢的是参数不是内容】
+  results.js:84  saveDoc / rzX；travel-notes.js:1967/1995 统计与导出预览 → 层内无输入 【不算】
+  node-manager.html:491/606/860/980/1047、planner.js:1479、album-edit.html:215 —— 本探针未逐条读输入项，留 37-B 定性
+--- 读数已落 F:\MyAi\trace\lvyou-v2\tools\out\b37-probe-editloss.txt

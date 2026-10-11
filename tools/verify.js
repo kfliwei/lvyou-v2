@@ -6677,12 +6677,23 @@ function stripBlockComments(s) {
    确认之后才 3→0；自动路径遇「会丢」一次都不写并把原因飘成 toast；清完只有游记归零且开关回落、
    33s 内 PUT 自增 0；脏关闭出确认层、选「继续编辑」内容一字未动、干净态仍直关。
 
+   批次 37（报告 §3 第 3 条「改完游记按返回，改动直接没了」）地基实测（tools/out/b37-probe-editloss.txt，328×723）：
+     · 编辑游记屏在屏上只有一个可达关闭出口：#tnEditBack。那一层 z9010、inset 0 全铺，42 点网格命中他物 0 处
+       ——「遮罩即关」在这一屏不成立，所以只修一条入口等于没修（与录音面板同一族教训）。
+     · 真点那枚钮 → 层当场 remove，库里那条读数一字未动：改前它的 onclick 直接绑 pg.remove()，没有任何判定。
+     · history 完全不参与：history.length 恒 2；而壳侧 MainActivity.onBackPressed 只在 canGoBack() 时 goBack()
+       ⇒ 物理返回键是第二扇门，DOM 不压历史就被整条绕过。pushState 与 back→popstate 在 http:// 与 file:// 双来源实测可用。
+   改后（同一份 smoke 文件，95 项全绿）：改到题目/正文/标签/照片任一样都出确认层且文案点名那几项（实测「正文 33 字」）；
+   选「继续编辑」四样原值都还在；选「关掉不保存」才丢，且库里其余四条与总条数一字未动；
+   物理返回引到同一问句前（再 back 不叠层也不送出本页）；连点两下只有一层；干净态直关不骚扰；
+   保存不追问并由 dropEdit 收掉那条历史 entry（三轮开→关 len 仍是 3，即不逐次累加）。
+
    本节钉四件事：
      ① 覆盖判定只有一个出口：coverPlan 是唯一判「会不会丢」的地方，写远端只有一个 putEnv，
         出口只有 confirmPush（手动，除远端 404 外必过 UI.confirm）与 pushAuto（自动， risky 一律不写）；
      ② 裸 push 在产品代码里零调用者——这一条必须是全量扫描出来的，不是抄名单抄出来的；
-     ③ 「清除全部数据 / 已清除全部数据」这两个名不符实的串全站 0，closePanel 的绑定不许退回裸引用；
-     ④ 浏览器腿 I01–I56 齐备检 + 带字母的两条（I14b 单次回调、I22b 开关 UI 同步）+ 条数守卫。
+     ③ 「清除全部数据 / 已清除全部数据」这两个名不符实的串全站 0，closePanel 与 closeEdit 的绑定不许退回裸引用；
+     ④ 浏览器腿 I01–I56 + J01–J35 齐备检 + 带字母的四条（I14b 单次回调、I22b 开关 UI 同步、J12b 直调返回不叠层、J31b 问句压在框之上）+ 两条循环上限对账 + 条数守卫。
 
    顺带这一批查出两处「设计内静默」，都由本节的期望 0 钉住：
      · remoteInfo 的 404 分支只 cb() 不截断 Promise 链 → 同一调用者收到两次回调，
@@ -6716,9 +6727,22 @@ function stripBlockComments(s) {
     if (L47.indexOf('.md$') < 0) F47('view47 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L47.slice(0, 60) || '整行没数到') + '）：README 与审核文档里天生要写这族的改前形状，文档侧的锚会当场读 0');
     [['sync-webdav.js', 'function pushAuto(cb) {'],
      ['settings.html', "$('wdPushBtn').onclick = function () {"],
-     ['travel-notes.js', 'function closePanel(force) {']].forEach(function (p) {
+     ['travel-notes.js', 'function closePanel(force) {'],
+     ['travel-notes.js', 'var closeImp = function (force) {']].forEach(function (p) {
       if (V47[p[0]].indexOf(p[1]) < 0) F47('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
     });
+    /* 已知盲区的反证（批次 37 现场量出来的）：travel-notes.js 里那个 esc 的正则字面量含撇号，
+       这把刀不认识正则，在那里进了「字符串态」，此后一段块注释被原样抄进 flat。
+       后果不是漏判而是多判：住在下游的注释里只要写出 closePanel( 这种形状，(d) 就把它当成第五处落点读
+       （本批第一次跑红就是这么来的：登记 4／实得 5）。
+       这一条不去修刀——修了刀，全站钉过的落点计数要全部重跑；改为把盲区本身钉住：
+       下面两串若在 flat 里读不到了，说明刀被修过或失焦点漂了，本节所有钉过的计数要重新对账。 */
+    {
+      const BLIND47 = flat47(rd47('travel-notes.js'));
+      ['编辑（含照片 / 标签管理）', '关闭之前先问一句'].forEach(function (t) {
+        if (BLIND47.indexOf(t) < 0) F47('剥刀盲区反证失效：注释里的「' + t + '」现在读不到了 ⇒ 那把刀在 travel-notes.js 的失焦点变了（要么被修好，要么漂位）。本节钉过的每个落点计数（closePanel 4／closeEdit 3／force!==true 3）都是在这个盲区之上量出来的，必须全部重新对账，不许只把这条判据删掉了事');
+      });
+    }
   }
 
   /* ① 正向锚点：判定单点 + 两个出口 + 页面上的三处接线 */
@@ -6767,13 +6791,33 @@ function stripBlockComments(s) {
     ['travel-notes.js', 'function panelDirty() {', 1, '「这一屏有没有还没进库的内容」的唯一判定，读 DOM + state 真值'],
     ['travel-notes.js', 'function dirtyWords(d) {', 1, '问句按会丢的东西派生（字数 / 配图 / 录音 / 一笔钱），不是通用模板'],
     ['travel-notes.js', 'function closePanel(force) {', 1, '关闭的唯一出口，force 只允许本文件的确认回调传'],
-    ['travel-notes.js', 'if (force !== true) {', 1, '严格比较：事件对象、1、非空字符串都算「不是强制」，不许放宽成「有没有实参」'],
+    ['travel-notes.js', 'if (force !== true) {', 3, '严格比较：事件对象、1、非空字符串都算「不是强制」，不许放宽成「有没有实参」。三扇门共用这一条：closePanel（录音面板）、closeEdit（编辑游记屏）、closeImp（导入框）——批次 37 之前这里是 1 处，把这一枚期望值当「面板专属」抄下来就已经漏了两扇'],
     ['travel-notes.js', 'confirmDialog(dirtyWords(d), function () { closePanel(true); }, \'关掉不保存\', \'继续编辑\');', 1, '两个按钮各写自己的后果；只有确认回调这一处能传 force'],
     ['travel-notes.js', 'mask.onclick = function () { closePanel(); };', 1, '遮罩入口包一层（② 的另一支：不许把 click 事件当第一个实参递进去）'],
     ['travel-notes.js', '$X(panel, \'#tnX\').onclick = function () { closePanel(); };', 1, '真机档唯一可达的关闭出口（实测 9px 网格遮罩命中 0，能点到的只有它）'],
     ['travel-notes.js', 'function confirmDialog(msg, onOk, okLabel, noLabel) {', 1, '第 3/4 形参：这一族的问句必须有自定义动词，「确定/取消」说不清「关掉就没了」'],
     ['travel-notes.js', 'clearNotes: function () {', 1, '清除的对外出口仍是单个函数，改名与文案都在它自己嘴里'],
     ['travel-notes.js', '篇游记，图册/行程/账目/设置都没动', 1, '结果提示说实话：报条数 + 点名没动的那些'],
+    /* —— travel-notes.js：编辑游记屏与导入框（批次 37，报告 §3 第 3 条「改完游记按返回，改动直接没了」） —— */
+    ['travel-notes.js', 'function photoSig(arr) {', 1, '照片脏不脏按「张数 + 每串长度」签名比：只比数组引用，换掉一张等长的会判成没改'],
+    ['travel-notes.js', 'function editVals(pg, photos) {', 1, '屏上现值单点读一次（题目/正文/标签/照片四样）：基线与现值必须同一把尺子，否则差集是拼出来的'],
+    ['travel-notes.js', 'function editDiff(b, now) {', 1, '问句按真会丢的那几项派生（正文几个字、几张照片），不是通用「确定要关闭吗」'],
+    ['travel-notes.js', 'function pushEditEntry(c) {', 1, '开层与物理返回各压一条历史；c.pushed 记成没成——不成就不许 back'],
+    ['travel-notes.js', 'function dropEdit() {', 1, '收层的唯一出口（DOM 与历史两步都在这），确认回调只调它，别处不许自己 pg.remove()'],
+    ['travel-notes.js', 'function closeEdit(force) {', 1, '编辑屏关闭的唯一判定口：改前它只有一个出口且真点即静默丢弃（tools/out/b37-probe-editloss.txt）'],
+    ['travel-notes.js', 'function onEditPop() {', 1, '物理返回键是第二扇门：壳侧 onBackPressed 只在 canGoBack() 时 goBack()，DOM 不入历史就被整条绕过'],
+    ['travel-notes.js', "editCtx = { pg: pg, photos: photos, base: editVals(pg, photos), pushed: false };", 1, '基线在开层那一刻抄：抄库里那条 n 会一进屏就判脏（照片数组永远不同引用）'],
+    ['travel-notes.js', "if (!editPopBound) { editPopBound = true; addEventListener('popstate', onEditPop); }", 1, '监听只绑一次：每开一层绑一次，关一层会把别人的 popstate 也吃掉'],
+    ['travel-notes.js', "try { history.pushState({ tnEdit: 1 }, ''); c.pushed = true; } catch (e) { c.pushed = false; }", 1, '压历史失败必须落到 pushed=false，否则 dropEdit 照样 back，把用户从这一页带走'],
+    ['travel-notes.js', 'if (c && c.pushed) { try { history.back(); } catch (e) {} }', 1, '只有真压过才回收：点一次返回多攒一条空层＝栈里堆满看不见的编辑屏'],
+    ['travel-notes.js', "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); };", 1, '包一层再调（closePanel 那一族同因）：裸引用会把 MouseEvent 当 force 递进去，脏检查当场失效'],
+    ['travel-notes.js', "confirmDialog('这篇的' + d.join('、') + '还没保存。关掉就回到你进来时的样子。',", 1, '说「回到你进来时的样子」而不是「删除」——这篇本来就在库里，丢的只是这一轮改动'],
+    ['travel-notes.js', "if (document.querySelector('.tn-cfm')) return;", 2, '连点两下返回不叠第二层：问句已经问出口再叠一层就成了「答一次留一层」。编辑屏与导入框各一处'],
+    ['travel-notes.js', "'关掉不保存', '继续编辑');", 2, '两颗钮各写自己的后果；编辑屏与录音面板共用这一对动词'],
+    ['travel-notes.js', 'var closeImp = function (force) {', 1, '同族第三处：导入框的 × 之前无条件 m.remove()，粘进去没导入的备份就地作废'],
+    ['travel-notes.js', 'm.onclick = function (e) { if (e.target === m) closeImp(); };', 1, '遮罩入口也过判定，同时保留「只点遮罩本身才算关」那一半语义'],
+    ['travel-notes.js', "$X(m, '#tnImpX').onclick = function () { closeImp(); };", 1, '同上，包一层而不是裸引用'],
+    ['travel-notes.js', "'关掉不导入', '继续导入');", 1, '导入框的动词不许借用编辑屏的「保存」——它不保存任何东西，按钮说「继续导入」才是这一屏的动作'],
     /* —— 浏览器腿的形状 —— */
     ['tools/smoke-irreversible.js', 'const VW = 328, VH = 723;', 1, '必须量用户那块屏（§37 口径）'],
     ['tools/smoke-irreversible.js', "m.classList.contains('tn-cfm') ? 'tn-cfm' : 'ui-modal'", 1, '判据把两套确认层读成同一枚形状，名字取自各自的真实类名（.ui-modal-mask / .tn-cfm）；选择器抄错＝永远读到 null 然后判成「没弹层」，那种绿比红更坏'],
@@ -6782,7 +6826,12 @@ function stripBlockComments(s) {
     ['tools/smoke-irreversible.js', 'await page.evaluate(\'WebDAV.scheduleSync(400)\')', 2, '自动腿只能靠短防抖跑（30s 太长），两句钉住「会丢就不传」和「不会丢就传」两条腿走的都是 scheduleSync 而不是直调 pushAuto——少一句，另一条腿就变成直调'],
     ['tools/smoke-irreversible.js', 'await sleep(31000);', 1, '连锁那一条必须跨过默认防抖窗口再读：只等 2s 读到 0 是必然的，不构成证据'],
     ['tools/smoke-irreversible.js', 'document.querySelector(".tn-mask").click()', 1, '遮罩那一条按代码路径也要验（屏上摸不到≠两条入口可以不接）'],
-    ['tools/smoke-irreversible.js', 'checks >= 57', 1, '条数守卫（本闸门自己也会被删）：判据 58 条，ok() 在自增前求值所以表达式写 57'],
+    ['tools/smoke-irreversible.js', 'async function toEditLayer(page) {', 1, '浏览器腿必须真点列表进编辑屏：openEdit 不在 TravelNotes 导出面上，注入调用等于测了一条屏上根本不存在的入口'],
+    ['tools/smoke-irreversible.js', "function cfmOk(page) {", 1, '两套确认层的选择器不通用：.ui-modal-mask .ui-btn-primary 在导入框那一场按文档序先命中「合并导入」——点错钮造成的绿比红更坏'],
+    ['tools/smoke-irreversible.js', "const CFM = '(' +", 1, '读问句的那把探针把 .tn-cfm / .ui-modal 归成一枚形状（类名取自各自真实 DOM）'],
+    ['tools/smoke-irreversible.js', 'function editSnap(page) {', 1, '一次同时读「层在不在 + 四个字段现值 + 库里那条 + 历史长度」：判据各读各的就出现「层已经没了还在比字段」'],
+    ['tools/smoke-irreversible.js', 'document.getElementById("tnEditBack").click()', 1, '页内直调返回出口，给那条「问句在场就早退」的守卫一个目击者——真鼠标第二下落在遮罩上，物理上够不到那枚钮'],
+    ['tools/smoke-irreversible.js', 'checks >= 94', 1, '条数守卫（本闸门自己也会被删）：判据 95 条，ok() 在自增前求值所以表达式写 94；批次 37 把编辑屏两扇门与导入框的 J01–J35 共 37 条计进来'],
     ['tools/smoke-backup.js', 'window.WebDAV.push(function (e, r)', 4, '批次 8 那四条传输链路仍走裸 push：这一族是 tools/ 的合法调用者，② 的白名单口径要靠它反证（改了它＝那把刀没了正向对照）'],
   ];
   A47.forEach(a => {
@@ -6826,6 +6875,16 @@ function stripBlockComments(s) {
     ['travel-notes.js', 'function closePanel() {',
       'function closePanel() {\n    if (ui) {',
       'closePanel 的 force 形参被抹掉：脏检查那条 if 的判据失去输入，「不许把事件当强制」这条纪律没人守（对照取自 HEAD:travel-notes.js:1019 的真形状）'],
+    /* —— 批次 37：编辑游记屏与导入框被拆掉的三处旧形状（对照取自 HEAD:travel-notes.js 的现场行号） —— */
+    ['travel-notes.js', 'function () { pg.remove(); };',
+      "    $X(pg, '#tnEditBack').onclick = function () { pg.remove(); };",
+      '返回钮又回到无条件拆层（HEAD:1931）：改到一半按返回，这一轮改动当场作废且一句不问——报告 §3 第 3 条那颗雷本体。这一族的「可达出口只有一个」是实测出来的（tools/out/b37-probe-editloss.txt：编辑层 z9010 全铺，42 点网格命中他物 0）'],
+    ['travel-notes.js', 'renderStats(); pg.remove();',
+      '      persist(); renderTNLayer(); renderList(); renderStats(); pg.remove();',
+      '保存路径又回到裸拆层（HEAD:1940）：保存成功不收历史栈那条 entry，下一次物理返回会退回这一屏的空壳；dropEdit 把 DOM 与历史两步绑在一个出口里'],
+    ['travel-notes.js', "#tnImpX').onclick = close;",
+      "    $X(m, '#tnImpX').onclick = close;",
+      '导入框的 × 又接回无判定直拆（HEAD:2120）：粘贴框里有字而没点导入时，整框内容就地作废。注意另两枚裸 m.remove()（HEAD:983 的通用层、2129 的 close()）不登记期望 0——那些屏本来就没有「还没提交的输入」，把它们一起钉死会逼无关浮层造一个假脏检查'],
   ];
   ZERO47.forEach(a => {
     if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
@@ -6842,7 +6901,7 @@ function stripBlockComments(s) {
         为什么必须自己扫：②的登记名单是「我记得的那几个调用点」，而「产品代码不许有裸 push」这句
         说的是全树。批次 30 那节坐标普查 6→8→11 的根因就是只数登记过的文件。 */
   const FILES47ALL = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
-  let var47 = { files: FILES47ALL.length, bare: 0, toolsBare: 0, exits: 0, clear: 0, panel: 0 };
+  let var47 = { files: FILES47ALL.length, bare: 0, toolsBare: 0, exits: 0, clear: 0, panel: 0, edit: 0 };
   const TOOLS47 = fs.readdirSync('tools').filter(f => /\.js$/.test(f) && fs.statSync(path.join('tools', f)).isFile());
 
   /* (a) 裸 push 的调用者：产品侧期望 0，tools/ 侧只统计不断言（它是那把刀的正向对照）。 */
@@ -6906,7 +6965,20 @@ function stripBlockComments(s) {
     if (var47.panel !== 4 || !P47['travel-notes.js']) F47('全站 closePanel 落点从 travel-notes.js 的 4 处（定义 + 遮罩绑定 + #tnX 绑定 + 确认回调里的 force 版）变成 ' + JSON.stringify(P47) + '：少一处说明某个关闭出口没人守，多一处说明别的页面开始绕过面板状态机直接关它');
   }
 
-  /* ④ 浏览器腿齐备检：I01–I56 逐条在场 + 带字母的两条 + 循环上限对账 + 条数守卫 */
+  /* (e) closeEdit 的落点：同样只许 travel-notes.js 碰（编辑屏状态机私有，批次 37）。 */
+  {
+    const RE47K = /closeEdit\s*[;(]/g;
+    const CAL47K = ((flat47('  function closeEdit(force) { b.onclick = closeEdit; closeEdit(); }').match(RE47K)) || []).length;
+    if (CAL47K !== 3) F47('closeEdit 那把刀失准（合成一行应读 3：定义 + 裸引用 + 直调，实得 ' + CAL47K + '）：读不到裸引用那一种形状，就分不清 (d) 里那两条「绑定不许退回裸引用」的期望 0 有没有对照');
+    const K47 = {};
+    FILES47ALL.forEach(function (f) {
+      const n = ((flat47(rd47(f)).match(RE47K)) || []).length;
+      if (n) { var47.edit += n; K47[f] = n; }
+    });
+    if (var47.edit !== 3 || !K47['travel-notes.js']) F47('全站 closeEdit 落点从 travel-notes.js 的 3 处（定义 + #tnEditBack 绑定 + onEditPop 里物理返回那一调）变成 ' + JSON.stringify(K47) + '：少一处说明又有一扇关闭的门绕过脏检查，多一处说明别的页面开始直接拆编辑层（dropEdit 收历史那一步会被跳过，栈里就堆满看不见的空层）');
+  }
+
+  /* ④ 浏览器腿齐备检：I01–I56 + J01–J35 逐条在场 + 带字母的四条 + 循环上限对账 + 条数守卫 */
   {
     const S47 = V47['tools/smoke-irreversible.js'];
     for (let i = 1; i <= 56; i++) {
@@ -6915,7 +6987,13 @@ function stripBlockComments(s) {
     }
     if (cnt47(S47, "ok('I14b ") !== 1) F47('I14b（一次 remoteInfo 只回调一次）不在场：它是 remoteInfo 那条单次回调守卫唯一的反证——守卫本身零其它调用者，删了这条判据就没人知道它还在不在工作');
     if (cnt47(S47, "ok('I22b ") !== 1) F47('I22b（真点开关后 UI 与状态同步）不在场：自动那两条腿若是靠写 localStorage 打开的，就永远测不出「开关显示开了但其实没开」这一族');
-    if (cnt47(S47, 'checks >= 57') !== 1) F47('条数守卫不在了或阈值被挪：判据是 58 条，ok() 在自增前求值，所以表达式写的是 checks >= 57');
+    for (let j = 1; j <= 35; j++) {
+      const lab = "ok('J" + (j < 10 ? '0' + j : '' + j) + ' ';
+      if (cnt47(S47, lab) !== 1) F47('tools/smoke-irreversible.js 里 J' + (j < 10 ? '0' + j : j) + ' 这条判据不是恰 1 处（实得 ' + cnt47(S47, lab) + '）：J 这一族的立论是「编辑游记屏的两扇门（屏上返回钮 + 物理返回键）都得先问，且问的内容按会丢的那几项派生」，删一条就少一个证据，改编号会让这一节的齐备检集体失效');
+    }
+    if (cnt47(S47, "ok('J12b ") !== 1) F47('J12b（代码里直调返回出口也不叠第二层）不在场：真鼠标第二下物理上落在 .tn-cfm 的遮罩上、根本够不到返回钮（J12 量的就是这件事），所以那条「问句已经问出口就早退」的守卫只有页内直调这一条目击者——删了它，重复叠层就没人守');
+    if (cnt47(S47, "ok('J31b ") !== 1) F47('J31b（问句压在导入框之上、.tc-ok 真点得到）不在场：.tn-cfm 与 .tn-editpage/导入框同为 z9700，靠后挂载者决胜；层要是藏在框后面，那句确认永远没人答得出，而 J30 那两条读到的「出了确认层」依然绿');
+    if (cnt47(S47, 'checks >= 94') !== 1) F47('条数守卫不在了或阈值被挪：判据是 95 条，ok() 在自增前求值，所以表达式写的是 checks >= 94');
     {
       const LAB47 = S47.match(/ok\('(I\d+)[ ]/g) || [];
       const MAXN47 = LAB47.reduce((m, s) => Math.max(m, Number(/I(\d+)/.exec(s)[1])), 0);
@@ -6923,12 +7001,17 @@ function stripBlockComments(s) {
       const BOUND47 = (SEG47.match(/for \(let i = 1; i <= (\d+); i\+\+\)/) || [])[1];
       if (BOUND47 === undefined) F47('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
       else if (Number(BOUND47) !== MAXN47) F47('④ 齐备检的循环上限是 ' + BOUND47 + '，而浏览器腿里真实最大编号是 I' + MAXN47 + '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+      const LABJ47 = S47.match(/ok\('(J\d+)[ ]/g) || [];
+      const MAXJ47 = LABJ47.reduce((m, s) => Math.max(m, Number(/J(\d+)/.exec(s)[1])), 0);
+      const BOUNDJ47 = (SEG47.match(/for \(let j = 1; j <= (\d+); j\+\+\)/) || [])[1];
+      if (BOUNDJ47 === undefined) F47('读不到 ④ 那条 J 族齐备检的循环上限（I 那把正则只认 let i，两者互不遮蔽；读不到＝J 那一族整条对账失明）');
+      else if (Number(BOUNDJ47) !== MAXJ47) F47('④ J 族齐备检的循环上限是 ' + BOUNDJ47 + '，而浏览器腿里真实最大 J 编号是 J' + MAXJ47 + '：J01–J35 是批次 37 编辑屏两扇门的全部证据，收窄一格就少守一条');
     }
   }
 
   if (V47['README.md'].indexOf('§47') < 0) F47('README.md 的 verify 清单没提 §47（新闸门不写进 README 就等于没装）');
 
-  console.log('不可逆动作闸门: ' + A47.length + ' 条代码锚点（写远端单点 putEnv / 判定单点 coverPlan+lostIds / 手动出口 confirmPush 的四档文案与「无确认层就报错」/ 自动出口 pushAuto 的 risky 唯一放行式 / remoteInfo 单次回调守卫三行 / 导出面四枚 / settings 两颗雷的接线与文案 / travel-notes 的 panelDirty-dirtyWords-closePanel 三件与两处绑定形状 / 浏览器腿的屏档·种子·31s 跨防抖·条数守卫 / smoke-backup 四条裸 push 腿的正向对照）+ 九族期望 0（裸 push 回产品代码 / UI.tileWarn(字符串) 两支静默 / flash 谎报 / 按钮名与确认层文案 / closePanel 两处裸引用 / 无形参的 closePanel 定义）各配正向对照 + 四把内置扫描全量对账（readdir ' + var47.files + ' 个根目录文件 + tools/ ' + TOOLS47.length + ' 个：裸 push 产品侧 ' + var47.bare + '／tools 侧 ' + var47.toolsBare + '、push 家族落点 ' + var47.exits + ' 逐文件恰数、名不符实文案 ' + var47.clear + '、closePanel 落点 ' + var47.panel + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat47/view47 定义行走那把共享剥刀与不剥文档那一支，三处改动旁各钉哨兵）+ 浏览器腿 I01–I56 齐备检与条数守卫（含 I14b 单次回调反证、I22b 开关 UI 同步）；A47 表长 ' + A47.length + ' 条、ZERO47 表长 ' + ZERO47.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b32-probe-before.txt，改后读数见 tools/out/b32-smoke-irreversible.txt，变异自测见 tools/out/mut-verify47.js');
+  console.log('不可逆动作闸门: ' + A47.length + ' 条代码锚点（写远端单点 putEnv / 判定单点 coverPlan+lostIds / 手动出口 confirmPush 的四档文案与「无确认层就报错」/ 自动出口 pushAuto 的 risky 唯一放行式 / remoteInfo 单次回调守卫三行 / 导出面四枚 / settings 两颗雷的接线与文案 / travel-notes 的 panelDirty-dirtyWords-closePanel 三件与两处绑定形状 / 批次 37 的编辑屏族 photoSig-editVals-editDiff-pushEditEntry-dropEdit-closeEdit-onEditPop 七件（含「基线在开层那一刻抄」与「压成功才 back」两条口径）与导入框 closeImp 的三处接线 / 浏览器腿的屏档·种子·31s 跨防抖·条数守卫·真点列表进编辑屏·两套确认层选择器不通用 / smoke-backup 四条裸 push 腿的正向对照）+ 十二族期望 0（裸 push 回产品代码 / UI.tileWarn(字符串) 两支静默 / flash 谎报 / 按钮名与确认层文案 / closePanel 两处裸引用 / 无形参的 closePanel 定义 / 批次 37 的返回钮裸拆层 / 保存路径裸拆层 / 导入框 × 裸拆）各配正向对照 + 五把内置扫描全量对账（readdir ' + var47.files + ' 个根目录文件 + tools/ ' + TOOLS47.length + ' 个：裸 push 产品侧 ' + var47.bare + '／tools 侧 ' + var47.toolsBare + '、push 家族落点 ' + var47.exits + ' 逐文件恰数、名不符实文案 ' + var47.clear + '、closePanel 落点 ' + var47.panel + '、closeEdit 落点 ' + var47.edit + '，每把都先拿合成样本自校准）+ 一条自指纪律（flat47/view47 定义行走那把共享剥刀与不剥文档那一支，四处改动旁各钉哨兵）+ 浏览器腿 I01–I56 与 J01–J35 齐备检、循环上限对账与条数守卫（含 I14b 单次回调、I22b 开关 UI 同步、J12b 直调返回不叠层、J31b 问句压在框之上 四条带字母的反证）；A47 表长 ' + A47.length + ' 条、ZERO47 表长 ' + ZERO47.length + ' 条，抬阈值类变异要取当前长度 + 1；改前读数见 tools/out/b32-probe-before.txt，改后读数见 tools/out/b32-smoke-irreversible.txt，变异自测见 tools/out/mut-verify47.js');
   fail += bad47;
 }
 
@@ -7919,7 +8002,7 @@ function stripBlockComments(s) {
     ['tools/smoke-font.js', 'checks >= 22', 1, '条数守卫（本闸门自己也会被删）：判据 23 条，ok() 在自增前求值所以表达式写 22'],
     ['tools/smoke-font.js', "const ALIAS17 = ['--fd', '--fb', '--b6', '--b7', '--b9', '--a3', '--d3', '--bg', '--sf', '--sf2', '--ln', '--i9', '--i7', '--i5', '--sm', '--tf', '--tn'];", 1, '腿里那 17 枚同名令牌要逐枚钉住，不能只钉「ALIAS17.length !== 17」那一行：名单自己少一枚时那行守卫照样成立（变异网 T08 第一次就是这么静默的），于是 FO01/FO02 那个「旧名读取 0 枚」是数给一个短了的名单看的'],
     /* —— 普查探针与本节同源 —— */
-    ['tools/out/probe35b-census.js', "['travel-notes.js', 2278]", 1, '② 档留 generic 那枚在探针与本节各登记一次，两边必须同时改：只改一边就会出现「探针绿、闸门红」或反过来'],
+    ['tools/out/probe35b-census.js', "['travel-notes.js', 2354]", 1, '② 档留 generic 那枚在探针与本节各登记一次，两边必须同时改：只改一边就会出现「探针绿、闸门红」或反过来（批次 37 往 travel-notes.js 插了 76 行，这一枚从 2278 推到 2354）'],
   ];
   A51.forEach(a => {
     if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
@@ -7970,11 +8053,14 @@ function stripBlockComments(s) {
   let var51 = { files: 0, hits: 0, T1: 0, T2: 0, T2gen: 0, T3: 0, noBrand: 0, same: 0, gate: {} };
   const BRAND = 'TRACE Serif';
   const BUCK = { TOKEN_DEF: 0, WIRED: 0, INHERIT: 0, MONO: 0, SYS: 0 };
-  /* ③ 档点名表（那些文档不载 design.css，写死桌面名是唯一办法）*/
+  /* ③ 档点名表（那些文档不载 design.css，写死桌面名是唯一办法）
+     这两张表按行号点名，所以任何往 travel-notes.js 里插代码的批次都会把它们推位——
+     批次 37 往 travel-notes.js 插了 76 行，把 1984→2047（该点之前净增 63）、2278→2354（净增 76），三处登记（本节两张 + probe35a/35b 各一份 + mut-verify51 的 from 串）要一起改，
+     改一边就会出现「探针绿、闸门红」。 */
   const T3 = [['results.js', 132], ['results.js', 134], ['results.js', 139], ['results.js', 145],
-    ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 1984],
+    ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 2047],
     ['vault.js', 400], ['album.js', 262]];
-  const T2GEN = [['travel-notes.js', 2278]];
+  const T2GEN = [['travel-notes.js', 2354]];
   const inT = (T, f, n) => T.some(x => x[0] === f && x[1] === n);
 
   /* (a) 白名单尺子：五桶 + 两张点名表之外，一条都不许剩 */

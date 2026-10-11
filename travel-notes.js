@@ -1882,6 +1882,62 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   }
 
   /* ---------- 编辑（含照片 / 标签管理） ---------- */
+  /* 关闭之前先问一句（批次 37，审核报告 §3 第 3 条）。
+     这一屏原本只有一个出口：左上角返回钮直接 pg.remove()，题目/正文/照片/标签改到一半
+     误点一下就是整轮作废，而且屏上不留任何「未保存」的痕迹（实测 tools/out/b37-probe-editloss.txt）。
+     形状照本文件 32-D 的 panelDirty → dirtyWords → closePanel 那三件套。 */
+  var editCtx = null;           /* {pg, photos, base, pushed}：.tn-editpage 是 inset:0 全铺层，同一时刻只可能有一层在场 */
+  var editPopBound = false;
+  function photoSig(arr) {
+    return (arr || []).length + ':' + (arr || []).map(function (p) { return String(p).length; }).join(',');
+  }
+  function editVals(pg, photos) {
+    return { title: $X(pg, '#tnEditTitle').value, text: $X(pg, '#tnEditTxt').value,
+      tags: $X(pg, '#tnEditTags').value, sig: photoSig(photos) };
+  }
+  function editDiff(b, now) {
+    var d = [];
+    if (now.title !== b.title) d.push('题目');
+    if (now.text !== b.text) d.push('正文 ' + now.text.length + ' 字');
+    if (now.tags !== b.tags) d.push('标签');
+    if (now.sig !== b.sig) d.push('照片 ' + now.sig.split(':')[0] + ' 张');
+    return d;
+  }
+  /* 摘层 + 把为这一层压进去的那条历史一起收掉。顺序不能反：先 remove 再 back——
+     随后那发 popstate 会被 onEditPop 放过（层已不在场），不需要额外标记。
+     back() 只在「这条确实是我们压进去的」时才发：压失败的场合发 back 就是真·后退一页，会把人送出这个页面。 */
+  function pushEditEntry(c) {
+    try { history.pushState({ tnEdit: 1 }, ''); c.pushed = true; } catch (e) { c.pushed = false; }
+  }
+  function dropEdit() {
+    var c = editCtx;
+    editCtx = null;
+    if (c && c.pg) c.pg.remove();
+    if (c && c.pushed) { try { history.back(); } catch (e) {} }
+  }
+  function closeEdit(force) {
+    if (!editCtx) return;
+    if (force !== true) {
+      var c = editCtx;
+      var d = editDiff(c.base, editVals(c.pg, c.photos));
+      if (d.length) {
+        /* 连点两下返回会走到这里两次：问题已经问出口，就别再叠第二层 */
+        if (document.querySelector('.tn-cfm')) return;
+        confirmDialog('这篇的' + d.join('、') + '还没保存。关掉就回到你进来时的样子。',
+          dropEdit, '关掉不保存', '继续编辑');
+        return;
+      }
+    }
+    dropEdit();
+  }
+  /* 第二条门：壳里 MainActivity.java:547 的物理返回键走 webView.goBack()，而 DOM 层不进历史，
+     手机上最常用那一下会绕过上面这句确认。开层时压一条历史，返回键先落到这一层；
+     file:// 与 http:// 两种来源下 pushState 与 back()→popstate 都实测可用（b37-probe-editloss.txt L3）。 */
+  function onEditPop() {
+    if (!editCtx || !document.body.contains(editCtx.pg)) return;  /* 不是这一层在等返回：交回原有行为 */
+    pushEditEntry(editCtx);
+    closeEdit(false);
+  }
   function openEdit(id) {
     var n = notes.filter(function (x) { return x.id === id; })[0];
     if (!n) return;
@@ -1912,6 +1968,12 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       });
     };
     renderEp();
+    /* 基线取「开层那一刻框里印着什么」，不取库里那条 n：n.title 可能是空串而框里印的是 siteName，
+       拿库里原值比会把一进屏就判成脏——那样每关一次都要问一句，比不问更烦。
+       照片不比 base64 内容，只比「几张 + 各自长度」：增、删、换都会动这个签名。 */
+    editCtx = { pg: pg, photos: photos, base: editVals(pg, photos), pushed: false };
+    if (!editPopBound) { editPopBound = true; addEventListener('popstate', onEditPop); }
+    pushEditEntry(editCtx);
     $X(pg, '#tnEditAddPhoto').onclick = function () { $X(pg, '#tnEditFile').click(); };
     $X(pg, '#tnEditFile').onchange = function () {
       var files = $X(pg, '#tnEditFile').files;
@@ -1928,7 +1990,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
         fr.readAsDataURL(f);
       })(files[i]);
     };
-    $X(pg, '#tnEditBack').onclick = function () { pg.remove(); };
+    /* 包一层再调：直接把 onclick 交给 closeEdit 会把 MouseEvent 当 force 传进去，脏检查当场失效 */
+    $X(pg, '#tnEditBack').onclick = function () { closeEdit(); };
     $X(pg, '#tnEditSave').onclick = function () {
       var v = $X(pg, '#tnEditTxt').value.trim();
       if (!v) { flash('内容不能为空'); return; }
@@ -1937,7 +2000,7 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       n.photos = photos;
       n.tags = $X(pg, '#tnEditTags').value.trim().split(/\s+|#/).map(function (t) { return t.trim(); }).filter(Boolean).slice(0, 6);
       n.edited = fmtTime(Date.now());
-      persist(); renderTNLayer(); renderList(); renderStats(); pg.remove();
+      persist(); renderTNLayer(); renderList(); renderStats(); dropEdit();
       if (window.TravelNotes._afterSave) window.TravelNotes._afterSave();
       flash('已保存修改');
     };
@@ -2115,10 +2178,23 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       + '</div></div>';
     document.body.appendChild(m);
     requestAnimationFrame(function () { m.classList.add('show'); });
-    var close = function () { m.remove(); };
-    m.onclick = function (e) { if (e.target === m) close(); };
-    $X(m, '#tnImpX').onclick = close;
+    /* 粘贴框里那串是人手打/人手贴的整份备份，原本两个出口（右上 ×、点遮罩）都是无条件下层：
+       批次 37 同族第二处，形状照本页 closeEdit（判据只取「框里还有没有字」，不比基线，进来时恒为空）。 */
+    var closeImp = function (force) {
+      if (force !== true) {
+        var ta = $X(m, '#tnImpTxt');
+        if (ta && ta.value.trim()) {
+          if (document.querySelector('.tn-cfm')) return;
+          confirmDialog('粘贴框里还有 ' + ta.value.length + ' 字备份没导入，关掉就没了。',
+            function () { m.remove(); }, '关掉不导入', '继续导入');
+          return;
+        }
+      }
+      m.remove();
+    };
+    m.onclick = function (e) { if (e.target === m) closeImp(); };
     var file = $X(m, '#tnImpFile');
+    $X(m, '#tnImpX').onclick = function () { closeImp(); };
     $X(m, '#tnImpPick').onclick = function () { file.click(); };
     file.onchange = function () {
       var f = file.files && file.files[0];

@@ -185,6 +185,52 @@ function clickNo(page) { return page.evaluate('var b=document.querySelector(".ui
 
 const pStr = p => JSON.stringify(p);
 
+/* 批次 37 三件工具：真点（先滚进视口再按几何中心）、只读 .tn-cfm 自有确认层、编辑屏四个读数。
+   cfmOf 而不是复用 modal()：modal() 先找 .ui-modal-mask，而导入框本身就是 .ui-modal-mask，
+   压在它上面的确认层也是 .tn-cfm——用 modal() 读到的是框不是问句，判据会拿错对象。 */
+async function realClick(page, sel) {
+  const h = await page.evaluate(function (s) {
+    const el = document.querySelector(s);
+    if (!el) return null;
+    el.scrollIntoView({ block: 'center', inline: 'center' });
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: Math.round(r.width), hh: Math.round(r.height) };
+  }, sel);
+  if (!h) return { ok: false, why: 'no node ' + sel };
+  await page.mouse.click(h.x, h.y);
+  return { ok: true, w: h.w, hh: h.hh };
+}
+const CFM = '(' + function () {
+  var all = document.querySelectorAll('.tn-cfm');
+  var m = all[0];
+  if (!m) return null;
+  function t(sel) { var e = m.querySelector(sel); return e ? (e.textContent || '') : ''; }
+  var okb = m.querySelector('.tc-ok'), nob = m.querySelector('.tc-no');
+  return { n: all.length, text: t('.tc-txt'), ok: okb ? okb.textContent : '', no: nob ? nob.textContent : '',
+    modals: document.querySelectorAll('.ui-modal-mask').length };
+} + ')()';
+function cfm(page) { return page.evaluate(CFM); }
+/* S9 全部用这一族自己的 .tn-cfm 选钮，不借 clickOk/clickNo：
+   导入框本身就是 .ui-modal-mask，里面还有一枚 .ui-btn-primary（「合并导入」），
+   而 clickOk 的选择器先匹配 .ui-modal-mask .ui-btn-primary、按文档序撞上的是那枚导入钮——
+   点「关掉不保存」会点成「合并导入」。实测过一次：J34 因此整层没收。 */
+function cfmOk(page) { return page.evaluate('(function(){var b=document.querySelector(".tn-cfm .tc-ok");if(b){b.click();return "clicked";}return "no .tc-ok";})()'); }
+function cfmNo(page) { return page.evaluate('(function(){var b=document.querySelector(".tn-cfm .tc-no");if(b){b.click();return "clicked";}return "no .tc-no";})()'); }
+const EDIT_SNAP = '(' + function () {
+  var ed = document.querySelector('.tn-editpage');
+  function v(id) { var e = document.getElementById(id); return e ? e.value : null; }
+  var n = (window.TravelNotes && TravelNotes.list ? (TravelNotes.list() || [])[0] : null) || null;
+  return {
+    shown: !!ed && ed.style.display !== 'none',
+    title: v('tnEditTitle'), text: v('tnEditTxt'), tags: v('tnEditTags'),
+    pics: document.querySelectorAll('.tn-editpage .tn-photo').length,
+    store: n ? { title: n.title, text: n.text, tags: (n.tags || []).join(' '), pics: (n.photos || []).length } : null,
+    cnt: window.TravelNotes ? TravelNotes.count() : -1,
+    hist: history.length, url: location.pathname
+  };
+} + ')()';
+function editSnap(page) { return page.evaluate(EDIT_SNAP); }
+
 async function openSettings(browser, seedIds, opts) {
   opts = opts || {};
   const page = await browser.newPage();
@@ -556,10 +602,279 @@ async function main() {
   await clickOk(tp);
   await sleep(1200);
 
+  /* ============ S9 编辑游记屏：改到一半误点返回不该整轮作废（批次 37） ============
+     地基实测（tools/out/b37-probe-editloss.txt）：这一屏在 328×723 下只有一个出口（inset 0 全铺、
+     42 点网格零命中他物），那一下点的是 pg.remove()；题目/正文/标签/照片改到一半当场没了，重开只读到库里原值；
+     history.length 开层前后恒为 2 —— 壳里 MainActivity.java:547 的物理返回键走 webView.goBack()，
+     这一屏根本不进历史，所以手机上最常用那一下会绕过任何 DOM 层的追问。 */
+  async function toEditLayer(page) {
+    await page.evaluate('TravelNotes.openList()');
+    await page.waitForFunction('!!document.getElementById("tnViewTime")', { timeout: 10000 });
+    await page.evaluate('document.getElementById("tnViewTime").click()');
+    await page.waitForFunction('document.querySelectorAll(\'.tn-item [data-a="edit"]\').length > 0', { timeout: 10000 });
+    var c = await realClick(page, '.tn-item [data-a="edit"]');
+    await page.waitForFunction('!!document.querySelector(".tn-editpage")', { timeout: 10000 });
+    await sleep(350);
+    return c;
+  }
+  function flashOf(page) {
+    return page.evaluate('(function(){var f=document.querySelector(".tn-flash.on");return f?f.textContent:"（没有 flash）";})()');
+  }
+
+  say('\n[S9] 编辑游记屏：列表 → 时间线 → 真点「编辑」，四种改动各问一句 + 物理返回键落在同一句前面 + 导入粘贴框同族');
+  await tp.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await tp.evaluate(seedLocal, ['b37a'], DAV_PORT, false);
+  await tp.reload({ waitUntil: 'domcontentloaded' });
+  await tp.waitForFunction('window.TravelNotes && (TravelNotes.list() || []).length === 1', { timeout: 20000 });
+  await sleep(500);
+  var seeded = await tp.evaluate(function () {
+    function mk(fill) {
+      return 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8">' +
+        '<rect width="8" height="8" fill="' + fill + '"/></svg>');
+    }
+    var l = TravelNotes.list();
+    l[0].text = '塔身每层都用双槽拱脚承住，辽代的原构还在。';
+    l[0].tags = ['辽代'];
+    l[0].photos = [mk('#b8860b'), mk('#8b4513')];
+    TravelNotes.replaceNotes(l);
+    var n = TravelNotes.list()[0];
+    return { cnt: TravelNotes.count(), pics: (n.photos || []).length, tags: (n.tags || []).join(' ') };
+  });
+  await sleep(500);
+  ok('J01 播种真值到位：1 篇 / 2 张照片 / 标签「辽代」（后面每一条都要靠这些值去动签名）',
+    seeded.cnt === 1 && seeded.pics === 2 && seeded.tags === '辽代', pStr(seeded));
+  const HB = await tp.evaluate('history.length');
+  var pre = await editSnap(tp);
+  ok('J02 进这一屏之前编辑层不在场，历史基线 ' + HB + '（改前实测：开层前后 history.length 恒为 2，物理返回键根本不落在这里）',
+    pre.shown === false && pre.hist === HB && pre.store && pre.store.pics === 2,
+    'shown=' + pre.shown + ' len=' + pre.hist + ' 库里照片=' + (pre.store && pre.store.pics));
+
+  await toEditLayer(tp);
+  var e1 = await editSnap(tp);
+  ok('J03 真点「编辑」进到这一屏：四个读数印的就是库里那一篇（基线取自屏上的值，一进屏不该判脏）',
+    e1.shown && e1.title === e1.store.title && e1.text === e1.store.text && e1.tags === e1.store.tags && e1.pics === e1.store.pics,
+    pStr({ shown: e1.shown, t: e1.title === e1.store.title, x: e1.text === e1.store.text, g: e1.tags === e1.store.tags, p: e1.pics }));
+  ok('J04 开层时为这一层压进一条历史（' + HB + '→' + e1.hist + '）：这是给物理返回键留的那第二扇门',
+    e1.hist === HB + 1, 'len=' + e1.hist + ' 基线=' + HB);
+
+  await realClick(tp, '#tnEditBack');
+  await sleep(600);
+  var e2 = await editSnap(tp);
+  ok('J05 什么都没改就点返回：直接收、零追问（每关一次都要点两下＝把拦丢内容的代价摊成骚扰）',
+    (await cfm(tp)) === null && e2.shown === false, '层=' + pStr(await cfm(tp)) + ' shown=' + e2.shown);
+  ok('J06 收层把为这一层压的那条历史一起收掉，人还在这页（' + e2.url + '），历史不逐次累加',
+    e2.hist <= HB + 1 && /index\.html$/.test(e2.url), 'len=' + e2.hist + ' url=' + e2.url);
+
+  /* 正文：四种改动里最常发生的一种 */
+  await toEditLayer(tp);
+  await tp.evaluate('(function(){var t=document.getElementById("tnEditTxt");t.value=t.value+"，我还加了一句没保存的话";})()');
+  await sleep(200);
+  var tLen = await tp.evaluate('document.getElementById("tnEditTxt").value.length');
+  var ask0 = await editSnap(tp);
+  await realClick(tp, '#tnEditBack');
+  await sleep(500);
+  var q1 = await cfm(tp), e3 = await editSnap(tp);
+  ok('J07 改了正文点返回先问一句：出这一族自己的 .tn-cfm 层（改前：整轮改动当场没了，零追问）',
+    !!q1 && q1.n === 1, q1 ? 'n=' + q1.n + ' | ' + q1.text.slice(0, 30) : '无层');
+  ok('J08 问的时候编辑屏还开着、正文一字未动（先收层再追问＝内容已经没了，问也是白问）',
+    e3.shown === true && e3.text === ask0.text && e3.text.length === tLen,
+    'shown=' + e3.shown + ' len=' + (e3.text || '').length + '/' + tLen);
+  ok('J09 正文说「正文 ' + tLen + ' 字还没保存」——N 是屏上真实字数，不是文案常量',
+    !!q1 && q1.text.indexOf('正文 ' + tLen + ' 字还没保存') >= 0, q1 && q1.text);
+  ok('J10 两个按钮写的是「关掉不保存 / 继续编辑」（「确定 / 取消」不说明关掉就没了）',
+    !!q1 && q1.ok === '关掉不保存' && q1.no === '继续编辑', q1 && q1.ok + ' / ' + q1.no);
+  var hit1 = await tp.evaluate('(function(){var c=document.querySelector(".tn-cfm"),b=c.querySelector(".tc-ok");' +
+    'var r=b.getBoundingClientRect(),e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);' +
+    'return {cfmZ:getComputedStyle(c).zIndex,editZ:getComputedStyle(document.querySelector(".tn-editpage")).zIndex,' +
+    'isSelf:!!(e&&(e===b||b.contains(e)))};})()');
+  ok('J11 确认层（z ' + hit1.cfmZ + '）压在编辑屏（z ' + hit1.editZ + '）之上，且 .tc-ok 真点得到',
+    hit1.isSelf === true, pStr(hit1));
+  var hit2 = await tp.evaluate('(function(){var b=document.getElementById("tnEditBack");var r=b.getBoundingClientRect();' +
+    'var e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);' +
+    'return {top:(e && (e.className||e.tagName)||"null"),onBack:!!(e&&(e===b||b.contains(e)))};})()');
+  ok('J12 问句开着时第二下真点根本落不到返回钮上——.tn-cfm 是 inset 0 全铺遮罩（实测盖在最上面的就是它），点到哪儿都只把问句收下',
+    hit2.onBack === false && /tn-cfm/.test(String(hit2.top)), pStr(hit2));
+  await tp.evaluate('document.getElementById("tnEditBack").click()');
+  await sleep(400);
+  var q2 = await cfm(tp), e4a = await editSnap(tp);
+  ok('J12b 代码里直接再调一次返回出口也不叠第二层（那条「问句已经问出口就早退」的守卫要有目击者）',
+    !!q2 && q2.n === 1 && e4a.shown === true, q2 ? 'n=' + q2.n + ' shown=' + e4a.shown : '无层');
+  await cfmNo(tp);
+  await sleep(450);
+  var e4 = await editSnap(tp);
+  ok('J13 选「继续编辑」：问句消失、编辑屏仍开、那句改动还在、库里没被偷偷写',
+    (await cfm(tp)) === null && e4.shown === true && e4.text === ask0.text && e4.store.text === e1.store.text,
+    'shown=' + e4.shown + ' len=' + (e4.text || '').length + ' 库里text同初值=' + (e4.store.text === e1.store.text));
+
+  await realClick(tp, '#tnEditBack');
+  await sleep(450);
+  await cfmOk(tp);
+  await sleep(800);
+  var e5 = await editSnap(tp);
+  ok('J14 选「关掉不保存」才真的收：库里四条读数与进来时一字不差（丢弃只由那一句点击造成）',
+    e5.shown === false && JSON.stringify(e5.store) === JSON.stringify(e1.store),
+    'shown=' + e5.shown + ' 库=' + pStr(e5.store));
+  ok('J15 丢弃没有连带删库：游记仍是 ' + e5.cnt + ' 篇', e5.cnt === 1, 'cnt=' + e5.cnt);
+
+  /* 标签：只动这一项时，问句只点名这一项 */
+  await toEditLayer(tp);
+  await tp.evaluate('(function(){document.getElementById("tnEditTags").value="辽代 木构";})()');
+  await realClick(tp, '#tnEditBack');
+  await sleep(500);
+  var q3 = await cfm(tp);
+  ok('J16 只改标签也追问，且问句只点名「标签」——四种改动各说各的，不是一句通用模板',
+    !!q3 && /标签还没保存/.test(q3.text) && !/正文/.test(q3.text) && !/题目/.test(q3.text) && !/照片/.test(q3.text),
+    q3 && q3.text);
+  await cfmOk(tp);
+  await sleep(700);
+
+  /* 照片：删一张也算会丢（签名 = 张数 + 各自长度） */
+  await toEditLayer(tp);
+  var rmCnt = await tp.evaluate('document.querySelectorAll(".tn-editpage .tn-photo .rm").length');
+  await tp.evaluate('document.querySelector(".tn-editpage .tn-photo .rm").click()');
+  await sleep(350);
+  var e6 = await editSnap(tp);
+  await realClick(tp, '#tnEditBack');
+  await sleep(500);
+  var q4 = await cfm(tp);
+  ok('J17 删掉一张照片（' + rmCnt + '→' + e6.pics + ' 张）也追问，问句点名「照片 1 张」',
+    rmCnt === 2 && e6.pics === 1 && !!q4 && /照片 1 张还没保存/.test(q4.text) && !/正文/.test(q4.text),
+    q4 && q4.text);
+  await cfmOk(tp);
+  await sleep(700);
+  await toEditLayer(tp);
+  var e7 = await editSnap(tp);
+  ok('J18 丢弃后重开，库里那 2 张照片还在（照片数组是副本，删掉的那张没写进库）',
+    e7.store.pics === 2 && e7.pics === 2, '库里=' + e7.store.pics + ' 屏上=' + e7.pics);
+  await realClick(tp, '#tnEditBack');
+  await sleep(600);
+
+  /* 题目 */
+  await toEditLayer(tp);
+  await tp.evaluate('(function(){document.getElementById("tnEditTitle").value="应县木塔（改）";})()');
+  await realClick(tp, '#tnEditBack');
+  await sleep(500);
+  var q5 = await cfm(tp);
+  ok('J19 只改题目也追问，问句点名「题目」', !!q5 && /题目还没保存/.test(q5.text), q5 && q5.text);
+  await cfmOk(tp);
+  await sleep(700);
+
+  /* 物理返回键：这一屏改前的第二扇门 */
+  await toEditLayer(tp);
+  await tp.evaluate('(function(){document.getElementById("tnEditTxt").value+="，路上想的半句还没打字进库";})()');
+  var eP = await editSnap(tp);
+  await tp.evaluate('history.back()');
+  await sleep(700);
+  var q6 = await cfm(tp), e8 = await editSnap(tp);
+  ok('J20 物理返回键（壳里 webView.goBack()）落在同一句确认前面：出 .tn-cfm（改前这一按把整屏连改动一起退掉）',
+    !!q6 && q6.n === 1, q6 ? q6.text.slice(0, 34) : '无层');
+  ok('J21 被物理返回拦住时编辑屏仍开、刚打的那句一字未动',
+    e8.shown === true && e8.text === eP.text, 'shown=' + e8.shown + ' 同值=' + (e8.text === eP.text));
+  await tp.evaluate('history.back()');
+  await sleep(700);
+  var q7 = await cfm(tp), e9 = await editSnap(tp);
+  ok('J22 问句开着再按一次返回：不叠第二层，也不把人送出这一屏（把历史顶回去，返回键始终落在这一层）',
+    !!q7 && q7.n === 1 && e9.shown === true && /index\.html$/.test(e9.url),
+    pStr({ n: q7 && q7.n, shown: e9.shown, url: e9.url }));
+  await cfmNo(tp);
+  await sleep(450);
+  var hb1 = await tp.evaluate('history.length');
+  ok('J23 拦一次返回不会把历史越堆越深（仍是 ' + hb1 + '，基线 ' + HB + '）', hb1 <= HB + 1, 'len=' + hb1);
+  await realClick(tp, '#tnEditBack');
+  await sleep(450);
+  await cfmOk(tp);
+  await sleep(800);
+
+  /* 保存路径：脏检查不许挡在保存前面 */
+  await toEditLayer(tp);
+  var KEEP = '这一句是真要留下的改后正文。';
+  /* 实参必须走函数形式递进去：evaluate 的第一个实参是「字符串表达式」时，后面的实参会被静默丢掉，
+     页里拿到的是 undefined ——这一串坑第一次跑就中了三条（J25/J30/J32 全绿成「库里正文＝undefined」）。 */
+  await tp.evaluate(function (s) { document.getElementById('tnEditTxt').value = s; }, KEEP);
+  await realClick(tp, '#tnEditSave');
+  await sleep(900);
+  var e10 = await editSnap(tp), f1 = await flashOf(tp);
+  ok('J24 保存路径不被脏检查打断：点保存不再追问一次，层自己收掉',
+    (await cfm(tp)) === null && e10.shown === false, '层=' + pStr(await cfm(tp)) + ' shown=' + e10.shown);
+  ok('J25 保存真的写进库：库里正文＝刚打的那句，flash 报「已保存修改」',
+    e10.store.text === KEEP && /已保存修改/.test(f1), '库里=' + String(e10.store.text).slice(0, 20) + ' | flash="' + f1 + '"');
+  var hb2 = await tp.evaluate('history.length');
+  ok('J26 保存也会把为这一层压的历史一起收掉（不留孤儿条目）', hb2 <= HB + 1, 'len=' + hb2);
+
+  /* 清空正文：清空也是一种会丢的改动，而空正文不许入库 */
+  await toEditLayer(tp);
+  await tp.evaluate('(function(){document.getElementById("tnEditTxt").value="";})()');
+  await realClick(tp, '#tnEditSave');
+  await sleep(700);
+  var e11 = await editSnap(tp), f2 = await flashOf(tp);
+  ok('J27 正文清空点保存仍拒（flash「内容不能为空」），编辑屏不关、库里那句还在（保存失败不该顺手把这一屏收了）',
+    /内容不能为空/.test(f2) && e11.shown === true && e11.store.text === KEEP,
+    'flash="' + f2 + '" shown=' + e11.shown + ' 库里=' + String(e11.store.text).slice(0, 16));
+  await realClick(tp, '#tnEditBack');
+  await sleep(500);
+  var q8 = await cfm(tp);
+  ok('J28 清空正文后点返回同样追问，问句里字数如实报 0', !!q8 && /正文 0 字还没保存/.test(q8.text), q8 && q8.text);
+  await cfmOk(tp);
+  await sleep(700);
+
+  /* 无历史泄漏：三轮干净开→关 */
+  for (var k = 0; k < 3; k++) {
+    await toEditLayer(tp);
+    await realClick(tp, '#tnEditBack');
+    await sleep(500);
+  }
+  var hbEnd = await tp.evaluate('history.length');
+  ok('J29 三轮开→关后历史仍是 ' + hbEnd + '（开一层压一条、关一层收一条），且不问第三十五次',
+    hbEnd <= HB + 1 && (await cfm(tp)) === null && (await tp.evaluate('document.querySelectorAll(".tn-editpage").length')) === 0,
+    'len=' + hbEnd + ' 基线=' + HB);
+
+  /* Same-family second site: import-backup paste box */
+  await tp.evaluate('(function(){document.querySelectorAll(".ui-modal-mask,.tn-cfm").forEach(function(m){m.remove();});})()');
+  await sleep(250);
+  var PASTE = '{"kind":"trace-backup-full","notes":[],"storage":{}}';
+  await tp.evaluate('TravelNotes.importNotes()');
+  await sleep(600);
+  await tp.evaluate(function (s) { document.getElementById('tnImpTxt').value = s; }, PASTE);
+  await sleep(250);
+  await realClick(tp, '#tnImpX');
+  await sleep(500);
+  var q9 = await cfm(tp);
+  ok('J30 粘贴框里还有 ' + PASTE.length + ' 字时点 ×：出确认层，文案把丢的字数算给人看（改前两个出口都无条件下层）',
+    !!q9 && q9.modals === 1 && q9.text.indexOf('粘贴框里还有 ' + PASTE.length + ' 字备份没导入') >= 0,
+    q9 ? q9.text + ' | 底下的框=' + q9.modals : '无层');
+  ok('J31 按钮写「关掉不导入 / 继续导入」——导入框的动词不借用编辑屏的「保存」',
+    !!q9 && q9.ok === '关掉不导入' && q9.no === '继续导入', q9 && q9.ok + ' / ' + q9.no);
+  var hit3 = await tp.evaluate('(function(){var c=document.querySelector(".tn-cfm"),b=c.querySelector(".tc-ok");' +
+    'var r=b.getBoundingClientRect(),e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);' +
+    'return {cfmZ:getComputedStyle(c).zIndex,impZ:getComputedStyle(document.querySelector(".ui-modal-mask")).zIndex,' +
+    'isSelf:!!(e&&(e===b||b.contains(e)))};})()');
+  ok('J31b 问句压在导入框之上且 .tc-ok 真点得到（两者同为 z ' + hit3.cfmZ + '，靠后挂载者决胜）——层要是藏在框后面，这句确认永远没人答得出',
+    hit3.isSelf === true, pStr(hit3));
+  await cfmNo(tp);
+  await sleep(450);
+  var kept = await tp.evaluate('(function(){var t=document.getElementById("tnImpTxt");return t?t.value:null;})()');
+  ok('J32 选「继续导入」：那串备份一字未动、导入框还开着', kept === PASTE, 'len=' + (kept === null ? '框已没了' : kept.length));
+  await tp.evaluate('document.querySelector(".ui-modal-mask").click()');
+  await sleep(500);
+  ok('J33 代码里直调 mask.click() 也走同一条判定（两条关闭入口不留第二条裸 m.remove()）',
+    !!(await cfm(tp)), pStr(await cfm(tp)));
+  await cfmOk(tp);
+  await sleep(600);
+  ok('J34 选「关掉不导入」才整层收掉（粘贴框从 DOM 里消失）',
+    (await tp.evaluate('!document.getElementById("tnImpTxt")')) === true && (await cfm(tp)) === null,
+    '层=' + pStr(await cfm(tp)));
+  await tp.evaluate('TravelNotes.importNotes()');
+  await sleep(500);
+  await realClick(tp, '#tnImpX');
+  await sleep(500);
+  ok('J35 空粘贴框直接关、不骚扰（没打字没人要被拦）',
+    (await cfm(tp)) === null && (await tp.evaluate('!document.getElementById("tnImpTxt")')) === true,
+    '层=' + pStr(await cfm(tp)));
+
   /* ============ 收尾 ============ */
   ok('I55 全程零页面报错（脏检查读 DOM 状态、push 家族改接线，最容易在这里静默炸）',
     ERRS.length === 0, ERRS.slice(0, 3).join(' | '));
-  ok('I56 判据条数 ≥ 57（这一节自己也是会被删的）', checks >= 57, 'checks=' + checks);
+  ok('I56 判据条数 ≥ 94（这一节自己也是会被删的；批次 37 把编辑屏两扇门与导入框的 J01–J35 共 37 条一起计进来）', checks >= 94, 'checks=' + checks);
 
   say('\n=== smoke-irreversible: ' + checks + ' 项，失败 ' + fails + ' ===');
   console.log('=== smoke-irreversible: ' + checks + ' 项，失败 ' + fails + ' ===');

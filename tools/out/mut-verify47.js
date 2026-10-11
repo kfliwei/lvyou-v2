@@ -4,28 +4,52 @@
  * 并且整跑不绿（红字印了但退出码 0＝闸门没装）。打不红＝那条锚是假绿灯。跑完逐字节还原（含异常退出）。
  *
  * §47 的靶子分四类：
- *   ① 不可逆动作的判定与出口被拆（R01–R23）：本批删掉的旧写法逐处插回去（裸 push 回手动按钮、
+ *   ① 不可逆动作的判定与出口被拆（R01–R41）：本批删掉的旧写法逐处插回去（裸 push 回手动按钮、
  *      UI.tileWarn(字符串) 那两支永久静默、远端 404 不截断链、risky 定义收窄、危险档文案退回「确定」、
  *      取消不上报、没有确认层就直接覆盖、导出面摘掉、两段按钮文案退回一句、名不符实的按钮与标题、
  *      清除不关 autosync、开关 UI 不回落、flash 谎报、force 判定放宽、closePanel 形参抹掉、
  *      两处绑定退回裸引用、确认钮文案退回默认）。
- *   ② 守卫自己（S01–S19）：共享剥刀／文档那一支／盲区哨兵／四把扫描各自的自校准／登记表与阈值／
- *      齐备检循环上限／条数守卫阈值／四元组形状／正向对照失效／登记没读的文件／README 抹登记。
- *   ③ 浏览器腿脚手架（T01–T07）：真机档退回 452、摘判据、改编号、跨防抖那一等被挪短、遮罩那条被摘、
- *      确认层类名读错、种子函数少一形参。
- *   ④ 两条腿的分工样本（U01–U04：源码腿必须全绿，浏览器腿必须红在指名那条）：
+ *      批次 37 的编辑屏族同形接着打（R24–R41）：三扇门各自的 force 严格比较放宽、基线不抄屏上现值、
+ *      popstate 每开一层重绑、pushState 失败不回写 pushed、没压过也 back、三处绑定退回裸引用或裸拆层、
+ *      保存路径退回裸拆层、「问句已出口就早退」两枚各摘一处、导入框的动词借用编辑屏的「保存」、
+ *      遮罩入口整条被摘、closeEdit 形参抹掉、(e) 那把落点扫描的上下两个方向（少一处绕过脏检查／多一处绕过 dropEdit）。
+ *   ② 守卫自己（S01–S24）：共享剥刀／文档那一支／盲区哨兵／剥刀盲区反证／五把扫描各自的自校准／
+ *      登记表与阈值／齐备检循环上限（I 与 J 两条）／条数守卫阈值／四元组形状／正向对照失效／
+ *      登记没读的文件／README 抹登记／J 族两条带字母的反证各摘一次。
+ *   ③ 浏览器腿脚手架（T01–T09）：真机档退回 452、摘判据、改编号、跨防抖那一等被挪短、遮罩那条被摘、
+ *      确认层类名读错、种子函数少一形参、真点列表进编辑屏那一支被改名、读四件现值的探针被改名。
+ *   ④ 两条腿的分工样本（U01–U11：源码腿必须全绿，浏览器腿必须红在指名那条）：
  *      U01 panelDirty 恒返回「不脏」（锚只钉函数名那一行，body 退化源码腿结构性看不见）→ I37 红；
  *      U02 dirtyWords 退回通用问句（锚同理只钉定义行）→ I39 红；
  *      U03 coverPlan 里图册那一类不计 lose（钉的是 p.lose 求和那一行，这一行在锚外）→ I06 红；
- *      U04 pushWords 把「从云端恢复也读不回来」那半句摘掉（钉的是 title 那一行）→ I07 红。
- *   为什么必须有 ④：本节的全部立论是「屏幕上真出一层会说话的确认框」，源码腿读的是串的在场，
+ *      U04 pushWords 把「从云端恢复也读不回来」那半句摘掉（钉的是 title 那一行）→ I07 红；
+ *      U05 编辑屏的脏判定整条短路（`if (d.length)` 变 `if (false)`，判据体在锚外）→ J07 红；
+ *      U06 先收层再追问（在 confirmDialog 前插一行 dropEdit()，锚全在体外）→ J08 红；
+ *      U07 开层不再压历史（压历史那两行定义与 try/catch 都还在，只是没人调）→ J04 红；
+ *      U08 photoSig 恒返同一串（锚只钉 `function photoSig(arr) {` 那一行）→ J17 红；
+ *      U09 editDiff 的正文那一支退回不报字数（锚只钉定义行）→ J09 红；
+ *      U10 editDiff 起手就非空（一进屏就判脏：脏检查从「拦丢内容」变成「每关一次骚扰一次」）→ J05 红；
+ *      U11 导入框「框里还有字」那一条判据短路 → J30 红。
+ *      这一族为什么必须有：本节的全部立论是「屏幕上真出一层会说话的确认框」，源码腿读的是串的在场，
  *      读不到「那句话有没有真的飘出来、判定有没有真的走到那一支」；①②③ 全对也只证明锚在场。
  *
  * 登记一条设计内盲区（本网不假装覆盖）：把某条 `if (...) F47(` 整句摘掉不会红——四把扫描都有 CAL
- *   自校准（S04–S07/S19 打的就是刀本身），但「摘掉判定那一行」这种砍法只能靠锚点表自身的条数守卫
+ *   自校准（S04–S07/S19/S23 打的就是刀本身），但「摘掉判定那一行」这种砍法只能靠锚点表自身的条数守卫
  *   和 README 登记间接兜住。所以 ② 里逐条打了 CAL 阈值与刀体口径，而不是只打产品侧。
  *
- * 登记一条 R 类 token 的口径（R06 首跑栽在这里）：verify.js 印 A47 那条红时只写 needle 的前 52 字
+ * 登记第二条（批次 37 新增，U08 只打到了一半）：photoSig 钉的是「张数 + 每串长度」，本网打的退化是
+ *   「恒返同一串」（照片任何变化都不认）→ J17 红。但「只比张数、不比每串长度」这一支两腿都不红：
+ *   源码腿的锚只钉 `function photoSig(arr) {` 那一行，而浏览器腿 J17 走的是删除那一条路（2→1 张，
+ *   张数就变了），要造「删一张再补一张等长的」必须有补图入口——编辑屏的加照片是 <input type=file>，
+ *   常驻腿里没有 uploadFile 那一步。这一支目前只有 A47 那条 reason 里的口径说明在纸面上守着。
+ *
+ * 登记第三条（批次 37 的 U 类首跑栽在这里：11 条里 3 条读成「源码腿 0 红／整跑不绿」）：§51 的桌面名白名单
+ *   与 ② 档 canvas 点名表是按**行号**登记的（T3 / T2GEN），travel-notes.js 只要增减行，那两张表当场漂，
+ *   verify 整跑不绿而红字全在 §51、一条 §47 都没有。U 类要的正是「源码腿全绿」，所以这一族的写法必须逐条压成
+ *   行数中性——三种形状：把条件补成 `|| 1`、在锚外那一行行尾追加语句、给调用挂 `if (0)` 前缀。
+ *   实测对照（同一退化、两种写法）在 tools/out/probe-b37-unutral.js：+1/-1 行那三条各出 3 条 §51 红，
+ *   中性改写那三条整跑全绿。R 类不受这条约束（它要的就是 §47 出红字，§51 连带红不影响判定）。
+
  *   （`needle.slice(0, 52)`），所以 token 抄「整条 needle」永远匹配不上——75 字的串在红字里只有前 52 字。
  *   要么取 needle 前 52 字以内的那一段，要么取 reason 里的一段。R06 现取「once(null, { exists: false }」，
  *   它正好落在第 52 字之前，而被打进去的改后串里是 `cb(null, ...)`，不含这一串，不会自撞。
@@ -83,9 +107,22 @@ const FP = [
   ['tools/verify.js', '§47 不可逆动作闸门'],
   ['tools/verify.js', 'const flat47 = s => ws47(stripBlockComments(s));'],
   ["tools/verify.js", "if (var47.panel !== 4 || !P47['travel-notes.js'])"],
-  ['tools/verify.js', "cnt47(S47, 'checks >= 57') !== 1"],
+  ['tools/verify.js', "cnt47(S47, 'checks >= 94') !== 1"],
   ['tools/verify.js', "const EXIT47 = { 'sync-webdav.js': 6, 'settings.html': 1 };"],
   ['tools/verify.js', 'const RE47P = /closePanel'],
+  /* —— 批次 37 的指纹（缺一枚就说明这张网跑在漂移过的树上：下面每一条 from 串都是照着这些形状抄的） —— */
+  ['tools/verify.js', 'const RE47K = /closeEdit'],
+  ['tools/verify.js', "if (var47.edit !== 3 || !K47['travel-notes.js'])"],
+  ['tools/verify.js', '剥刀盲区反证失效'],
+  ['tools/verify.js', 'for (let j = 1; j <= 35; j++) {'],
+  ['tools/verify.js', "if (cnt47(S47, \"ok('J12b \") !== 1)"],
+  ['travel-notes.js', 'function closeEdit(force) {'],
+  ['travel-notes.js', "var closeImp = function (force) {"],
+  ['travel-notes.js', '    if (!editCtx) return;'],
+  ['travel-notes.js', "        var ta = $X(m, '#tnImpTxt');"],
+  ['tools/smoke-irreversible.js', "ok('J12b "],
+  ['tools/smoke-irreversible.js', "ok('J31b "],
+  ['tools/smoke-irreversible.js', 'checks >= 94'],
   ['tools/smoke-irreversible.js', 'const VW = 328, VH = 723;'],
   ['tools/smoke-irreversible.js', "ok('I14b "],
   ['tools/smoke-irreversible.js', "ok('I22b "],
@@ -183,9 +220,9 @@ t('R17 结果提示又谎报「已清除全部数据」', [['travel-notes.js',
   "      flash(n ? ('已清除 ' + n + ' 篇游记，图册/行程/账目/设置都没动') : '本机已经没有游记了');",
   "      flash('已清除全部数据');"]],
   '结果提示又谎报');
-t('R18 force 的严格比较放宽成「有没有实参」（click 事件对象从此就是强制关闭的通行证）', [['travel-notes.js',
-  '    if (force !== true) {',
-  '    if (force) {']],
+t('R18 录音面板那扇门的 force 严格比较放宽成「有没有实参」（click 事件对象从此就是强制关闭的通行证）', [['travel-notes.js',
+  '    if (force !== true) {\n      var d = panelDirty();',
+  '    if (force) {\n      var d = panelDirty();']],
   '严格比较：事件对象');
 t('R19 closePanel 的 force 形参被抹掉（脏检查那条 if 失去输入）', [['travel-notes.js',
   '  function closePanel(force) {',
@@ -207,6 +244,80 @@ t('R23 confirmDialog 的自定义钮名形参被摘（这一族从此只能叫�
   '  function confirmDialog(msg, onOk, okLabel, noLabel) {',
   '  function confirmDialog(msg, onOk) {']],
   '第 3/4 形参');
+
+/* ---------- ①' 批次 37：编辑游记屏两扇门 + 导入框（同一族第二次发作的三个口） ---------- */
+t('R24 编辑屏那扇门的 force 严格比较放宽（返回钮上那颗 click 事件对象成了强制关闭的通行证）', [['travel-notes.js',
+  '    if (!editCtx) return;\n    if (force !== true) {',
+  '    if (!editCtx) return;\n    if (force) {']],
+  '三扇门共用这一条');
+t('R25 导入框那扇门的 force 严格比较放宽（第三口同因）', [['travel-notes.js',
+  "      if (force !== true) {\n        var ta = $X(m, '#tnImpTxt');",
+  "      if (force) {\n        var ta = $X(m, '#tnImpTxt');"]],
+  '批次 37 之前这里是 1 处');
+t('R26 基线不再抄屏上现值（base 落成 null：一进屏四样全算「改过」，或者反过来谁都判不出）', [['travel-notes.js',
+  'editCtx = { pg: pg, photos: photos, base: editVals(pg, photos), pushed: false };',
+  'editCtx = { pg: pg, photos: photos, base: null, pushed: false };']],
+  '基线在开层那一刻抄');
+t('R27 popstate 每开一层重绑一次（编辑屏关过后别人的 popstate 也被这一族吃掉）', [['travel-notes.js',
+  "if (!editPopBound) { editPopBound = true; addEventListener('popstate', onEditPop); }",
+  "editPopBound = true; addEventListener('popstate', onEditPop);"]],
+  '监听只绑一次');
+t('R28 pushState 失败不再回写 pushed（压不成也照样 back：dropEdit 那一步成了真·后退一页，把人送出这一屏）', [['travel-notes.js',
+  "try { history.pushState({ tnEdit: 1 }, ''); c.pushed = true; } catch (e) { c.pushed = false; }",
+  "try { history.pushState({ tnEdit: 1 }, ''); c.pushed = true; } catch (e) {}"]],
+  '压历史失败必须落到');
+t('R29 没压过也 back（点一次返回多攒一条空层，攒够了返回键就一路退空层）', [['travel-notes.js',
+  'if (c && c.pushed) { try { history.back(); } catch (e) {} }',
+  'try { history.back(); } catch (e) {}']],
+  '只有真压过才回收');
+t('R30 #tnEditBack 的绑定退回裸引用（MouseEvent 直接当 force 递进 closeEdit）', [['travel-notes.js',
+  "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); };",
+  "$X(pg, '#tnEditBack').onclick = closeEdit;"]],
+  'MouseEvent 当 force 递进去');
+t('R31 #tnEditBack 退回无条件拆层（本条雷本体原地复活：改到一半按返回，这一轮改动当场作废）', [['travel-notes.js',
+  "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); };",
+  "$X(pg, '#tnEditBack').onclick = function () { pg.remove(); };"]],
+  '返回钮又回到无条件拆层');
+t('R32 保存路径退回裸拆层（历史里那条 entry 没人收，下一次物理返回退回这一屏的空壳）', [['travel-notes.js',
+  'persist(); renderTNLayer(); renderList(); renderStats(); dropEdit();',
+  'persist(); renderTNLayer(); renderList(); renderStats(); pg.remove();']],
+  '保存路径又回到裸拆层');
+t('R33 编辑屏那枚「问句已出口就早退」被摘（连点两下返回叠出第二层，答一次留一层）', [['travel-notes.js',
+  "        if (document.querySelector('.tn-cfm')) return;\n        confirmDialog('这篇的'",
+  "        confirmDialog('这篇的'"]],
+  '连点两下返回不叠第二层');
+t('R34 导入框那枚早退守卫被摘（同族第二处，(a)(b) 两处共用一枚期望 2 的锚，只摘一边就漏一扇门）', [['travel-notes.js',
+  "        if (ta && ta.value.trim()) {\n          if (document.querySelector('.tn-cfm')) return;",
+  '        if (ta && ta.value.trim()) {']],
+  '编辑屏与导入框各一处');
+t('R35 导入框的 × 退回无判定直拆（粘进去没导入的整份备份就地作废）', [['travel-notes.js',
+  "$X(m, '#tnImpX').onclick = function () { closeImp(); };",
+  "$X(m, '#tnImpX').onclick = close;"]],
+  '导入框的 × 又接回无判定直拆');
+t('R36 导入框的 × 退回裸 closeImp 引用（同 R30：事件对象当 force）', [['travel-notes.js',
+  "$X(m, '#tnImpX').onclick = function () { closeImp(); };",
+  "$X(m, '#tnImpX').onclick = closeImp;"]],
+  '同上，包一层而不是裸引用');
+t('R37 导入框的按钮动词借用编辑屏的「保存」（它不保存任何东西，「继续保存」是谎话）', [['travel-notes.js',
+  "'关掉不导入', '继续导入');",
+  "'关掉不保存', '继续编辑');"]],
+  '导入框的动词不许借用');
+t('R38 导入框的遮罩入口整条被摘（第二条门从此不经过任何判定）', [['travel-notes.js',
+  'm.onclick = function (e) { if (e.target === m) closeImp(); };',
+  '/* 遮罩入口被摘掉 */']],
+  '遮罩入口也过判定');
+t('R39 closeEdit 的 force 形参被抹（脏检查那条 if 失去输入，同 R19 那一支）', [['travel-notes.js',
+  '  function closeEdit(force) {',
+  '  function closeEdit() {']],
+  '编辑屏关闭的唯一判定口');
+t('R40 (e) 落点少一处：onEditPop 里物理返回那一调被摘（(d) 那把刀的姐妹刀，方向是「绕过脏检查」）', [['travel-notes.js',
+  '    pushEditEntry(editCtx);\n    closeEdit(false);',
+  '    pushEditEntry(editCtx);']],
+  '少一处说明又有一扇关闭的门绕过脏检查');
+t('R41 (e) 落点多一处：绑定里连调两次 closeEdit（多出来的那一处是第二个拆层口，dropEdit 收历史那一步会被跳过）', [['travel-notes.js',
+  "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); };",
+  "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); closeEdit(); };"]],
+  '多一处说明别的页面开始直接拆编辑层');
 
 /* ---------- ② 守卫自己 ---------- */
 t('S01 共享剥刀退回不剥注释（注释里抄的改前原串会被当成代码在场）', [['tools/verify.js',
@@ -245,8 +356,8 @@ t('S09 tools 侧裸 push 的分母下限挪高（批次 8 那条传输腿被拆�
   '    if (var47.toolsBare < 4) F47(',
   '    if (var47.toolsBare < 400) F47(']],
   'tools/ 侧裸 push 只剩');
-t('S10 条数守卫阈值从 57 挪到 2（删 55 条判据照样绿）', [['tools/smoke-irreversible.js',
-  'checks >= 57',
+t('S10 条数守卫阈值从 94 挪到 2（删 93 条判据照样绿；批次 37 之后判据是 95 条，ok() 在自增前求值所以写 94）', [['tools/smoke-irreversible.js',
+  'checks >= 94',
   'checks >= 2']],
   '阈值被挪');
 t('S11 齐备检循环上限从 56 收到 55（收窄一格就少守一条，而且它自己永远不会红）', [['tools/verify.js',
@@ -282,6 +393,26 @@ t('S19 CAL47P 的期望从 3 挪到 2（「分不清包一层和裸引用」这�
   "    if (CAL47P !== 3) F47(",
   "    if (CAL47P !== 2) F47("]],
   'closePanel 那把刀失准');
+t('S20 ④ 的 J 族齐备检循环上限从 35 收到 34（收窄一格就少守一条，而它自己永远不会红——批次 37 新加的那一族全靠这条对账）', [['tools/verify.js',
+  '    for (let j = 1; j <= 35; j++) {',
+  '    for (let j = 1; j <= 34; j++) {']],
+  '循环上限是 34');
+t('S21 摘掉 J12b（「问句已出口就早退」那条守卫唯一的目击者没了——真鼠标第二下物理上落在遮罩上，根本够不到返回钮）', [['tools/smoke-irreversible.js',
+  "  ok('J12b ",
+  "  chk('J12b "]],
+  'J12b（代码里直调返回出口也不叠第二层）不在场');
+t('S22 摘掉 J31b（问句藏在导入框后面那一种没人守：J30 读到的「出了确认层」照样绿）', [['tools/smoke-irreversible.js',
+  "  ok('J31b ",
+  "  chk('J31b "]],
+  'J31b（问句压在导入框之上、.tc-ok 真点得到）不在场');
+t('S23 CAL47K 的期望从 3 挪到 2（closeEdit 那把刀被认成合法，R30/R36 那两条「绑定不许退回裸引用」就没了对照）', [['tools/verify.js',
+  "    if (CAL47K !== 3) F47(",
+  "    if (CAL47K !== 2) F47("]],
+  'closeEdit 那把刀失准');
+t('S24 剥刀盲区反证钉的那两串之一在产品里改了名（盲区一旦不可读，本节钉过的每个落点计数都要重对账——反证必须当场喊，不许静默放行）', [['travel-notes.js',
+  '关闭之前先问一句（批次 37',
+  '关闭之前先问一次（批次 37']],
+  '剥刀盲区反证失效');
 
 /* ---------- ③ 浏览器腿脚手架 ---------- */
 t('T01 真机档退回 452×995（量的就不是用户那块屏，§37 口径）', [['tools/smoke-irreversible.js',
@@ -312,12 +443,20 @@ t('T07 种子函数少一个形参（「其它集合没动」从此没有分母�
   'function seedLocal(ids, davPort, withAlbum)',
   'function seedLocal(ids, davPort)']],
   '本机条数与「有没有图册」都按参数铺');
+t('T08 真点列表进编辑屏那一支被改名（openEdit 不在导出面上，这一支是「腿测的是屏上真有的入口」的唯一登记）', [['tools/smoke-irreversible.js',
+  'async function toEditLayer(page) {',
+  'async function toEditLayerDrift(page) {']],
+  '必须真点列表进编辑屏');
+t('T09 读「层在不在 + 四件现值 + 库里那条 + 历史长度」的那枚探针被改名（判据各读各的就出现「层已经没了还在比字段」）', [['tools/smoke-irreversible.js',
+  'function editSnap(page) {',
+  'function editSnapDrift(page) {']],
+  '判据各读各的');
 
 /* ---------- ④ 两条腿的分工样本：源码腿必须全绿，浏览器腿必须红在指名那条 ---------- */
 gBoth('U01 panelDirty 恒返回「不脏」（A47 只钉 function panelDirty() { 那一行，body 退化源码腿结构性看不见）——期望红在 I37',
   [['travel-notes.js',
     '    if (!ui || !state) return null;',
-    '    if (!ui || !state) return null;\n    if (1) return null;']],
+    '    if (!ui || !state || 1) return null;']],
   'I37');
 gBoth('U02 dirtyWords 退回通用问句（锚同理只钉定义行；「列出会丢什么」这一条只有屏上量得到）——期望红在 I39',
   [['travel-notes.js',
@@ -334,6 +473,43 @@ gBoth('U04 pushWords 把「从云端恢复也读不回来」那半句摘掉（�
     "        p.localAlbums + ' 本，换掉的那部分云端就没有了，「从云端恢复」也读不回来。'",
     "        p.localAlbums + ' 本。'"]],
   'I07');
+
+/* ---------- ④' 批次 37 的分工样本：判定体在锚外，源码腿结构性读不到「那句问话有没有真飘出来」 ---------- */
+gBoth('U05 编辑屏的脏判定整条短路（if (d.length) 变 if (false)：这一行不在任何锚里，而它下面的 confirmDialog 原串照样在场）——期望红在 J07',
+  [['travel-notes.js',
+    '      var d = editDiff(c.base, editVals(c.pg, c.photos));\n      if (d.length) {',
+    '      var d = editDiff(c.base, editVals(c.pg, c.photos));\n      if (false) {']],
+  'J07');
+gBoth('U06 先收层再追问（dropEdit() 追加在早退那一行行尾：三枚锚都在体外，屏上却变成「层已经没了，问的是空气」；写法必须行数中性，见文件头第三条登记）——期望红在 J08',
+  [['travel-notes.js',
+    "        if (document.querySelector('.tn-cfm')) return;\n        confirmDialog('这篇的'",
+    "        if (document.querySelector('.tn-cfm')) return; dropEdit();\n        confirmDialog('这篇的'"]],
+  'J08');
+gBoth('U07 开层不再压历史（pushEditEntry 的定义、try/catch、c.pushed 三枚锚全在场，只是开层那一句挂上 if (0) 永不执行；删整行会让 §51 的行号表漂移，故留原行）——期望红在 J04',
+  [['travel-notes.js',
+    "    if (!editPopBound) { editPopBound = true; addEventListener('popstate', onEditPop); }\n    pushEditEntry(editCtx);",
+    "    if (!editPopBound) { editPopBound = true; addEventListener('popstate', onEditPop); }\n    if (0) pushEditEntry(editCtx);"]],
+  'J04');
+gBoth('U08 photoSig 恒返同一串（锚只钉 function photoSig(arr) { 那一行：照片增删从此判不出；「只比张数」那一支见文件头登记的第二条盲区）——期望红在 J17',
+  [['travel-notes.js',
+    "  function photoSig(arr) {\n    return (arr || []).length + ':' + (arr || []).map(function (p) { return String(p).length; }).join(',');",
+    "  function photoSig(arr) {\n    return 'same';"]],
+  'J17');
+gBoth('U09 editDiff 的正文那一支退回不报字数（锚钉的是函数定义行，问句从此只会说「内容」）——期望红在 J09',
+  [['travel-notes.js',
+    "    if (now.text !== b.text) d.push('正文 ' + now.text.length + ' 字');",
+    "    if (now.text !== b.text) d.push('内容');"]],
+  'J09');
+gBoth('U10 editDiff 起手就非空（一进屏就判脏：脏检查从「拦丢内容」变成「每关一次骚扰一次」，J05 那条「没改就直接收」当场红）——期望红在 J05',
+  [['travel-notes.js',
+    '  function editDiff(b, now) {\n    var d = [];',
+    "  function editDiff(b, now) {\n    var d = ['这一轮改动'];"]],
+  'J05');
+gBoth('U11 导入框「框里还有字」那一条判据短路（三枚锚全在场：动词、早退、closeImp 定义，而那条问句永远问不出口）——期望红在 J30',
+  [['travel-notes.js',
+    '        if (ta && ta.value.trim()) {',
+    '        if (ta && false) {']],
+  'J30');
 
 /* ============ 预检：全部 from 串必须在基准树里命中应有的次数，且不许是恒等操作 ============ */
 function preflight() {
@@ -388,7 +564,22 @@ function runSmoke() {
   catch (e) { return { out: String((e && e.stdout) || '') + '\nTHROW ' + String((e && e.message) || e).slice(0, 200), green: false }; }
 }
 const S47 = o => String(o).split('\n').filter(l => l.indexOf('FAIL §47') === 0);
-const B47 = o => String(o).split('\n').filter(l => /^FAIL\s+I\d/.test(l));
+/* 浏览器腿的红字族：I 与 J 两族都要收。上一版这里只认 /^FAIL\s+I\d/，于是 U05–U11 那七条打在 J 上的红
+   会被判成「浏览器腿 0 红」＝异常——那是取样的筛子太窄，不是靶子没打中（同一族教训见 §52 的锁名筛子）。 */
+const B47 = o => String(o).split('\n').filter(l => /^FAIL\s+[IJ]\d/.test(l));
+/* 异常时的现场：红字只印「0 条」等于闸门失明（首跑栽在这里，看不出是别的节红了还是腿压根抛了）。
+   ① 把 verify 里所有节的红按节归组；② 把 smoke 的读数条数与末尾两行、有没有 THROW 一起印出来。 */
+const SECS47 = o => {
+  const g = {};
+  String(o).split('\n').forEach(l => {
+    const m = /^FAIL (§\d+)/.exec(l);
+    if (m) g[m[1]] = (g[m[1]] || 0) + 1;
+    else if (/^THROW /.test(l)) g.THROW = 1;
+  });
+  return Object.keys(g).length ? JSON.stringify(g) : '无';
+};
+const PASS47 = o => String(o).split('\n').filter(l => /^PASS\s+[IJ]\d/.test(l)).length;
+const TAIL47 = o => String(o).split('\n').filter(l => l.trim()).slice(-2).join(' ⏎ ').slice(0, 170);
 
 const vbase = runVerify(), f0 = S47(vbase.out);
 if (f0.length || !vbase.green) { console.log('中止：基准 verify.js 的 §47 已经有 ' + f0.length + ' 条红或整跑不绿，先修基准\n' + f0.slice(0, 4).join('\n')); process.exit(2); }
@@ -396,7 +587,7 @@ if (String(vbase.out).indexOf('=== ALL CHECKS PASSED ===') < 0) { console.log('�
 console.log('基准 verify 全绿 ✓（' + String(vbase.out).split('\n').filter(l => l.indexOf('不可逆动作闸门:') === 0)[0].slice(0, 46) + '…）');
 const sbase = runSmoke(), c0 = B47(sbase.out);
 if (c0.length || !sbase.green) { console.log('中止：基准 smoke-irreversible 已经有 ' + c0.length + ' 条红或整跑不绿，先修基准\n' + c0.slice(0, 4).join('\n')); process.exit(2); }
-console.log('基准 smoke-irreversible 判据全绿 ✓（' + sbase.out.split('\n').filter(l => l.indexOf('PASS  I') >= 0).length + ' 条）');
+console.log('基准 smoke-irreversible 判据全绿 ✓（' + sbase.out.split('\n').filter(l => /^PASS\s+[IJ]\d/.test(l)).length + ' 条 I+J）');
 
 /* ============ 逐条打靶 ============ */
 const ONLY = (process.env.MUT_ONLY || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -426,14 +617,15 @@ CASES.forEach(c => {
     if (!reds.length && vr.green && dd.length && named && !sm.green) {
       okSilent++; console.log('OK   ' + c.name.slice(0, 44) + '  → 源码腿 0 红且整跑绿，浏览器腿红在 ' + c.want + '（共 ' + dd.length + ' 条红）');
     } else {
-      weird++; console.log('异常 ' + c.name.slice(0, 44) + '  → 源码腿红 ' + reds.length + ' 条' + (reds[0] ? '（' + reds[0].slice(0, 76) + '）' : '') + (vr.green ? '／整跑仍绿' : '／整跑不绿') +
-        '，浏览器腿红 ' + dd.length + ' 条' + (dd[0] ? '（首条 ' + dd[0].slice(0, 26) + '）' : '') + (named ? '' : '；指名的 ' + c.want + ' 没红'));
+      weird++; console.log('异常 ' + c.name.slice(0, 44) + '  → 源码腿红 ' + reds.length + ' 条' + (reds[0] ? '（' + reds[0].slice(0, 76) + '）' : '') + (vr.green ? '／整跑仍绿' : '／整跑不绿，各节红数 ' + SECS47(vr.out)) +
+        '，浏览器腿红 ' + dd.length + ' 条' + (dd[0] ? '（首条 ' + dd[0].slice(0, 26) + '）' : '') + (named ? '' : '；指名的 ' + c.want + ' 没红') +
+        '；smoke 绿条 ' + PASS47(sm.out) + '／末尾「' + TAIL47(sm.out) + '」');
     }
   } else {
     const hit = reds.filter(l => l.indexOf(c.token) >= 0);
     if (hit.length && !vr.green) { okRed++; console.log('OK   ' + c.name.slice(0, 44) + '  → ' + hit[0].slice(11, 96)); }
     else {
-      weird++; console.log('异常 ' + c.name.slice(0, 44) + '  → §47 红 ' + reds.length + ' 条，' + (vr.green ? '整跑还绿＝退出码没跟上：' : '没有一条含「' + c.token + '」') +
+      weird++; console.log('异常 ' + c.name.slice(0, 44) + '  → §47 红 ' + reds.length + ' 条，' + (vr.green ? '整跑还绿＝退出码没跟上：' : '没有一条含「' + c.token + '」，各节红数 ' + SECS47(vr.out)) +
         (reds[0] ? '：' + reds[0].slice(0, 96) : (String(vr.out).indexOf('=== ALL CHECKS PASSED ===') >= 0 ? '（红字压根没印，整跑还绿＝那条锚是假绿灯）' : '（＝这条变异压根打不红）')));
     }
   }

@@ -1,0 +1,6 @@
+=== mut-verify47 · 靶子 85 条（红 73／抹登记 1／静默 11），预检 全过 ===
+基准 verify 全绿 ✓（不可逆动作闸门: 81 条代码锚点（写远端单点 putEnv / 判定单点 coverPla…）
+基准 smoke-irreversible 判据全绿 ✓（95 条 I+J）
+OK   S17 抹掉 README 里 §47 的登记（摘登记要抹全部出现：只摘一处 index  → 逆动作闸门: README.md 的 verify 清单没提 §47（新闸门不写进 README 就等于没装）
+=== mut-verify47: 85 条靶子 → 红对 1／静默对 0／异常 0／跳过 84 ===
+注意：U 类重跑过 smoke-irreversible，它按固定文件名落读数 tools/out/b32-smoke-irreversible.txt；跑完要在干净树上复跑一次并把读数盖回去。
