@@ -1,0 +1,52 @@
+=== 批次 39-D 常驻腿：三处浮层的返回键与屏上那扇门（328×723）===
+
+【X node-manager.html 自建地点表单】
+  ① 开层（进本页 hist=2）→ 开完 hist=3｜这一层压了 1 条｜state {"nmForm":1}｜机器填的 city=「」elev=「」｜打字后 hist 2→3（打字不压条）
+  ② 脏着发返回：{"hist":3,"st":"{\"nmForm\":1}","alive":true,"typed":"鹳雀楼（试验）","ask":true,"askText":"还没保存 这个地点还没存下来，关掉刚填的就没了。 继续填 关掉不存"}
+  ③ 关掉不存：{"hist":3,"st":"null","alive":false,"typed":null,"ask":false,"askText":null}｜state {"nmForm":1} → null（进本页 null）
+  ④ 干净层（开层前 state null，开完 {"nmForm":1}，机器填完 city=「」elev=「2017」）发返回：{"hist":3,"st":"null","alive":false,"typed":null,"ask":false,"askText":null}
+  ⑤ 脏着点屏上那扇门 #nmCancel：{"hist":3,"st":"{\"nmForm\":1}","alive":true,"typed":"鹳雀楼（试验）","ask":true,"askText":"还没保存 这个地点还没存下来，关掉刚填的就没了。 继续填 关掉不存"}
+  ⑥ 确认框点「继续填」：{"hist":3,"st":"{\"nmForm\":1}","alive":true,"typed":"鹳雀楼（试验）","ask":false,"askText":null}
+
+【Y review.html 行程生成表单】
+  ① 开层（进本页 hist=2）→ 开完 hist=3｜这一层压了 1 条｜state {"rzItin":1}｜打字后 hist 2→3（打字不压条）
+  ② 脏着发返回：{"hist":3,"st":"{\"rzItin\":1}","alive":true,"typed":"不看博物馆，只看地上文物","ask":true,"askText":"还没生成 路书还没生成，关掉刚填的就没了。 继续填 关掉不存"}
+  ③ 关掉不存：{"hist":3,"st":"null","alive":false,"typed":null,"ask":false,"askText":null}｜state {"rzItin":1} → null（进本页 null）
+  ④ 干净层（开层前 state null，开完 {"rzItin":1}）发返回：{"hist":3,"st":"null","alive":false,"typed":null,"ask":false,"askText":null}
+  ⑤ 脏着点屏上那扇门 #ix：{"hist":3,"st":"{\"rzItin\":1}","alive":true,"typed":"不看博物馆，只看地上文物","ask":true,"askText":"还没生成 路书还没生成，关掉刚填的就没了。 继续填 关掉不存"}
+  ⑥ 确认框点「继续填」：{"hist":3,"st":"{\"rzItin\":1}","alive":true,"typed":"不看博物馆，只看地上文物","ask":false,"askText":null}
+
+【Z travel-map.html 随手记面板】
+  ① 开层（进本页 hist=2）→ 开完 hist=3｜这一层压了 1 条｜state {"tnPanel":1}｜打字后 hist 2→3（打字不压条）
+  ② 脏着发返回：{"hist":3,"st":"{\"tnPanel\":1}","alive":true,"typed":"先说一段话试试：今天风很大，","ask":true,"askText":"这一段还没保存（转写/正文 20 字），关掉就没了，也不会进游记列表。 继续编辑 关掉不"}
+  ③ 关掉不存：{"hist":3,"st":"null","alive":false,"typed":"先说一段话试试：今天风很大，","ask":false,"askText":null}｜state {"tnPanel":1} → null（进本页 null）
+  ④ 干净层（开层前 state null，开完 {"tnPanel":1}）发返回：{"hist":3,"st":"null","alive":false,"typed":null,"ask":false,"askText":null}
+  ⑤ 脏着点屏上那扇门 #tnX：{"hist":3,"st":"{\"tnPanel\":1}","alive":true,"typed":"先说一段话试试：今天风很大，","ask":true,"askText":"这一段还没保存（转写/正文 20 字），关掉就没了，也不会进游记列表。 继续编辑 关掉不"}
+  ⑥ 确认框点「继续填」：{"hist":3,"st":"{\"tnPanel\":1}","alive":true,"typed":"先说一段话试试：今天风很大，","ask":false,"askText":null}
+PASS  B00  X 入口在场：NM.map 在（不在场时下面七条全是空的，先单独红这一条）
+PASS  B01  X 开层压一条历史（改前 0 条：新开页按返回＝退出应用）  [压了 1 条]
+PASS  B02  X 脏着按返回：落回这一层并问出口，字还在  [读到 {"ask":true,"alive":true,"typed":"鹳雀楼（试验）"}]
+PASS  B03  X 点「关掉不存」：层摘掉、确认框自己摘干净（同一发返回不许问两遍）、state 落回进本页那一格  [读到 {"alive":false,"ask":false}，state {"nmForm":1}→null（进本页 null）]
+PASS  B04  X 干净层直接摘、不白问一句（机器异步填的海拔不许算成「有内容」）  [机器填 elev=「2017」，读到 {"alive":false,"ask":false}]
+PASS  B05  X 屏上那扇门 #nmCancel 与返回键走同一条脏检查  [读到 {"alive":true,"ask":true,"st":"{\"nmForm\":1}"}]
+PASS  B06  X 点「继续填」：层留着、字留着，且这一层的历史条目还在场（不收就不许再叠一条）  [读到 {"alive":true,"ask":false,"typed":"鹳雀楼（试验）","st":"{\"nmForm\":1}"}]
+PASS  B07  X 全程零未捕获报错
+PASS  B08  Y 入口在场：Results.itinerary 在
+PASS  B09  Y 开层压一条历史  [压了 1 条]
+PASS  B10  Y 脏着按返回：落回这一层并问出口，字还在  [读到 {"ask":true,"alive":true,"typed":"不看博物馆，只看地上文物"}]
+PASS  B11  Y 点「关掉不存」：层摘掉、不重复问、state 落回进本页那一格  [state {"rzItin":1}→null]
+PASS  B12  Y 干净层直接摘、不白问一句  [读到 {"alive":false,"ask":false}]
+PASS  B13  Y 屏上那扇门 #ix 与返回键走同一条脏检查  [读到 {"alive":true,"ask":true}]
+PASS  B14  Y 点「继续填」：层留着、字留着、历史条目还在场  [读到 {"alive":true,"typed":"不看博物馆，只看地上文物","st":"{\"rzItin\":1}"}]
+PASS  B15  Y 全程零未捕获报错
+PASS  B16  Z 入口在场：TravelNotes.openPanel 在
+PASS  B17  Z 开面板压一条历史  [压了 1 条]
+PASS  B18  Z 脏着按返回：面板还在并问出口，正文还在（同一发返回只许问一遍，不许叠第二层）  [读到 {"ask":true,"alive":true,"typed":"先说一段话试试：今天风很大，"}]
+PASS  B19  Z 点「关掉不存」：面板收起、确认框自己摘干净、state 落回进本页那一格  [state {"tnPanel":1}→null]
+PASS  B20  Z 干净面板直接收、不白问一句  [读到 {"alive":false,"ask":false}]
+PASS  B21  Z 屏上那扇门 #tnX 与返回键走同一条脏检查  [读到 {"alive":true,"ask":true}]
+PASS  B22  Z 点「继续填」：面板留着、正文留着、历史条目还在场（UI.vt 的 hide 不许把这一发抢走）  [读到 {"alive":true,"typed":"先说一段话试试：今天风很大，","st":"{\"tnPanel\":1}"}]
+PASS  B23  Z 全程零未捕获报错
+PASS  B24  本腿条数守卫（24 条前置判据齐备，且没有 FAIL 行）  [实际执行 24 条]
+
+=== 全部通过 ===

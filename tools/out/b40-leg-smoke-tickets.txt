@@ -1,0 +1,13 @@
+PASS T1 site-tickets.js 已加载且导出 get
+PASS T2 种子优先命中且 src=seed  [seed]
+PASS T3 种子的 u 形如 YYYY-MM  [2026-10]
+PASS T4 无 Key 的非种子返回 null  [null]
+PASS T5 无 Key 时零次高德请求  [calls=0]
+PASS T6 30 天内吃缓存且 src=cache  [cache]
+PASS T7 缓存路径同样零次请求  [calls=0]
+PASS T8 过期缓存不复活（返回 null）  [null]
+PASS T9 种子景点整行可见并印「更新于 YYYY-MM」（样本 晋祠）  [block|11月至3月 08:00-17:00,4月至10月 08:30-18:00,2026-02-16,09:00-14:00]
+PASS T10 旧文案「核对」在这行零残留（样本 晋祠）  [block|11月至3月 08:00-17:00,4月至10月 08:30-18:00,2026-02-16,09:00-14:00]
+PASS T11 未收录景点整行隐藏且行内不出现「元」（样本 华严寺）  [none|]
+PASS T12 实时营业时间缀「（高德实时）」（样本 华严寺）  [block|08:00-17:40（造样本）更新于 2026-10（高德实时）]
+smoke-tickets: 12 PASS / 0 FAIL（共 12 条）

@@ -1,0 +1,7 @@
+PASS  edit: 文字编辑框存在
+PASS  场景1: 新增章节输入框下沿 <= 底栏顶部(不被遮挡)  [{"bottom":726,"barTop":754,"wrapBottom":754,"scrollTop":636,"chapters":2}]
+PASS  场景2: 聚焦后输入框下沿不重叠底栏  [{"bottom":705,"barTop":754}]
+PASS  场景3: 长文本+滚动后自动校正不遮挡  [{"bottom":705,"barTop":754}]
+PASS  无脚本错误
+
+ALL PASS

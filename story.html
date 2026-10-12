@@ -248,6 +248,21 @@ function focusCard(el){
   var y=(h>g.navTop-g.barH)?Math.max(g.mp,D-g.barH):D+h/2-(g.barH+g.navTop)/2;
   window.scrollTo({top:Math.max(0,Math.min(y,document.documentElement.scrollHeight-window.innerHeight)),behavior:UI.scrollBehavior()});
 }
+/* 列表还能不能再往下滚。单独一个函数是为了让下面 scroll-spy 的函数体不碰整屏高度——
+   §54 钉的是「spy 不许拿 innerHeight 当尺子」（它一旦改用整屏比例判，判出来的当前那篇就是压在浮条底下的那篇），
+   而这里要读的是「滚到底没有」，两回事，混在一起那条纪律就分不清了。
+   maxS>4 那一档是防「内容压根没超出屏幕」：那种机器上没有「滚到底」可言，不许任何一发判读都把激活抢给最后一张。
+   末站为什么需要这一档：滚到底就滚不动了，最后一张的中心永远抬不到带中心
+   （328×723 实测差 74px，tools/out/b40-probe-story-last.js），于是「离带中心最近」恒选倒数第二张——
+   点「下一站」翻到末站后 130ms 又被判回上一站（tools/out/b40-probe-story-spy.js 记到
+   setActive(4)→setActive(3)）：末站谁也到不了，地图最后一段线永远不亮，翻页条永远说「第 4 / 5 站」，
+   按钮还因为「没到末站」重新变可用，看着像点了没反应。
+   批次 39 把带中心从屏高 55% 挪到浮条与翻页条之间，#cards 那 200px 留白就够不着末卡了。
+   不在这里加高留白：要多高取决于卡高与翻页条实高，换机器就变，写死数值等于再埋一个会过期的魔法数。 */
+function atEnd(){
+  var maxS=document.documentElement.scrollHeight-window.innerHeight;
+  return maxS>4&&window.scrollY>=maxS-4;
+}
 /* scroll-spy：以卡片相对可读带中位判断激活（与上面落点同一个带，否则翻页刚落定就被判给别人） */
 var _spyTimer=null;
 function onScroll(){
@@ -255,14 +270,16 @@ function onScroll(){
   _spyTimer=setTimeout(function(){
     _spyTimer=null;
     var els=document.querySelectorAll('.story-card');
-    var best=-1,bestD=1e9;
     var bd=bandAt(window.scrollY);
     var mid=(bd.top+bd.bottom)/2;
+    var best=-1,bestD=1e9;
     els.forEach(function(e,i){
       var r=e.getBoundingClientRect();
       var d=Math.abs((r.top+r.height/2)-mid);
       if(d<bestD){bestD=d;best=i;}
     });
+    /* 滚到底那一档直接认最后一张，理由写在上面 atEnd 处 */
+    if(best>=0&&els.length&&atEnd())best=els.length-1;
     if(best>=0 && best!==lastActive){ lastActive=best; setActive(best); }
   },120);
 }

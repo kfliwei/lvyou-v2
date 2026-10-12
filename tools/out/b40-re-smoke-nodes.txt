@@ -1,0 +1,9 @@
+PASS  专题页无 FAB
+PASS  区域统计条出现  [当前区域 208 处江河湖泊 28森林草原 25城市地标 23宗教圣地 23]
+PASS  统计条 chip 触发筛选强调  [dim=62]
+PASS  高 zoom 节点已渲染  [nodes=52]
+FAIL  筛选双态：非匹配节点降透明  [dim=52 total=52]
+FAIL  图例选中态同步
+PASS  顶部标签选中态同步  [古建寺院]
+PASS  无脚本错误
+=== NODES SMOKE FAIL: 2 issue(s) ===

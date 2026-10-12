@@ -1,0 +1,71 @@
+=== mut-verify55 · 靶子 64 条（红 56／抹登记 5／分工 3），预检 全过 ===
+基准 verify 全绿 ✓（A55 表长 27／ZERO55 表长 5，与本网登记一致）
+基准普查读数（不覆盖项甲的现场证据）：主题普查: 有数据页 35（景点 8050）｜灰 605 处，其中因名字没过别名表 0（正向对照：改前那套 1067 处）｜归一后表内残留别名键 0｜majorThemes 零命中 0（改前 ……灰 605 处而整跑绿＝这一族没配判据（待点单）
+基准 tools/smoke-nodes.js 判据全绿 ✓（19 条）
+基准 tools/smoke-story-map.js 判据全绿 ✓（21 条）
+OK   R01 别名表入口空转（normTheme 原样返回，景点那侧与配置那侧永远不同名）  → 别名归一・叙事末站闸门: topic-common.js 里「function normTheme(t) { return (window.THEME_ALIAS &」实
+OK   R02 景点侧不再归一（tk 直接回原样字段，chip 存的是标准名就永远比不中）  → 别名归一・叙事末站闸门: topic-common.js 里「function tk(s) { return normTheme(s[M.themeKey || 't」实
+OK   R03 取色不再过归一（那一枚景点查不到配色就退灰，正是 ③(a) 要数的那个 0）  → 别名归一・叙事末站闸门: topic-common.js 里「function colorOf(s) { return M.themes[tk(s)] || "#7D」实
+OK   R04 筛选两侧退回不同名（点 chip＝整张图变淡、零结果，就是用户报的那个症状）  → 别名归一・叙事末站闸门: topic-common.js 里「if (state.theme && tk(s) !== state.theme) return fal」实
+OK   R05 「必去」那一档不再归一（加粗与封印静默失效，改前 34 页次全在这一条上）  → 别名归一・叙事末站闸门: topic-common.js 里「function isMajorSite(s) { return (M.majorThemes || [」实
+OK   R06 canonThemes 定义了不接（init 里那一调用摘掉＝这条修复压根不存在  → 别名归一・叙事末站闸门: topic-common.js 里「canonThemes();」实得 0，期望 1：定义了不接＝这条修复不存在（init 里紧跟 TOPIC_
+OK   R07 配色表不归一（chip 圆点、图例点、分组头三处一起查不到色）  → 别名归一・叙事末站闸门: topic-common.js 里「if (M.themes) M.themes = mapKeys(M.themes);」实得 0，期望 1：
+OK   R08 图标表不归一（那一类节点取不到图标：屏幕上不报错，只少一张图）  → 别名归一・叙事末站闸门: topic-common.js 里「if (M.themeIcons) M.themeIcons = mapKeys(M.themeIcon」实
+OK   R09 mapKeys 撞名保第一支改成静默覆盖（别名与标准名同时声明时，后一支把前一支  → 别名归一・叙事末站闸门: topic-common.js 里「Object.keys(src || {}).forEach(function (t) { var n 」实
+OK   R10 标签顺序不去重（同一主题两颗 chip，点其中一颗另一颗也跟着亮）  → 别名归一・叙事末站闸门: topic-common.js 里「M.themeOrder.forEach(function (t) { var n = normThem」实
+OK   R11 majorThemes 并进 mapKeys（数组走对象支＝把索引当键，这一支整  → 别名归一・叙事末站闸门: topic-common.js 里「M.majorThemes.forEach(function (t) { var n = normThe」实
+OK   R12 chip 与图例的存在性守卫两处全摘（零命中那颗点下去＝整张图变淡，用户看不出是  → 别名归一・叙事末站闸门: topic-common.js 里「if (!SITES.some(function (s) { return tk(s) === th; 」实
+OK   R13 只摘 chip 那一处守卫（图例还有、chip 没有＝联动落空，成对判据被拆散）  → 别名归一・叙事末站闸门: topic-common.js 里「if (!SITES.some(function (s) { return tk(s) === th; 」实
+OK   R14 别名表在配置侧改名（canonThemes 仍在跑但查的是空表：普查的尺子跟着塌  → 别名归一・叙事末站闸门: ③(a) 的归一去重自校准失准（合成「古建寺院／寺庙」应塌成 1 颗，实得 ["古建寺院","寺庙"]）：别名表读不到＝下面所有 0 都不算证据
+OK   W01 spy 里的末站收口那句摘掉（末站又被「离带中心最近」判给倒数第二张）  → 别名归一・叙事末站闸门: scroll-spy 里没有那一句末站收口（现读 0）：末站又被「离带中心最近」判给倒数第二张
+OK   W02 atEnd 的 maxS>4 那一档省掉（内容没超出屏幕时恒真：任何一发判读都被  → 别名归一・叙事末站闸门: story.html 里「return maxS>4&&window.scrollY>=maxS-4;」实得 0，期望 1：maxS>4 那一档
+OK   W03 atEnd 不再读整屏高，把 328×723 那一档量出来的数写回代码（换台机器  → 别名归一・叙事末站闸门: atEnd 没读 window.innerHeight：「滚到底」少一件读数就会恒真（末站又被判回倒数第二站）或恒假（这一档从没生效过）
+OK   W04 把「滚到底」的三件读数写回 scroll-spy 体内（§54 那条「不许拿整屏  → 别名归一・叙事末站闸门: scroll-spy 的函数体里又出现整屏读数：带在哪归 bandAt、滚到底归 atEnd，两处都不许它自己拿尺子（§54 钉的「不许拿整屏高
+OK   W05 末站另开通路绕开 lastActive（同一发滚轮问两遍，跟批次 39 的「只许  → 别名归一・叙事末站闸门: story.html 里「if(best>=0 && best!==lastActive){ lastActive=best; s」实得 0，期
+OK   W06 atEnd 改名（函数体读不到＝③(b) 这一支失明，靠 body55 的 nu  → 别名归一・叙事末站闸门: 读不到 story.html 里 atEnd 的函数体：③(b) 这一支失明
+OK   G01 本节的 flat55 定义行不走那把共享剥刀（成因注释里原样写着别名旧流程，不剥  → 别名归一・叙事末站闸门: §55 的 flat55 定义行没走那把共享剥刀（现场读到的那一行：  const flat55 = s => ws55(s);）：topic-
+OK   G02 view55 的定义行退回「文档也剥注释」（README 登记本批时要写旧写法，  → 别名归一・叙事末站闸门: view55 的定义行退回「文档也剥注释」那一支（现场读到的那一行：  const view55 = f => flat55(rd55(f));
+OK   G03 盲区哨兵那一支取反（这一带变成盲窗时它不报，反而在正常时报）  → 别名归一・叙事末站闸门: 盲区哨兵：「function canonThemes() {」在 flat 里读不到了（它就贴在 topic-common.js 本批改掉的行旁
+OK   G04 A55 的四元组形状检改字段数（少一字段会解构错位，那条锚等于没跑）  → 别名归一・叙事末站闸门: A55 有一条不是「[文件, 串, 期望次数, 原因]」四元组：["topic-common.js","function normTheme(t
+OK   G05 ZERO55 的四元组形状检改字段数（少字段会让那条期望 0 的正向对照等于没有  → 别名归一・叙事末站闸门: ZERO55 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：["topic-common.js","(M.themeOrder |
+OK   G06 A55 登记了本节没读的文件（那一支锚永远读空串，期望次数却照判）  → 别名归一・叙事末站闸门: A55 登记了 §55 没读的文件「topic-commo.js」：配置这一侧的归一只有一个地方（不在各页配置里手改 35 份，也不在读取处各补
+OK   G07 ZERO55 登记了本节没读的文件（正向对照同理读空，那条 0 就不是证据）  → 别名归一・叙事末站闸门: ZERO55 登记了 §55 没读的文件「topic-commo.js」：chip 不做存在性守卫：零命中的那颗点下去＝整张图变淡、零结果，用户
+OK   G08 期望 0 的正向对照检取反（对照失效时它不红，反而在对照成立时红＝这条腿是倒装的  → 别名归一・叙事末站闸门: 「(M.themeOrder || []).forEach(function (th) { var」这条期望 0 的正向对照失效了（上面那个 0
+OK   G09 普查的页数分母抬到测不到（分母塌了，那几个 0 是空转出来的）  → 别名归一・叙事末站闸门: 普查只数到 35 个有数据页（期望 ≥90）：分母塌了，上面那几个 0 是空转出来的
+OK   G10 普查的景点数分母抬到测不到（数据文件读过半路，判据没被测到）  → 别名归一・叙事末站闸门: 普查只数到 8050 个景点（期望 ≥99000）：数据文件或注册表读过半路，判据没被测到
+OK   G11 归一去重自校准取反（别名表读不到时下面所有 0 都不算证据，这一条是那把尺子的反  → 别名归一・叙事末站闸门: ③(a) 的归一去重自校准失准（合成「古建寺院／寺庙」应塌成 1 颗，实得 ["寺庙"]）：别名表读不到＝下面所有 0 都不算证据
+OK   G12 配色表归一自校准的期望支数改 2（合成两支应剩一支）  → 别名归一・叙事末站闸门: ③(a) 的配色表归一自校准失准（合成两支应剩一支，实得 1 支）：表里的别名键没被合掉
+OK   G13 「归一后原样查得到而归一查不到」那条期望 0 取反（① 的失败模式复活就没人看）  → 别名归一・叙事末站闸门: 归一后仍有 0 处景点「原样名字查得到配色、归一值查不到」：那就是 ① 的失败模式复活（chip 存别名、筛选比标准名，点下去整张图变淡）
+OK   G14 表内残留别名键那条期望 0 取反（canonThemes 没跑或跑晚了的读数口）  → 别名归一・叙事末站闸门: 归一后的配色表里还剩 0 个别名当键：canonThemes 没跑或跑晚了（各页配置里别名键照原样留着是设计内，运行时那张表不许留）
+OK   G15 majorThemes 零命中那条期望 0 取反（改前 34 页次全是这一族）  → 别名归一・叙事末站闸门: majorThemes 里 0 个主题名在本页一个景点都没命中：「必去」那一档的加粗与封印在这一页静默失效（改前 34 页次全是这种）
+OK   G16 标签重名那条期望 0 取反  → 别名归一・叙事末站闸门: 归一后的标签顺序里 0 颗重名：同一主题两颗 chip，点其中一颗另一颗也跟着亮，选中态点不回来
+OK   G17 整页全零命中那条期望 0 取反（这一页的筛选条应当是空而不造）  → 别名归一・叙事末站闸门: 有 0 页整页的主题标签一个景点都没命中：这一页的主题筛选条应该是空而不造（守卫挡掉），不该造出一排点不动的胶囊
+OK   G18 普查第一条正向对照取反（拿改前那套量必须数出 >0，取反后它只在尺子真的坏了时不  → 别名归一・叙事末站闸门: 正向对照失效：拿改前那套（未归一的配色表）量，「原样查得到、归一查不到」的景点数到 1067 处——0 就说明这把尺子根本没碰到 ① 的失败模式
+OK   G19 普查第二条正向对照取反（同上，majorThemes 那一支）  → 别名归一・叙事末站闸门: 正向对照失效：改前那套 majorThemes（别名原样）零命中数到 34，应为 >0（实测 34 页次），不然上面那个 0 不是修复的结果
+OK   G20 末站尺子的自校准阈值改成 0（缺样数不出＝atEnd 恒真/恒假没人看得见）  → 别名归一・叙事末站闸门: ③(b) 那把尺子自校准失准（合成串应缺 ["document.documentElement.scrollHeight","window.in
+OK   G21 spy 整屏尺子的自校准取反（合成串里明明写了 innerHeight，正则读不  → 别名归一・叙事末站闸门: spy 那把整屏尺子的自校准失准（合成串里明明写了 innerHeight/scrollHeight，正则读不到）：下面那个「spy 体干净」是
+OK   G22 body55 读不到 atEnd 那一支取反（这一支自己永远不会红的形状）  → 别名归一・叙事末站闸门: 读不到 story.html 里 atEnd 的函数体：③(b) 这一支失明
+OK   G23 body55 读不到 onScroll 那一支取反（同上，第二支）  → 别名归一・叙事末站闸门: 读不到 story.html 里 onScroll 的函数体：③(b) 这一支失明
+OK   G24 ④ 齐备检的循环上限从 20 收到 13（少守 7 条而它自己恒不红——拿真实最  → 别名归一・叙事末站闸门: ④ 齐备检的循环上限是 13，而 smoke-story-map 里真实最大编号是 S20：上限比编号小＝有几条判据没人守（收窄一格就少守一条，
+OK   G25 上限对账那把正则改到读不到（形状一改，这条对账当场失明而非报红）  → 别名归一・叙事末站闸门: 读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）
+OK   G26 ④ 的条数守卫检取反（少了 S20 那条守卫时它不红，反而在它在场时红）  → 别名归一・叙事末站闸门: smoke-story-map 少了最后那条条数守卫（ok('S20'）：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转出来的
+OK   G27 名单少登记一条（新加判据不登记，本节就永远看不见它）  → 别名归一・叙事末站闸门: smoke-nodes.js 现场数到 19 条判据，④ 登记的名单是 18 条：多出来的那条没人守（新加判据不登记，本节就永远看不见它）
+OK   G28 腿里新加一条判据不写进名单（现场比名单多——双向对账的另一半边；把 !== 取反  → 别名归一・叙事末站闸门: smoke-nodes.js 现场数到 20 条判据，④ 登记的名单是 19 条：多出来的那条没人守（新加判据不登记，本节就永远看不见它）
+OK   T01 smoke-nodes 的条数守卫阈值挪低（判据少 16 条也算跑完：中途抛了＝  → 别名归一・叙事末站闸门: tools/smoke-nodes.js 里「total >= 18」实得 0，期望 1：条数守卫
+OK   T02 smoke-story-map 的条数守卫阈值挪低（同上）  → 别名归一・叙事末站闸门: tools/smoke-story-map.js 里「total >= 20」实得 0，期望 1：条数守卫
+OK   T03 smoke-nodes 的名单退回拼常量（名单不是现场取回来的真值，改了运行时也  → 别名归一・叙事末站闸门: tools/smoke-nodes.js 里「}, shape.order);」实得 0，期望 1：名单是现场取回来的真值传进 evaluate
+OK   T04 smoke-nodes 的取样退回读空壳（A/M/S 全空＝形状检抱着自己的 D  → 别名归一・叙事末站闸门: tools/smoke-nodes.js 里「'var A=window.THEME_ALIAS||{},M=window.TOPIC_META
+OK   T05 逐颗点／回选／比配色那三处的精确匹配改成 includes（有一处改了就等于拿别  → 别名归一・叙事末站闸门: tools/smoke-nodes.js 里「filter(x => x.textContent.trim() === l)[0]」实得 0，期
+OK   T06 smoke-story-map 末站那条从「城内三段全亮」退成「≥2 段」（末站  → 别名归一・叙事末站闸门: tools/smoke-story-map.js 里「s2.segs.filter(function (x) { return x === '#
+OK   T07 smoke-story-map 的 S14 编号挪走（齐备检按字面 ok('S1  → 别名归一・叙事末站闸门: smoke-story-map.js 里 S14 这条判据不是恰 1 处（实得 0）：这一节断的是「地图进屏给全程」与「末站待得住」，删一条就少
+OK   T08 smoke-nodes 的一条判据改名（名单里那条从此读 0）——改后的名字不许  → 别名归一・叙事末站闸门: smoke-nodes.js 里「无脚本错误」这条判据不是恰 1 处（实得 0）
+OK   T09 smoke-irreversible 的可观测量退回 history.lengt  → 别名归一・叙事末站闸门: tools/smoke-irreversible.js 里「hstate: JSON.stringify(history.state || nu
+OK   T10 smoke-irreversible 的 J04 判据退回旧写法（把「拿 len  → 别名归一・叙事末站闸门: tools/smoke-irreversible.js 里出现「e1.hist === HB + 1」：拿 history.length 当「压
+OK   T11 README 抹掉 §55 的登记（新闸门不写进 README 就等于没装）  → 别名归一・叙事末站闸门: README.md 的 verify 清单没提 §55（新闸门不写进 README 就等于没装）
+OK   T12 README 抹掉主题腿的登记（腿在跑，登记表里却没有它）  → 别名归一・叙事末站闸门: README.md 没登记 smoke-nodes.js 这条腿
+OK   T13 README 抹掉叙事地图腿的登记（同上；红字里那条腿不带 tools/ 前缀，  → 别名归一・叙事末站闸门: README.md 没登记 smoke-story-map.js 这条腿
+SMOKE ERROR: Cannot read properties of undefined (reading 'slice')
+OK   U01 配色表里那一支的颜色写成空串（键还在＝源码腿的「表里查不到」那条尺子量不到；屏上  → 源码腿 0 红且整跑绿，tools/smoke-nodes.js 红在「themeOrder 里每个名字都查得到配色」（共 2 条红：themeOrder 里每个名字都查得到配色（不会静默退灰）  [古城古镇] / chip 圆点颜色=配色表里「古城古镇」那支   [chip=undefined 表）
+OK   U02 canonThemes 算出归一名单却不写回（函数、归一那行、init 调用三处  → 源码腿 0 红且整跑绿，tools/smoke-nodes.js 红在「chip 名单=归一后的 themeOrder」（共 2 条红：chip 名单=归一后的 themeOrder（8 颗）  [["古建寺院","城市 / themeOrder 里每个名字都查得到配色（不会静默退灰）  [古建寺院,森林山川）
+OK   U03 给某一页的配色表加一支「本页压根没景点」的主题（源码腿只把它计进 themeOr  → 源码腿 0 红且整跑绿，tools/smoke-nodes.js 红在「chip 名单=归一后的 themeOrder」（共 1 条红：chip 名单=归一后的 themeOrder（12 颗）  [["石窟艺术","名）
+=== mut-verify55: 64 条靶子 → 红对 61／分工对 3／异常 0 ===

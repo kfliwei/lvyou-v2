@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-12T01:10:43.405Z",
+  "ranAt": "2026-10-12T09:41:23.827Z",
   "mode": "check",
   "scope": "all",
   "viewports": [
@@ -12,7 +12,7 @@
   ],
   "states": 109,
   "fail": 0,
-  "elapsedSec": 515.8,
+  "elapsedSec": 548.2,
   "results": [
     {
       "state": "index.320x640.png",
@@ -28,7 +28,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 266
+      "settleExtraMs": 268
     },
     {
       "state": "index.390x844.png",
@@ -36,7 +36,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 257
     },
     {
       "state": "index.452x995.png",
@@ -44,7 +44,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 254
+      "settleExtraMs": 270
     },
     {
       "state": "index.768x1024.png",
@@ -52,7 +52,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 260
+      "settleExtraMs": 273
     },
     {
       "state": "index.1440x900.png",
@@ -60,7 +60,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 268
     },
     {
       "state": "topic.320x640.png",
@@ -69,7 +69,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 270
+      "settleExtraMs": 261
     },
     {
       "state": "topic.328x723.png",
@@ -78,7 +78,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 262
     },
     {
       "state": "topic.390x844.png",
@@ -87,7 +87,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 263
     },
     {
       "state": "topic.452x995.png",
@@ -96,7 +96,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 266
     },
     {
       "state": "topic.768x1024.png",
@@ -105,7 +105,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 267
     },
     {
       "state": "topic.1440x900.png",
@@ -114,7 +114,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 270
+      "settleExtraMs": 291
     },
     {
       "state": "search.320x640.png",
@@ -122,7 +122,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 263
+      "settleExtraMs": 258
     },
     {
       "state": "search.328x723.png",
@@ -130,7 +130,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 268
     },
     {
       "state": "search.390x844.png",
@@ -138,7 +138,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 275
+      "settleExtraMs": 265
     },
     {
       "state": "search.452x995.png",
@@ -146,7 +146,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 266
+      "settleExtraMs": 270
     },
     {
       "state": "search.768x1024.png",
@@ -154,7 +154,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 270
+      "settleExtraMs": 260
     },
     {
       "state": "search.1440x900.png",
@@ -162,7 +162,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 270
     },
     {
       "state": "wishlist.320x640.png",
@@ -170,7 +170,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 276
     },
     {
       "state": "wishlist.328x723.png",
@@ -178,7 +178,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 274
     },
     {
       "state": "wishlist.390x844.png",
@@ -186,7 +186,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 257
     },
     {
       "state": "wishlist.452x995.png",
@@ -194,7 +194,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 260
     },
     {
       "state": "wishlist.768x1024.png",
@@ -202,7 +202,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 281
     },
     {
       "state": "wishlist.1440x900.png",
@@ -210,7 +210,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 258
     },
     {
       "state": "review.320x640.png",
@@ -218,7 +218,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 260
+      "settleExtraMs": 274
     },
     {
       "state": "review.328x723.png",
@@ -226,7 +226,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 259
     },
     {
       "state": "review.390x844.png",
@@ -234,7 +234,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 265
     },
     {
       "state": "review.452x995.png",
@@ -242,7 +242,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 284
     },
     {
       "state": "review.768x1024.png",
@@ -250,7 +250,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 285
     },
     {
       "state": "review.1440x900.png",
@@ -258,7 +258,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 269
     },
     {
       "state": "settings.320x640.png",
@@ -266,7 +266,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 254
     },
     {
       "state": "settings.328x723.png",
@@ -274,7 +274,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 277
+      "settleExtraMs": 256
     },
     {
       "state": "settings.390x844.png",
@@ -282,7 +282,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 255
     },
     {
       "state": "settings.452x995.png",
@@ -290,7 +290,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 257
     },
     {
       "state": "settings.768x1024.png",
@@ -298,7 +298,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 265
     },
     {
       "state": "settings.1440x900.png",
@@ -306,7 +306,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 260
+      "settleExtraMs": 270
     },
     {
       "state": "me.320x640.png",
@@ -314,7 +314,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 257
     },
     {
       "state": "me.328x723.png",
@@ -322,7 +322,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 267
     },
     {
       "state": "me.390x844.png",
@@ -330,7 +330,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 271
+      "settleExtraMs": 277
     },
     {
       "state": "me.452x995.png",
@@ -338,7 +338,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 279
+      "settleExtraMs": 260
     },
     {
       "state": "me.768x1024.png",
@@ -346,7 +346,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 256
     },
     {
       "state": "me.1440x900.png",
@@ -354,7 +354,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 259
     },
     {
       "state": "trip.320x640.png",
@@ -362,7 +362,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 268
     },
     {
       "state": "trip.328x723.png",
@@ -370,7 +370,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 257
     },
     {
       "state": "trip.390x844.png",
@@ -378,7 +378,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 253
+      "settleExtraMs": 255
     },
     {
       "state": "trip.452x995.png",
@@ -386,7 +386,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 265
     },
     {
       "state": "trip.768x1024.png",
@@ -394,7 +394,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 261
+      "settleExtraMs": 258
     },
     {
       "state": "trip.1440x900.png",
@@ -402,7 +402,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 267
+      "settleExtraMs": 273
     },
     {
       "state": "expense.320x640.png",
@@ -410,7 +410,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 260
+      "settleExtraMs": 259
     },
     {
       "state": "expense.328x723.png",
@@ -418,7 +418,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 269
     },
     {
       "state": "expense.390x844.png",
@@ -426,7 +426,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 267
     },
     {
       "state": "expense.452x995.png",
@@ -434,7 +434,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 267
+      "settleExtraMs": 258
     },
     {
       "state": "expense.768x1024.png",
@@ -442,7 +442,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 274
     },
     {
       "state": "expense.1440x900.png",
@@ -450,7 +450,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 254
     },
     {
       "state": "node-manager.320x640.png",
@@ -459,7 +459,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 266
     },
     {
       "state": "node-manager.328x723.png",
@@ -477,7 +477,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 264
+      "settleExtraMs": 262
     },
     {
       "state": "node-manager.452x995.png",
@@ -495,7 +495,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 262
+      "settleExtraMs": 255
     },
     {
       "state": "node-manager.1440x900.png",
@@ -504,7 +504,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 254
+      "settleExtraMs": 266
     },
     {
       "state": "album.320x640.png",
@@ -512,7 +512,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 263
     },
     {
       "state": "album.328x723.png",
@@ -520,7 +520,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 262
+      "settleExtraMs": 268
     },
     {
       "state": "album.390x844.png",
@@ -528,7 +528,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 268
     },
     {
       "state": "album.452x995.png",
@@ -536,7 +536,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 267
     },
     {
       "state": "album.768x1024.png",
@@ -544,7 +544,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 256
+      "settleExtraMs": 257
     },
     {
       "state": "album.1440x900.png",
@@ -552,7 +552,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 260
+      "settleExtraMs": 258
     },
     {
       "state": "album-edit.320x640.png",
@@ -560,7 +560,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 270
+      "settleExtraMs": 279
     },
     {
       "state": "album-edit.328x723.png",
@@ -568,7 +568,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 266
+      "settleExtraMs": 269
     },
     {
       "state": "album-edit.390x844.png",
@@ -576,7 +576,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 259
     },
     {
       "state": "album-edit.452x995.png",
@@ -584,7 +584,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 303
     },
     {
       "state": "album-edit.768x1024.png",
@@ -592,7 +592,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 281
     },
     {
       "state": "album-edit.1440x900.png",
@@ -600,7 +600,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 266
     },
     {
       "state": "story.320x640.png",
@@ -608,7 +608,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 268
     },
     {
       "state": "story.328x723.png",
@@ -624,7 +624,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 268
     },
     {
       "state": "story.452x995.png",
@@ -632,7 +632,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 264
     },
     {
       "state": "story.768x1024.png",
@@ -640,7 +640,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 266
+      "settleExtraMs": 272
     },
     {
       "state": "story.1440x900.png",
@@ -656,7 +656,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 256
     },
     {
       "state": "planner.328x723.png",
@@ -664,7 +664,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 259
     },
     {
       "state": "planner.390x844.png",
@@ -672,7 +672,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 263
+      "settleExtraMs": 276
     },
     {
       "state": "planner.452x995.png",
@@ -680,7 +680,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 258
+      "settleExtraMs": 275
     },
     {
       "state": "planner.768x1024.png",
@@ -688,7 +688,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 256
+      "settleExtraMs": 259
     },
     {
       "state": "planner.1440x900.png",
@@ -696,7 +696,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 270
     },
     {
       "state": "md-manager.320x640.png",
@@ -704,7 +704,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 283
+      "settleExtraMs": 268
     },
     {
       "state": "md-manager.328x723.png",
@@ -712,7 +712,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 259
     },
     {
       "state": "md-manager.390x844.png",
@@ -720,7 +720,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 259
+      "settleExtraMs": 265
     },
     {
       "state": "md-manager.452x995.png",
@@ -728,7 +728,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 274
     },
     {
       "state": "md-manager.768x1024.png",
@@ -736,7 +736,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 261
     },
     {
       "state": "md-manager.1440x900.png",
@@ -744,7 +744,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 254
+      "settleExtraMs": 263
     },
     {
       "state": "explore-map.320x640.png",
@@ -752,7 +752,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 268
+      "settleExtraMs": 270
     },
     {
       "state": "explore-map.328x723.png",
@@ -760,7 +760,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 275
+      "settleExtraMs": 283
     },
     {
       "state": "explore-map.390x844.png",
@@ -768,7 +768,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 273
+      "settleExtraMs": 272
     },
     {
       "state": "explore-map.452x995.png",
@@ -776,7 +776,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 256
+      "settleExtraMs": 269
     },
     {
       "state": "explore-map.768x1024.png",
@@ -784,7 +784,7 @@
       "diffPct": 0,
       "limitPct": 0.1,
       "settled": true,
-      "settleExtraMs": 255
+      "settleExtraMs": 256
     },
     {
       "state": "explore-map.1440x900.png",
@@ -801,7 +801,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 266
+      "settleExtraMs": 263
     },
     {
       "state": "travel-map.328x723.png",
@@ -810,7 +810,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 269
+      "settleExtraMs": 264
     },
     {
       "state": "travel-map.390x844.png",
@@ -819,7 +819,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 267
+      "settleExtraMs": 266
     },
     {
       "state": "travel-map.452x995.png",
@@ -828,7 +828,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 265
+      "settleExtraMs": 266
     },
     {
       "state": "travel-map.768x1024.png",
@@ -837,7 +837,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 267
+      "settleExtraMs": 260
     },
     {
       "state": "travel-map.1440x900.png",
@@ -846,7 +846,7 @@
       "limitPct": 0.1,
       "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 253
+      "settleExtraMs": 267
     },
     {
       "state": "review.seed.390x844.png",
@@ -854,16 +854,15 @@
       "diffPct": 0,
       "limitPct": 0.05,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 258
     },
     {
       "state": "album.seed.390x844.png",
       "status": "PASS",
       "diffPct": 0,
       "limitPct": 0.05,
-      "toastsRemoved": 1,
       "settled": true,
-      "settleExtraMs": 254
+      "settleExtraMs": 529
     },
     {
       "state": "story.seed.390x844.png",
@@ -871,7 +870,7 @@
       "diffPct": 0,
       "limitPct": 0.05,
       "settled": true,
-      "settleExtraMs": 256
+      "settleExtraMs": 261
     },
     {
       "state": "travel-map.seed.390x844.png",
@@ -888,7 +887,7 @@
       "diffPct": 0,
       "limitPct": 0.05,
       "settled": true,
-      "settleExtraMs": 257
+      "settleExtraMs": 273
     },
     {
       "state": "trip.ledger.390x844.png",
@@ -896,7 +895,7 @@
       "diffPct": 0,
       "limitPct": 0.05,
       "settled": true,
-      "settleExtraMs": 274
+      "settleExtraMs": 268
     },
     {
       "state": "me.ledger.390x844.png",
@@ -904,16 +903,16 @@
       "diffPct": 0,
       "limitPct": 0.05,
       "settled": true,
-      "settleExtraMs": 263
+      "settleExtraMs": 268
     },
     {
       "state": "perf.index.html",
       "status": "PASS",
-      "lcpMs": 1160,
+      "lcpMs": 1040,
       "lcpSamples": [
-        1396,
-        1160,
-        1124
+        1884,
+        1040,
+        964
       ],
       "lcpEl": "H1",
       "cls": 0
@@ -921,11 +920,11 @@
     {
       "state": "perf.topic.html",
       "status": "PASS",
-      "lcpMs": 1256,
+      "lcpMs": 1100,
       "lcpSamples": [
-        1256,
-        1360,
-        956
+        1100,
+        524,
+        1752
       ],
       "lcpEl": "?",
       "cls": 0.0009

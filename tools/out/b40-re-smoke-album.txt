@@ -1,0 +1,36 @@
+... STEP seed
+... travel-map opened, seeding...
+PASS  seed: 测试数据写入  [ok]
+PASS  seed: 无脚本错误
+... STEP read
+... album.html opened
+PASS  album: 封面渲染  [title=湘西 empty=0]
+PASS  album: 封面使用照片或渐变  [url("data:image/gif;base64,R0lGODlhAQABA]
+PASS  album: Opening 渲染
+PASS  album: Opening 四指标  [n=4]
+PASS  album: 章节渲染  [n=6 凤凰古城/虹桥/苗寨/沱江/米粉店/我们的路线]
+PASS  album: 地图插页 SVG  [n=2]
+PASS  album: Closing + 记忆地图闭环
+PASS  album: 进度条/编辑/导出就位
+PASS  album: 无脚本错误
+... STEP export
+PASS  export: 导出包含封面/Closing/地图插页  [len=11641 map=true audio=true]
+PASS  export: 无脚本错误
+... STEP edit
+... album-edit.html opened
+PASS  edit: 封面卡+换封面按钮
+PASS  edit: 章节卡渲染  [n=6]
+PASS  edit: 照片位渲染  [n=7]
+PASS  edit: 布局按钮（每章4种）  [n=24]
+PASS  edit: 文字编辑区
+PASS  edit: 添加栏四按钮  [n=4]
+PASS  edit: 完成保存按钮
+PASS  edit: 无脚本错误
+PASS  edit-交互: 布局切换生效  [duo,full,duo,text,full,text]
+PASS  edit-交互: 文字编辑生效  [修改后的文字测试]
+PASS  edit-交互: 添加章节 +1  [6->7]
+PASS  edit-交互: 删除章节 -1  [7->6]
+PASS  edit-交互: 完成保存跳转图册  [album.html?id=album_1791788626509]
+... STEP clean
+
+ALL PASS

@@ -9062,5 +9062,264 @@ function stripBlockComments(s) {
 }
 
 
+/* ============ §55 主题别名归一／叙事末站可达闸门（批次 40） ============
+   这一节的三条来路都出自「继续推进剩余功能的测试」那一轮全量复跑分出来的红腿，逐条重量再定性：
+     ① 专题页点主题标签＝整张图变淡、零结果（产品缺陷，topic-common.js）。别名表只作用在景点那一侧
+        （tk() 返回标准名），而每页配置的 themeOrder／themes／themeIcons／majorThemes 一直是别名原样
+        （古建寺院／森林山川／遗址陵墓…）。于是 chip 把「古建寺院」存进 state.theme，筛选比的是
+        tk(s) 返回的「寺庙」——两侧永不相等。同一判据还让图例守卫跳过那一行、colorOf 查不到退灰、
+        isMajorSite 的 majorThemes 落空。改前普查：35 个有数据页、灰色回退 1676 处、零命中标签 121 颗、
+        majorThemes 零命中 34 页次。
+     ② 叙事翻页到末站，130ms 后被判读抢回倒数第二站（产品缺陷，story.html）。批次 39 把 scroll-spy
+        的判读点从屏高 55% 挪到「浮条与翻页条之间」的带中心，列表末尾那 200px 留白就够不着末卡了：
+        328×723 实测末卡中心差 74px 抬不到带中心，于是「离带中心最近」恒选倒数第二张。
+        现场读数：tools/out/b40-probe-story-spy.js 记到 setActive(4) → setActive(3)，末站谁也到不了、
+        地图最后一段线永远不亮、翻页条永远说「第 4 / 5 站」，按钮还因为「没到末站」重新变可用。
+     ③ 另两条红是腿自己歪，不是产品坏：history.length 不缩短（back 先吃掉一条前向条目再追加＝净零，
+        批次 39-D 给面板也加压/收，那条 +1 恒不成立），改判 history.state.tnEdit；按文案猜 chip 取样
+        （别名那颗 chip 修后就没了，if 静不命中＝判据空转），改成把运行时 themeOrder 传真函数进去逐颗点。
+   本节钉四件事：① 正向锚点（两侧同一张别名表 + 守卫成对 + 末站三件读数）② 期望 0 族（各配改前原串）
+   ③ 内置扫描两把（全库主题普查／story 的两处函数体）④ 两条常驻腿的齐备检与条数守卫。
+   不在本节守卫之列的（按「是错就修」的口径先汇报、等点单）：修后仍有 605 处景点退灰，根因是
+   「这一页的配置压根没声明这个主题」（要补就得给约 20 个主题挑颜色），属设计取舍不属 bug。 */
+{
+  let bad55 = 0;
+  const F55 = m => { bad55++; console.log('FAIL §55 主题别名归一・叙事末站闸门: ' + m); };
+  const ws55 = s => s.replace(/\s+/g, ' ').trim();
+  const flat55 = s => ws55(stripBlockComments(s));
+  const cnt55 = (s, n) => s.split(n).length - 1;
+  const rd55 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view55 = f => /\.md$/.test(f) ? ws55(rd55(f)) : flat55(rd55(f));
+  const FILES55 = ['topic-common.js', 'topic-meta.js', 'story.html',
+    'tools/smoke-nodes.js', 'tools/smoke-story-map.js', 'tools/smoke-irreversible.js', 'README.md'];
+  const V55 = {};
+  FILES55.forEach(f => { if (!fs.existsSync(f)) { F55('缺 ' + f); V55[f] = ''; return; } V55[f] = view55(f); });
+
+  /* 顶格 } 收尾的函数体（§53 ③(c)／§54 body54 同一把尺子：内层缩进的 } 不是函数尾） */
+  function body55(file, startMark) {
+    const raw = rd55(file).split(/\r?\n/);
+    const s = raw.findIndex(L => L.indexOf(startMark) >= 0);
+    if (s < 0) return null;
+    for (let i = s + 1; i < raw.length; i++) if (raw[i] === '}') return flat55(raw.slice(s, i + 1).join('\n'));
+    return null;
+  }
+
+  /* ⓪ 自指纪律：本节两条期望 0 都住在注释密布的那一带（canonThemes 上面整段是成因说明、
+        chip 守卫两行也是注释打的头），剥刀一坏或注释一多，0 会静默满足。 */
+  {
+    const DEF55 = (rd55('tools/verify.js').match(/^[ \t]*const flat55 = [^\n]*/m) || [''])[0];
+    if (DEF55.indexOf('stripBlockComments') < 0) F55('§55 的 flat55 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF55.slice(0, 56) || '整行没数到，连定义都漂了') + '）：topic-common.js 的成因注释里原样写着别名那串旧流程，不剥就当它还在');
+    const L55 = (rd55('tools/verify.js').match(/^[ \t]*const view55 = [^\n]*/m) || [''])[0];
+    if (L55.indexOf('.md$') < 0) F55('view55 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L55.slice(0, 60) || '整行没数到') + '）：README 登记本批时要写旧写法，文档侧的锚会当场读 0');
+    [['topic-common.js', 'function canonThemes() {'], ['topic-common.js', 'if (M.themeChips !== false) {'],
+     ['story.html', 'function atEnd(){'], ['tools/smoke-nodes.js', "ok('每颗主题 chip 在本页至少命中 1 个景点'"]].forEach(p => {
+      if (V55[p[0]].indexOf(p[1]) < 0) F55('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点 */
+  const A55 = [
+    /* —— topic-common.js：别名表两侧同源 —— */
+    ['topic-common.js', 'function normTheme(t) { return (window.THEME_ALIAS && window.THEME_ALIAS[t]) || t; }', 1, '别名表只有一个入口：景点那侧与配置这侧必须走同一张，两处查表迟早分家'],
+    ['topic-common.js', "function tk(s) { return normTheme(s[M.themeKey || 'theme']); }", 1, '景点侧归一单点（每页字段名不同，sx 那页是 dy）'],
+    ['topic-common.js', 'function colorOf(s) { return M.themes[tk(s)] || "#7D7970"; }', 1, '退灰只该因为「表里没声明这一支主题」；名字没过别名表那种灰是 bug，③(a) 按这一条数'],
+    ['topic-common.js', 'if (state.theme && tk(s) !== state.theme) return false;', 1, '筛选比的两侧：右边由 chip 写入，chip 的名字必须是归一后的（① 的成因就是这一处左右手不同名）'],
+    ['topic-common.js', "function isMajorSite(s) { return (M.majorThemes || []).indexOf(tk(s)) >= 0 || (s.flag && s.flag.indexOf('m') >= 0); }", 1, '重点景点那一档吃 majorThemes，改前 34 页次一个都没命中过（「必去」的加粗与封印全在漏掉的页上）'],
+    ['topic-common.js', 'function canonThemes() {', 1, '配置这一侧的归一只有一个地方（不在各页配置里手改 35 份，也不在读取处各补一次）'],
+    ['topic-common.js', 'Object.keys(src || {}).forEach(function (t) { var n = normTheme(t); if (out[n] == null) out[n] = src[t]; });', 1, 'themes／themeIcons 的键过同一张表；撞名保第一支颜色，静默覆盖＝同名的两支持一种颜色'],
+    ['topic-common.js', 'M.themeOrder.forEach(function (t) { var n = normTheme(t); if (order.indexOf(n) < 0) order.push(n); });', 1, '标签顺序去重：别名与标准名同时声明会造出两颗同名 chip，选中态就点不回来'],
+    ['topic-common.js', 'if (M.themes) M.themes = mapKeys(M.themes);', 1, '配色表归一（chip 圆点、图例点、列表分组头三处都从这里取色）'],
+    ['topic-common.js', 'if (M.themeIcons) M.themeIcons = mapKeys(M.themeIcons);', 1, '图标表漏归一＝那一类节点取不到图标，屏幕上不报错、只少一张图'],
+    ['topic-common.js', 'M.majorThemes.forEach(function (t) { var n = normTheme(t); if (mt.indexOf(n) < 0) mt.push(n); });', 1, 'majorThemes 是数组不是对象，mapKeys 会把索引当键——这一支单独走'],
+    ['topic-common.js', 'canonThemes();', 1, '定义了不接＝这条修复不存在（init 里紧跟 TOPIC_META 取值之后）'],
+    ['topic-common.js', 'if (!SITES.some(function (s) { return tk(s) === th; })) return;', 2, 'chip 与图例同一判据、必须成对：一边有名字一边没有＝联动落空；零命中的标签不造入口（点它＝整张图变淡、看不出是筛空还是坏了）'],
+    ['topic-common.js', 'var cc = mkChip(th, false, M.themes[th]);', 1, 'chip 的圆点色从归一后的表里取（改前这一行查别名键，查不到就退灰）'],
+    /* —— story.html：末站那一档 —— */
+    ['story.html', 'function atEnd(){', 1, '「还能不能往下滚」只有一个地方问，且不与「带在哪」混在一个函数体里'],
+    ['story.html', 'var maxS=document.documentElement.scrollHeight-window.innerHeight;', 1, '文档高减视口高：滚到底的定义就这一句'],
+    ['story.html', 'return maxS>4&&window.scrollY>=maxS-4;', 1, 'maxS>4 那一档不许省：内容没超出屏幕时没有「滚到底」可言，恒真会把任何一发判读抢给最后一张'],
+    ['story.html', 'if(best>=0&&els.length&&atEnd())best=els.length-1;', 1, '滚到底那一档直接认最后一张（改前「离带中心最近」恒选倒数第二张，末站到不了）'],
+    ['story.html', 'if(best>=0 && best!==lastActive){ lastActive=best; setActive(best); }', 1, '判读改的是候选是谁，激活那一句仍是同一句：不许另开一条末站专用通路绕过 lastActive'],
+    /* —— 两条腿的取样形状 —— */
+    ['tools/smoke-nodes.js', "'var A=window.THEME_ALIAS||{},M=window.TOPIC_META||{},S=window.SITES||[];'", 1, '取样读的是运行时的配置与全页景点，不是屏上 chip 的文案（照文案猜＝修后就地静默空转）'],
+    ['tools/smoke-nodes.js', 'filter(x => x.textContent.trim() === l)[0]', 3, '逐颗点、回选、比配色那三处都按名单精确匹配（有一处改成 includes 就会拿别名蒙中）'],
+    ['tools/smoke-nodes.js', '}, shape.order);', 1, '名单是现场取回来的真值传进 evaluate，不是拼进字符串的常量'],
+    ['tools/smoke-story-map.js', "s2.segs.filter(function (x) { return x === '#ae5738/solid'; }).length === 3", 1, '末站那一条：城内三段全亮（改前这一条恒 2 段，因为末站根本没待住）'],
+    ['tools/smoke-irreversible.js', 'hstate: JSON.stringify(history.state || null)', 1, '压没压历史要看 state 里那一格，length 数的是整个会话的条目数'],
+    ['tools/smoke-irreversible.js', "e1.hstate.indexOf('tnEdit') >= 0", 1, 'J04 的判据（改前断 history.length 会 +1，实测恒不成立＝腿自己歪）'],
+    ['tools/smoke-nodes.js', 'total >= 18', 1, '条数守卫'],
+    ['tools/smoke-story-map.js', 'total >= 20', 1, '条数守卫'],
+  ];
+  A55.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F55('A55 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V55)) { F55('A55 登记了 §55 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt55(V55[f], needle);
+    if (n !== exp) F55(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：改前写法各配原串做正向对照。串取自 git show HEAD:<file> 的真行原文；
+     story.html 那条的对照串是本批开发中途那一版（把三件读数写进了 spy 体内）。 */
+  const ZERO55 = [
+    ['topic-common.js', '(M.themeOrder || []).forEach(function (th) { var cc = mkChip(th, false, M.themes[th]);',
+      "if (M.themeChips !== false) { (M.themeOrder || []).forEach(function (th) { var cc = mkChip(th, false, M.themes[th]); cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); }; dynChips.appendChild(cc); }); }",
+      'chip 不做存在性守卫：零命中的那颗点下去＝整张图变淡、零结果，用户看不出是筛空了还是坏了'],
+    ['tools/smoke-nodes.js', "if (c.textContent.includes('古建')) { c.click(); break; }",
+      "await page.evaluate(() => { for (const c of document.querySelectorAll('#dynChips .chip')) { if (c.textContent.includes('古建')) { c.click(); break; } } });",
+      '腿按文案猜 chip：别名那颗修后不存在了，这条 if 静不命中＝一次没点，而「筛选双态」那条判据读的还是上一发的状态（假绿）'],
+    ['tools/smoke-nodes.js', "chipOn.some(t => t.includes('古建'))", "ok('顶部标签选中态同步', chipOn.some(t => t.includes('古建')), chipOn.join(','));",
+      '同上第二处：选中态拿文案子串对账，别名消失后它断言的是「没点中任何东西」'],
+    ['tools/smoke-irreversible.js', 'e1.hist === HB + 1',
+      "ok('J04 开层时为这一层压进一条历史（' + HB + '→' + e1.hist + '）', e1.hist === HB + 1, 'len=' + e1.hist + ' 基线=' + HB);",
+      '拿 history.length 当「压没压历史」：back() 不缩短它——先退回再 pushState 是吃掉一条前向条目再追加一条＝净零，这条恒假而产品没问题'],
+    ['story.html', 'if(best>=0&&maxS>4&&window.scrollY>=maxS-4)best=els.length-1;',
+      'function onScroll(){ _spyTimer=setTimeout(function(){ var maxS=document.documentElement.scrollHeight-window.innerHeight; if(best>=0&&maxS>4&&window.scrollY>=maxS-4)best=els.length-1; },120); }',
+      '把「滚到底」的三件读数写进 scroll-spy 的函数体：§54 那条「spy 不许碰整屏高度」当场失效，而它禁的是拿整屏高度当尺子，跟这里问的不是同一件事——混在一处下次谁也分不清是哪一支'],
+  ];
+  ZERO55.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F55('ZERO55 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V55)) { F55('ZERO55 登记了 §55 没读的文件「' + f + '」：' + why); return; }
+    if (cnt55(V55[f], needle) !== 0) F55(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt55(flat55(ctrl), needle) < 1) F55('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③(a) 全库主题普查：复刻产品口径（tk = norm(s[themeKey])，chip 名与配色读归一后的配置）。
+     三条期望 0 全部门对门配着「同一把尺子量改前那套配置」的反证——数不出 >0 就是这台机器瞎了。 */
+  {
+    const PAGE_MIN55 = 30, SITE_MIN55 = 7000;
+    const sandbox55 = f => {
+      const win = {};
+      try { vm.runInNewContext(rd55(f) + '\n;', { window: win, console }); } catch (e) { return null; }
+      return win;
+    };
+    const meta = sandbox55('topic-meta.js');
+    if (!meta) F55('③(a) 的 topic-meta.js 求值失败：这一把整个失明');
+    else {
+      const ALIAS55 = meta.THEME_ALIAS || {};
+      const REG55 = meta.TOPIC_REGISTRY || {};
+      const n55 = t => ALIAS55[t] || t;
+      const canonKeys = src => { const out = {}; Object.keys(src || {}).forEach(t => { const n = n55(t); if (out[n] === undefined) out[n] = src[t]; }); return out; };
+      const canonList = arr => { const o = []; (arr || []).forEach(t => { const n = n55(t); if (o.indexOf(n) < 0) o.push(n); }); return o; };
+      /* 自校准：合成名单喂给同一条归一 + 去重，塌不成一颗就说明下面那几个 0 是空判据 */
+      const CAL55 = canonList(['古建寺院', '寺庙']);
+      if (!(CAL55.length === 1 && CAL55[0] === n55('古建寺院'))) F55('③(a) 的归一去重自校准失准（合成「古建寺院／寺庙」应塌成 1 颗，实得 ' + JSON.stringify(CAL55) + '）：别名表读不到＝下面所有 0 都不算证据');
+      const CALK55 = Object.keys(canonKeys({ '古建寺院': '#111111', '寺庙': '#222222' }));
+      if (CALK55.length !== 1) F55('③(a) 的配色表归一自校准失准（合成两支应剩一支，实得 ' + CALK55.length + ' 支）：表里的别名键没被合掉');
+
+      let pages = 0, sites = 0, gray = 0, aliasGray = 0, aliasGrayRaw = 0, majorDead = 0, majorDeadRaw = 0, dupCanon = 0, aliasKeyLeft = 0, deadHidden = 0, allDeadPages = 0;
+      Object.keys(REG55).forEach(k => {
+        const cfg = REG55[k];
+        if (!cfg || !cfg.dataJs) return;
+        if (!fs.existsSync(cfg.dataJs)) { F55('普查读到页 ' + k + ' 指向不存在的数据文件「' + cfg.dataJs + '」'); return; }
+        const dw = sandbox55(cfg.dataJs);
+        const list = dw && dw.SITES;
+        if (!list || !list.length) return;
+        pages++; sites += list.length;
+        const key = cfg.themeKey || 'theme';
+        const rawThemes = cfg.themes || {}, rawOrder = cfg.themeOrder || [], rawMajor = cfg.majorThemes || [];
+        const themes = canonKeys(rawThemes), order = canonList(rawOrder), major = canonList(rawMajor);
+        const cnt = {};
+        list.forEach(s => { const t = n55(s[key]); cnt[t] = (cnt[t] || 0) + 1; });
+        /* 灰 = 查不到配色；其中「原样字符串在表里查得到、归一值查不到」那一族就是 ① 的成因 */
+        list.forEach(s => {
+          const v = s[key];
+          if (themes[n55(v)] === undefined) { gray++; if (themes[v] !== undefined) aliasGray++; }
+          if (rawThemes[n55(v)] === undefined && rawThemes[v] !== undefined) aliasGrayRaw++;
+        });
+        Object.keys(themes).forEach(t => { if (ALIAS55[t]) aliasKeyLeft++; });
+        major.forEach(t => { if (!cnt[t]) majorDead++; });
+        rawMajor.forEach(t => { if (!cnt[t]) majorDeadRaw++; });
+        order.forEach((t, i) => { if (order.indexOf(t) !== i) dupCanon++; });
+        order.forEach(t => { if (!cnt[t]) deadHidden++; });
+        if (order.length && order.every(t => !cnt[t])) allDeadPages++;
+      });
+
+      if (pages < PAGE_MIN55) F55('普查只数到 ' + pages + ' 个有数据页（期望 ≥' + PAGE_MIN55 + '）：分母塌了，上面那几个 0 是空转出来的');
+      if (sites < SITE_MIN55) F55('普查只数到 ' + sites + ' 个景点（期望 ≥' + SITE_MIN55 + '）：数据文件或注册表读过半路，判据没被测到');
+      if (aliasGray !== 0) F55('归一后仍有 ' + aliasGray + ' 处景点「原样名字查得到配色、归一值查不到」：那就是 ① 的失败模式复活（chip 存别名、筛选比标准名，点下去整张图变淡）');
+      if (aliasKeyLeft !== 0) F55('归一后的配色表里还剩 ' + aliasKeyLeft + ' 个别名当键：canonThemes 没跑或跑晚了（各页配置里别名键照原样留着是设计内，运行时那张表不许留）');
+      if (majorDead !== 0) F55('majorThemes 里 ' + majorDead + ' 个主题名在本页一个景点都没命中：「必去」那一档的加粗与封印在这一页静默失效（改前 34 页次全是这种）');
+      if (dupCanon !== 0) F55('归一后的标签顺序里 ' + dupCanon + ' 颗重名：同一主题两颗 chip，点其中一颗另一颗也跟着亮，选中态点不回来');
+      if (allDeadPages !== 0) F55('有 ' + allDeadPages + ' 页整页的主题标签一个景点都没命中：这一页的主题筛选条应该是空而不造（守卫挡掉），不该造出一排点不动的胶囊');
+      if (!(aliasGrayRaw > 0)) F55('正向对照失效：拿改前那套（未归一的配色表）量，「原样查得到、归一查不到」的景点数到 ' + aliasGrayRaw + ' 处——0 就说明这把尺子根本没碰到 ① 的失败模式');
+      if (!(majorDeadRaw > 0)) F55('正向对照失效：改前那套 majorThemes（别名原样）零命中数到 ' + majorDeadRaw + '，应为 >0（实测 34 页次），不然上面那个 0 不是修复的结果');
+      console.log('主题普查: 有数据页 ' + pages + '（景点 ' + sites + '）｜灰 ' + gray + ' 处，其中因名字没过别名表 0（正向对照：改前那套 ' + aliasGrayRaw + ' 处）｜归一后表内残留别名键 0｜majorThemes 零命中 0（改前 ' + majorDeadRaw + '）｜重名 0｜themeOrder 里零命中 ' + deadHidden + ' 颗（由 chip/图例那两条守卫挡掉，不在屏上造入口）｜整页全零命中 0 页');
+    }
+  }
+
+  /* ③(b) story 两处函数体：atEnd 三件读数齐不齐、spy 体内有没有又冒出整屏尺子 */
+  {
+    const NEED55 = ['document.documentElement.scrollHeight', 'window.innerHeight', 'window.scrollY'];
+    const miss55 = b => NEED55.filter(k => b.indexOf(k) < 0);
+    const SYN55 = 'function atEnd(){ var maxS=0; return maxS>4&&window.scrollY>=maxS-4; }';
+    const m55 = miss55(SYN55);
+    if (m55.length !== 2) F55('③(b) 那把尺子自校准失准（合成串应缺 ' + JSON.stringify(NEED55.slice(0, 2)) + ' 两样，实缺 ' + JSON.stringify(m55) + '）：缺样数不出＝atEnd 恒真/恒假没人看得见');
+    const AE = body55('story.html', 'function atEnd(){');
+    if (AE === null) F55('读不到 story.html 里 atEnd 的函数体：③(b) 这一支失明');
+    else {
+      const mm = miss55(AE);
+      if (mm.length) F55('atEnd 没读 ' + mm.join(' 与 ') + '：「滚到底」少一件读数就会恒真（末站又被判回倒数第二站）或恒假（这一档从没生效过）');
+    }
+    const SYN2 = 'function onScroll(){ _spyTimer=setTimeout(function(){ var mid=window.innerHeight*0.55; var h=document.documentElement.scrollHeight; },120); }';
+    if (!/innerHeight|scrollHeight/.test(flat55(SYN2))) F55('spy 那把整屏尺子的自校准失准（合成串里明明写了 innerHeight/scrollHeight，正则读不到）：下面那个「spy 体干净」是假绿');
+    const SPY = body55('story.html', 'function onScroll(){');
+    if (SPY === null) F55('读不到 story.html 里 onScroll 的函数体：③(b) 这一支失明');
+    else {
+      if (/innerHeight|scrollHeight/.test(SPY)) F55('scroll-spy 的函数体里又出现整屏读数：带在哪归 bandAt、滚到底归 atEnd，两处都不许它自己拿尺子（§54 钉的「不许拿整屏高度当尺子」与此同源，这里多禁一个 scrollHeight）');
+      if (cnt55(SPY, 'atEnd()') !== 1) F55('scroll-spy 里没有那一句末站收口（现读 ' + cnt55(SPY, 'atEnd()') + '）：末站又被「离带中心最近」判给倒数第二张');
+    }
+  }
+
+  /* ④ 两条常驻腿的齐备检 */
+  {
+    const S = V55['tools/smoke-story-map.js'];
+    for (let i = 0; i <= 20; i++) {
+      const lab = "ok('S" + (i < 10 ? '0' : '') + i + "'";
+      if (cnt55(S, lab) !== 1) F55('smoke-story-map.js 里 S' + (i < 10 ? '0' : '') + i + ' 这条判据不是恰 1 处（实得 ' + cnt55(S, lab) +
+        '）：这一节断的是「地图进屏给全程」与「末站待得住」，删一条就少一个证据；编号必须是字面量，写成算式本节就数不到它');
+    }
+    if (cnt55(S, "ok('S20'") !== 1) F55('smoke-story-map 少了最后那条条数守卫（ok(\'S20\'）：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转出来的');
+    /* 齐备检自己也要有第二条腿：上面那个循环上限是个写死的数，把它从 20 收到 13 不会让任何一条红（少守 7 条）。
+       所以拿这条腿里真实存在的最大编号来对账——不抄常量，编号段一漂移它自己跟着走。 */
+    {
+      const NUMS55 = (S.match(/ok\('S(\d\d)',/g) || []).map(x => Number(/S(\d\d)/.exec(x)[1]));
+      const MAXN55 = NUMS55.length ? Math.max.apply(null, NUMS55) : -1;
+      const SEG55 = (rd55('tools/verify.js').split('/* ④ 两条常驻腿的齐备检 */')[1] || '');
+      const BOUND55 = (SEG55.match(/for \(let i = 0; i <= (\d+); i\+\+\)/) || [])[1];
+      if (BOUND55 === undefined) F55('读不到 ④ 那条齐备检的循环上限（正则没命中＝那一行被改写形状了，这条对账当场失明）');
+      else if (Number(BOUND55) !== MAXN55) F55('④ 齐备检的循环上限是 ' + BOUND55 + '，而 smoke-story-map 里真实最大编号是 S' + MAXN55 +
+        '：上限比编号小＝有几条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+    }
+    const NAMES55 = ['专题页无 FAB', '区域统计条出现', '统计条 chip 触发筛选强调', '高 zoom 节点已渲染',
+      'chip 名单=归一后的 themeOrder（', '主题 chip 全是标准名（点下去筛得中，不是别名空枪）', '主题 chip 无重名（撞车的第二颗已丢掉）',
+      '每颗主题 chip 在本页至少命中 1 个景点', 'chip 与图例同名单（联动不会因为名字不同而落空）', 'themeOrder 里每个名字都查得到配色（不会静默退灰）',
+      '视野内有点亮节点的主题取样成功（', '筛选双态：命中的亮、非命中的降透明', 'chip 圆点颜色=配色表里「',
+      '图例行的点用同一支色（图例与 chip 同源，不是各自查表）', '「主题」栏分组头那枚点也是同一支色', '图例选中态同步', '顶部标签选中态同步',
+      '无脚本错误', '本腿条数守卫（≥18 条）'];
+    const N = V55['tools/smoke-nodes.js'];
+    NAMES55.forEach(nm => {
+      if (cnt55(N, "ok('" + nm) !== 1) F55('smoke-nodes.js 里「' + nm + '」这条判据不是恰 1 处（实得 ' + cnt55(N, "ok('" + nm) + '）');
+    });
+    if (cnt55(N, "ok('") !== NAMES55.length) F55('smoke-nodes.js 现场数到 ' + cnt55(N, "ok('") + ' 条判据，④ 登记的名单是 ' + NAMES55.length + ' 条：多出来的那条没人守（新加判据不登记，本节就永远看不见它）');
+  }
+
+  if (V55['README.md'].indexOf('§55') < 0) F55('README.md 的 verify 清单没提 §55（新闸门不写进 README 就等于没装）');
+  ['smoke-nodes.js', 'smoke-story-map.js'].forEach(f => {
+    if (V55['README.md'].indexOf(f) < 0) F55('README.md 没登记 ' + f + ' 这条腿');
+  });
+
+  console.log('主题别名归一・叙事末站闸门: ' + A55.length + ' 条代码锚点（topic-common 的两侧同源单点 + 配置四个字段各一支 + init 调用 + 守卫成对 2 处／story 的 atEnd 三件读数与 spy 那一句收口／两条腿的取样形状与条数守卫）+ ' + ZERO55.length + ' 族期望 0（chip 没守卫那一版／按文案猜 chip 两处／拿 history.length 当压历史判据／把滚到底写进 spy 体内那一版）各配改前原串正向对照 + 两把内置扫描（全库主题普查：先喂合成别名名单与合成配色表各自校准一次，再按产品口径逐页数——归一后「原样查得到而归一查不到」的灰 0、表内残留别名键 0、majorThemes 零命中 0、标签重名 0、整页全零命中 0 页，两条正向对照用改前那套配置必须数出 >0，分母带现场页数与景点数下限；末站：atEnd 三件读数齐备 + spy 体内不许出现整屏读数，各配合成串自校准）+ 两条腿 S00–S20 逐条齐备检与循环上限对账、smoke-nodes 名单双向对账（守卫表达式 total>=18／>=20 由 A55 钉住；A55 表长 ' + A55.length + ' 条、ZERO55 表长 ' + ZERO55.length + ' 条，抬阈值类变异要取当前长度 + 1）');
+  fail += bad55;
+}
+
+
 console.log(fail ? '=== FAIL: ' + fail + ' issue(s) ===' : '=== ALL CHECKS PASSED ===');
 process.exit(fail ? 1 : 0);

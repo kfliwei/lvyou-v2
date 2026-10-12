@@ -1,0 +1,12 @@
+=== mut-verify55 · 靶子 64 条（红 56／抹登记 5／分工 3），预检 全过 ===
+基准 verify 全绿 ✓（A55 表长 27／ZERO55 表长 5，与本网登记一致）
+基准普查读数（盲区乙的现场证据）：主题普查: 有数据页 35（景点 8050）｜灰 605 处，其中因名字没过别名表 0（正向对照：改前那套 1067 处）｜归一后表内残留别名键 0｜majorThemes 零命中 0（改前 ……灰 605 处而整跑绿＝这一族没配判据（待点单）
+基准 tools/smoke-nodes.js 判据全绿 ✓（19 条）
+基准 tools/smoke-story-map.js 判据全绿 ✓（21 条）
+OK   R08 图标表不归一（那一类节点取不到图标：屏幕上不报错，只少一张图）  → 别名归一・叙事末站闸门: topic-common.js 里「if (M.themeIcons) M.themeIcons = mapKeys(M.themeIcon」实
+OK   G28 腿里新加一条判据不写进名单（现场比名单多——双向对账的另一半边；把 !== 取反  → 别名归一・叙事末站闸门: smoke-nodes.js 现场数到 20 条判据，④ 登记的名单是 19 条：多出来的那条没人守（新加判据不登记，本节就永远看不见它）
+OK   T08 smoke-nodes 的一条判据改名（名单里那条从此读 0）——改后的名字不许  → 别名归一・叙事末站闸门: smoke-nodes.js 里「无脚本错误」这条判据不是恰 1 处（实得 0）
+OK   T13 README 抹掉叙事地图腿的登记（同上；红字里那条腿不带 tools/ 前缀，  → 别名归一・叙事末站闸门: README.md 没登记 smoke-story-map.js 这条腿
+OK   U02 canonThemes 算出归一名单却不写回（函数、归一那行、init 调用三处  → 源码腿 0 红且整跑绿，tools/smoke-nodes.js 红在「chip 名单=归一后的 themeOrder」（共 2 条红：hip 名单=归一后的 themeOrder（8 颗）  [["古建寺院"," / hemeOrder 里每个名字都查得到配色（不会静默退灰）  [古建寺院,森林）
+OK   U03 给某一页的配色表加一支「本页压根没景点」的主题（源码腿只把它计进 themeOr  → 源码腿 0 红且整跑绿，tools/smoke-nodes.js 红在「chip 名单=归一后的 themeOrder」（共 1 条红：hip 名单=归一后的 themeOrder（12 颗）  [["石窟艺术",）
+=== mut-verify55: 64 条靶子 → 红对 4／分工对 2／异常 0／跳过 58 ===

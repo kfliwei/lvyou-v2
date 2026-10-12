@@ -226,7 +226,7 @@ const EDIT_SNAP = '(' + function () {
     pics: document.querySelectorAll('.tn-editpage .tn-photo').length,
     store: n ? { title: n.title, text: n.text, tags: (n.tags || []).join(' '), pics: (n.photos || []).length } : null,
     cnt: window.TravelNotes ? TravelNotes.count() : -1,
-    hist: history.length, url: location.pathname
+    hist: history.length, hstate: JSON.stringify(history.state || null), url: location.pathname
   };
 } + ')()';
 function editSnap(page) { return page.evaluate(EDIT_SNAP); }
@@ -654,8 +654,14 @@ async function main() {
   ok('J03 真点「编辑」进到这一屏：四个读数印的就是库里那一篇（基线取自屏上的值，一进屏不该判脏）',
     e1.shown && e1.title === e1.store.title && e1.text === e1.store.text && e1.tags === e1.store.tags && e1.pics === e1.store.pics,
     pStr({ shown: e1.shown, t: e1.title === e1.store.title, x: e1.text === e1.store.text, g: e1.tags === e1.store.tags, p: e1.pics }));
-  ok('J04 开层时为这一层压进一条历史（' + HB + '→' + e1.hist + '）：这是给物理返回键留的那第二扇门',
-    e1.hist === HB + 1, 'len=' + e1.hist + ' 基线=' + HB);
+  /* 这一条判据吃过一次亏：改前只断言 history.length 会 +1，实测恒不成立。
+     length 数的是「整个会话的条目数」，back() 不缩短它——先退回再 pushState 是吃掉一条前向
+     条目再追加一条，净零。批次 39-D 给面板也加了压/收，S9 之前那几步面板必然留下前向条目，
+     于是 +1 永远不出现（腿自己歪了，不是产品没压历史）。压没压看 history.state：
+     openEdit 走 pushEditEntry → state 变成 {tnEdit:1}，这才是物理返回键的落点凭据。
+     口径来自 tools/out/b40-probe-history.js 的四步实测。 */
+  ok('J04 开层时把这一层压进历史（state 从 ' + pre.hstate + ' 变 ' + e1.hstate + '）：这是给物理返回键留的那第二扇门',
+    e1.hstate.indexOf('tnEdit') >= 0, 'state=' + e1.hstate + ' len=' + e1.hist + ' 基线=' + HB);
 
   await realClick(tp, '#tnEditBack');
   await sleep(600);

@@ -1,7 +1,7 @@
 
 ==================== 腿 ① 备份提醒条 ====================
-  （启动屏 #bootSplash(z:9999 inset:0) 退场等了 11ms，之后才量提醒条）
-PASS  L01 量之前启动屏已退场（它盖着时任何 z 都命中不到，那种红是探针的锅）  [等 11ms]
+  （启动屏 #bootSplash(z:9999 inset:0) 退场等了 157ms，之后才量提醒条）
+PASS  L01 量之前启动屏已退场（它盖着时任何 z 都命中不到，那种红是探针的锅）  [等 157ms]
 PASS  L02 空库里这条真的出现了（判定落空时下面全是空转）  [rect=14,561 300×58]
 PASS  L03 computed z-index 就是 8000（那一族浮层最低的一档是 9000）  [现场 z=8000]
 PASS  L04 position=fixed（它靠这个住在视口下沿，与页面滚动无关）  [现场 position=fixed]
@@ -10,7 +10,7 @@ PASS  L06 整条落在 328×723 取景框内（bottom:…104px 那条算式没�
 PASS  L07 「去备份」钮 #bkGo 在场（提示要能一步走到设置页）  [bkGo=true]
 PASS  L08 12s 摘除计时器被截到恰 1 条（产品仍会自己摘走；全站用 12000 的只有这一处）  [截到 1 条]
 PASS  L09 .tn-list(z:9000) 在场时提醒条中心点顶命中不是它  [顶命中=div.tn-listbody]
-PASS  L10 .tn-panel(z:9001，design.css 里 background:var(--color-bg) 不透明) 在场时不压  [顶命中=b]
+PASS  L10 .tn-panel(z:9001，design.css 里 background:var(--color-bg) 不透明) 在场时不压  [顶命中=html]
 PASS  L11 .tn-editpage(z:9010) 在场时不压（改前中心点 elementsFromPoint[0] 就是这条 div）  [顶命中=div.body]
 PASS  L12 编辑页里这条仍在 DOM（不遮挡是靠层级，不是靠六处开屏各挂一次「摘条子」的钩子）  [还在 DOM=true]
 PASS  L13 #tnEditAddPhoto 中心点命中链的 [0] 不是提醒条  [顶命中=button#tnEditAddPhoto]

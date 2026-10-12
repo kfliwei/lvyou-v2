@@ -1,0 +1,20 @@
+PASS  A.空地图初始化
+PASS  A.地图不显示任何节点  [markers=0]
+PASS  A.本地索引就绪  [idx=7794]
+PASS  A.实时搜索：输入即出结果  [本地地点 · 10 / items=10]
+PASS  A.实时搜索：模糊补全更新结果  [故宫博物院已存在]
+PASS  A.本地节点详情（已存在）  [故宫博物院 系统地点 · 已存在古建寺院 · 北京 · 北京]
+PASS  A.清空输入关闭结果面板
+PASS  A.无结果触发高德 Key 配置  [配置高德搜索 Key]
+PASS  A.编辑回填（含海拔）  [elev=120]
+PASS  A.表单含海拔获取按钮
+PASS  A.表单含 AI 生成介绍按钮
+PASS  A.编辑改名不误报自身重复
+PASS  A.保存生效（含海拔）  [elev=120]
+PASS  A.删除持久化
+PASS  A.无脚本错误
+PASS  B.专题页无 FAB
+PASS  B.专题页无节点管理 API
+PASS  B.节点详情无编辑删除菜单
+PASS  B.无脚本错误
+=== NODE-MGR SMOKE ALL PASSED ===

@@ -1,0 +1,8 @@
+PASS  聚合胶囊存在  [caps=20 总数=92]
+PASS  必去筛选：胶囊数字变为匹配数  [总数 92 → 必去匹配 20]
+PASS  0 匹配组降透明  [dim=9]
+PASS  必去标签高亮  [必去]
+PASS  全部恢复：数字还原且无降透明  [sum=92 dims=0]
+PASS  节点层：网红筛选降透明  [dim=55 total=80]
+PASS  无脚本错误
+=== FLAG-LINK SMOKE ALL PASSED ===

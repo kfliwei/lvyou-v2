@@ -1,0 +1,12 @@
+... STEP seed
+FAIL  seed: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/travel-map.html]
+... STEP read
+FAIL  read: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/album.html]
+... STEP export
+FAIL  export: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/album.html]
+... STEP edit
+FAIL  edit: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/album-edit.html]
+... STEP clean
+FAIL  clean: 执行异常  [net::ERR_CONNECTION_REFUSED at http://localhost:8125/travel-map.html]
+
+FAILS: 5

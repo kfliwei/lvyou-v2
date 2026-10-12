@@ -1451,7 +1451,10 @@
       dynChips.appendChild(nc);
     }
     if (M.themeChips !== false) {
+      /* 与下面图例同一判据：这条主题在本页一个景点都没有就不造这颗 chip，
+         否则点它＝整张图变淡、零结果，用户看不出是筛空了还是坏了。 */
       (M.themeOrder || []).forEach(function (th) {
+        if (!SITES.some(function (s) { return tk(s) === th; })) return;
         var cc = mkChip(th, false, M.themes[th]);
         cc.onclick = function () { state.theme = (state.theme === th ? '' : th); syncChips(); renderAll(); };
         dynChips.appendChild(cc);
@@ -1616,8 +1619,34 @@
   }
 
   /* ---------- 启动 ---------- */
+  /* 别名表只作用于景点那一侧（tk()），配置这一侧的 themeOrder/themes/themeIcons/majorThemes
+     一直是原样字符串。于是 chip 把「古建寺院」存进 state.theme，而筛选比的是 tk() 返回的
+     「寺庙」——点它＝整张图变淡、零结果，图例那行也因同一判据被守卫跳过，配色退回灰。
+     这里把配置也过一遍同一张别名表，让「同一个字符串」重新成立；撞车（两个名字归一成一个）
+     只留第一颗，否则同一主题出现两颗 chip。 */
+  function canonThemes() {
+    if (!M) return;
+    function mapKeys(src) {
+      var out = {};
+      Object.keys(src || {}).forEach(function (t) { var n = normTheme(t); if (out[n] == null) out[n] = src[t]; });
+      return out;
+    }
+    if (M.themeOrder) {
+      var order = [];
+      M.themeOrder.forEach(function (t) { var n = normTheme(t); if (order.indexOf(n) < 0) order.push(n); });
+      M.themeOrder = order;
+    }
+    if (M.themes) M.themes = mapKeys(M.themes);
+    if (M.themeIcons) M.themeIcons = mapKeys(M.themeIcons);
+    if (M.majorThemes) {
+      var mt = [];
+      M.majorThemes.forEach(function (t) { var n = normTheme(t); if (mt.indexOf(n) < 0) mt.push(n); });
+      M.majorThemes = mt;
+    }
+  }
   function init() {
     M = window.TOPIC_META;
+    canonThemes();
     if (M.routesKey && window.TOPIC_ROUTES) M.routes = window.TOPIC_ROUTES[M.routesKey] || M.routes || [];
     SITES = window.SITES || [];
     mergeUserNodes();
