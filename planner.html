@@ -32,8 +32,10 @@
   .input-bar input{flex:1;min-width:0;height:48px;border:1px solid var(--color-line-strong);border-color:var(--edge-hair-soft);border-radius:14px;background:var(--color-bg);color:var(--color-ink);padding:0 14px;font-size:var(--fs-7);transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
   .input-bar input::placeholder{color:var(--color-faint)}
   .input-bar input:focus{outline:none;border-color:rgba(200,109,75,.5);box-shadow:0 0 0 3px rgba(200,109,75,.12)}
-  /* 按钮：主操作独占品牌色 */
-  .btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
+  /* 按钮：主操作独占品牌色。这里的 min-height 从前写 42，等于把 design.css 的 44 地板在本页砍掉一截
+     （实测「导航」75×42，tools/out/b39-probe-after.txt W'1 低于 44 那一族）——同一条 42 还顺手盖住了
+     日卡底脚那两枚，逼得 :152 单独补一条 44 回来。现在回到 44，那条例外的声明留着也不再是补救。 */
+  .btn{min-height:44px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink-soft);cursor:pointer;white-space:nowrap;transition:transform var(--motion-tap) var(--ease-pop),box-shadow var(--motion-fast),filter var(--motion-fast)}
   .btn:active{transform:scale(.96)}
   .btn.primary{background:var(--grad-primary);border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--glow-ember)}
   .btn.primary:active{filter:brightness(.96)}
@@ -110,9 +112,14 @@
   .stop-name{display:flex;align-items:center;gap:8px;min-width:0}
   .stop-name .lbl{flex:1;min-width:0;word-break:break-word;line-height:1.45}
   .stop-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-left:28px}
-  .stop-acts{display:flex;align-items:center;gap:8px;padding-left:28px}
+  /* 这一行的左内衬从前是 28px（跟名称列对齐），批次 39-C 让给触控尺寸：出行态这一行
+     装「记一笔 + 四颗操作」本来就挤（实测挤出盒外 20px），把那颗破坏性钮抬到 44 要 76px。
+     未出行态这一行只有右对齐的一颗组，去掉内衬在屏上看不出差别。
+     gap 也从 8 收到 6：抬完尺寸后这一行实测仍挤出盒外 6px（b39-probe-after.txt W'2），
+     让 2px 间隙 + 「记一笔」的内衬 4px（挪去 design.css 单点）＝共让 6px，正好回到盒内。 */
+  .stop-acts{display:flex;align-items:center;gap:6px}
   .stop-acts .ops{margin-left:auto;display:flex;align-items:center;gap:4px}
-  .stop-acts .btn.mini{min-height:28px;padding:0 10px;font-size:var(--fs-2)}
+  .stop-acts .btn.mini{font-size:var(--fs-2)}
   .warnline{margin:8px 0;padding:9px 12px;border-radius:10px;font-size:var(--fs-3);line-height:1.6;background:rgba(179,74,63,.08);border:1px solid rgba(179,74,63,.18);color:var(--color-danger,#B34A3F)}
   /* 转场日（长途赶路）：虚线边 + 无景点行，与正常日游版式区分开 */
   .day-card.transit{background:var(--color-bg-soft);border-style:dashed}

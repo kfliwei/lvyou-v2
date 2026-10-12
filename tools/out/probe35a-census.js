@@ -43,7 +43,7 @@ const SYS = h => /^(system-ui|-apple-system|sans-serif|serif)(\s*,\s*(system-ui|
 const T3 = [
   ['results.js', 177], ['results.js', 179], ['results.js', 184], ['results.js', 190],   // docShell 打印友好路书
   ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042],                     // docShell 自有 body/h1/h2/.story
-  ['travel-notes.js', 2047],                                                            // 另存的游记 HTML body（批次 37 后从 1984 推到 2047）
+  ['travel-notes.js', 2069],                                                            // 另存的游记 HTML body（批次 37 从 1984 推到 2047，批次 39 再推 22 行到 2069）
   ['vault.js', 400],                                                                    // vault 导出 HTML body
   ['album.js', 344]                                                                     // SVG <text font-family="Songti SC, serif">（批次 38 后从 262 推到 344）
 ];

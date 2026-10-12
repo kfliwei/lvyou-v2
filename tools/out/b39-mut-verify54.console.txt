@@ -1,0 +1,84 @@
+=== mut-verify54 · 靶子 77 条（红 70／抹登记 4／静默 3），预检 全过 ===
+基准 verify 全绿 ✓（A54 表长 89／ZERO54 表长 9，与本网登记一致）
+基准 tools/smoke-story-landing.js 判据全绿 ✓（13 条）
+基准 tools/smoke-planner-touch.js 判据全绿 ✓（16 条）
+基准 tools/smoke-layer-back.js 判据全绿 ✓（25 条）
+OK   R01 落点退回 scrollIntoView 那一版（往整屏正中放，而整屏正中上下各有  → 带・触控第三写法・物理返回键闸门: story.html 里出现「el.scrollIntoView」：落点回到「往整屏正中放」：整屏正中上下各有一条带压着（实测浮条 5
+OK   R02 scroll-spy 退回整屏比例（它判的那一点与落点算的那一点分家）  → 带・触控第三写法・物理返回键闸门: story.html 里出现「var mid=window.innerHeight*0.55;」：scroll-spy 回到整屏比例：
+OK   R03 带的顶缘丢掉滚动态接缝（地图还没让开时那条带被算长一截，落点算的是没让开那一档）  → 带・触控第三写法・物理返回键闸门: story.html 里「return {top:Math.max(g.mp-y,0)+g.barH,bottom:g.navTo」实
+OK   R04 把 328×723 那一档量出来的地图高写回代码（换一台机器、装了导航栏、字体缩  → 带・触控第三写法・物理返回键闸门: story.html 的「function focusCard(el){」里写进了实测像素 318：这批数（地图 318／带 494／
+异常 R05 落点不再问底导航上缘（navTop 是 getBoundingClientRec  → §54 红 1 条，没有一条含「focusCard 没读 g.navTop」：FAIL §54 可读带・触控第三写法・物理返回键闸门: story.html 里「var y=(h>g.navTop-g.barH)?Math.max(g.mp,D-g.barH):D+」实
+OK   R06 落点不钳在文档两头之内（第一张卡与最后一张卡是同一套代码，不钳就滚出边界）  → 带・触控第三写法・物理返回键闸门: story.html 里「window.scrollTo({top:Math.max(0,Math.min(y,document.」实
+异常 R07 地图高写死（带顶缘的第二个来源，本批口径是一个像素也不许写进代码）  → §54 红 2 条，没有一条含「带的两端只有一个来源」：FAIL §54 可读带・触控第三写法・物理返回键闸门: story.html 里「var mp=document.getElementById('storyMap').offsetHei」实
+OK   R08 本页那条 .btn 又砍掉 design.css 地板的一截（实测「导航」75×  → 带・触控第三写法・物理返回键闸门: planner.html 里出现「.btn{min-height:42px」：本页那条 .btn 又砍掉 design.css 地板的
+OK   R09 28px 左内衬回来（出行态那一行改前已挤出盒外 20px）  → 带・触控第三写法・物理返回键闸门: planner.html 里出现「gap:8px;padding-left:28px}」：28px 左内衬回来：出行态那一行改前已挤出
+OK   R10 「记一笔」回到 28 高，且尺寸第二次写进页内 <style>（第二种写法晚加载  → 带・触控第三写法・物理返回键闸门: planner.html 里出现「min-height:28px;padding:0 10px」：「记一笔」回到 28 高：实测出行态
+OK   R11 可逆轻操作那一档被顺手整族抬到 44（口径是「破坏性/高频 ≥44」，上移/下移  → 带・触控第三写法・物理返回键闸门: planner.html 里 .mv 的 30 基础档读到 0 处（期望恰 1）：可逆轻操作留 30 是本批登记的口径，写成两处就会有
+OK   R12 开销行那颗删除的既有例外被合并回 30（例外少了＝新的破坏性钮藏进 30 那一档  → 带・触控第三写法・物理返回键闸门: .mv 族抬到 44 的例外现读 1 处（期望 2：开销行删除 + 站点行移除）：多一处就是有新的破坏性钮藏进了 30 那一档还没人登
+OK   R13 「移除这一站」的 44 声明退化（尺寸只许从 design.css 读一处）  → 带・触控第三写法・物理返回键闸门: design.css 里那条 mv-del 的 44 声明不在场或尺寸被改：尺寸只从这里读一处
+OK   R14 design.css 那条「记一笔」的高度退化到 34（低于 44 地板，腿量得  → 带・触控第三写法・物理返回键闸门: planner.js 生成 3 处 .btn.mini，而 design.css 那条 min-height:44px 的声明不在了：
+OK   R15 生成点丢掉 mv-del 这个例外标记（那颗破坏性钮跟着上移/下移留在 30，d  → 带・触控第三写法・物理返回键闸门: planner.js 里没有 mv-del 这个例外标记（现读 0 处）：那颗破坏性钮会和上移/下移一起留在 30，而 design.
+OK   R16 内联 style 里的 min-height 回来（触控尺寸的第三种写法，CSS  → 带・触控第三写法・物理返回键闸门: planner.js 里出现「min-height:30px」：触控尺寸的第三种写法（内联 style）回来：只有这一种 CSS 管不
+OK   R17 行程清单里那颗纯图标删除钮又只剩一枚 ✕（破坏性操作没有可达名，读屏念得出「按钮  → 带・触控第三写法・物理返回键闸门: planner.js 里「class="btn ghost" style="padding:0 10px;font-size:va」实
+OK   R18 屏上那扇门回到裸关（一句不问把刚填的名称、地址、封面一起丢掉）  → 带・触控第三写法・物理返回键闸门: node-manager.html 里出现「#nmCancel').onclick = function () { m.remove(
+OK   R19 遮罩那一扇改回裸关（两扇门必须走同一条脏检查）  → 带・触控第三写法・物理返回键闸门: node-manager.html 里「m.onclick = function (e) { if (e.target === m) 
+异常 R20 popstate 监听每次开层都绑（开合十次叠十个接收者，一发返回问十遍）  → §54 红 1 条，没有一条含「popstate 监听绑了 2 次」：FAIL §54 可读带・触控第三写法・物理返回键闸门: node-manager.html 里「if (!formPopBound) { formPopBound = true; addEv
+OK   R21 收了层却不收回历史条目（用户下一次按返回是在替一个看不见的前后坑背债）  → 带・触控第三写法・物理返回键闸门: node-manager.html 压了 1 条，而「收层同时收条目」只读到 0 处：少一处就是用户下一次按返回是在替一个看不见的前后
+OK   R22 开层不再压条目（新开这一页时后面一个文档都没有＝一发返回直接退出应用；③(b)   → 带・触控第三写法・物理返回键闸门: node-manager.html 里「pushFormEntry();」实得 1，期望 2：开层压一条 + 返回键那一发再压一条：③
+OK   R23 冒出一个没登记的历史条目键（新增这一层要一起登记并照本节形状写）  → 带・触控第三写法・物理返回键闸门: node-manager.html 里冒出一个没登记的历史条目键「nmAiGhostKey」：新增这一层要一起登记，且要照本节那一族形
+OK   R24 脏检查名单漏一格（在「地址」那一格打的字一句不问就没＝只守了半个层）  → 带・触控第三写法・物理返回键闸门: 自建地点表单层 里这些输入框不在脏检查名单上（nmAddr）：在那一格打的字一句不问就没——这一层的返回键守卫等于只守了半个层
+OK   R25 名单里有一格框不在场（框被删了而读数还留着，判脏永远脏、每关一次白拦一道）  → 带・触控第三写法・物理返回键闸门: 自建地点表单层 的名单里有框不在场（nmTagsGhost、nmElev, ）：框被删了而读数还留着，判脏就会永远脏、每关一次都白拦一
+OK   R26 路书层那扇门改回裸 remove（这一层丢掉的是偏好那句 + 已经生成的那一版，  → 带・触控第三写法・物理返回键闸门: results.js 里出现「#ix').onclick = function () { d.remove(); }」：同上，而这一层
+OK   R27 路书层的遮罩改回裸 remove  → 带・触控第三写法・物理返回键闸门: results.js 里「d.onclick = function (e) { if (e.target === d) close」实
+OK   R28 已经问出口了还叠第二层确认框（连点两下返回＝两张确认卡压在一起）  → 带・触控第三写法・物理返回键闸门: results.js 里「if (document.querySelector('.ui-modal-mask')) return」实
+异常 R29 路书层的监听每次开层都绑（同 R20，另一条腿）  → §54 红 1 条，没有一条含「popstate 监听绑了 2 次」：FAIL §54 可读带・触控第三写法・物理返回键闸门: results.js 里「if (!itinPopBound) { itinPopBound = true; addEventLi」实
+OK   R30 panelPushed 不再打头判（关面板的 hide 走 UI.vt 要等一帧  → 带・触控第三写法・物理返回键闸门: travel-notes.js 里出现「if (!ui || ui.panel.style.display !== 'flex') r
+OK   R31 面板把编辑屏那一发抢回来（批次 37 那一半被子层吃掉：编辑屏还开着，返回先问了  → 带・触控第三写法・物理返回键闸门: travel-notes.js 里「if (editCtx && document.querySelector('.tn-editpa
+OK   R32 关面板时不收自己压的那条（下一次返回是在替一个看不见的前后坑背债）  → 带・触控第三写法・物理返回键闸门: travel-notes.js 压了 2 条，而「收层同时收条目」只读到 1 处：少一处就是用户下一次按返回是在替一个看不见的前后坑背
+异常 R33 面板的监听每次开面板都绑（同 R20/R29，第三处）  → §54 红 1 条，没有一条含「popstate 监听绑了 2 次」：FAIL §54 可读带・触控第三写法・物理返回键闸门: travel-notes.js 里「if (!panelPopBound) { panelPopBound = true; addEv
+OK   S01 flat54 的定义行不再调用那把共享剥刀（注释里原样抄着改前那几句，期望 0   → 带・触控第三写法・物理返回键闸门: §54 的 flat54 定义行没走那把共享剥刀（现场读到的那一行：  const flat54 = s => ws54(s);）：p
+OK   S02 view54 的定义行退回「文档也剥注释」那一支（README 登记本批时要写旧  → 带・触控第三写法・物理返回键闸门: view54 的定义行退回「文档也剥注释」那一支（现场读到的那一行：  const view54 = f => flat54(rd54
+OK   S03 四枚盲区哨兵里的一枚改成读不到的串（这一带又变回盲窗而没人报）  → 带・触控第三写法・物理返回键闸门: 盲区哨兵：「function focusCardGhost(el){」在 flat 里读不到了（它就贴在 story.html 本批改
+OK   S04 A54 有一条少写期望次数字段（四元组形状不整会解构错位，这条锚等于没跑）  → 带・触控第三写法・物理返回键闸门: A54 有一条不是「[文件, 串, 期望次数, 原因]」四元组：["design.css",".stop-acts .btn.mini
+OK   S05 ZERO54 有一条少写正向对照字段（那条期望 0 的对照等于没有）  → 带・触控第三写法・物理返回键闸门: ZERO54 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：["node-manager.html","#nmCance
+OK   S06 ZERO54 的正向对照改成不含 needle（上面那个 0 就不是证据）  → 带・触控第三写法・物理返回键闸门: 「var mid=window.innerHeight*0.55;」这条期望 0 的正向对照失效了（上面那个 0 不是证据）
+OK   S07 A54 登记了 §54 没读的文件（锚住在空气上，永远读不到也永远不红）  → 带・触控第三写法・物理返回键闸门: A54 登记了 §54 没读的文件「story.htmGhost」：带的两端只有一个来源：地图高、顶栏高、底导航上缘各量一次，别处不许
+OK   S08 内联尺寸那把刀改名（喂改前那一行读不到 1，刀一瞎下面那个 0 就是空判据）  → 带・触控第三写法・物理返回键闸门: 内联尺寸那把刀自校准失准（喂改前那一行应读到 1，实得 0）：刀一瞎，下面那个 0 就是空判据
+OK   S09 ③(a) 的分母下界抬到 400（现场 72 处内联 style，红字要跟着说   → 带・触控第三写法・物理返回键闸门: planner.js 现场只读到 72 处内联 style（期望 ≥400 当分母）：这一族的取样变了，先把这条腿对上再谈 0
+OK   S10 ③(a) 的 .mv 基础档期望抬到 2（一处声明改成两处才算过）  → 带・触控第三写法・物理返回键闸门: planner.html 里 .mv 的 30 基础档读到 1 处（期望恰 2）：可逆轻操作留 30 是本批登记的口径，写成两处就会有
+OK   S11 ③(a) 的 44 例外期望抬到 3（多一处「有破坏性钮藏进 30」的登记位就当  → 带・触控第三写法・物理返回键闸门: .mv 族抬到 44 的例外现读 2 处（期望 3：开销行删除 + 站点行移除）：多一处就是有新的破坏性钮藏进了 30 那一档还没人登
+OK   S12 ③(b) 的收条目模式打歪一个字符（合规串读不到，把「摘层不收回历史」当成合规）  → 带・触控第三写法・物理返回键闸门: 收条目那把刀自校准失准（合规串应读到 1、裸 remove 串应读到 0，实得 0／0）：把「摘层不收回历史」当成合规，这一节就白跑
+OK   S13 ③(b) 登记表少登一行（面板那一层的返回键守卫整个没了也无人报）  → 带・触控第三写法・物理返回键闸门: travel-notes.js 里冒出一个没登记的历史条目键「tnPanel」：新增这一层要一起登记，且要照本节那一族形状写（开层压一
+OK   S14 控件那把刀少认一种标签（合成样本只数到 3，名单对账就是空判据）  → 带・触控第三写法・物理返回键闸门: 控件那把刀自校准失准（合成 4 个框加一个 div，应「数到 4、其中 file 那一枚带 type」，实得 [{"id":"x1",
+OK   S15 ③(c) 把 type=file 那一格豁免摘掉（选文件那种框由它自己的 onc  → 带・触控第三写法・物理返回键闸门: 自建地点表单层 里这些输入框不在脏检查名单上（nmFile）：在那一格打的字一句不问就没——这一层的返回键守卫等于只守了半个层
+OK   S16 ③(c) 空分母那一支取反（这一层压根没读到框时不再当场失明）  → 带・触控第三写法・物理返回键闸门: 自建地点表单层 一层里没读到任何输入框（现读 7）：取样分母是空的，上面那两个 0 不算证据
+OK   S17 ③(d) 写死像素的名单少一枚（557 不在名单里，浮条带顶写回代码就没人管）  → 带・触控第三写法・物理返回键闸门: 写死像素那把刀自校准失准（合成一句应被抓到）：抓不到就说明下面那个 0 是空判据
+OK   S18 ③(d) 的 focusCard 必读名加一枚不存在的（红字要说的是这一枚，不是  → 带・触控第三写法・物理返回键闸门: focusCard 没读 g.ghostH：落点自己另算一套带的边界，就会与 spy 判的那一套分家
+OK   S19 ③(d) 的 spy「读 bandAt」那一支挪成不存在的名字（这一支换目标，摘  → 带・触控第三写法・物理返回键闸门: scroll-spy 不再读 bandAt 的带中心：落点与判据分家，翻页刚落定就被判给邻站
+OK   S20 ③(d) 的 spy「不许碰整屏高度」那一支取反（干净树上它本来静默，取反才看得  → 带・触控第三写法・物理返回键闸门: scroll-spy 又拿整屏高度当尺子：整屏正中上下各有一条带压着，判出来的「当前这一篇」会是压在浮条底下的那一篇
+OK   S21 ④ 齐备检给 story-landing 登记的循环上限收窄一格（L11 从此没  → 带・触控第三写法・物理返回键闸门: ④ 齐备检给 tools/smoke-story-landing.js 登记的循环上限是 10，而这条腿里真实最大编号是 L12：差一
+OK   S22 ④ 上限与真实最大编号的对账挪成「等于编号本身」（少守一条判据却自称对过账）  → 带・触控第三写法・物理返回键闸门: ④ 齐备检给 tools/smoke-story-landing.js 登记的循环上限是 11，而这条腿里真实最大编号是 L12：差一
+OK   S23 ④ 条数守卫的查找串挪成不存在的编号（守卫那一支换目标）  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 少了最后那条条数守卫（ok('L13'）：腿是顺序跑的，中间抛了＝后面的判据
+OK   S24 ④ 齐备检的编号补零分支去掉（L00–L09 那十条从此按 ok('L0 找，一  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里 L00 这条判据不是恰 1 处（实得 0）：这一节断的是「可读带落点」「
+OK   S25 ④「一条判据都没数到」那一支取反（这条腿形状变了也不再当场失明）  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里一条 ok() 判据都没数到（现读 13）：这条腿的形状变了，齐备检当场失
+OK   T01 story-landing 屏档退回 452×995（量的不是用户那块屏，带高与  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里「const VW = 328, VH = 723;」实得 0，期望 1：
+OK   T02 story-landing 不打 tn_onboarded 标记（首启蒙层 z9  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里「localStorage.setItem('tn_onboarded',
+OK   T03 story-landing 不再确认产品那把尺子在场（产品改了名字，腿会抱着自己  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里「if (!(window.geo && window.bandAt)) 
+OK   T04 story-landing 的 prod 读数写死 -1（L06 那条「两边同数  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里「prod: window.bandAt ? Math.round(ban
+OK   T05 story-landing 条数守卫阈值挪低（判据少 10 条也算「跑完了」：中  → 带・触控第三写法・物理返回键闸门: tools/smoke-story-landing.js 里「total >= 12」实得 0，期望 1：条数守卫（腿是顺序跑的，中途
+OK   T06 planner-touch 不播种行程清单（这一段测的是刚改的两枚钮，没播种就没  → 带・触控第三写法・物理返回键闸门: tools/smoke-planner-touch.js 里「localStorage.setItem('tn_trips'」实得 0
+OK   T07 planner-touch 的清单行读数落点改打不存在的类（清单两枚钮的实测永远  → 带・触控第三写法・物理返回键闸门: tools/smoke-planner-touch.js 里「document.querySelectorAll('#tripsHom
+OK   T08 planner-touch 条数守卫阈值挪低（同上）  → 带・触控第三写法・物理返回键闸门: tools/smoke-planner-touch.js 里「total >= 15」实得 0，期望 1：条数守卫
+OK   T09 layer-back 的可观测量改名（可观测量是 history.state，不  → 带・触控第三写法・物理返回键闸门: tools/smoke-layer-back.js 里「window.histState = function ()」实得 0，期望 
+OK   T10 layer-back 的 X 层入口不在场时那一发红挪了编号（齐备检按字面 ok  → 带・触控第三写法・物理返回键闸门: tools/smoke-layer-back.js 里「first: 'B00'」实得 0，期望 1：入口不在场时那一发红要落在这一层
+OK   T11 layer-back 判据 B18 被改名（「同一发返回只许问一遍」这一条没人守  → 带・触控第三写法・物理返回键闸门: tools/smoke-layer-back.js 里 B18 这条判据不是恰 1 处（实得 0）：这一节断的是「可读带落点」「触控地
+OK   T12 layer-back 条数守卫阈值挪低（同上，24 条前置判据齐备这一条不许退）  → 带・触控第三写法・物理返回键闸门: tools/smoke-layer-back.js 里「total >= 24」实得 0，期望 1：条数守卫
+OK   T13 README 抹掉 §54 的登记（新闸门不写进 README 就等于没装）  → 带・触控第三写法・物理返回键闸门: README.md 的 verify 清单没提 §54（新闸门不写进 README 就等于没装）
+OK   T14 README 抹掉可读带这条腿的登记（腿在跑，登记表里却没有它）  → 带・触控第三写法・物理返回键闸门: README.md 没登记 tools/smoke-story-landing.js 这条腿
+OK   T15 README 抹掉触控这条腿的登记（同上）  → 带・触控第三写法・物理返回键闸门: README.md 没登记 tools/smoke-planner-touch.js 这条腿
+OK   T16 README 抹掉返回键这条腿的登记（同上）  → 带・触控第三写法・物理返回键闸门: README.md 没登记 tools/smoke-layer-back.js 这条腿
+异常 U01 scroll-spy 判「最近」用的是卡顶而不是卡中心（§54 钉的是 mid   → 源码腿红 0 条／整跑仍绿，浏览器腿红 0 条；指名的 L05 没红
+OK   U02 「移除」那颗的生成点加一句内联 style="height:30px"（③(a)  → 源码腿 0 红且整跑绿，tools/smoke-planner-touch.js 红在 T01（共 3 条红）
+OK   U03 syncFormBase 空转（函数、名单、两处调用点全在原处，只是不再把机器异  → 源码腿 0 红且整跑绿，tools/smoke-layer-back.js 红在 B04（共 2 条红）
+=== mut-verify54: 77 条靶子 → 红对 69／静默对 2／异常 6 ===
+注意：U 类重跑过三条腿，它们按固定文件名落读数 tools/out/b39-smoke-story-landing.txt、b39-smoke-planner-touch.txt、b39-smoke-layer-back.txt；跑完要在干净树上各复跑一次把读数盖回去。

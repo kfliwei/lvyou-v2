@@ -1180,7 +1180,7 @@
         d.playH.toFixed(1) + ' 小时，全程 ' + d.totalH.toFixed(1) + ' 小时' + (over ? '，偏赶' : '');
       h += '<div class="day-card" role="listitem" aria-label="' + esc(dl) + '" data-day="' + di + '" onmouseenter="window.plannerHlDay(' + di + ')" onmouseleave="window.plannerHlDay(-1)"><div class="dhead"><span class="' + seal + (allDone ? ' done' : '') + '">D' + (di + 1) + '</span>' +
         '<span class="dmeta">' + d.stops.length + ' 站 · 约 ' + Math.round(d.driveKm) + ' km · 游玩 ' + d.playH.toFixed(1) + 'h · 全程 ' + d.totalH.toFixed(1) + 'h</span>' + wxSlot(trip, di) +
-        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
+        '<button class="btn" style="padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>';
       if (over) h += '<div class="warnline">' + TI('warn') + '该日预计 ' + d.totalH.toFixed(0) + ' 小时，偏赶，建议减 1~2 站</div>';
       d.stops.forEach(function (s, si) {
         var det = detailCache[s.name];
@@ -1195,7 +1195,7 @@
           '<button class="mv" aria-label="上移" onclick="window.plannerMoveStop(' + di + ',' + si + ',-1)">↑</button>' +
           '<button class="mv" aria-label="下移" onclick="window.plannerMoveStop(' + di + ',' + si + ',1)">↓</button>' +
           '<button class="mv' + (s.locked ? ' on' : '') + '" aria-label="' + (s.locked ? '解除锁定' : '锁定顺序') + '" title="' + (s.locked ? '已锁定：自动重排不会动这一站' : '锁定这一站：自动重排不参与') + '" onclick="window.plannerLockStop(' + di + ',' + si + ')">' + TI(s.locked ? 'pinned' : 'pin', 14) + '</button>' +
-          '<button class="mv" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">'+TI('close', 14)+'</button></span>';
+          '<button class="mv mv-del" aria-label="移除" onclick="window.plannerRemoveStop(' + di + ',' + si + ')">'+TI('close', 14)+'</button></span>';
         h += '<div class="stop' + (warn ? ' warn' : '') + (s.done ? ' done' : '') + '">' +
           '<div class="stop-name"><span class="n">' + (si + 1) + '</span><span class="lbl">' + (s.done ? TI('check') + ' ' : '') + esc(s.name) + '</span></div>' +
           '<div class="stop-meta">' + meta.join('') + '</div>' +
@@ -2287,9 +2287,11 @@
   function renderTrips() {
     var list = loadTrips();
     var html = list.map(function (t, i) {
+      /* 这两颗的高度从前内联写死 30px——那是触控尺寸的第三种写法（design.css 单点／页内 <style>／内联 style），
+         只有内联这一种 CSS 管不住，所以批次 39-C 抬地板时必须一起收掉。「删除行程」是破坏性的 ⇒ 走 .btn 的 44。 */
       return '<div class="cand"><span class="dot" style="background:var(--color-primary)"></span><span class="main"><b>' + esc(t.name) + '</b><small>' + esc(t.createdAt ? TravelNotes.fmtDayText(t.createdAt) : '') + ' · ' + t.days.length + ' 天 · ' + t.days.reduce(function (s, d) { return s + d.stops.length; }, 0) + ' 站</small></span>' +
-        '<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
-        '<button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:var(--fs-3);color:var(--color-muted)" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
+        '<button class="btn" style="padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerOpenTrip(' + i + ')">打开</button>' +
+        '<button class="btn ghost" style="padding:0 10px;font-size:var(--fs-3);color:var(--color-muted)" aria-label="删除行程" onclick="window.plannerDelTrip(' + i + ')">'+TI('close', 14)+'</button></div>';
     }).join('');
     /* 结果页（stageResult）底部的已保存行程 */
     var card = $id('tripsCard');

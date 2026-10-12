@@ -1,6 +1,6 @@
 {
   "note": "视觉基线指纹清单。截图本体 PNG 不入库；缺文件=闸门失效，visual-check 会判 FAIL。重建：node tools/visual-check.js --update",
-  "generatedAt": "2026-10-11T06:07:16.264Z",
+  "generatedAt": "2026-10-12T01:00:37.600Z",
   "viewports": [
     "320x640",
     "328x723",
@@ -36,8 +36,8 @@
       "bytes": 2126347
     },
     "topic.320x640.png": {
-      "sha": "498e678e5ad4be2e",
-      "bytes": 225595
+      "sha": "b86ad49aa507c815",
+      "bytes": 225558
     },
     "topic.328x723.png": {
       "sha": "ba85423b61c32538",
@@ -48,12 +48,12 @@
       "bytes": 269979
     },
     "topic.452x995.png": {
-      "sha": "37638e32317e8e43",
-      "bytes": 309303
+      "sha": "21454956c4b67a42",
+      "bytes": 309318
     },
     "topic.768x1024.png": {
-      "sha": "cca1008a0d2177dd",
-      "bytes": 332161
+      "sha": "99d0dd00972ad0f3",
+      "bytes": 332163
     },
     "topic.1440x900.png": {
       "sha": "a905221f3f485666",
@@ -324,28 +324,28 @@
       "bytes": 156333
     },
     "planner.320x640.png": {
-      "sha": "9b9ad0957ce63d8f",
-      "bytes": 302346
+      "sha": "56694499d1e8f713",
+      "bytes": 302257
     },
     "planner.328x723.png": {
-      "sha": "ec9d1b55a57f3f6c",
-      "bytes": 339600
+      "sha": "fd88dfd801b96a09",
+      "bytes": 341379
     },
     "planner.390x844.png": {
-      "sha": "28def1a9fe89f5c4",
-      "bytes": 455022
+      "sha": "235358f52f841ecb",
+      "bytes": 453211
     },
     "planner.452x995.png": {
-      "sha": "181b4522e33b9532",
-      "bytes": 533266
+      "sha": "a0b292b6f60ed73a",
+      "bytes": 533596
     },
     "planner.768x1024.png": {
-      "sha": "242a24905c652342",
-      "bytes": 973339
+      "sha": "28c7a70e6cdc06a3",
+      "bytes": 973246
     },
     "planner.1440x900.png": {
-      "sha": "23d394c20f0f3ddc",
-      "bytes": 947112
+      "sha": "582c2e794c364338",
+      "bytes": 950250
     },
     "md-manager.320x640.png": {
       "sha": "92eeeae892f06d89",

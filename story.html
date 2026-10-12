@@ -216,9 +216,39 @@ function goStep(dir){
   if(j<0||j>=cards.length) return;
   lastActive=j; setActive(j);
   var el=document.querySelectorAll('.story-card')[j];
-  if(el) el.scrollIntoView({behavior:UI.scrollBehavior(),block:'center'});
+  if(el) focusCard(el);
 }
-/* scroll-spy：以卡片相对视口中位判断激活 */
+/* 可读带＝顶栏下缘到翻页条上缘。顶栏是 sticky：地图（44vh）还露着时它压在地图下面，滚过地图
+   之后钉回 0，同一条带上缘在两个滚动态里是两个值——所以这里收滚动态当参数，两侧（落点与 spy）
+   都从这一个式子读数，不写死像素；翻页条吃 env(safe-area-inset-bottom)，装了导航栏的机器上还会上移，
+   那个数只能现量。 */
+function geo(){
+  var mp=document.getElementById('storyMap').offsetHeight;
+  var barH=document.querySelector('.story-bar').offsetHeight;
+  var navTop=document.getElementById('storyNav').getBoundingClientRect().top;
+  return {mp:mp,barH:barH,navTop:navTop};
+}
+function bandAt(y){
+  var g=geo();
+  return {top:Math.max(g.mp-y,0)+g.barH,bottom:g.navTop};
+}
+/* 落点按可读带算，不按整屏算。改前这里 scrollIntoView({block:'center'}) 是往视口正中放，
+   而视口正中上下各有一条带压着（实测翻页条带 557–619）：产品自己翻到的那一站，当前卡的正文被
+   这条半透明条糊住最多 1.75 行，照片条整个在带外按中心点不着（实测 tools/out/b39-probe-backlog.txt）。
+   带高随滚动态变（地图未让开时只有 176，让开后 494），所以这里一次算清文档坐标，不混用两种态。
+   「卡片整张落在带内」对应的滚动态是一段区间，区间中点正好＝「卡片中心落在带中心」那一档，取它：
+   下面那个 scroll-spy 判的也是带中心，落点与判据同一点，翻到的这一站才不会被立刻判给邻站
+   （贴带上缘落点就会——当前卡中心在 163、带中心在 310，离带中心最近的反而是下一张）。
+   比整条带还高的卡没法整张都露出来——那只能贴带上缘，读到哪算哪，
+   而这种卡必须先把地图让开（带只有 176 那一档时贴顶照样被翻页条切），所以取 max(地图高, 贴顶)。 */
+function focusCard(el){
+  var g=geo();
+  var h=el.offsetHeight;
+  var D=window.scrollY+el.getBoundingClientRect().top;
+  var y=(h>g.navTop-g.barH)?Math.max(g.mp,D-g.barH):D+h/2-(g.barH+g.navTop)/2;
+  window.scrollTo({top:Math.max(0,Math.min(y,document.documentElement.scrollHeight-window.innerHeight)),behavior:UI.scrollBehavior()});
+}
+/* scroll-spy：以卡片相对可读带中位判断激活（与上面落点同一个带，否则翻页刚落定就被判给别人） */
 var _spyTimer=null;
 function onScroll(){
   if(_spyTimer) return;
@@ -226,7 +256,8 @@ function onScroll(){
     _spyTimer=null;
     var els=document.querySelectorAll('.story-card');
     var best=-1,bestD=1e9;
-    var mid=window.innerHeight*0.55;
+    var bd=bandAt(window.scrollY);
+    var mid=(bd.top+bd.bottom)/2;
     els.forEach(function(e,i){
       var r=e.getBoundingClientRect();
       var d=Math.abs((r.top+r.height/2)-mid);

@@ -103,7 +103,7 @@ const FP = [
   ['tools/verify.js', '/* ④ 浏览器腿齐备检：FO00–FO21 逐条在场 + 循环上限对账 */'],
   ['tools/verify.js', 'const flat51 = s => ws51(stripBlockComments(s));'],
   ['tools/verify.js', 'const view51 = f => /\\.md$/.test(f) ? ws51(rd51(f)) : flat51(rd51(f));'],
-  ['tools/verify.js', "const T2GEN = [['travel-notes.js', 2354]];"],
+  ['tools/verify.js', "const T2GEN = [['travel-notes.js', 2376]];"],
   ['tools/verify.js', "const CAL = names(':root{--bg:#f6f1e5;--surface:#f6f1e5;}');"],
   ['tools/verify.js', "const CAL_OK = 'var(--tnp-fd)';"],
   ['tools/verify.js', "if (V51['design.css'].indexOf('var(--tnp-') >= 0)"],
@@ -117,7 +117,7 @@ const FP = [
   ['travel-map.html', 'if(window.UI&&window.UI.fontsReady) window.UI.fontsReady().then(go,go);'],
   ['design.css', '--bg:var(--color-bg);'],
   ['tools/smoke-font.js', 'ALIAS17.length !== 17'],
-  ['tools/out/probe35b-census.js', "['travel-notes.js', 2354]"],
+  ['tools/out/probe35b-census.js', "['travel-notes.js', 2376]"],
   ['README.md', '§51 字族三档与注入串同名覆盖'],
   ['README.md', 'smoke-font'],
 ];
@@ -211,8 +211,8 @@ t('R20 design.css 那枚真令牌 --bg 被顺手摘掉（摘的是别名一族�
   '  --bg:var(--color-bg);', '  /* 摘掉 */']],
   '全站那一枚 --bg 还在');
 t('R21 探针的留-generic 点名表行号漂一格（② 档那一枚在探针与本节各登记一次，只改一边就是「探针绿、闸门红」）', [['tools/out/probe35b-census.js',
-  "const T2_GENERIC = [['travel-notes.js', 2354]];",
-  "const T2_GENERIC = [['travel-notes.js', 2355]];"]],
+  "const T2_GENERIC = [['travel-notes.js', 2376]];",
+  "const T2_GENERIC = [['travel-notes.js', 2377]];"]],
   '探针与本节各登记一次');
 t('R22 面板纸色的私名值被改掉（35-B 的口径是只改名字、值一个字不动 ⇒ 外观不变）', [['travel-notes.js',
   '--tnp-bg:#f6f1e5;', '--tnp-bg:#fbf8f1;']],
@@ -380,7 +380,7 @@ gBoth('U04 轨迹卡出图口在闸门前多打一发（同一族第二个口：
   [['travel-map.html',
     '  function go(){ drawTrackCard(themeId); }\n  if(window.UI&&window.UI.fontsReady) window.UI.fontsReady().then(go,go);',
     '  function go(){ drawTrackCard(themeId); }\n  go();\n  if(window.UI&&window.UI.fontsReady) window.UI.fontsReady().then(go,go);']], 'FO14');
-gBoth('U05 分享卡片那一路在闸门前多打一发（第三个口；这颗钮是真鼠标点的，直调那一形 §51 另有锚）——期望红在 FO20。首跑这条打红了源码腿两条：那一发插成新的一行 ⇒ travel-notes.js 下面所有行号 +1 ⇒ ② 档点名表钉的那枚（现 2354；批次 37 往本文件插 76 行时，它已经从 2278 漂过一次、③ 档那枚从 1984 漂到 2047）与 ③ 档那几枚一起漂，扫描器当场把「留 generic 那枚读成 0 枚」＋「不含品牌族 1 处」两条都红了（红是响的，但那条靶子的期望就成了「源码腿必须绿」）。所以这一发的插入必须留在闸门那一行内，不许改变行数',
+gBoth('U05 分享卡片那一路在闸门前多打一发（第三个口；这颗钮是真鼠标点的，直调那一形 §51 另有锚）——期望红在 FO20。首跑这条打红了源码腿两条：那一发插成新的一行 ⇒ travel-notes.js 下面所有行号 +1 ⇒ ② 档点名表钉的那枚（现 2376；批次 37 往本文件插 76 行时，它已经从 2278 漂过一次、③ 档那枚从 1984 漂到 2047；批次 39 再插 22 行，② 档到 2376、③ 档到 2069）与 ③ 档那几枚一起漂，扫描器当场把「留 generic 那枚读成 0 枚」＋「不含品牌族 1 处」两条都红了（红是响的，但那条靶子的期望就成了「源码腿必须绿」）。所以这一发的插入必须留在闸门那一行内，不许改变行数',
   [['travel-notes.js',
     '    if (window.UI && window.UI.fontsReady) window.UI.fontsReady().then(go, go);',
     '    go(); if (window.UI && window.UI.fontsReady) window.UI.fontsReady().then(go, go);']], 'FO20');

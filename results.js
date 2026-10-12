@@ -399,6 +399,54 @@
     });
   }
   /* ============ 2. 定制路书 ============ */
+  /* 物理返回键这一发（批次 39-D，三处裸关层的第三处）：这一层从前只有两扇裸关的门（#ix 与遮罩都是
+     d.remove()），而 DOM 层不进历史 ⇒ 壳里 MainActivity.java:547 那句 webView.goBack() 后面没有任何
+     接收者。实测两种落点（tools/out/b39-probe-backlog.txt:109–:115）：新开这页时后面一个文档都没有＝
+     返回键直接退出应用，刚打的偏好那句「不看博物馆，只看地上文物」一句不问就没了；从别页跳过来时整层
+     连字一起走。形状照 travel-notes.js 批次 37 的编辑屏（pushEditEntry/onEditPop/dropEdit）：
+     开层压一条历史，返回键先落到这一层，再走脏检查。 */
+  var itinCtx = null;           /* {d, base, pushed}：.rz-dlg 是 inset:0 全铺层，同一时刻只可能有一层在场 */
+  var itinPopBound = false;
+  function itinVals() {
+    var d = itinCtx && itinCtx.d;
+    if (!d) return '';
+    var v = ['idays', 'ipref'].map(function (id) {
+      var e = d.querySelector('#' + id);
+      return e ? String(e.value || '') : '';
+    });
+    /* 已经生成的那一版也算内容：它得再点一次「生成」并再花一次 AI 调用才回得来 */
+    var out = d.querySelector('#iout');
+    v.push(out && out.style.display !== 'none' ? out.textContent : '');
+    return JSON.stringify(v);
+  }
+  function pushItinEntry() {
+    if (!itinCtx) return;
+    try { history.pushState({ rzItin: 1 }, ''); itinCtx.pushed = true; } catch (e) { itinCtx.pushed = false; }
+  }
+  /* 摘层 + 把为这一层压进去的那条历史一起收掉。顺序不能反（同 dropEdit）：先 remove 再 back，
+     随后那发 popstate 会被 onItinPop 放过（层已不在场）。压失败的场合不许发 back——那是真·后退一页。 */
+  function dropItin() {
+    var c = itinCtx;
+    itinCtx = null;
+    if (c && c.d && c.d.parentNode) c.d.remove();
+    if (c && c.pushed) { try { history.back(); } catch (e) {} }
+  }
+  function closeItin(force) {
+    if (!itinCtx) return;
+    if (force !== true && itinVals() !== itinCtx.base) {
+      if (document.querySelector('.ui-modal-mask')) return;   /* 确认框已在场：连点两下返回别叠第二层 */
+      if (!(window.UI && UI.confirm)) { dropItin(); return; }  /* 没有 ui.js 的宿主：不拦，但也不裸关（这一层本来就有人守） */
+      UI.confirm({ title: '还没生成', text: '路书还没生成，关掉刚填的就没了。', okText: '关掉不存', cancelText: '继续填' },
+        function (ok) { if (ok) dropItin(); });
+      return;
+    }
+    dropItin();
+  }
+  function onItinPop() {
+    if (!itinCtx || !document.body.contains(itinCtx.d)) return;  /* 不是这一层在等返回：交回原有行为 */
+    pushItinEntry();
+    closeItin(false);
+  }
   function buildItinerary(sitesIn, topicLabel) {
     var sites = (sitesIn && sitesIn.length) ? sitesIn : (window.SITES || []);
     /* 无专题数据时，回退到「游记里带坐标的地点」，让回顾页的路书入口也可用 */
@@ -422,8 +470,12 @@
       + '<button id="igo" class="btn-primary" style="width:100%;margin-top:14px">生成路书</button>'
       + '</div>';
     document.body.appendChild(d);
-    d.querySelector('#ix').onclick = function () { d.remove(); };
-    d.onclick = function (e) { if (e.target === d) d.remove(); };
+    itinCtx = { d: d, base: '', pushed: false };
+    itinCtx.base = itinVals();
+    if (!itinPopBound) { itinPopBound = true; addEventListener('popstate', onItinPop); }
+    pushItinEntry();
+    d.querySelector('#ix').onclick = function () { closeItin(); };
+    d.onclick = function (e) { if (e.target === d) closeItin(); };
     var go = d.querySelector('#igo'), out = d.querySelector('#iout');
     go.onclick = function () {
       var days = parseInt(d.querySelector('#idays').value, 10) || 3;

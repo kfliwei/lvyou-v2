@@ -40,13 +40,13 @@ const SYS = h => /^(system-ui|-apple-system|sans-serif|serif)(\s*,\s*(system-ui|
 const T3 = [
   ['results.js', 132], ['results.js', 134], ['results.js', 139], ['results.js', 145],
   ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042],
-  ['travel-notes.js', 2047],
+  ['travel-notes.js', 2069],
   ['vault.js', 400],
   ['album.js', 344]
 ];
 const isT3 = h => T3.some(([f, n]) => h.f === f && h.n === n);
 /* ② 档里设计内留 generic 的那一条（日期短档，不担品牌字族），必须显式点名 */
-const T2_GENERIC = [['travel-notes.js', 2354]];
+const T2_GENERIC = [['travel-notes.js', 2376]];
 
 const buckets = { TOKEN_DEF: [], WIRED: [], INHERIT: [], MONO: [], SYS: [], T1: [], T2: [], T2gen: [], T3: [] };
 hits.forEach(h => {

@@ -235,7 +235,7 @@
           var ac = d.regeocode.addressComponent || {};
           var prov = ac.province || '', city = ac.city || ac.province || '';
           var el = document.getElementById('nmCity');
-          if (el && !el.value && city) el.value = city;
+          if (el && !el.value && city) { el.value = city; syncFormBase('nmCity'); }
           if (prov) window.__nmProvince = prov;
           var desc = document.getElementById('nmDesc');
           if (desc && !desc.value && d.regeocode.formatted_address && d.regeocode.formatted_address !== city) {
@@ -247,7 +247,7 @@
         var el = document.getElementById('nmElev');
         if (el && d && d.status === '1' && d.data && d.data.length) {
           var e = Math.round(+d.data[0].elevation);
-          if (!isNaN(e) && !el.value) el.value = e;
+          if (!isNaN(e) && !el.value) { el.value = e; syncFormBase('nmElev'); }
         }
       });
     }
@@ -256,7 +256,7 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var el = document.getElementById('nmElev');
-        if (el && d && d.elevation != null && !el.value) el.value = Math.round(d.elevation);
+        if (el && d && d.elevation != null && !el.value) { el.value = Math.round(d.elevation); syncFormBase('nmElev'); }
       }).catch(function () {});
   }
   /* AI 生成节点介绍（DeepSeek，复用设置页的 AI Key） */
@@ -826,6 +826,66 @@
   }
 
   /* ---------- 添加/编辑表单 ---------- */
+  /* 物理返回键这一发（批次 39-D）：这一层从前只有两扇裸关的门（#nmCancel 与遮罩都是 m.remove()），
+     而 DOM 层不进历史 ⇒ 壳里 MainActivity.java:547 那句 webView.goBack() 后面没有任何接收者。
+     实测两种落点（tools/out/b39-probe-backlog.txt:102–:106）：新开这一页时后面一个文档都没有＝返回键
+     直接退出应用，刚打的名称一句不问就没了；从别页跳过来时整页连刚打的字一起走。
+     形状照 travel-notes.js 批次 37 那一族：开层压一条历史，返回键先落到这一层，再走脏检查。 */
+  var formCtx = null;
+  var formPopBound = false;
+  var FORM_FIELDS = ['nmName', 'nmCity', 'nmAddr', 'nmCat', 'nmTags', 'nmElev', 'nmDesc'];
+  function formVals() {
+    var pb = document.getElementById('nmPhotoBox');
+    var v = FORM_FIELDS.map(function (id) {
+      var e = document.getElementById(id);
+      return e ? String(e.value || '') : '';
+    });
+    v.push(pb ? (pb.dataset.cover || '') : '');   /* 换封面也算「打了一半」：那是一张真图，不是皮肤 */
+    return JSON.stringify(v);
+  }
+  function pushFormEntry() {
+    if (!formCtx) return;
+    try { history.pushState({ nmForm: 1 }, ''); formCtx.pushed = true; } catch (e) { formCtx.pushed = false; }
+  }
+  /* 机器写进去的那一格不算「打了一半」。autoFill 在开层之后异步填 #nmCity/#nmElev（逆地理 + 海拔），
+     而 base 是 openForm 一开头拍的，于是「一个键都没碰」的层也被判脏（实测
+     tools/out/b39-probe-after.txt X'④ 那条打了星号的「没内容也拦」）。所以只把写入的那一格补进基线，
+     其余格仍停在开层时——用户打的字、AI 后补的介绍（genDesc / aiEnrich）一概不会被抹平成「干净」。 */
+  function syncFormBase(id) {
+    if (!formCtx) return;
+    var i = FORM_FIELDS.indexOf(id);
+    if (i < 0) return;
+    var e = document.getElementById(id);
+    try {
+      var v = JSON.parse(formCtx.base);
+      v[i] = e ? String(e.value || '') : '';
+      formCtx.base = JSON.stringify(v);
+    } catch (err) {}
+  }
+  /* 摘层 + 把为这一层压进去的那条历史一起收掉。顺序不能反（同 travel-notes.js 的 dropEdit）：
+     先 remove 再 back，随后那发 popstate 会被 onFormPop 放过（层已不在场）。 */
+  function dropForm() {
+    var c = formCtx;
+    formCtx = null;
+    if (c && c.m && c.m.parentNode) c.m.remove();
+    if (c && c.pushed) { try { history.back(); } catch (e) {} }
+  }
+  function closeForm(force) {
+    if (!formCtx) return;
+    if (force !== true && formVals() !== formCtx.base) {
+      /* 确认框自己也是 .ui-modal-mask，但要排除这一层表单（.nm-mask）；连点两下返回别叠第二层 */
+      if (document.querySelector('.ui-modal-mask:not(.nm-mask)')) return;
+      UI.confirm({ title: '还没保存', text: '这个地点还没存下来，关掉刚填的就没了。', okText: '关掉不存', cancelText: '继续填' },
+        function (ok) { if (ok) dropForm(); });
+      return;
+    }
+    dropForm();
+  }
+  function onFormPop() {
+    if (!formCtx || !document.body.contains(formCtx.m)) return;  /* 不是这一层在等返回：交回原有行为 */
+    pushFormEntry();
+    closeForm(false);
+  }
   function openForm(preset) {
     var m = document.createElement('div');
     m.className = 'ui-modal-mask nm-mask';
@@ -856,8 +916,11 @@
       '<div class="ui-modal-acts"><button class="ui-btn ui-btn-ghost" id="nmCancel">取消</button><button class="ui-btn ui-btn-primary" id="nmSave">保存</button></div></div>';
     document.body.appendChild(m);
     requestAnimationFrame(function () { m.classList.add('show'); });
-    m.querySelector('#nmCancel').onclick = function () { m.remove(); };
-    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    formCtx = { m: m, base: formVals(), pushed: false };
+    if (!formPopBound) { formPopBound = true; addEventListener('popstate', onFormPop); }
+    pushFormEntry();
+    m.querySelector('#nmCancel').onclick = function () { closeForm(); };
+    m.onclick = function (e) { if (e.target === m) closeForm(); };
     document.getElementById('nmName').focus();
     /* 手机键盘遮挡适配：弹窗高度跟随可视区，聚焦的输入框自动滚入视野 */
     (function () {
@@ -898,7 +961,7 @@
     var rp = m.querySelector('#nmRepick');
     if (rp) {
       rp.onclick = function () {
-        m.remove();
+        dropForm();   /* 不是丢内容：填着的字都随 preset 带进重开的那一版表单，所以这里不 asking */
         UI.toast('在地图上点击新位置');
         map.once('click', function (e) {
           openForm({
@@ -952,7 +1015,7 @@
         var idx = arr.findIndex(function (x) { return x.id === rec.id; });
         if (idx >= 0) arr[idx] = rec; else arr.push(rec);
         saveUserNodes(arr);
-        m.remove();
+        dropForm();
         closeInfo();
         tip('已保存「' + rec.name + '」');
         if (pickMarker) { pickMarker.remove(); pickMarker = null; }

@@ -992,6 +992,23 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
   }
 
   /* ---------- 录音面板 ---------- */
+  /* 物理返回键这一发（批次 39-D）：面板从前只切 display，不进历史 ⇒ 壳里 MainActivity.java:547
+     那句 webView.goBack() 后面没有任何接收者，实测两种落点都把整页带走（场景1 真实文档数 1＝直接
+     退出应用，场景2 连刚打的字一起走，tools/out/b39-probe-backlog.txt:118–:123），而批次 32-D 给
+     屏上那扇门做的脏检查一次都没机会说话。形状照本文件批次 37 的编辑屏（pushEditEntry/onEditPop）：
+     开层压一条历史，返回键先落到这一层，再走 closePanel 既有的脏检查。 */
+  var panelPushed = false;
+  var panelPopBound = false;
+  function pushPanelEntry() {
+    try { history.pushState({ tnPanel: 1 }, ''); panelPushed = true; } catch (e) { panelPushed = false; }
+  }
+  function onPanelPop() {
+    if (!panelPushed || !ui || ui.panel.style.display !== 'flex') return;   /* 不是这一层在等返回：交回原有行为。panelPushed 必须打头判：closePanel 的 hide 走 UI.vt，display 要等一帧才落 'none'，而那句 history.back() 触发的 popstate 早于这一帧。本批中途那一版把 panelPushed 放在 display 之后，同一发返回被问了第二遍（确认关掉后 .tn-cfm 仍在场）；现在的干净读数在 tools/out/b39-smoke-layer-back.txt B19。 */
+    if (editCtx && document.querySelector('.tn-editpage')) return;  /* 编辑屏压在面板上，让它先接这一发 */
+    if (document.querySelector('.tn-cfm')) return;          /* 已经问出口了，别叠第二层 */
+    pushPanelEntry();
+    closePanel(false);
+  }
   function openPanel(iOrSite) {
     buildUI();
     if (ui.panel.style.display === 'flex') return;   // 防重复弹出（GPS 回调/多入口）
@@ -1002,6 +1019,8 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
        不能因为缺 UI 命名空间把开面板这件事整个抛掉 */
     var flip = function () { ui.mask.style.display = 'block'; ui.panel.style.display = 'flex'; };
     if (window.UI && UI.vt) UI.vt(flip); else flip();
+    if (!panelPopBound) { panelPopBound = true; addEventListener('popstate', onPanelPop); }
+    pushPanelEntry();
     ui.panel.classList.add('is-idle');
     ui.panel.classList.remove('is-done');
     setMic('idle');   // 重置话筒颜色（避免上次 ok/live 残留绿色）
@@ -1071,6 +1090,9 @@ background:linear-gradient(170deg,#f6f1e5 0%,#efe9dc 55%,#e9e2d2 100%);color:#26
       if (window.UI && UI.vt) UI.vt(hide); else hide();
       ui.panel.classList.add('is-idle'); ui.panel.classList.remove('is-done'); ui.panel.classList.remove('is-editing');
     }
+    /* 屏上那两扇门关的面板也要把为它压的那条历史一起收掉，否则用户下一次按返回是替这一层
+       背了一个没人看见的坑，再按第二下才出应用（同上面 dropEdit 的顺序：先藏层再 back）。 */
+    if (panelPushed) { panelPushed = false; try { history.back(); } catch (e) {} }
     if (rec) { try { rec.stop(); } catch (e) {} rec = null; }
     if (window.AndroidVoice) { try { AndroidVoice.cancelVoice(); } catch (e) {} }
     setPhase('idle');

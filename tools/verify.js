@@ -6812,7 +6812,7 @@ function stripBlockComments(s) {
     ['travel-notes.js', 'if (c && c.pushed) { try { history.back(); } catch (e) {} }', 1, '只有真压过才回收：点一次返回多攒一条空层＝栈里堆满看不见的编辑屏'],
     ['travel-notes.js', "$X(pg, '#tnEditBack').onclick = function () { closeEdit(); };", 1, '包一层再调（closePanel 那一族同因）：裸引用会把 MouseEvent 当 force 递进去，脏检查当场失效'],
     ['travel-notes.js', "confirmDialog('这篇的' + d.join('、') + '还没保存。关掉就回到你进来时的样子。',", 1, '说「回到你进来时的样子」而不是「删除」——这篇本来就在库里，丢的只是这一轮改动'],
-    ['travel-notes.js', "if (document.querySelector('.tn-cfm')) return;", 2, '连点两下返回不叠第二层：问句已经问出口再叠一层就成了「答一次留一层」。编辑屏与导入框各一处'],
+    ['travel-notes.js', "if (document.querySelector('.tn-cfm')) return;", 3, '连点两下返回不叠第二层：问句已经问出口再叠一层就成了「答一次留一层」。编辑屏、导入框各一处，批次 39 给录音面板补物理返回腿时加了第三处'],
     ['travel-notes.js', "'关掉不保存', '继续编辑');", 2, '两颗钮各写自己的后果；编辑屏与录音面板共用这一对动词'],
     ['travel-notes.js', 'var closeImp = function (force) {', 1, '同族第三处：导入框的 × 之前无条件 m.remove()，粘进去没导入的备份就地作废'],
     ['travel-notes.js', 'm.onclick = function (e) { if (e.target === m) closeImp(); };', 1, '遮罩入口也过判定，同时保留「只点遮罩本身才算关」那一半语义'],
@@ -6962,7 +6962,7 @@ function stripBlockComments(s) {
       const n = ((flat47(rd47(f)).match(RE47P)) || []).length;
       if (n) { var47.panel += n; P47[f] = n; }
     });
-    if (var47.panel !== 4 || !P47['travel-notes.js']) F47('全站 closePanel 落点从 travel-notes.js 的 4 处（定义 + 遮罩绑定 + #tnX 绑定 + 确认回调里的 force 版）变成 ' + JSON.stringify(P47) + '：少一处说明某个关闭出口没人守，多一处说明别的页面开始绕过面板状态机直接关它');
+    if (var47.panel !== 5 || !P47['travel-notes.js']) F47('全站 closePanel 落点从 travel-notes.js 的 5 处（定义 + 遮罩绑定 + #tnX 绑定 + 确认回调里的 force 版 + onPanelPop 里物理返回那一调，批次 39 与 closeEdit 那三条对齐）变成 ' + JSON.stringify(P47) + '：少一处说明又有一扇关闭的门绕过脏检查，多一处说明别的页面开始绕过面板状态机直接关它');
   }
 
   /* (e) closeEdit 的落点：同样只许 travel-notes.js 碰（编辑屏状态机私有，批次 37）。 */
@@ -8002,7 +8002,7 @@ function stripBlockComments(s) {
     ['tools/smoke-font.js', 'checks >= 22', 1, '条数守卫（本闸门自己也会被删）：判据 23 条，ok() 在自增前求值所以表达式写 22'],
     ['tools/smoke-font.js', "const ALIAS17 = ['--fd', '--fb', '--b6', '--b7', '--b9', '--a3', '--d3', '--bg', '--sf', '--sf2', '--ln', '--i9', '--i7', '--i5', '--sm', '--tf', '--tn'];", 1, '腿里那 17 枚同名令牌要逐枚钉住，不能只钉「ALIAS17.length !== 17」那一行：名单自己少一枚时那行守卫照样成立（变异网 T08 第一次就是这么静默的），于是 FO01/FO02 那个「旧名读取 0 枚」是数给一个短了的名单看的'],
     /* —— 普查探针与本节同源 —— */
-    ['tools/out/probe35b-census.js', "['travel-notes.js', 2354]", 1, '② 档留 generic 那枚在探针与本节各登记一次，两边必须同时改：只改一边就会出现「探针绿、闸门红」或反过来（批次 37 往 travel-notes.js 插了 76 行，这一枚从 2278 推到 2354）'],
+    ['tools/out/probe35b-census.js', "['travel-notes.js', 2376]", 1, '② 档留 generic 那枚在探针与本节各登记一次，两边必须同时改：只改一边就会出现「探针绿、闸门红」或反过来（批次 37 往 travel-notes.js 插了 76 行，这一枚从 2278 推到 2354；批次 39 又插 22 行，推到 2376）'],
   ];
   A51.forEach(a => {
     if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
@@ -8057,11 +8057,13 @@ function stripBlockComments(s) {
      这两张表按行号点名，所以任何往 travel-notes.js 里插代码的批次都会把它们推位——
      批次 37 往 travel-notes.js 插了 76 行，把 1984→2047（该点之前净增 63）、2278→2354（净增 76），三处登记（本节两张 + probe35a/35b 各一份 + mut-verify51 的 from 串）要一起改，
      改一边就会出现「探针绿、闸门红」。
-     批次 38 往 album.js 插了 82 行，把 262→344（那一枚是 renderMapPlateSVG 里的 SVG <text>，它前面只多了封面题/路线章那一族函数）。 */
+     批次 38 往 album.js 插了 82 行，把 262→344（那一枚是 renderMapPlateSVG 里的 SVG <text>，它前面只多了封面题/路线章那一族函数）。
+     批次 39 往 travel-notes.js 插了 22 行（录音面板的物理返回腿，就在 openPanel 上面），把 ③ 档 2047→2069、② 档 2354→2376；
+     同批往 results.js 插的 52 行在 132–145 那四枚之后，不动 ③ 档。 */
   const T3 = [['results.js', 132], ['results.js', 134], ['results.js', 139], ['results.js', 145],
-    ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 2047],
+    ['planner.js', 2040], ['planner.js', 2041], ['planner.js', 2042], ['travel-notes.js', 2069],
     ['vault.js', 400], ['album.js', 344]];
-  const T2GEN = [['travel-notes.js', 2354]];
+  const T2GEN = [['travel-notes.js', 2376]];
   const inT = (T, f, n) => T.some(x => x[0] === f && x[1] === n);
 
   /* (a) 白名单尺子：五桶 + 两张点名表之外，一条都不许剩 */
@@ -8692,6 +8694,371 @@ function stripBlockComments(s) {
 
   console.log('图册同步与叙事地图闸门: ' + A53.length + ' 条代码锚点（书名按城并列三档与全空兜底／插页单点 + 三认法旧册兼容／落后检测 stampLegacy-coveredIds-pendingNotes 三段／增量追加只摘插页、统计全量重算、coverAuto 挡手改／导出面四件／落后条那一句带篇数 + 真鼠标接线 + aria-live + 44 地板 + 1200 档 + 收起态不吃点击／编辑器改名即标 coverAuto=false + 章带 noteIds + 添加地图走单点／叙事侧 skipped 计数一句交代 + 取景退化 bounds 保护 + 单站 10 档 + 城内跨城两族语法 + done 单点亮法 + 三档标记大小 + keepInView 只平移不改 zoom）+ ' + ZERO53.length + ' 族期望 0（dominantPlace 那两处／恒空副题／就地手拼插页两处／flyTo 与那个「至少 10 档」／丢 initial 参数／截断循环的画线／只看有没有点的取景／静默 filter）各配 HEAD 原串正向对照 + 四把内置扫描（导出面↔调用者逐条对账（' + JSON.stringify({ pendingNotes: 1, mergeIntoAlbum: 1, routeChapter: 1, coverTitle: 0 }) + '，coverTitle 另要求常驻腿直调）；章节生成点归属现场读数（带 noteIds／不带）= ' + JSON.stringify(CH53) + '，别的产品文件就地造章 ' + STRAY53 + ' 处；drawRoute 全程不变式（polyline 单点、覆盖全程循环 2、截断 0、两族各 1、done 单点、keepInView 定义+调用各 1，反向自校准喂改前函数体）；落后条触控/层叠/点击三件，各把都先拿合成样本自校准）+ 两条腿 A00–A31／S00–S19 齐备检与条数守卫（守卫表达式 total>=32 与 total>=20 由 A53 钉住，循环上限由 ④ 现场对账）');
   fail += bad53;
+}
+
+
+/* ============ §54 可读带落点／触控第三写法／裸关层的物理返回键闸门（批次 39-B / 39-C / 39-D） ============
+   本批的口径来自用户那句「先把这几条待定的东西重新量一遍，确认真是错的再动手」，
+   所以每条期望值都出自重量的读数，不出自印象：改前 tools/out/b39-probe-backlog.txt，
+   改后 tools/out/b39-probe-after.txt，固化成腿之后是 tools/out/b39-smoke-story-landing.txt、
+   tools/out/b39-smoke-planner-touch.txt、tools/out/b39-smoke-layer-back.txt。三条线：
+     ① story 正文被翻页浮条糊住、当前卡缩略图中心落进底导航（39-B）。改前落点是 scrollIntoView({block:'center'})
+        ——往整屏正中放，而整屏正中上下各有一条带压着（实测浮条 557–619）。现在落点与 scroll-spy 读同一条
+        「可读带」，带的两端都现量：地图让没让开、顶栏钉没钉回 0，是同一条带的两个滚动态读数（176／494），
+        所以那个数只能当场问，一个像素也不许写进代码。
+     ② planner 日卡站点行两枚钮低于 44（39-C）。「移除」那颗从前是 .mv 30×30；「导航」那颗更阴——
+        design.css 的 44 地板先被页内 <style> 的 .btn{min-height:42px} 砍掉一截，再被内联 style 的
+        min-height:30px 整个盖掉。这是触控尺寸的第三种写法（design.css 单点／页内 <style>／内联 style），
+        只有内联这一种 CSS 管不住，所以抬地板必须三种一起收，否则下次有人读 design.css 会以为已经合规。
+     ③ 三处带输入框的层只切 display 或直接 remove，不进历史（39-D）。DOM 层的开合壳里看不见 ⇒
+        MainActivity.java:547 那句 webView.goBack() 后面没有接收者，实测两种落点（b39-probe-backlog.txt:102–:123）：
+        新开这一页时后面一个文档都没有＝一发返回直接退出应用、刚填的内容一句不问就没了；从别页跳过来时整层连字一起走。
+        形状照批次 37 的编辑屏：开层压一条历史，返回先落到这一层再走屏上那扇门本来就有的脏检查。
+   本节钉四件事：① 正向锚点（三条线的落地形状各钉死）② 期望 0 族（各配改前原串做正向对照）
+   ③ 内置扫描四把（触控三写法对账／pushState 键与收条腿的穷举配对／脏检查名单↔层内输入控件对账／可读带单点且不写死像素）
+   ④ 三条常驻浏览器腿的齐备检 + 条数守卫。
+   不在本节守卫之列的（改了会连带一片，按「是错就修」的口径先汇报、等点单）：results.js buildStory 那一层
+   与 node-manager 的 AI 搜索层／高德 Key 层仍是裸 remove，详情卡与菜单那两处只读层不压历史。 */
+{
+  let bad54 = 0;
+  const F54 = m => { bad54++; console.log('FAIL §54 可读带・触控第三写法・物理返回键闸门: ' + m); };
+  const ws54 = s => s.replace(/\s+/g, ' ').trim();
+  const flat54 = s => ws54(stripBlockComments(s));
+  const cnt54 = (s, n) => s.split(n).length - 1;
+  const rd54 = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+  const view54 = f => /\.md$/.test(f) ? ws54(rd54(f)) : flat54(rd54(f));
+
+  const FILES54 = ['story.html', 'planner.html', 'planner.js', 'design.css',
+    'node-manager.html', 'results.js', 'travel-notes.js',
+    'tools/smoke-story-landing.js', 'tools/smoke-planner-touch.js', 'tools/smoke-layer-back.js', 'README.md'];
+  const V54 = {};
+  FILES54.forEach(f => {
+    if (!fs.existsSync(f)) { F54('缺 ' + f); V54[f] = ''; return; }
+    V54[f] = view54(f);
+  });
+
+  /* 顶格 } 收尾的函数体（同 §53 ③(c) 那把尺子：内层缩进的 } 不是函数尾，用 trim() 会提前一头） */
+  function body54(file, startMark) {
+    const raw = rd54(file).split(/\r?\n/);
+    const s = raw.findIndex(L => L.indexOf(startMark) >= 0);
+    if (s < 0) return null;
+    for (let i = s + 1; i < raw.length; i++) if (raw[i] === '}') return flat54(raw.slice(s, i + 1).join('\n'));
+    return null;
+  }
+
+  /* ⓪ 自指纪律：本节的期望 0 全住在「改前原串还写在注释里」的那一带（story.html 的 focusCard 上方、
+        planner.html 的 .btn 上方、node-manager 的层头都有），剥刀一坏或注释一多，期望 0 会静默满足。 */
+  {
+    const DEF54 = (rd54('tools/verify.js').match(/^[ \t]*const flat54 = [^\n]*/m) || [''])[0];
+    if (DEF54.indexOf('stripBlockComments') < 0) F54('§54 的 flat54 定义行没走那把共享剥刀（现场读到的那一行：' +
+      (DEF54.slice(0, 56) || '整行没数到，连定义都漂了') + '）：planner.html 与 travel-notes.js 的注释里原样抄着改前那几句，不剥就当它们还在');
+    const L54 = (rd54('tools/verify.js').match(/^[ \t]*const view54 = [^\n]*/m) || [''])[0];
+    if (L54.indexOf('.md$') < 0) F54('view54 的定义行退回「文档也剥注释」那一支（现场读到的那一行：' + (L54.slice(0, 60) || '整行没数到') + '）：README 登记本批时要写旧写法，文档侧的锚会当场读 0');
+    [['story.html', 'function focusCard(el){'], ['planner.html', '.btn{min-height:44px'],
+     ['node-manager.html', 'function syncFormBase(id) {'], ['travel-notes.js', 'function onPanelPop() {']].forEach(p => {
+      if (V54[p[0]].indexOf(p[1]) < 0) F54('盲区哨兵：「' + p[1] + '」在 flat 里读不到了（它就贴在 ' + p[0] + ' 本批改掉的行旁边；读不到＝这一带又变成盲窗，住在里面的期望 0 那一族会静默满足）');
+    });
+  }
+
+  /* ① 正向锚点 */
+  const A54 = [
+    /* —— story.html：可读带单点（③ 成因①） —— */
+    ['story.html', 'function geo(){', 1, '带的两端只有一个来源：地图高、顶栏高、底导航上缘各量一次，别处不许再算第二套'],
+    ['story.html', "var mp=document.getElementById('storyMap').offsetHeight;", 1, '地图是 44vh：让没让开决定带顶缘，这个数只能现量'],
+    ['story.html', "var barH=document.querySelector('.story-bar').offsetHeight;", 1, '顶栏是 sticky，滚过地图才钉回 0；带顶缘要加的是它的高，不是它的 bottom'],
+    ['story.html', "var navTop=document.getElementById('storyNav').getBoundingClientRect().top;", 1, '翻页条吃 env(safe-area-inset-bottom)，装了导航栏的机器上还会上移——写死一次就错一台'],
+    ['story.html', 'function bandAt(y){', 1, '「这一段屏谁能看见」只有一个式子，且吃滚动态当参数'],
+    ['story.html', 'return {top:Math.max(g.mp-y,0)+g.barH,bottom:g.navTop};', 1, '顶缘要在地图让开之后才落回顶栏下缘：Math.max(…,0) 那一支是滚动态的接缝'],
+    ['story.html', 'function focusCard(el){', 1, '落点只有一个算法（改前是浏览器自己的 scrollIntoView）'],
+    ['story.html', 'var y=(h>g.navTop-g.barH)?Math.max(g.mp,D-g.barH):D+h/2-(g.barH+g.navTop)/2;', 1, '两档分开：装得下就把卡中心放到带中心（与下面 spy 同一点，刚落定才不会被判给邻站）；比带还高就只能贴带上缘、先让开地图，读到哪算哪'],
+    ['story.html', 'window.scrollTo({top:Math.max(0,Math.min(y,document.documentElement.scrollHeight-window.innerHeight)),behavior:UI.scrollBehavior()});', 1, '钳在文档两头之内：第一张卡与最后一张卡是同一套代码'],
+    ['story.html', 'if(el) focusCard(el);', 1, '翻页真的走这个落点（只有定义没接线＝这条腿白量）'],
+    ['story.html', 'var bd=bandAt(window.scrollY);', 1, 'scroll-spy 读的是同一条带，不再用整屏比例'],
+    ['story.html', 'var mid=(bd.top+bd.bottom)/2;', 1, '带中心一个算式：落点与判据分两处算就是「刚落定就被判给邻站」'],
+    ['story.html', 'var d=Math.abs((r.top+r.height/2)-mid);', 1, '「谁离带中心最近」取的是卡中心那一点：换成卡顶，高卡贴带上缘时就被判给邻站——L05 在 328×723 这五篇种子上量不出来（那一发恰好还是自己赢），所以这一重只能由源码钉'],
+    /* —— planner.html：地板回到 44、行宽让位、可逆那一档不动 —— */
+    ['planner.html', '.btn{min-height:44px', 2, '本页那条 .btn 与日卡底脚那条各一处：改前写 42，等于把 design.css 的地板在本页砍掉一截，还逼得底脚单独补一条 44'],
+    ['planner.html', '.stop-acts{display:flex;align-items:center;gap:6px}', 1, '28px 左内衬让给触控尺寸（出行态那一行本来就挤，四颗一起抬会到 76px）'],
+    ['planner.html', '.stop-acts .btn.mini{font-size:var(--fs-2)}', 1, '页内只留字号：尺寸与内衬归 design.css 单点，两处各写就会再一次互相盖掉'],
+    ['planner.html', '.mv{width:30px;height:30px', 1, '可逆轻操作（上移/下移/锁定）留在 30 这一档：口径是「破坏性/高频 ≥44」，不许顺手把整族抬走'],
+    ['planner.html', '.exrows .ex .mv{width:44px;height:44px', 1, '开销行那颗删除是既有例外（批次 22 同族），本批的例外在 design.css，两处的理由写在 ③(a)'],
+    ['planner.html', '.day-card .exfoot .btn{min-height:44px}', 1, '这条从前是补救 42 的补丁，现在与本页地板同源；留着是因为它钉的是底脚那两枚，不是同一选择器'],
+    /* —— design.css：触控尺寸的第三写法收口 —— */
+    ['design.css', '.stop-acts .mv.mv-del{width:44px;height:44px;display:inline-grid;place-items:center}', 1, '「移除这一站」的尺寸只在 design.css 声明一次：页内与内联都不许再碰'],
+    ['design.css', '.stop-acts .btn.mini{min-height:44px;padding:0 6px}', 1, '「记一笔」的高度与内衬同源：页内那条 18px 内衬是挤出盒外的另一半原因'],
+    /* —— planner.js：内联 style 里的尺寸收掉，可达名补齐 —— */
+    ['planner.js', 'class="mv mv-del" aria-label="移除"', 1, '生成点带例外标记（③(a) 拿它与 design.css 的声明数对账）：没有这一枚，「移除」会跟着上移/下移一起留在 30'],
+    ['planner.js', 'class="btn ghost" style="padding:0 10px;font-size:var(--fs-3);color:var(--color-muted)" aria-label="删除行程"', 1, '行程清单里那颗纯图标删除钮必须有可达名：它是破坏性操作，读屏软件报不出「删除」就等于没有出口'],
+    ['planner.js', 'style="padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(', 1, '内联只剩字号与内衬：min-height 归 .btn 的 44（改前这一行是「导航」75×30 的直接成因）'],
+    ['planner.js', 'style="padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerOpenTrip(', 1, '同上：行程清单那枚「打开」'],
+    /* —— node-manager.html：表单层的物理返回键 —— */
+    ['node-manager.html', "var FORM_FIELDS = ['nmName', 'nmCity', 'nmAddr', 'nmCat', 'nmTags', 'nmElev', 'nmDesc'];", 1, '脏检查名单只有一个（③(c) 拿它与层内真控件对账）'],
+    ['node-manager.html', 'function formVals() {', 1, '「打了一半」的读数单点'],
+    ['node-manager.html', "var pb = document.getElementById('nmPhotoBox');", 1, '封面存在盒里不是 input，所以名单之外要单独取一次'],
+    ['node-manager.html', "v.push(pb ? (pb.dataset.cover || '') : '');", 1, '换过封面也算脏：那是一张真图，不是皮肤'],
+    ['node-manager.html', 'function pushFormEntry() {', 1, '压历史条目这件事只有一个出口'],
+    ['node-manager.html', 'pushFormEntry();', 2, '开层压一条 + 返回键那一发再压一条：③(b) 只数得出「压了几个键」，数不出有没有人真的去压——少一处就是那一扇门没人压条目，而满仓锚点照样全绿'],
+    ['node-manager.html', 'function dropForm() {', 1, '摘层 + 收条目只在这一处：两扇门（屏上的与返回键）都走它，才不会一处收一处不收'],
+    ['node-manager.html', 'if (c && c.m && c.m.parentNode) c.m.remove();', 1, '先摘层（顺序不能反：随后那发 popstate 会被 onFormPop 放过，层已不在场）'],
+    ['node-manager.html', 'function closeForm(force) {', 1, '关门只有一个判脏的地方'],
+    ['node-manager.html', 'if (force !== true && formVals() !== formCtx.base) {', 1, '脏就问，不脏就直接摘：不这么写就成了每关一次都拦一道'],
+    ['node-manager.html', "if (document.querySelector('.ui-modal-mask:not(.nm-mask)')) return;", 1, '必须排掉自己这一层（这一层也是 .ui-modal-mask），否则确认框永远等不到自己'],
+    ['node-manager.html', "UI.confirm({ title: '还没保存'", 1, '问出口要给两条路：「关掉不存」与「继续填」'],
+    ['node-manager.html', 'function onFormPop() {', 1, '返回键这一发的接收者'],
+    ['node-manager.html', 'if (!formCtx || !document.body.contains(formCtx.m)) return;', 1, '不是这一层在等返回就交回原有行为：没有这一句，别处的返回会被表单层抢走'],
+    ['node-manager.html', 'formCtx = { m: m, base: formVals(), pushed: false };', 1, '基线在开层那一刻拍（比 pushState 早，晚一拍会把这一发自己算成内容）'],
+    ['node-manager.html', "if (!formPopBound) { formPopBound = true; addEventListener('popstate', onFormPop); }", 1, '监听只绑一次：开合十次就叠十个接收者，一发返回会问十遍'],
+    ['node-manager.html', "m.querySelector('#nmCancel').onclick = function () { closeForm(); };", 1, '屏上那扇门与返回键走同一条脏检查（改前这里是裸 m.remove()）'],
+    ['node-manager.html', "m.onclick = function (e) { if (e.target === m) closeForm(); };", 1, '点遮罩那一扇同上'],
+    ['node-manager.html', "syncFormBase('nmCity')", 1, '机器填的城要补进基线（逆地理异步回填，不算用户打的字）'],
+    ['node-manager.html', "syncFormBase('nmElev')", 2, '海拔有两个取数出口（高德等高线 + 独立海拔接口），两处都要补基线，漏一处就成「一个键没碰也被拦」'],
+    ['node-manager.html', 'if (c && c.pushed) { try { history.back(); } catch (e) {} }', 1, '收了层要把条目一起收掉；pushed=false 不许发 back（那是真·后退一页）'],
+    /* —— results.js：定制路书层 —— */
+    ['results.js', 'function itinVals() {', 1, '这一层的读数单点'],
+    ['results.js', "var v = ['idays', 'ipref'].map(function (id) {", 1, '名单只有一个（③(c) 与层内真控件对账）'],
+    ['results.js', "var out = d.querySelector('#iout');", 1, '已经生成的那一版也算内容：它要再点一次生成、再花一次 AI 调用才回得来'],
+    ['results.js', 'function pushItinEntry() {', 1, '压条目单点'],
+    ['results.js', 'pushItinEntry();', 2, '开层那一发与返回键那一发都要走这个出口（同 node-manager 那条：只锚函数声明数不出有人调用）'],
+    ['results.js', 'function dropItin() {', 1, '摘层 + 收条目单点'],
+    ['results.js', 'function closeItin(force) {', 1, '关门单点'],
+    ['results.js', 'if (force !== true && itinVals() !== itinCtx.base) {', 1, '脏就问'],
+    ['results.js', "if (document.querySelector('.ui-modal-mask')) return;", 1, '连点两下返回不许叠第二层确认框'],
+    ['results.js', 'if (!(window.UI && UI.confirm)) { dropItin(); return; }', 1, '没有 ui.js 的宿主：不拦，但也不裸关（这一层本来就有人守）'],
+    ['results.js', 'function onItinPop() {', 1, '返回键的接收者'],
+    ['results.js', 'if (!itinCtx || !document.body.contains(itinCtx.d)) return;', 1, '不是这一层就交回原有行为'],
+    ['results.js', "itinCtx = { d: d, base: '', pushed: false };", 1, '先占位再拍基线：itinVals 要读 itinCtx.d，反过来写会拍到一个空壳'],
+    ['results.js', "if (!itinPopBound) { itinPopBound = true; addEventListener('popstate', onItinPop); }", 1, '监听只绑一次'],
+    ['results.js', "d.querySelector('#ix').onclick = function () { closeItin(); };", 1, '屏上那扇门改走脏检查（改前裸 d.remove()）'],
+    ['results.js', "d.onclick = function (e) { if (e.target === d) closeItin(); };", 1, '遮罩那一扇同上'],
+    ['results.js', 'if (c && c.pushed) { try { history.back(); } catch (e) {} }', 1, '收层一起收条目'],
+    /* —— travel-notes.js：录音面板（批次 32-D 已有屏上脏检查，本批补返回键这一发） —— */
+    ['travel-notes.js', 'var panelPushed = false;', 1, '面板自己那一条历史条目的旗'],
+    ['travel-notes.js', 'var panelPopBound = false;', 1, '监听只绑一次的旗'],
+    ['travel-notes.js', 'function pushPanelEntry() {', 1, '压条目单点，且 catch 里把旗落成 false（压不上就不许发 back）'],
+    ['travel-notes.js', 'function onPanelPop() {', 1, '返回键这一发的接收者（改前面板只切 display，这一发无人接）'],
+    ['travel-notes.js', "if (!panelPushed || !ui || ui.panel.style.display !== 'flex') return;", 1, 'panelPushed 必须打头判：closePanel 的 hide 走 UI.vt，display 要等一帧才落 none，而那句 back() 的 popstate 早于这一帧——晚一步判就同一发返回问两遍'],
+    ['travel-notes.js', "if (editCtx && document.querySelector('.tn-editpage')) return;", 1, '编辑屏压在面板之上，这一发先给它接（批次 37 那一半不能被子层抢走）'],
+    ['travel-notes.js', "if (document.querySelector('.tn-cfm')) return;", 3, '已经问出口了就别叠第二层：三处各有自己的确认框选择器，面板这一处是其中之一'],
+    ['travel-notes.js', "if (!panelPopBound) { panelPopBound = true; addEventListener('popstate', onPanelPop); }", 1, '开面板时绑，只绑一次'],
+    ['travel-notes.js', 'pushPanelEntry();', 2, '绑完之后紧跟一次（开面板压一条），popstate 里再压一条——两处共用同一个出口'],
+    ['travel-notes.js', 'if (panelPushed) { panelPushed = false; try { history.back(); } catch (e) {} }', 1, '屏上那两扇门关面板时把条目一起收掉'],
+    ['travel-notes.js', 'closePanel(false);', 1, '返回键这一发走的就是既有的 closePanel（含脏检查），不是另写一套关门'],
+    ['travel-notes.js', "try { history.pushState({ tnEdit: 1 }, ''); c.pushed = true; } catch (e) { c.pushed = false; }", 1, '批次 37 的编辑屏形状：本批的面板那一支是照它抄的，两处形状要同源（③(b) 的穷举把两个键一起看）'],
+    /* —— 三条常驻腿的形状 —— */
+    ['tools/smoke-story-landing.js', 'const VW = 328, VH = 723;', 1, '量的是用户那块屏（§37 口径）'],
+    ['tools/smoke-story-landing.js', "localStorage.setItem('tn_onboarded', '1');", 1, '不打这个标记，首启蒙层会吃掉真鼠标点击'],
+    ['tools/smoke-story-landing.js', 'if (!(window.geo && window.bandAt)) return null;', 1, '腿先确认产品的尺子在场：产品换了名字，腿要当场红，不许抱着自己的 DOM 读数自说自话'],
+    ['tools/smoke-story-landing.js', 'prod: window.bandAt ? Math.round(bandAt(window.scrollY).top) : -1', 1, '每一发都把产品自己的读数与独立 DOM 读数并排对账（L06）'],
+    ['tools/smoke-story-landing.js', 'total >= 12', 1, '条数守卫（腿是顺序跑的，中途抛了＝后面判据一条没执行，那种「全绿」是空转出来的）'],
+    ['tools/smoke-planner-touch.js', 'const VW = 328, VH = 723;', 1, '同上'],
+    ['tools/smoke-planner-touch.js', "localStorage.setItem('tn_trips'", 1, '行程清单那一档要在独立 context 里自己播种：这一段测的是刚改的两枚钮，没播种就没有被测对象（取样档位没有被测对象＝假绿，本项目记过一次）'],
+    ['tools/smoke-planner-touch.js', "document.querySelectorAll('#tripsHomeList .cand')", 1, '清单行的读数落点：打开/删除两枚钮就在这几行里'],
+    ['tools/smoke-planner-touch.js', 'total >= 15', 1, '条数守卫'],
+    ['tools/smoke-layer-back.js', 'const VW = 328, VH = 723;', 1, '同上'],
+    ['tools/smoke-layer-back.js', 'window.histState = function ()', 1, '可观测量是 history.state，不是 history.length：压一条再收一条，length 全程不动，用它判等于没判'],
+    ['tools/smoke-layer-back.js', "first: 'B00'", 1, '入口不在场时那一发红要落在这一层自己的第一条编号上（编号是字面量，齐备检才数得到）'],
+    ['tools/smoke-layer-back.js', "first: 'B08'", 1, '同上（review 那一层）'],
+    ['tools/smoke-layer-back.js', "first: 'B16'", 1, '同上（随手记面板那一层）'],
+    ['tools/smoke-layer-back.js', 'total >= 24', 1, '条数守卫'],
+  ];
+  A54.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'number' || typeof a[3] !== 'string') {
+      F54('A54 有一条不是「[文件, 串, 期望次数, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会解构错位，这条锚等于没跑）');
+      return;
+    }
+    const [f, needle, exp, why] = a;
+    if (!(f in V54)) { F54('A54 登记了 §54 没读的文件「' + f + '」：' + why); return; }
+    const n = cnt54(V54[f], needle);
+    if (n !== exp) F54(f + ' 里「' + needle.slice(0, 52) + '」实得 ' + n + '，期望 ' + exp + '：' + why);
+  });
+
+  /* ② 期望 0：改前写法各配原串做正向对照。串取自 git show HEAD:<file> 的真行原文；
+     只有 travel-notes.js 那一条的对照串是本批开发中途那一版（HEAD 里根本没有 onPanelPop），
+     它的现场反证在 tools/out/b39-smoke-layer-back.txt 的 B18/B19。 */
+  const ZERO54 = [
+    ['story.html', 'el.scrollIntoView', "if(el) el.scrollIntoView({behavior:UI.scrollBehavior(),block:'center'});",
+      '落点回到「往整屏正中放」：整屏正中上下各有一条带压着（实测浮条 557–619），翻页条会把当前卡正文糊掉最多 1.75 行'],
+    ['story.html', 'var mid=window.innerHeight*0.55;', 'var mid=window.innerHeight*0.55;',
+      'scroll-spy 回到整屏比例：它判的那一点与落点算的那一点不再同一个，刚翻到的那一站会被立刻判给邻站'],
+    ['planner.html', '.btn{min-height:42px', ".btn{min-height:42px;padding:0 18px;border-radius:13px;font-size:var(--fs-4);border:1px solid var(--color-line-strong);background:var(--color-surface)",
+      '本页那条 .btn 又砍掉 design.css 地板的一截：实测「导航」75×42，同一条还顺手盖住了日卡底脚那两枚'],
+    ['planner.html', 'gap:8px;padding-left:28px}', '.stop-acts{display:flex;align-items:center;gap:8px;padding-left:28px}',
+      '28px 左内衬回来：出行态那一行改前已挤出盒外 20px，把破坏性那颗抬到 44 要 76px，行宽不让位就装不下'],
+    ['planner.html', 'min-height:28px;padding:0 10px', '.stop-acts .btn.mini{min-height:28px;padding:0 10px;font-size:var(--fs-2)}',
+      '「记一笔」回到 28 高：实测出行态 54×28，那一行是整页最挤的一行'],
+    ['planner.js', 'min-height:30px', `'<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(' + di + ')">'+TI('navigation')+'导航</button></div>'`,
+      '触控尺寸的第三种写法（内联 style）回来：只有这一种 CSS 管不住，闸门读 design.css 与页内 <style> 都是合规的，屏上却还是 30'],
+    ['node-manager.html', "#nmCancel').onclick = function () { m.remove(); }", "m.querySelector('#nmCancel').onclick = function () { m.remove(); };",
+      '屏上那扇门回到裸关：一句不问把刚填的名称、地址、封面一起丢掉'],
+    ['results.js', "#ix').onclick = function () { d.remove(); }", "d.querySelector('#ix').onclick = function () { d.remove(); };",
+      '同上，而这一层丢掉的是偏好那句 + 已经生成的那一版路书（再要一次得再花一次 AI 调用）'],
+    ['travel-notes.js', "if (!ui || ui.panel.style.display !== 'flex') return;", "function onPanelPop() { if (!ui || ui.panel.style.display !== 'flex') return;",
+      'panelPushed 不再是第一判：关面板的 hide 走 UI.vt 要等一帧，popstate 早于那一帧，于是同一发返回被问了第二遍'],
+  ];
+  ZERO54.forEach(a => {
+    if (!Array.isArray(a) || a.length !== 4 || typeof a[1] !== 'string' || typeof a[2] !== 'string' || typeof a[3] !== 'string') {
+      F54('ZERO54 有一条不是「[文件, 串, 正向对照源码, 原因]」四元组：' + JSON.stringify(a).slice(0, 90) + '（少字段会让那条期望 0 的正向对照等于没有）');
+      return;
+    }
+    const [f, needle, ctrl, why] = a;
+    if (!(f in V54)) { F54('ZERO54 登记了 §54 没读的文件「' + f + '」：' + why); return; }
+    if (cnt54(V54[f], needle) !== 0) F54(f + ' 里出现「' + needle.slice(0, 48) + '」：' + why);
+    if (cnt54(flat54(ctrl), needle) < 1) F54('「' + needle.slice(0, 48) + '」这条期望 0 的正向对照失效了（上面那个 0 不是证据）');
+  });
+
+  /* ③(a) 触控三种写法对账：内联那一支先拿改前原文自校准（抓不到＝刀瞎），mv/mini 的尺寸只许有一个声明处 */
+  {
+    const INL54 = s => (s.match(/style="[^"]*min-height[^"]*"/g) || []).length;
+    /* 四个阈值各只写一次（§50 的 ARMS50、§53 的 EXP53R 同族）：期望抄在条件与红字两处，
+       变异抬条件时红字还印旧期望，闸门就在说谎。 */
+    const INL_CAL54 = 1, DENOM_MIN54 = 40, MVBASE_EXP54 = 1, MV44_EXP54 = 2;
+    const OLD54INLINE = '\'<button class="btn" style="min-height:30px;padding:0 12px;font-size:var(--fs-3)" onclick="window.plannerNavDay(\' + di + \')\'+\'>导航</button>\';';
+    if (INL54(OLD54INLINE) !== INL_CAL54) F54('内联尺寸那把刀自校准失准（喂改前那一行应读到 ' + INL_CAL54 + '，实得 ' + INL54(OLD54INLINE) + '）：刀一瞎，下面那个 0 就是空判据');
+    const inlNow = INL54(rd54('planner.js'));
+    const denom = cnt54(V54['planner.js'], 'style="');
+    if (denom < DENOM_MIN54) F54('planner.js 现场只读到 ' + denom + ' 处内联 style（期望 ≥' + DENOM_MIN54 + ' 当分母）：这一族的取样变了，先把这条腿对上再谈 0');
+    if (inlNow !== 0) F54('planner.js 的内联 style 里又出现 min-height（现读 ' + inlNow + ' 处）：这是触控尺寸的第三种写法，design.css 与页内 <style> 两处闸门都管不住它，实测「导航」75×30 就是这么来的');
+    const genDel = cnt54(V54['planner.js'], 'class="mv mv-del"');
+    const cssDel = V54['design.css'].indexOf('.stop-acts .mv.mv-del{width:44px;height:44px') >= 0;
+    if (genDel < 1) F54('planner.js 里没有 mv-del 这个例外标记（现读 ' + genDel + ' 处）：那颗破坏性钮会和上移/下移一起留在 30，而 design.css 那条声明成了没人认领的死规则');
+    if (!cssDel) F54('design.css 里那条 mv-del 的 44 声明不在场或尺寸被改：尺寸只从这里读一处');
+    const miniGen = cnt54(V54['planner.js'], 'btn mini');
+    const miniCss = V54['design.css'].indexOf('.stop-acts .btn.mini{min-height:44px') >= 0;
+    if (miniGen >= 1 && !miniCss) F54('planner.js 生成 ' + miniGen + ' 处 .btn.mini，而 design.css 那条 min-height:44px 的声明不在了：这一族没有尺寸来源，会掉回浏览器的默认高度');
+    const pageMini = /\.stop-acts \.btn\.mini\{([^}]*)\}/.exec(V54['planner.html']);
+    if (pageMini && /min-height/.test(pageMini[1])) F54('planner.html 页内那条 .stop-acts .btn.mini 里又写了尺寸（' + pageMini[1].slice(0, 40) + '）：页内 <style> 晚于 design.css 加载、同特异度就是它赢，这是第二种写法互相盖掉的旧账');
+    const mvBase = cnt54(V54['planner.html'], '.mv{width:30px;height:30px');
+    if (mvBase !== MVBASE_EXP54) F54('planner.html 里 .mv 的 30 基础档读到 ' + mvBase + ' 处（期望恰 ' + MVBASE_EXP54 + '）：可逆轻操作留 30 是本批登记的口径，写成两处就会有一处后来被抬成 44 或反过来');
+    const mv44 = cnt54(V54['planner.html'], '.exrows .ex .mv{width:44px;height:44px') + cnt54(V54['design.css'], '.stop-acts .mv.mv-del{width:44px;height:44px');
+    if (mv44 !== MV44_EXP54) F54('.mv 族抬到 44 的例外现读 ' + mv44 + ' 处（期望 ' + MV44_EXP54 + '：开销行删除 + 站点行移除）：多一处就是有新的破坏性钮藏进了 30 那一档还没人登记，少一处是例外被合并成整族');
+  }
+
+  /* ③(b) 物理返回键的配对穷举：压了条目就必须有接收者，收了层就必须收条目；新键不在表里即红 */
+  {
+    const REG54 = [['node-manager.html', 'nmForm'], ['results.js', 'rzItin'],
+      ['travel-notes.js', 'tnPanel'], ['travel-notes.js', 'tnEdit']];
+    const BACKPAT = 'history.back(); } catch (e) {} }';
+    const CAL54 = { good: 'if (c && c.pushed) { try { history.back(); } catch (e) {} }', bad: 'document.getElementById("x").onclick = function () { m.remove(); };' };
+    const GOOD_EXP54 = 1, BAD_EXP54 = 0;   /* 期望只写一次（§53 的 EXP53R 同族） */
+    if (cnt54(CAL54.good, BACKPAT) !== GOOD_EXP54 || cnt54(CAL54.bad, BACKPAT) !== BAD_EXP54) F54('收条目那把刀自校准失准（合规串应读到 ' + GOOD_EXP54 + '、裸 remove 串应读到 ' + BAD_EXP54 + '，实得 ' +
+      cnt54(CAL54.good, BACKPAT) + '／' + cnt54(CAL54.bad, BACKPAT) + '）：把「摘层不收回历史」当成合规，这一节就白跑');
+    const files54 = fs.readdirSync('.').filter(f => /\.(js|html)$/.test(f) && fs.statSync(f).isFile());
+    const seen = {};
+    files54.forEach(f => {
+      const s = flat54(rd54(f));
+      let m; const re = /history\.pushState\(\{\s*([A-Za-z0-9_]+):/g; const keys = [];
+      while ((m = re.exec(s))) keys.push(m[1]);
+      if (!keys.length) return;
+      seen[f] = keys;
+      const popN = cnt54(s, "addEventListener('popstate'");
+      const backN = cnt54(s, BACKPAT);
+      if (popN !== keys.length) F54(f + ' 压了 ' + keys.length + ' 条（' + keys.join('、') + '）但 popstate 监听绑了 ' + popN + ' 次：每一层要有自己的接收者，少了就是那一发返回没人接（实测＝整页带走或退出应用）');
+      if (backN !== keys.length) F54(f + ' 压了 ' + keys.length + ' 条，而「收层同时收条目」只读到 ' + backN + ' 处：少一处就是用户下一次按返回是在替一个看不见的前后坑背债，再按第二下才出去');
+    });
+    const regKeys = REG54.map(r => r[0] + '#' + r[1]);
+    Object.keys(seen).forEach(f => seen[f].forEach(k => {
+      if (regKeys.indexOf(f + '#' + k) < 0) F54(f + ' 里冒出一个没登记的历史条目键「' + k + '」：新增这一层要一起登记，且要照本节那一族形状写（开层压一条、popstate 里重压一条 + 走脏检查、关门先摘层再 back、压失败不许发 back）');
+    }));
+    REG54.forEach(r => {
+      if (!(seen[r[0]] || []).includes(r[1])) F54('登记表的「' + r[0] + ' #' + r[1] + '」在现场读不到了：那一层的返回键守卫整个没了，物理返回键又会变成无人接的那一发');
+    });
+  }
+
+  /* ③(c) 脏检查名单 ↔ 层内真输入控件对账：名单漏一格，那一格打的字就白丢；名单多一格是有人删了框却没删读数 */
+  {
+    const CTL54 = body => {
+      const out = []; const re = /<(?:input|textarea|select)\b([^>]*)>/gi; let m;
+      while ((m = re.exec(body))) {
+        const id = /id="([^"]+)"/.exec(m[1]); if (!id) continue;
+        const t = /type="([^"]+)"/.exec(m[1]); out.push({ id: id[1], type: t ? t[1] : '' });
+      }
+      return out;
+    };
+    const CAL_CTL54 = 4;   /* 同上：期望只写一次 */
+    const CAL54C = CTL54('<input id="x1"><input type="file" id="x2"><textarea id="x3"></textarea><select id="x4"></select><div id="x5"></div>');
+    if (CAL54C.length !== CAL_CTL54 || !CAL54C.some(c => c.id === 'x2' && c.type === 'file') || CAL54C.some(c => c.id === 'x5')) {
+      F54('控件那把刀自校准失准（合成 ' + CAL_CTL54 + ' 个框加一个 div，应「数到 ' + CAL_CTL54 + '、其中 file 那一枚带 type」，实得 ' + JSON.stringify(CAL54C) + '）：刀一瞎，名单对账就是空判据');
+    }
+    const sliceOf = (file, mark) => {
+      const raw = rd54(file);
+      const i = raw.indexOf(mark);
+      if (i < 0) return null;
+      const j = raw.indexOf('\n  function ', i + mark.length);
+      return raw.slice(i, j < 0 ? i + 9000 : j);
+    };
+    const LIST54 = [
+      ['node-manager.html', 'function openForm(preset) {', /var FORM_FIELDS = \[([^\]]*)\];/, '自建地点表单层'],
+      ['results.js', 'function buildItinerary(sitesIn, topicLabel) {', /var v = \[([^\]]*)\]\.map/, '定制路书层'],
+    ];
+    LIST54.forEach(l => {
+      const [file, mark, re, name] = l;
+      const body = sliceOf(file, mark);
+      if (!body) { F54('读不到 ' + name + '（' + file + ' 里找不到「' + mark + '」）：这一支当场失明，③(c) 不作数'); return; }
+      const decl = re.exec(V54[file]);
+      if (!decl) { F54('读不到 ' + name + ' 的脏检查名单声明：名单没了，「打了一半」就无从判起'); return; }
+      const listed = (decl[1].match(/'([^']+)'/g) || []).map(x => x.slice(1, -1));
+      const ctls = CTL54(body).filter(c => c.type !== 'file');   /* 选文件那种框是另一个控件开的，它自己的 onchange 就改了状态 */
+      const miss = ctls.filter(c => listed.indexOf(c.id) < 0).map(c => c.id);
+      const ghost = listed.filter(id => !ctls.some(c => c.id === id));
+      if (miss.length) F54(name + ' 里这些输入框不在脏检查名单上（' + miss.join('、') + '）：在那一格打的字一句不问就没——这一层的返回键守卫等于只守了半个层');
+      if (ghost.length) F54(name + ' 的名单里有框不在场（' + ghost.join('、') + '）：框被删了而读数还留着，判脏就会永远脏、每关一次都白拦一道');
+      if (!ctls.length) F54(name + ' 一层里没读到任何输入框（现读 ' + ctls.length + '）：取样分母是空的，上面那两个 0 不算证据');
+    });
+  }
+
+  /* ③(d) 可读带单点：三段函数都从 geo() 读数，且实测像素一个也不许写进代码 */
+  {
+    const PX54 = /\b(318|494|176|557|619|639|709|917|1162|1406|1650|1786)\b/;
+    if (!PX54.test('var y=557-63;')) F54('写死像素那把刀自校准失准（合成一句应被抓到）：抓不到就说明下面那个 0 是空判据');
+    ['function geo(){', 'function bandAt(y){', 'function focusCard(el){'].forEach(mark => {
+      const b = body54('story.html', mark);
+      if (b === null) { F54('读不到 story.html 里「' + mark + '」的函数体：这一支失明，③(d) 不作数'); return; }
+      const hit = PX54.exec(b);
+      if (hit) F54('story.html 的「' + mark + '」里写进了实测像素 ' + hit[0] + '：这批数（地图 318／带 494／浮条 557–619）是 328×723 那一档量出来的，换一台机器、装了导航栏、字体缩放一档就全错');
+      if (mark === 'function focusCard(el){') {
+        ['g.mp', 'g.barH', 'g.navTop'].forEach(k => { if (b.indexOf(k) < 0) F54('focusCard 没读 ' + k + '：落点自己另算一套带的边界，就会与 spy 判的那一套分家'); });
+      }
+      if (mark === 'function bandAt(y){' && b.indexOf('Math.max(g.mp-y,0)') < 0) F54('bandAt 的顶缘不再走 Math.max(g.mp-y,0)：滚动态接缝没了，地图让开之前那条带会被算短一截');
+    });
+    const spy = body54('story.html', 'function onScroll(){');
+    if (spy === null) F54('读不到 story.html 里 onScroll 的函数体：③(d) 这一支失明');
+    else {
+      if (spy.indexOf('window.innerHeight') >= 0) F54('scroll-spy 又拿整屏高度当尺子：整屏正中上下各有一条带压着，判出来的「当前这一篇」会是压在浮条底下的那一篇');
+      if (spy.indexOf('bandAt(') < 0 || spy.indexOf('bd.top') < 0) F54('scroll-spy 不再读 bandAt 的带中心：落点与判据分家，翻页刚落定就被判给邻站');
+    }
+  }
+
+  /* ④ 三条常驻腿齐备检 + 条数守卫 + 循环上限对账 */
+  {
+    const LEGS54 = [
+      ['tools/smoke-story-landing.js', 'L', 11, "ok('L12'"],
+      ['tools/smoke-planner-touch.js', 'T', 14, "ok('T15'"],
+      ['tools/smoke-layer-back.js', 'B', 23, "ok('B24'"],
+    ];
+    LEGS54.forEach(g => {
+      const [f, pre, last, guard] = g;
+      const S = V54[f];
+      for (let i = 0; i <= last; i++) {
+        const lab = "ok('" + pre + (i < 10 ? '0' : '') + i + "'";
+        if (cnt54(S, lab) !== 1) F54(f + ' 里 ' + pre + (i < 10 ? '0' : '') + i + ' 这条判据不是恰 1 处（实得 ' + cnt54(S, lab) +
+          '）：这一节断的是「可读带落点」「触控地板」「返回键有人接」，删一条就少一个证据；编号必须是字面量，写成算式本节就数不到它');
+      }
+      if (cnt54(S, guard) !== 1) F54(f + ' 少了最后那条条数守卫（' + guard + '）：腿是顺序跑的，中间抛了＝后面的判据一条没执行，那种「全绿」是空转出来的');
+      const LAB = S.match(new RegExp("ok\\('" + pre + "(\\d+)'", 'g')) || [];
+      const MAXN = LAB.reduce((m2, s) => Math.max(m2, Number(new RegExp(pre + '(\\d+)').exec(s)[1])), 0);
+      if (last !== MAXN - 1) F54('④ 齐备检给 ' + f + ' 登记的循环上限是 ' + last + '，而这条腿里真实最大编号是 ' + pre + MAXN +
+        '：差一格就是有那条判据没人守（收窄一格就少守一条，而且它自己永远不会红）');
+      if (!LAB.length) F54(f + ' 里一条 ok() 判据都没数到（现读 ' + LAB.length + '）：这条腿的形状变了，齐备检当场失明');
+    });
+  }
+
+  if (V54['README.md'].indexOf('§54') < 0) F54('README.md 的 verify 清单没提 §54（新闸门不写进 README 就等于没装）');
+  ['tools/smoke-story-landing.js', 'tools/smoke-planner-touch.js', 'tools/smoke-layer-back.js'].forEach(f => {
+    if (V54['README.md'].indexOf(f.replace('tools/', '')) < 0) F54('README.md 没登记 ' + f + ' 这条腿');
+  });
+
+  console.log('可读带・触控第三写法・物理返回键闸门: ' + A54.length + ' 条代码锚点（story 的 geo/bandAt/focusCard 三段单点 + 两档落点式子 + spy 同带／planner 本页地板回 44 + 行宽让位 + 可逆那一档留 30 + 两种例外的声明／design.css 的 mv-del 与 btn.mini 单点／planner.js 内联只剩字号 + 两枚可达名／node-manager 与 results 的压条目-脏检查-摘层收条目三件套 + 机器填的那格补基线／travel-notes 面板的 panelPushed 打头判与不抢编辑屏那一发／三条腿的屏档、埋点与条数守卫）+ ' + ZERO54.length + ' 族期望 0（scrollIntoView 与整屏比例那两处／42 的地板／28px 左内衬／28 高的「记一笔」／内联 min-height 那第三种写法／两扇裸关的门／panelPushed 不打头那一版）各配改前原串正向对照 + 四把内置扫描（触控三写法：内联刀先喂改前那行自校准、分母带现场 ' + 'style="' + ' 计数，mv/mini 的尺寸只许一个声明处，44 例外恰两枚；历史条目：全仓 pushState 键穷举与登记表双向对账 + 每层「绑几次收几次 + 收条目几处」的配对，先拿合规串与裸 remove 串各校准一次；脏检查名单：与层内真控件双向对账，file 那一格豁免、空分母即红，刀先喂合成四框一 div 自校准；可读带：三段函数体里实测像素归零，先拿一句写死 557 的合成串校准，focusCard 三个数都要读、spy 不许碰 innerHeight）+ 三条腿 L00–L11／T00–T14／B00–B23 齐备检与条数守卫（守卫表达式 total>=12／>=15／>=24 由 A54 钉住，循环上限由 ④ 现场对账）');
+  fail += bad54;
 }
 
 

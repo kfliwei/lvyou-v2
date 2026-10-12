@@ -1481,6 +1481,17 @@ body .tn-more>summary{min-height:44px}
    一并收到这里。注入串是运行时 append 的，永远晚于本文件，所以同特异度时它赢；
    这一条必须带 `body` 前缀才压得住。 */
 body .ob-skip,body .ob-btn{min-height:44px}
+/* 排期日卡站点行（批次 39-C）：这两档尺寸从前只在 planner.html 页内写，而页内 <style> 晚于本文件
+   加载——「导航」那颗更是直接内联 min-height:30px 把上面 .btn 的地板盖掉（第三种写法，CSS 管不住它）。
+   实测低于地板的：.mv 30×30 二十枚、「导航」75×30 五枚、出行态「记一笔」54×28 五枚
+   （tools/out/b39-probe-backlog.txt:75、:86）。口径照本文件上面那段：破坏性/高频给 44，可逆的轻操作留在 30——
+   所以只有「移除这一站」抬，上移/下移/锁定不动（与 planner.html:162 那颗「删掉一笔开销」同款例外）。
+   行宽要一起让位：出行态这一行改前已挤出盒外 20px，四颗一起抬会到 76px、日卡横向溢出 49px（实测 :91–:96），
+   所以 planner.html 那 28px 左内衬同时让掉，尺寸只从这里读。 */
+.stop-acts .mv.mv-del{width:44px;height:44px;display:inline-grid;place-items:center}
+/* 「记一笔」的内衬也从这里读：页内那条 `.btn` 把左右内衬写成 18px，mini 只降字号不降内衬就会把这一行
+   再撑宽 8px（实测挤出盒外从 6 变 20）。尺寸/内衬同源，页内 <style> 只留字号。 */
+.stop-acts .btn.mini{min-height:44px;padding:0 6px}
 /* 36px 一族：地图上浮控件，允许低于 44，理由见上面的口径 */
 /* `margin:0 auto` 不是装饰：玻璃柱的**宽**是各页自己写的（travel-map 44／map.css 40），
    钮的尺寸在这里点名成 36，两边没人对账时钮贴左、柱子右侧空一条（实测留白 0/8 与 0/4）。
